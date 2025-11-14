@@ -1,24 +1,22 @@
+import { useAuth } from "../contexts/AuthContext";
 import {
-  Avatar,
   Box,
-  Button,
   Card,
   Container,
   Grid,
   Heading,
-  HStack,
-  SimpleGrid,
   Stack,
-  Strong,
   Text,
 } from "@chakra-ui/react";
 import React from "react";
 
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
+
   return (
     <Container>
       <Heading mt="6" ml="10">
-        Bonjour Corentin,
+        Bonjour {user?.name || "Utilisateur"},
       </Heading>
 
       <Grid

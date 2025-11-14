@@ -1,7 +1,17 @@
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { Box, Grid } from "@chakra-ui/react";
 
 const RootLayout: React.FC = () => {
+  const location = useLocation();
+
+  // Vérifier si le token est présent
+  const token = localStorage.getItem("id_token");
+  const isAuthenticated = !!token;
+
+  if (!isAuthenticated && location.pathname !== "/login") {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
   return (
     <Grid
       bg={"bg.muted"}
