@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Heading, Spinner } from "@chakra-ui/react";
-import api from "../config/api";
+import api from "@/config/api";
 
 type User = {
   _id: string;

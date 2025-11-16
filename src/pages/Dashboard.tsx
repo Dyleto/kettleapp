@@ -1,4 +1,4 @@
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Box,
   Card,
@@ -16,7 +16,7 @@ const Dashboard: React.FC = () => {
   return (
     <Container>
       <Heading mt="6" ml="10">
-        Bonjour {user?.name || "Utilisateur"},
+        Bonjour {user?.firstName || "Utilisateur"},
       </Heading>
 
       <Grid

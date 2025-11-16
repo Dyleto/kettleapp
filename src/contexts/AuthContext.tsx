@@ -1,10 +1,13 @@
-import api from "../config/api";
+import api from "@/config/api";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  isAdmin: boolean;
+  picture?: string;
 }
 
 interface AuthContextType {
@@ -12,6 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   logout: () => void;
+  setUser: (user: User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,11 +36,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           setIsLoading(false);
           return;
         }
-
-        const response = await api.get<{ user: User }>("/api/auth/me");
-        setUser(response.data.user);
-
-        localStorage.setItem("user", JSON.stringify(response.data.user));
       } catch (error) {
         console.error("Error checking auth:", error);
 
@@ -60,6 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     isAuthenticated: !!user,
     isLoading,
     logout,
+    setUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

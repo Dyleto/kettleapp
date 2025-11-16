@@ -8,7 +8,8 @@ import Users from "./pages/Users";
 import Dashboard from "./pages/Dashboard";
 import RootLayout from "./layouts/RootLayout";
 import Login from "./pages/Login";
-import { Center, Spinner } from "@chakra-ui/react";
+import AdminLayout from "./layouts/AdminLayout";
+import AdminCreateCoach from "./pages/Admin/CreateCoach";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -16,6 +17,11 @@ const router = createBrowserRouter(
       <Route path="login" element={<Login />} />
       <Route index element={<Dashboard />} />
       <Route path="users" element={<Users />} />
+
+      {/* Routes Admin */}
+      <Route path="admin" element={<AdminLayout />}>
+        <Route path="create-coach" element={<AdminCreateCoach />} />
+      </Route>
     </Route>
   )
 );

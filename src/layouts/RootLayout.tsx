@@ -1,14 +1,16 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Box, Grid } from "@chakra-ui/react";
+import { Box, Grid, Spinner } from "@chakra-ui/react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
+  const { user, isLoading } = useAuth();
 
-  // Vérifier si le token est présent
-  const token = localStorage.getItem("id_token");
-  const isAuthenticated = !!token;
+  const publicRoutes = ["/login"];
 
-  if (!isAuthenticated && location.pathname !== "/login") {
+  if (isLoading) return <Spinner />;
+
+  if (!user && !publicRoutes.includes(location.pathname)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

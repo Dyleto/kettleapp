@@ -1,10 +1,12 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import api from "../config/api";
+import api from "@/config/api";
 import { useCallback, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useGoogleOAuth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { setUser } = useAuth();
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
   const redirectUri = `${window.location.origin}/login`;
 
@@ -51,6 +53,8 @@ export function useGoogleOAuth() {
           response.data.token || response.data.idToken
         );
         localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        setUser(response.data.user);
 
         // Nettoyer
         localStorage.removeItem("google_oauth_state");
