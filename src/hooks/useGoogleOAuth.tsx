@@ -1,12 +1,6 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
-import api from "@/config/api";
-import { useCallback, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCallback } from "react";
 
 export function useGoogleOAuth() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { setUser } = useAuth();
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
   const redirectUri = `${window.location.origin}/auth/callback`;
 

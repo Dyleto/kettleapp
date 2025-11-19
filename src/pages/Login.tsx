@@ -1,23 +1,10 @@
-// src/pages/Login.tsx
-import { FcGoogle } from "react-icons/fc";
-import { useGoogleOAuth } from "@/hooks/useGoogleOAuth";
-import {
-  Box,
-  Button,
-  Container,
-  Heading,
-  Icon,
-  Spinner,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Container, Heading, Spinner, Text, VStack } from "@chakra-ui/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
 
 const Login: React.FC = () => {
-  const { loginWithGoogle } = useGoogleOAuth();
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
 

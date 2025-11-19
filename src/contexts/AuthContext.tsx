@@ -1,3 +1,4 @@
+import api from "@/config/api";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
@@ -30,16 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const userJson = localStorage.getItem("user");
-
-        if (userJson) {
-          setUser(JSON.parse(userJson));
-          setIsLoading(false);
-          return;
-        }
+        const response = await api.get("/api/auth/me");
+        setUser(response.data.user);
       } catch (error) {
-        console.error("Error checking auth:", error);
-
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -49,10 +43,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     checkAuth();
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem("id_token");
-    localStorage.removeItem("user");
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post("api/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setUser(null);
+    }
   };
 
   const value: AuthContextType = {

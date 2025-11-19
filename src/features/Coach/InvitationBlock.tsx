@@ -1,14 +1,17 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { Box, Button, Heading, useClipboard } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 import { useState } from "react";
 
+const MINIMUM_LOADING_TIME_MS = 500;
+const DISPLAY_COPIED_TIME_MS = 1500;
+
 const InvitationBlock = () => {
-  const [invitationLink, setInvitationLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleGenerateInvitation = async () => {
+    const startTime = Date.now();
     setLoading(true);
     try {
       const response = await api.post("/api/coach/generate-invitation");
@@ -16,9 +19,15 @@ const InvitationBlock = () => {
 
       navigator.clipboard.writeText(invitationLink);
 
-      setCopied(true);
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, MINIMUM_LOADING_TIME_MS - elapsedTime);
 
-      setTimeout(() => setCopied(false), 3000);
+      setTimeout(() => {
+        setLoading(false);
+        setCopied(true);
+
+        setTimeout(() => setCopied(false), DISPLAY_COPIED_TIME_MS);
+      }, remainingTime);
     } catch (error) {
       console.log("Error generating invitation link:", error);
       toaster.create({
@@ -27,22 +36,29 @@ const InvitationBlock = () => {
           "Une erreur est survenue lors de la génération du lien d'invitation.",
         type: "error",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <Box w="100%">
-      <Button
-        colorPalette={copied ? "green" : "yellow"}
-        onClick={handleGenerateInvitation}
-        loading={loading}
-        pointerEvents={copied ? "none" : "auto"}
-      >
-        {copied ? "✓ Copié !" : "Copier un lien d'invitation"}
-      </Button>
-    </Box>
+    <Button
+      bg={copied ? "green.400" : "yellow.400"}
+      color="fg.inverted"
+      _hover={{
+        bg: copied ? "green.500" : "yellow.500",
+        transform: "translateY(-2px)",
+        boxShadow: "md",
+      }}
+      _active={{
+        bg: copied ? "green.600" : "yellow.600",
+        boxShadow: "sm",
+      }}
+      onClick={handleGenerateInvitation}
+      loading={loading}
+      pointerEvents={copied ? "none" : "auto"}
+      width="15em"
+    >
+      {copied ? "✓ Copié !" : "Copier un lien d'invitation"}
+    </Button>
   );
 };
 

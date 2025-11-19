@@ -1,5 +1,6 @@
 import GoogleLoginButton from "@/components/GoogleLoginButton";
 import api from "@/config/api";
+import { Coach } from "@/types";
 import {
   Button,
   Container,
@@ -13,18 +14,11 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 
 type TokenStatus = "loading" | "valid" | "invalid" | "expired" | "error";
 
-interface CoachInfo {
-  id: string;
-  firstName: string;
-  lastName: string;
-  picture: string;
-}
-
 const Join = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<TokenStatus>("loading");
-  const [coachInfo, setCoachInfo] = useState<CoachInfo | null>(null);
+  const [coach, setCoach] = useState<Coach | null>(null);
 
   const invitationToken = searchParams.get("token") as string | undefined;
 
@@ -40,7 +34,7 @@ const Join = () => {
         const response = await api.get(
           `/api/auth/verify-invite-token?token=${invitationToken}`
         );
-        setCoachInfo(response.data.coach);
+        setCoach(response.data.coach);
         setStatus("valid");
       } catch (error: any) {
         switch (error.response?.status) {
@@ -70,21 +64,8 @@ const Join = () => {
         return (
           <VStack gap={6} maxW="md" w="100%">
             <Heading>
-              Vous avez été invité par {coachInfo?.firstName}{" "}
-              {coachInfo?.lastName}
+              Vous avez été invité par {coach?.firstName} {coach?.lastName}
             </Heading>
-
-            {/* <VStack gap={3} w="100%">
-              <Button
-                w="100%"
-                h="12"
-                colorPalette="yellow"
-                fontSize="md"
-                onClick={handleAccept}
-              >
-                Accepter et rejoindre
-              </Button>
-            </VStack> */}
 
             <VStack gap={3} w="100%">
               <Text fontSize="sm" color="fg.muted">

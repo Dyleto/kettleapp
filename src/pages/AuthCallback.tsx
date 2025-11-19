@@ -31,8 +31,6 @@ const AuthCallback = () => {
         }
 
         // Sauvegarder
-        localStorage.setItem("id_token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
         setUser(response.data.user);
 
         // Confirmer la session

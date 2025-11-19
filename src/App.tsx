@@ -4,17 +4,15 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import Users from "./pages/Users";
-import Dashboard from "./pages/Dashboard";
 import RootLayout from "./layouts/RootLayout";
 import Login from "./pages/Login";
 import AdminCreateCoach from "./pages/Admin/CreateCoach";
 import AuthCallback from "./pages/AuthCallback";
-import SelectRole from "./pages/SelectRole";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import ClientDashboard from "./pages/Client/Dashboard";
 import CoachDashboard from "./pages/Coach/Dashboard";
 import Join from "./pages/Join";
+import ClientDetails from "./pages/Coach/ClientDetails";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -23,12 +21,10 @@ const router = createBrowserRouter(
       <Route path="auth/callback" element={<AuthCallback />} />
       <Route path="join" element={<Join />} />
 
-      <Route path="select-role" element={<SelectRole />} />
-
       <Route path="coach" element={<CoachDashboard />} />
+
+      <Route path="coach/clients/:clientId" element={<ClientDetails />} />
       <Route path="client" element={<ClientDashboard />} />
-      <Route index element={<Dashboard />} />
-      <Route path="users" element={<Users />} />
 
       {/* Routes Admin */}
       <Route path="admin">
