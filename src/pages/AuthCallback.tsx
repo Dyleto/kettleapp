@@ -45,7 +45,10 @@ const AuthCallback = () => {
 
         // Rediriger
         setTimeout(() => {
-          navigate("/select-role", { replace: true });
+          if (response.data.user.isCoach) navigate("/coach", { replace: true });
+          else if (response.data.user.isAdmin)
+            navigate("/admin", { replace: true });
+          else navigate("/client", { replace: true });
         }, remainingTime);
       } catch (error) {
         console.error("Google OAuth callback error:", error);
