@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import GoogleLoginButton from "@/components/GoogleLoginButton";
 
 const Login: React.FC = () => {
   const { loginWithGoogle } = useGoogleOAuth();
@@ -42,32 +43,7 @@ const Login: React.FC = () => {
         </VStack>
 
         {/* Bouton Google stylisé */}
-        <Button
-          w="100%"
-          h="14"
-          fontSize="md"
-          fontWeight="600"
-          bg="white"
-          color="gray.800"
-          border="2px solid"
-          borderColor="gray.200"
-          onClick={() => loginWithGoogle()}
-          _hover={{
-            bg: "gray.50",
-            borderColor: "gray.300",
-            shadow: "md",
-            transform: "translateY(-2px)",
-            transition: "all 0.3s ease",
-          }}
-          _active={{
-            transform: "translateY(0px)",
-          }}
-          borderRadius="xl"
-          transition="all 0.3s ease"
-          boxShadow="sm"
-        >
-          <Icon as={FcGoogle} boxSize="6" /> Continuer avec Google
-        </Button>
+        <GoogleLoginButton text="Continuer avec Google" />
       </VStack>
     </Container>
   );

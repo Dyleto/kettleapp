@@ -6,7 +6,7 @@ const RootLayout: React.FC = () => {
   const location = useLocation();
   const { user, isLoading } = useAuth();
 
-  const publicRoutes = ["/login"];
+  const publicRoutes = ["/login", "/auth/callback", "/join"];
 
   if (isLoading) return <Spinner />;
 

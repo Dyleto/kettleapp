@@ -1,4 +1,3 @@
-import api from "@/config/api";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface User {
@@ -6,8 +5,10 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  isAdmin: boolean;
   picture?: string;
+  isAdmin: boolean;
+  isCoach: boolean;
+  isClient: boolean;
 }
 
 interface AuthContextType {
