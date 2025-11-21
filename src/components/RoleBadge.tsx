@@ -14,15 +14,15 @@ interface RoleBadgeProps {
 
 const roleConfig = {
   coach: {
-    label: "Mode Coach",
+    label: "Coach",
     icon: LuClipboardCheck,
   },
   client: {
-    label: "Mode Client",
+    label: "Client",
     icon: LuDumbbell,
   },
   admin: {
-    label: "Mode Admin",
+    label: "Admin",
     icon: LuWrench,
   },
 };

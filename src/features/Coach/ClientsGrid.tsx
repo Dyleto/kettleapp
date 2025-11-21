@@ -159,10 +159,6 @@ export const ClientsGrid = () => {
 
   return (
     <Box w="100%">
-      <Heading size="lg" mb={6}>
-        Vos Clients
-      </Heading>
-
       <Grid
         templateColumns={{
           base: "1fr",

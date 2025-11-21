@@ -57,7 +57,7 @@ const InvitationBlock = () => {
       pointerEvents={copied ? "none" : "auto"}
       width="15em"
     >
-      {copied ? "✓ Copié !" : "Copier un lien d'invitation"}
+      {copied ? "✓ Lien copié !" : "Copier le lien d'invitation"}
     </Button>
   );
 };

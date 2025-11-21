@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isPublicRoute } from "@/config/routes";
 import { Header } from "@/components/Header";
 import { RoleBadge } from "@/components/RoleBadge";
+import { getDefaultRoleRoute } from "@/utils/navigation";
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
@@ -13,6 +14,10 @@ const RootLayout: React.FC = () => {
 
   if (!user && !isPublicRoute(location.pathname)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (user && location.pathname === "/") {
+    return <Navigate to={getDefaultRoleRoute(user)} replace />;
   }
 
   const hasMultipleRoles =

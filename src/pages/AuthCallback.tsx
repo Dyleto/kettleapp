@@ -1,5 +1,6 @@
 import api from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDefaultRoleRoute } from "@/utils/navigation";
 import { Box, Heading, Spinner, VStack } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -45,10 +46,7 @@ const AuthCallback = () => {
 
         // Rediriger
         setTimeout(() => {
-          if (response.data.user.isCoach) navigate("/coach", { replace: true });
-          else if (response.data.user.isAdmin)
-            navigate("/admin", { replace: true });
-          else navigate("/client", { replace: true });
+          navigate(getDefaultRoleRoute(response.data.user), { replace: true });
         }, remainingTime);
       } catch (error) {
         console.error("Google OAuth callback error:", error);
