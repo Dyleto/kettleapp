@@ -1,6 +1,6 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { Box, Button } from "@chakra-ui/react";
+import { Button, useClipboard } from "@chakra-ui/react";
 import { useState } from "react";
 
 const MINIMUM_LOADING_TIME_MS = 500;
@@ -17,7 +17,8 @@ const InvitationBlock = () => {
       const response = await api.post("/api/coach/generate-invitation");
       const invitationLink = `${window.location.origin}/join?token=${response.data.token}`;
 
-      navigator.clipboard.writeText(invitationLink);
+      const copy = useClipboard({ value: invitationLink });
+      copy.copy();
 
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, MINIMUM_LOADING_TIME_MS - elapsedTime);
