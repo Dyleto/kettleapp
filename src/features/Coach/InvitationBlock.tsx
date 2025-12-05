@@ -1,7 +1,8 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { Button, useClipboard } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 import { useState } from "react";
+import copy from "copy-to-clipboard";
 
 const MINIMUM_LOADING_TIME_MS = 500;
 const DISPLAY_COPIED_TIME_MS = 1500;
@@ -10,16 +11,6 @@ const InvitationBlock = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const copyToClipboard = async (text: string): Promise<void> => {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch (err) {
-        console.log("Clipboard API failed, trying fallback");
-      }
-    }
-  };
-
   const handleGenerateInvitation = async () => {
     const startTime = Date.now();
     setLoading(true);
@@ -27,7 +18,11 @@ const InvitationBlock = () => {
       const response = await api.post("/api/coach/generate-invitation");
       const invitationLink = `${window.location.origin}/join?token=${response.data.token}`;
 
-      await copyToClipboard(invitationLink);
+      const success = copy(invitationLink);
+
+      if (!success) {
+        throw new Error("Failed to copy to clipboard");
+      }
 
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, MINIMUM_LOADING_TIME_MS - elapsedTime);
@@ -39,6 +34,7 @@ const InvitationBlock = () => {
         setTimeout(() => setCopied(false), DISPLAY_COPIED_TIME_MS);
       }, remainingTime);
     } catch (error) {
+      setLoading(false);
       console.log("Error generating invitation link:", error);
       toaster.create({
         title: "Erreur",
