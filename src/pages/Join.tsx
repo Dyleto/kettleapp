@@ -123,7 +123,7 @@ const Join = () => {
               borderColor="yellow.400"
               borderWidth="1px"
               width="50vw"
-              opacity={0.5}
+              // opacity={0.5}
             />
           </VStack>
 

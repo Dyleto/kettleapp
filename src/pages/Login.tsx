@@ -42,7 +42,7 @@ const Login: React.FC = () => {
               borderColor="yellow.400"
               borderWidth="1px"
               width="50vw"
-              opacity={0.7}
+              // opacity={0.7}
             />
             <Text color="fg.muted" fontSize="md">
               Votre application de coaching personnel
