@@ -27,7 +27,6 @@ const CoachDashboard = () => {
         {/* En-tête avec titre + bouton */}
         <Box w="100%">
           <VStack gap={4} align="stretch">
-            <Heading size="xl">Mes Clients</Heading>
             <VStack align="center">
               <Text color="fg.muted">
                 Partagez le lien d'invitation pour ajouter un nouveau client

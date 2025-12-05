@@ -1,33 +1,30 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { Button, Clipboard, Skeleton, useClipboard } from "@chakra-ui/react";
+import { useMinimumLoading } from "@/hooks/useMinimulLoading";
+import { Button, Skeleton, useClipboard } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 const InvitationBlock = () => {
-  const [loading, setLoading] = useState(true);
   const [invitationLink, setInvitationLink] = useState("");
+  const { loading, executeWithMinimumLoading } = useMinimumLoading();
   const clipboard = useClipboard({ value: invitationLink, timeout: 1500 });
 
-  const fetchInvitationLink = async () => {
-    setLoading(true);
-    try {
-      const response = await api.post("/api/coach/generate-invitation");
-      const link = `${window.location.origin}/join?token=${response.data.token}`;
-      setInvitationLink(link);
-    } catch (error) {
-      console.log("Error fetching invitation link:", error);
-      toaster.create({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la récupération du lien.",
-        type: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchInvitationLink();
+    executeWithMinimumLoading(async () => {
+      try {
+        const response = await api.post("/api/coach/generate-invitation");
+        const link = `${window.location.origin}/join?token=${response.data.token}`;
+        setInvitationLink(link);
+      } catch (error) {
+        console.log("Error fetching invitation link:", error);
+        toaster.create({
+          title: "Erreur",
+          description:
+            "Une erreur est survenue lors de la récupération du lien.",
+          type: "error",
+        });
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -35,7 +32,7 @@ const InvitationBlock = () => {
   }, [invitationLink]);
 
   if (loading || !invitationLink) {
-    return <Skeleton height="40px" width="15em" />;
+    return <Skeleton height="40px" width="13.3em" />;
   }
 
   return (

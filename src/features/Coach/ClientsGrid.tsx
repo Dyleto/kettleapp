@@ -1,20 +1,17 @@
-import api from "@/config/api";
 import { Client } from "@/types";
 import {
   Avatar,
   Box,
   Card,
   Grid,
-  Heading,
-  Skeleton,
   SkeletonCircle,
   SkeletonText,
-  Spinner,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMinimumLoading } from "@/hooks/useMinimulLoading";
 
 const MOCK_CLIENTS: Client[] = [
   {
@@ -81,43 +78,22 @@ const MOCK_CLIENTS: Client[] = [
   },
 ];
 
-const MINIMUM_LOADING_TIME_IN_MS = 300;
-
 export const ClientsGrid = () => {
   const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { loading, executeWithMinimumLoading } = useMinimumLoading();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const startTime = Date.now();
-
-      try {
-        // const response = await api.get("/api/coach/clients");
-        // setClients(response.data);
-        setClients(MOCK_CLIENTS);
-      } catch (error) {
-        console.error("Error fetching clients:", error);
-      } finally {
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(
-          0,
-          MINIMUM_LOADING_TIME_IN_MS - elapsedTime
-        );
-
-        setTimeout(() => {
-          setLoading(false);
-        }, remainingTime);
-      }
-    };
-
-    fetchClients();
+    executeWithMinimumLoading(async () => {
+      // const response = await api.get("/api/coach/clients");
+      // setClients(response.data);
+      setClients(MOCK_CLIENTS);
+    });
   }, []);
 
   if (loading) {
     return (
       <Box w="100%">
-        <SkeletonText height="28px" noOfLines={1} width="100px" mb={6} />
         <Grid
           templateColumns={{
             base: "1fr",

@@ -8,6 +8,8 @@ import {
   Spinner,
   VStack,
   Text,
+  Separator,
+  Box,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -78,10 +80,12 @@ const Join = () => {
       case "expired":
         return (
           <VStack gap={4} maxW="md" w="100%">
-            <Heading color="red.500">Lien d'invitation expiré</Heading>
-            <Text color="fg.muted">
-              Ce lien d'invitation n'est plus valide. Demandez un nouveau lien à
-              votre coach.
+            <Heading color="red.400">Lien d'invitation expiré</Heading>
+            <Text color="fg.muted" textAlign="center">
+              Ce lien d'invitation n'est plus valide.
+            </Text>
+            <Text color="fg.muted" textAlign="center">
+              Demandez un nouveau lien à votre coach.
             </Text>
           </VStack>
         );
@@ -89,7 +93,7 @@ const Join = () => {
       case "invalid":
         return (
           <VStack gap={6} maxW="md" w="100%">
-            <Heading color="red.500">Lien d'invitation invalide</Heading>
+            <Heading color="red.400">Lien d'invitation invalide</Heading>
             <Text color="fg.muted">
               Le lien que vous avez cliqué n'existe pas ou est incorrect.
             </Text>
@@ -102,16 +106,31 @@ const Join = () => {
   };
 
   return (
-    <Container
-      maxW="container.md"
-      py={8}
-      h="100vh"
+    <Box
       display="flex"
       alignItems="center"
       justifyContent="center"
+      minH="100vh"
     >
-      {getContent()}
-    </Container>
+      <Container centerContent py={20}>
+        <VStack gap={16} w="100%" maxW="md">
+          {/* Header */}
+          <VStack gap={4} textAlign="center">
+            <Heading size="7xl" fontWeight="bold" letterSpacing="10px">
+              KETTLE
+            </Heading>
+            <Separator
+              borderColor="yellow.400"
+              borderWidth="1px"
+              width="50vw"
+              opacity={0.5}
+            />
+          </VStack>
+
+          {getContent()}
+        </VStack>
+      </Container>
+    </Box>
   );
 };
 
