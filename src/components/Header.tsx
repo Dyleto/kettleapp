@@ -21,6 +21,9 @@ export const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const roles = [user?.isClient, user?.isCoach, user?.isAdmin].filter(Boolean);
+  const hasMultipleRoles = roles.length > 1;
+
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
@@ -93,44 +96,47 @@ export const Header = () => {
               <Portal>
                 <Menu.Positioner>
                   <Menu.Content>
-                    {user?.isClient && (
-                      <Menu.Item
-                        value="change-client"
-                        cursor="pointer"
-                        onClick={handleSwitchClientView}
-                      >
-                        <HStack gap={2}>
-                          <LuDumbbell /> <Text>Vue Client</Text>
-                        </HStack>
-                      </Menu.Item>
-                    )}
-                    {user?.isCoach && (
-                      <Menu.Item
-                        value="change-coach"
-                        cursor="pointer"
-                        onClick={handleSwitchCoachView}
-                      >
-                        <HStack gap={2}>
-                          <LuClipboardCheck /> <Text>Vue Coach</Text>
-                        </HStack>
-                      </Menu.Item>
-                    )}
-                    {user?.isAdmin && (
-                      <Menu.Item
-                        value="change-admin"
-                        cursor="pointer"
-                        onClick={handleSwitchAdminView}
-                      >
-                        <HStack gap={2}>
-                          <LuWrench /> <Text>Vue Admin</Text>
-                        </HStack>
-                      </Menu.Item>
-                    )}
+                    {hasMultipleRoles && (
+                      <>
+                        {user?.isClient && (
+                          <Menu.Item
+                            value="change-client"
+                            cursor="pointer"
+                            onClick={handleSwitchClientView}
+                          >
+                            <HStack gap={2}>
+                              <LuDumbbell /> <Text>Vue Client</Text>
+                            </HStack>
+                          </Menu.Item>
+                        )}
+                        {user?.isCoach && (
+                          <Menu.Item
+                            value="change-coach"
+                            cursor="pointer"
+                            onClick={handleSwitchCoachView}
+                          >
+                            <HStack gap={2}>
+                              <LuClipboardCheck /> <Text>Vue Coach</Text>
+                            </HStack>
+                          </Menu.Item>
+                        )}
+                        {user?.isAdmin && (
+                          <Menu.Item
+                            value="change-admin"
+                            cursor="pointer"
+                            onClick={handleSwitchAdminView}
+                          >
+                            <HStack gap={2}>
+                              <LuWrench /> <Text>Vue Admin</Text>
+                            </HStack>
+                          </Menu.Item>
+                        )}
 
-                    {(user?.isClient || user?.isCoach || user?.isAdmin) && (
-                      <Menu.Separator />
+                        {(user?.isClient || user?.isCoach || user?.isAdmin) && (
+                          <Menu.Separator />
+                        )}
+                      </>
                     )}
-
                     <Menu.Item
                       value="logout"
                       onClick={handleLogout}
