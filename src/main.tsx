@@ -6,7 +6,7 @@ import { Toaster } from "./components/ui/toaster.js";
 import { ErrorHandler } from "./components/ErrorHandler.js";
 
 ReactDOM.createRoot(document.getElementById("root")! as HTMLElement).render(
-  <Provider>
+  <Provider forcedTheme="dark">
     <Toaster />
     <ErrorHandler />
     <AuthProvider>

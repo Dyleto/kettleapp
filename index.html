@@ -1,7 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" translate="no">
   <head>
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="dark only" />
+
+    <style>
+      :root {
+        color-scheme: dark only;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #18181b !important;
+        min-height: 100vh;
+      }
+
+      /* Empêcher le light mode */
+      @media (prefers-color-scheme: light) {
+        html,
+        body {
+          background-color: #18181b !important;
+        }
+      }
+    </style>
 
     <!-- Favicons -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -38,16 +60,6 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.kettleapp.fr" />
-
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: #18181b;
-        min-height: 100vh;
-      }
-    </style>
 
     <title>Kettle</title>
   </head>
