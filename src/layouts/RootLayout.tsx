@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Box, Grid, Spinner } from "@chakra-ui/react";
+import { Box, Grid, Spinner, VStack } from "@chakra-ui/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPublicRoute } from "@/config/routes";
 import { Header } from "@/components/Header";
@@ -10,7 +10,20 @@ const RootLayout: React.FC = () => {
   const location = useLocation();
   const { user, isLoading } = useAuth();
 
-  if (isLoading) return <Spinner />;
+  if (isLoading)
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minH="100vh"
+        bg="bg.muted"
+      >
+        <VStack gap={4}>
+          <Spinner size="xl" color="yellow.400" />
+        </VStack>
+      </Box>
+    );
 
   if (!user && !isPublicRoute(location.pathname)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
