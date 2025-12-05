@@ -10,6 +10,16 @@ const InvitationBlock = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const copyToClipboard = async (text: string): Promise<void> => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        console.log("Clipboard API failed, trying fallback");
+      }
+    }
+  };
+
   const handleGenerateInvitation = async () => {
     const startTime = Date.now();
     setLoading(true);
@@ -17,8 +27,7 @@ const InvitationBlock = () => {
       const response = await api.post("/api/coach/generate-invitation");
       const invitationLink = `${window.location.origin}/join?token=${response.data.token}`;
 
-      const copy = useClipboard({ value: invitationLink });
-      copy.copy();
+      await copyToClipboard(invitationLink);
 
       const elapsedTime = Date.now() - startTime;
       const remainingTime = Math.max(0, MINIMUM_LOADING_TIME_MS - elapsedTime);
