@@ -70,7 +70,7 @@ const AuthCallback = () => {
       bg="bg.muted"
     >
       <VStack gap={4}>
-        <Spinner size="xl" color="blue.500" />
+        <Spinner size="xl" color="yellow.400" />
         <Heading size="md">Connexion en cours...</Heading>
       </VStack>
     </Box>
