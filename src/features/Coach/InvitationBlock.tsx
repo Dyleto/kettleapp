@@ -1,69 +1,61 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { Button } from "@chakra-ui/react";
-import { useState } from "react";
-import copy from "copy-to-clipboard";
-
-const MINIMUM_LOADING_TIME_MS = 500;
-const DISPLAY_COPIED_TIME_MS = 1500;
+import { Button, Clipboard, Skeleton, useClipboard } from "@chakra-ui/react";
+import { useEffect, useState } from "react";
 
 const InvitationBlock = () => {
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [invitationLink, setInvitationLink] = useState("");
+  const clipboard = useClipboard({ value: invitationLink, timeout: 1500 });
 
-  const handleGenerateInvitation = async () => {
-    const startTime = Date.now();
+  const fetchInvitationLink = async () => {
     setLoading(true);
     try {
       const response = await api.post("/api/coach/generate-invitation");
-      const invitationLink = `${window.location.origin}/join?token=${response.data.token}`;
-
-      const success = copy(invitationLink);
-
-      if (!success) {
-        throw new Error("Failed to copy to clipboard");
-      }
-
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, MINIMUM_LOADING_TIME_MS - elapsedTime);
-
-      setTimeout(() => {
-        setLoading(false);
-        setCopied(true);
-
-        setTimeout(() => setCopied(false), DISPLAY_COPIED_TIME_MS);
-      }, remainingTime);
+      const link = `${window.location.origin}/join?token=${response.data.token}`;
+      setInvitationLink(link);
     } catch (error) {
-      setLoading(false);
-      console.log("Error generating invitation link:", error);
+      console.log("Error fetching invitation link:", error);
       toaster.create({
         title: "Erreur",
-        description:
-          "Une erreur est survenue lors de la génération du lien d'invitation.",
+        description: "Une erreur est survenue lors de la récupération du lien.",
         type: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchInvitationLink();
+  }, []);
+
+  useEffect(() => {
+    clipboard.setValue(invitationLink);
+  }, [invitationLink]);
+
+  if (loading || !invitationLink) {
+    return <Skeleton height="40px" width="15em" />;
+  }
+
   return (
     <Button
-      bg={copied ? "green.400" : "yellow.400"}
+      bg={clipboard.copied ? "green.400" : "yellow.400"}
       color="fg.inverted"
       _hover={{
-        bg: copied ? "green.500" : "yellow.500",
+        bg: clipboard.copied ? "green.500" : "yellow.500",
         transform: "translateY(-2px)",
         boxShadow: "md",
       }}
       _active={{
-        bg: copied ? "green.600" : "yellow.600",
+        bg: clipboard.copied ? "green.600" : "yellow.600",
         boxShadow: "sm",
       }}
-      onClick={handleGenerateInvitation}
-      loading={loading}
-      pointerEvents={copied ? "none" : "auto"}
+      pointerEvents={clipboard.copied ? "none" : "auto"}
       width="15em"
+      onClick={clipboard.copy}
     >
-      {copied ? "✓ Lien copié !" : "Copier le lien d'invitation"}
+      {clipboard.copied ? "✓ Lien copié !" : "Copier le lien d'invitation"}
     </Button>
   );
 };
