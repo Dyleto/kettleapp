@@ -12,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMinimumLoading } from "@/hooks/useMinimulLoading";
+import api from "@/config/api";
 
 const MOCK_CLIENTS: Client[] = [
   {
@@ -85,9 +86,9 @@ export const ClientsGrid = () => {
 
   useEffect(() => {
     executeWithMinimumLoading(async () => {
-      // const response = await api.get("/api/coach/clients");
-      // setClients(response.data);
-      setClients(MOCK_CLIENTS);
+      const response = await api.get("/api/coach/clients");
+      setClients(response.data);
+      // setClients(MOCK_CLIENTS);
     });
   }, []);
 
@@ -111,7 +112,6 @@ export const ClientsGrid = () => {
 
                   <VStack gap={1} w="100%">
                     <SkeletonText height={6} noOfLines={1} />
-                    <SkeletonText height="21px" noOfLines={1} />
                   </VStack>
                 </VStack>
               </Card.Body>
@@ -126,9 +126,6 @@ export const ClientsGrid = () => {
     return (
       <Box textAlign="center" py={8}>
         <Text color="fg.muted">Aucun client pour le moment</Text>
-        <Text fontSize="sm" color="fg.muted" mt={2}>
-          Partagez votre lien d'invitation pour ajouter des clients
-        </Text>
       </Box>
     );
   }
@@ -171,9 +168,6 @@ export const ClientsGrid = () => {
                 <VStack gap={1}>
                   <Text fontWeight="bold" fontSize="md">
                     {client.firstName} {client.lastName}
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    {client.email}
                   </Text>
                 </VStack>
               </VStack>

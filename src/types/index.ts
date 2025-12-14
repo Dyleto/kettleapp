@@ -26,3 +26,62 @@ export interface Coach {
   picture?: string;
   hiredAt: Date;
 }
+
+export interface Program {
+  _id: string;
+  name: string;
+  description?: string;
+  startDate: Date;
+  endDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Exercise {
+  _id: string;
+  name: string;
+  description?: string;
+  videoUrl?: string;
+}
+
+export interface WarmupExercise {
+  exerciseId: Exercise | string;
+  duration?: number;
+  reps?: number;
+  notes?: string;
+}
+
+export interface WorkoutExercise {
+  exerciseId: Exercise | string;
+  sets?: number;
+  reps?: number;
+  weight?: number;
+  restBetweenSets?: number;
+  duration?: number;
+  restAfter?: number;
+  notes?: string;
+}
+
+export interface Session {
+  _id: string;
+  programId: string;
+  name: string;
+  order: number;
+  warmup?: {
+    notes?: string;
+    exercises: WarmupExercise[];
+  };
+  workout: {
+    notes?: string;
+    rounds: number;
+    restBetweenRounds?: number;
+    exercises: WorkoutExercise[];
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClientWithDetails extends Client {
+  program: Program | null;
+  sessions: Session[];
+}

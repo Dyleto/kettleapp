@@ -13,6 +13,7 @@ import ClientDashboard from "./pages/Client/Dashboard";
 import CoachDashboard from "./pages/Coach/Dashboard";
 import Join from "./pages/Join";
 import ClientDetails from "./pages/Coach/ClientDetails";
+import CreateProgram from "./pages/Coach/CreateProgram";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -21,9 +22,15 @@ const router = createBrowserRouter(
       <Route path="auth/callback" element={<AuthCallback />} />
       <Route path="join" element={<Join />} />
 
+      {/* Routes Coach */}
       <Route path="coach" element={<CoachDashboard />} />
-
       <Route path="coach/clients/:clientId" element={<ClientDetails />} />
+      <Route
+        path="coach/clients/:clientId/programs/new"
+        element={<CreateProgram />}
+      />
+
+      {/* Routes Client */}
       <Route path="client" element={<ClientDashboard />} />
 
       {/* Routes Admin */}
