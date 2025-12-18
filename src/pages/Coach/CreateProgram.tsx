@@ -17,7 +17,13 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuArrowLeft, LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import {
+  LuArrowLeft,
+  LuChevronDown,
+  LuChevronLeft,
+  LuChevronRight,
+  LuChevronUp,
+} from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -54,14 +60,19 @@ function SessionCard({
     <Card.Root minW="300px" maxW="300px" flexShrink={0} overflow="hidden">
       <Card.Body>
         <VStack gap={5} align="stretch">
-          {/* Nom */}
-          <Input
-            value={session.name}
-            onChange={(e) => updateSession(index, { name: e.target.value })}
-            placeholder="Nom de la séance"
-            size="sm"
-            fontWeight="medium"
-          />
+          <HStack justify="space-between" align="center" gap={5}>
+            <Text fontSize="xl" fontWeight="bold" color="yellow.300">
+              {session.order}
+            </Text>
+            {/* Nom */}
+            <Input
+              value={session.name}
+              onChange={(e) => updateSession(index, { name: e.target.value })}
+              placeholder="Nom de la séance"
+              size="sm"
+              fontWeight="medium"
+            />
+          </HStack>
 
           {/* Échauffement */}
           <Box>
@@ -186,40 +197,73 @@ function SessionSeparator({
   totalSessions: number;
   moveSession: (from: number, to: number) => void;
 }) {
+  // Pas de séparateur après la dernière carte
   if (index === totalSessions - 1) return null;
 
   return (
-    <VStack
-      gap={5}
-      flexShrink={0}
-      justify="center"
-      alignItems="center"
-      alignSelf="center"
-      minH="100px"
-      w="60px"
-    >
-      {/* Flèche gauche : déplacer la carte suivante vers la gauche */}
-      <IconButton
-        aria-label="Déplacer vers la gauche"
-        onClick={() => moveSession(index + 1, index)}
-        size="md"
-        variant="ghost"
-        borderRadius="full"
+    <>
+      {/* Version Desktop : Flèches horizontales ← → */}
+      <VStack
+        gap={2}
+        flexShrink={0}
+        justify="center"
+        alignItems="center"
+        alignSelf="center"
+        w="60px"
+        display={{ base: "none", md: "flex" }}
       >
-        <LuChevronLeft />
-      </IconButton>
+        <IconButton
+          aria-label="Déplacer vers la gauche"
+          onClick={() => moveSession(index + 1, index)}
+          size="md"
+          variant="ghost"
+          borderRadius="full"
+        >
+          <LuChevronLeft />
+        </IconButton>
 
-      {/* Flèche droite : déplacer la carte actuelle vers la droite */}
-      <IconButton
-        aria-label="Déplacer vers la droite"
-        onClick={() => moveSession(index, index + 1)}
-        size="md"
-        variant="ghost"
-        borderRadius="full"
+        <IconButton
+          aria-label="Déplacer vers la droite"
+          onClick={() => moveSession(index, index + 1)}
+          size="md"
+          variant="ghost"
+          borderRadius="full"
+        >
+          <LuChevronRight />
+        </IconButton>
+      </VStack>
+
+      {/* Version Mobile : Flèches verticales ↑ ↓ */}
+      <HStack
+        gap={2}
+        flexShrink={0}
+        justify="center"
+        alignItems="center"
+        h="60px"
+        w="full"
+        display={{ base: "flex", md: "none" }}
       >
-        <LuChevronRight />
-      </IconButton>
-    </VStack>
+        <IconButton
+          aria-label="Déplacer vers le haut"
+          onClick={() => moveSession(index + 1, index)}
+          size="md"
+          variant="ghost"
+          borderRadius="full"
+        >
+          <LuChevronUp />
+        </IconButton>
+
+        <IconButton
+          aria-label="Déplacer vers le bas"
+          onClick={() => moveSession(index, index + 1)}
+          size="md"
+          variant="ghost"
+          borderRadius="full"
+        >
+          <LuChevronDown />
+        </IconButton>
+      </HStack>
+    </>
   );
 }
 
@@ -446,9 +490,11 @@ const CreateProgram = () => {
                 <Heading size="lg" mb={4}>
                   Séances ({sessions.length})
                 </Heading>
-                <HStack
+                <Stack
+                  direction={{ base: "column", md: "row" }}
                   gap={4}
-                  overflowX="auto"
+                  overflowY={{ base: "visible", md: "auto" }}
+                  overflowX={{ base: "auto", md: "visible" }}
                   pb={4}
                   align="start"
                   css={{
@@ -477,7 +523,10 @@ const CreateProgram = () => {
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.3 }}
                         display="flex"
+                        flexDirection={{ base: "column", md: "row" }}
                         gap={4}
+                        w={{ base: "full", md: "auto" }}
+                        alignItems="center"
                       >
                         <SessionCard
                           key={session.id}
@@ -497,36 +546,42 @@ const CreateProgram = () => {
                   </AnimatePresence>
 
                   {/* Carte d'ajout de séance */}
-                  <Box
-                    minW="300px"
-                    maxW="300px"
-                    h="365px"
-                    flexShrink={0}
-                    borderWidth="2px"
-                    borderStyle="dashed"
-                    borderColor="yellow.300"
-                    borderRadius="md"
-                    cursor="pointer"
-                    transition="all 0.2s"
+                  <Stack
+                    w={{ base: "full", md: "auto" }}
                     display="flex"
                     alignItems="center"
-                    justifyContent="center"
-                    color="fg.muted"
-                    _hover={{
-                      borderColor: "yellow.400",
-                      bg: "yellow.400",
-                      color: "fg.inverted",
-                    }}
-                    onClick={addSession}
                   >
-                    <VStack gap={2}>
-                      <Text fontSize="2xl">+</Text>
-                      <Text fontSize="sm" fontWeight="medium">
-                        Ajouter une séance
-                      </Text>
-                    </VStack>
-                  </Box>
-                </HStack>
+                    <Box
+                      minW="300px"
+                      maxW="300px"
+                      h="365px"
+                      flexShrink={0}
+                      borderWidth="2px"
+                      borderStyle="dashed"
+                      borderColor="yellow.300"
+                      borderRadius="md"
+                      cursor="pointer"
+                      transition="all 0.2s"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      color="fg.muted"
+                      _hover={{
+                        borderColor: "yellow.400",
+                        bg: "yellow.400",
+                        color: "fg.inverted",
+                      }}
+                      onClick={addSession}
+                    >
+                      <VStack gap={2}>
+                        <Text fontSize="2xl">+</Text>
+                        <Text fontSize="sm" fontWeight="medium">
+                          Ajouter une séance
+                        </Text>
+                      </VStack>
+                    </Box>
+                  </Stack>
+                </Stack>
               </Box>
 
               {/* Actions */}
