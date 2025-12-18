@@ -491,10 +491,10 @@ const CreateProgram = () => {
                   Séances ({sessions.length})
                 </Heading>
                 <Stack
-                  direction={{ base: "column", md: "row" }}
+                  direction={{ base: "column", sm: "row" }}
                   gap={4}
-                  overflowY={{ base: "visible", md: "auto" }}
-                  overflowX={{ base: "auto", md: "visible" }}
+                  overflowY={{ base: "visible", sm: "auto" }}
+                  overflowX={{ base: "auto", sm: "visible" }}
                   pb={4}
                   align="start"
                   css={{
@@ -523,9 +523,9 @@ const CreateProgram = () => {
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.3 }}
                         display="flex"
-                        flexDirection={{ base: "column", md: "row" }}
+                        flexDirection={{ base: "column", sm: "row" }}
                         gap={4}
-                        w={{ base: "full", md: "auto" }}
+                        w={{ base: "full", sm: "auto" }}
                         alignItems="center"
                       >
                         <SessionCard
