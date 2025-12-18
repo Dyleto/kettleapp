@@ -210,7 +210,7 @@ function SessionSeparator({
         alignItems="center"
         alignSelf="center"
         w="60px"
-        display={{ base: "none", md: "flex" }}
+        display={{ base: "none", sm: "flex" }}
       >
         <IconButton
           aria-label="Déplacer vers la gauche"
@@ -241,7 +241,7 @@ function SessionSeparator({
         alignItems="center"
         h="60px"
         w="full"
-        display={{ base: "flex", md: "none" }}
+        display={{ base: "flex", sm: "none" }}
       >
         <IconButton
           aria-label="Déplacer vers le haut"
