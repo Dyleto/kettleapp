@@ -20,6 +20,11 @@ const customConfig = defineConfig({
       },
     },
   },
+  globalCss: {
+    "input, textarea": {
+      fontSize: "16px !important",
+    },
+  },
 });
 
 export const system = createSystem(defaultConfig, customConfig);
