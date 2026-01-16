@@ -1,9 +1,4 @@
-import {
-  Route,
-  createRoutesFromElements,
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
+import { Route, createRoutesFromElements, createBrowserRouter, RouterProvider } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
 import Login from "./pages/Login";
 import AdminCreateCoach from "./pages/Admin/CreateCoach";
@@ -14,6 +9,8 @@ import CoachDashboard from "./pages/Coach/Dashboard";
 import Join from "./pages/Join";
 import ClientDetails from "./pages/Coach/ClientDetails";
 import CreateProgram from "./pages/Coach/CreateProgram";
+import Exercises from "./pages/Coach/Exercices";
+import ExerciseForm from "./pages/Coach/ExerciseForm";
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -25,10 +22,12 @@ const router = createBrowserRouter(
       {/* Routes Coach */}
       <Route path="coach" element={<CoachDashboard />} />
       <Route path="coach/clients/:clientId" element={<ClientDetails />} />
-      <Route
-        path="coach/clients/:clientId/programs/new"
-        element={<CreateProgram />}
-      />
+      <Route path="coach/clients/:clientId/programs/new" element={<CreateProgram />} />
+      <Route path="coach/exercises" element={<Exercises />} />
+      <Route path="coach/exercises" element={<Exercises />} />
+      <Route path="coach/exercises/new" element={<ExerciseForm />} />
+      <Route path="coach/exercises/:exerciseId" element={<ExerciseForm />} />
+      <Route path="coach/exercises/:exerciseId/edit" element={<ExerciseForm />} />
 
       {/* Routes Client */}
       <Route path="client" element={<ClientDashboard />} />

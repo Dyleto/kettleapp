@@ -1,14 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientsGrid } from "@/features/Coach/ClientsGrid";
+import ExercicesBlock from "@/features/Coach/ExercicesBlock";
 import InvitationBlock from "@/features/Coach/InvitationBlock";
-import {
-  Container,
-  VStack,
-  HStack,
-  Text,
-  Box,
-  Heading,
-} from "@chakra-ui/react";
+import { Container, VStack, HStack, Text, Box, Heading } from "@chakra-ui/react";
 
 const CoachDashboard = () => {
   const { user } = useAuth();
@@ -23,15 +17,19 @@ const CoachDashboard = () => {
         </VStack>
       </HStack>
 
+      <HStack justify="space-evenly" mt={8}>
+        <ExercicesBlock />
+      </HStack>
+
       <VStack gap={8} w="100%" mt={8}>
         {/* En-tête avec titre + bouton */}
         <Box w="100%">
           <VStack gap={4} align="stretch">
             <VStack align="center">
-              <Text color="fg.muted">
+              <InvitationBlock />
+              <Text textAlign="center" color="fg.muted">
                 Partagez le lien d'invitation pour ajouter un nouveau client
               </Text>
-              <InvitationBlock />
             </VStack>
           </VStack>
         </Box>

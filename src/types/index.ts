@@ -42,6 +42,10 @@ export interface Exercise {
   name: string;
   description?: string;
   videoUrl?: string;
+  type: "warmup" | "exercise";
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface WarmupExercise {
