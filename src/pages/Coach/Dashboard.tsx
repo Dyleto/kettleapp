@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientsGrid } from "@/features/Coach/ClientsGrid";
-import ExercicesBlock from "@/features/Coach/ExercicesBlock";
+import ExercisesBlock from "@/features/Coach/ExercisesBlock";
 import InvitationBlock from "@/features/Coach/InvitationBlock";
 import { Container, VStack, HStack, Text, Box, Heading } from "@chakra-ui/react";
 
@@ -18,7 +18,7 @@ const CoachDashboard = () => {
       </HStack>
 
       <HStack justify="space-evenly" mt={8}>
-        <ExercicesBlock />
+        <ExercisesBlock />
       </HStack>
 
       <VStack gap={8} w="100%" mt={8}>

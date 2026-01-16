@@ -9,7 +9,7 @@ import CoachDashboard from "./pages/Coach/Dashboard";
 import Join from "./pages/Join";
 import ClientDetails from "./pages/Coach/ClientDetails";
 import CreateProgram from "./pages/Coach/CreateProgram";
-import Exercises from "./pages/Coach/Exercices";
+import Exercises from "./pages/Coach/Exercises";
 import ExerciseForm from "./pages/Coach/ExerciseForm";
 
 const router = createBrowserRouter(

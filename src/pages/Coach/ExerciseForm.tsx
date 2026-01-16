@@ -4,9 +4,10 @@ import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
 import { Box, Button, Card, Container, Heading, HStack, Input, Textarea, VStack, Spinner } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { LuArrowLeft, LuFlame, LuDumbbell } from "react-icons/lu";
+import { LuArrowLeft, LuFlame, LuDumbbell, LuTrash2 } from "react-icons/lu";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { NativeSelectField, NativeSelectRoot } from "@/components/ui/native-select";
+import VideoPlayer from "@/components/VideoPlayer";
 
 interface ExerciseFormData {
   name: string;
@@ -57,19 +58,21 @@ const ExerciseForm = () => {
     e.preventDefault();
     setLoading(true);
 
+    const itemType = formData.type === "warmup" ? "échauffement" : "exercice";
+
     try {
       if (isEditMode) {
         await api.put(`/api/coach/exercises/${exerciseId}`, formData);
         toaster.create({
           title: "Succès",
-          description: "Exercice modifié avec succès",
+          description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} modifié avec succès`,
           type: "success",
         });
       } else {
         await api.post("/api/coach/exercises", formData);
         toaster.create({
           title: "Succès",
-          description: "Exercice créé avec succès",
+          description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} créé avec succès`,
           type: "success",
         });
       }
@@ -79,7 +82,37 @@ const ExerciseForm = () => {
       console.error("Error saving exercise:", error);
       toaster.create({
         title: "Erreur",
-        description: "Une erreur est survenue lors de l'enregistrement",
+        description: `Une erreur est survenue lors de ${
+          isEditMode ? "la modification" : "la création"
+        } de l'${itemType}`,
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const itemType = formData.type === "warmup" ? "échauffement" : "exercice";
+
+    if (!globalThis.confirm(`Êtes-vous sûr de vouloir supprimer cet ${itemType} ?`)) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await api.delete(`/api/coach/exercises/${exerciseId}`);
+      toaster.create({
+        title: "Succès",
+        description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} supprimé avec succès`,
+        type: "success",
+      });
+      navigate("/coach/exercises");
+    } catch (error) {
+      console.error("Error deleting exercise:", error);
+      toaster.create({
+        title: "Erreur",
+        description: `Une erreur est survenue lors de la suppression de l'${itemType}`,
         type: "error",
       });
     } finally {
@@ -195,15 +228,28 @@ const ExerciseForm = () => {
                           placeholder="https://youtube.com/watch?v=..."
                         />
                       </Field>
+
+                      {/* Preview vidéo */}
+                      {formData.videoUrl && (
+                        <Box>
+                          <Box fontSize="sm" fontWeight="medium" mb={2} color="fg.muted">
+                            Aperçu de la vidéo
+                          </Box>
+                          <VideoPlayer url={formData.videoUrl} />
+                        </Box>
+                      )}
                     </VStack>
                   </Card.Body>
                 </Card.Root>
 
                 {/* Actions */}
-                <HStack gap={4} justify="flex-end">
-                  <Button variant="outline" onClick={handleClose}>
-                    Annuler
-                  </Button>
+                <HStack gap={4} justify="flex-end" w="100%">
+                  {isEditMode && (
+                    <Button variant="outline" colorPalette="red" onClick={handleDelete} loading={loading}>
+                      <LuTrash2 style={{ marginRight: "8px" }} />
+                      Supprimer
+                    </Button>
+                  )}
                   <Button type="submit" bg={typeColor} color="gray.900" fontWeight="bold" loading={loading}>
                     {isEditMode ? "Enregistrer" : "Créer"}
                   </Button>

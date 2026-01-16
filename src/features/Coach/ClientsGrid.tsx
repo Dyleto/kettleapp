@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMinimumLoading } from "@/hooks/useMinimulLoading";
 import api from "@/config/api";
-import ClickableCard from "@/components/clickableCard";
+import ClickableCard from "@/components/ClickableCard";
 
 export const ClientsGrid = () => {
   const [clients, setClients] = useState<Client[]>([]);
