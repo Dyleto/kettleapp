@@ -10,8 +10,6 @@ import {
   HStack,
   Input,
   VStack,
-  Card,
-  Spinner,
   IconButton,
   Skeleton,
   SkeletonCircle,
@@ -23,11 +21,8 @@ import {
   LuSearch,
   LuFlame,
   LuDumbbell,
-  LuPencil,
-  LuTrash2,
   LuChevronDown,
   LuChevronUp,
-  LuClipboardList,
   LuLibrary,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
