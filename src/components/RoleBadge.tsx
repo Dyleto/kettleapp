@@ -1,10 +1,5 @@
 import { Box, HStack, Text } from "@chakra-ui/react";
-import {
-  LuUsers,
-  LuDumbbell,
-  LuWrench,
-  LuClipboardCheck,
-} from "react-icons/lu";
+import { LuDumbbell, LuWrench, LuClipboardCheck } from "react-icons/lu";
 
 type Role = "coach" | "client" | "admin";
 

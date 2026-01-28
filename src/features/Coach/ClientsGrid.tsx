@@ -1,24 +1,39 @@
 import { Client } from "@/types";
-import { Avatar, Box, Grid, SkeletonCircle, SkeletonText, Text, VStack } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import {
+  Avatar,
+  Box,
+  Grid,
+  SkeletonCircle,
+  SkeletonText,
+  Text,
+  VStack,
+  Button,
+} from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { useMinimumLoading } from "@/hooks/useMinimulLoading";
-import api from "@/config/api";
 import ClickableCard from "@/components/ClickableCard";
+import { useClients } from "@/hooks/queries/useClients";
+import { toaster } from "@/components/ui/toaster";
+import { useEffect } from "react";
+import { getErrorMessage } from "@/utils/errorMessages";
 
 export const ClientsGrid = () => {
-  const [clients, setClients] = useState<Client[]>([]);
-  const { loading, executeWithMinimumLoading } = useMinimumLoading();
   const navigate = useNavigate();
+  const { data: clients = [], isLoading, error, refetch } = useClients();
 
+  // Afficher un toast avec un message spécifique si erreur
   useEffect(() => {
-    executeWithMinimumLoading(async () => {
-      const response = await api.get("/api/coach/clients");
-      setClients(response.data);
-    });
-  }, []);
+    if (error) {
+      toaster.create({
+        title: "Impossible de charger vos clients",
+        description: getErrorMessage(error, "Chargement des clients"),
+        type: "error",
+        duration: 5000,
+      });
+    }
+  }, [error]);
 
-  if (loading) {
+  // Loading state
+  if (isLoading) {
     return (
       <Box w="100%">
         <Grid
@@ -45,6 +60,26 @@ export const ClientsGrid = () => {
     );
   }
 
+  // Error state avec possibilité de retry
+  if (error) {
+    return (
+      <Box textAlign="center" py={12}>
+        <VStack gap={4}>
+          <Text color="red.400" fontSize="lg" fontWeight="bold">
+            Erreur de chargement
+          </Text>
+          <Text color="gray.400">
+            Impossible de récupérer la liste de vos clients.
+          </Text>
+          <Button colorPalette="yellow" onClick={() => refetch()}>
+            Réessayer
+          </Button>
+        </VStack>
+      </Box>
+    );
+  }
+
+  // Empty state
   if (clients.length === 0) {
     return (
       <Box textAlign="center" py={8}>
@@ -53,6 +88,7 @@ export const ClientsGrid = () => {
     );
   }
 
+  // Success state
   return (
     <Box w="100%">
       <Grid
@@ -65,15 +101,20 @@ export const ClientsGrid = () => {
         gap={4}
       >
         {clients.map((client) => (
-          <ClickableCard key={client._id} onClick={() => navigate(`/coach/clients/${client._id}`)} p={8}>
+          <ClickableCard
+            key={client._id}
+            onClick={() => navigate(`/coach/clients/${client._id}`)}
+            p={8}
+          >
             <VStack gap={3}>
               <Avatar.Root size="lg">
-                <Avatar.Fallback name={`${client.firstName} ${client.lastName}`} />
-                <Avatar.Image src={client.picture} />
+                <Avatar.Fallback
+                  name={`${client.firstName} ${client.lastName}`}
+                />
+                {client.picture && <Avatar.Image src={client.picture} />}
               </Avatar.Root>
-
               <VStack gap={1}>
-                <Text fontWeight="bold" fontSize="md">
+                <Text fontWeight="bold" fontSize="lg" textAlign="center">
                   {client.firstName} {client.lastName}
                 </Text>
               </VStack>

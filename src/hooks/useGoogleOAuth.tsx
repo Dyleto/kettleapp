@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import storage from "@/utils/storage"; // ← AJOUT
 
 export function useGoogleOAuth() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
@@ -7,13 +8,14 @@ export function useGoogleOAuth() {
   const loginWithGoogle = useCallback(
     (invitationToken?: string) => {
       const state = Math.random().toString(36).substring(2);
-      localStorage.setItem("google_oauth_state", state);
+
+      storage.setItem("google_oauth_state", state);
 
       // Stocker le token d'invitation pour le récupérer après callback
       if (invitationToken) {
-        localStorage.setItem("invitation_token", invitationToken);
+        storage.setItem("invitation_token", invitationToken);
       } else {
-        localStorage.removeItem("invitation_token");
+        storage.removeItem("invitation_token");
       }
 
       const params = new URLSearchParams({
@@ -27,7 +29,7 @@ export function useGoogleOAuth() {
       const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
       window.location.href = googleAuthUrl;
     },
-    [clientId, redirectUri]
+    [clientId, redirectUri],
   );
 
   return { loginWithGoogle };

@@ -1,6 +1,8 @@
 import ClickableCard from "@/components/ClickableCard";
+import { ExerciseSectionSkeleton } from "@/components/skeletons";
 import { SlidePanel } from "@/components/SlidePanel";
 import api from "@/config/api";
+import { GRID_LAYOUTS } from "@/constants/layouts";
 import {
   Box,
   Button,
@@ -11,10 +13,8 @@ import {
   Input,
   VStack,
   IconButton,
-  Skeleton,
-  SkeletonCircle,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   LuArrowLeft,
   LuPlus,
@@ -26,6 +26,9 @@ import {
   LuLibrary,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
+import { toaster } from "@/components/ui/toaster";
+import { useExercises } from "@/hooks/queries/useExercises";
+import { getErrorMessage } from "@/utils/errorMessages";
 
 interface Exercise {
   _id: string;
@@ -37,33 +40,40 @@ interface Exercise {
 
 const Exercises = () => {
   const navigate = useNavigate();
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  const { data: exercises = [], isLoading, error } = useExercises();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isWarmupExpanded, setIsWarmupExpanded] = useState(true);
   const [isExerciseExpanded, setIsExerciseExpanded] = useState(true);
 
   useEffect(() => {
-    fetchExercises();
-  }, []);
-
-  const fetchExercises = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/api/coach/exercises");
-      setExercises(response.data);
-    } catch (error) {
-      console.error("Error fetching exercises:", error);
-      setLoading(false);
-    } finally {
-      setLoading(false);
+    if (error) {
+      toaster.create({
+        title: "Impossible de charger vos exercices",
+        description: getErrorMessage(error, "Chargement des exercices"),
+        type: "error",
+      });
     }
-  };
+  }, [error]);
 
-  const filteredExercises = exercises.filter((ex) => ex.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredExercises = useMemo(
+    () =>
+      exercises.filter((ex) =>
+        ex.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [exercises, searchQuery],
+  );
 
-  const warmups = filteredExercises.filter((ex) => ex.type === "warmup");
-  const workouts = filteredExercises.filter((ex) => ex.type === "exercise");
+  const warmups = useMemo(
+    () => filteredExercises.filter((ex) => ex.type === "warmup"),
+    [filteredExercises],
+  );
+
+  const workouts = useMemo(
+    () => filteredExercises.filter((ex) => ex.type === "exercise"),
+    [filteredExercises],
+  );
 
   return (
     <SlidePanel onClose={() => navigate("/coach")}>
@@ -86,7 +96,14 @@ const Exercises = () => {
 
             {/* Barre de recherche */}
             <Box>
-              <HStack w="100%" bg="gray.800" borderRadius="md" borderWidth="1px" borderColor="gray.700" px={3}>
+              <HStack
+                w="100%"
+                bg="gray.800"
+                borderRadius="md"
+                borderWidth="1px"
+                borderColor="gray.700"
+                px={3}
+              >
                 <LuSearch color="gray" />
                 <Input
                   placeholder="Rechercher un exercice..."
@@ -99,80 +116,14 @@ const Exercises = () => {
               </HStack>
             </Box>
 
-            {loading ? (
+            {isLoading ? (
               <Box w="100%">
                 <VStack gap={8} align="stretch">
                   {/* Section Échauffements Skeleton */}
-                  <Box>
-                    <HStack gap={3} mb={4}>
-                      <SkeletonCircle size="6" />
-                      <Skeleton height="32px" width="250px" />
-                    </HStack>
-                    <Grid
-                      templateColumns={{
-                        base: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        md: "repeat(3, 1fr)",
-                        lg: "repeat(4, 1fr)",
-                      }}
-                      gap={4}
-                    >
-                      {[...Array(4)].map((_, index) => (
-                        <Box
-                          key={index}
-                          p={6}
-                          borderTopWidth="3px"
-                          borderTopColor="transparent"
-                          borderRadius="xl"
-                          bg="gray.800"
-                          boxShadow="0 8px 24px rgba(0, 0, 0, 0.4)"
-                        >
-                          <VStack gap={3} align="stretch">
-                            <SkeletonCircle size="16" alignSelf="center" />
-                            <Skeleton height="24px" />
-                            <Skeleton height="16px" />
-                            <Skeleton height="16px" width="80%" />
-                          </VStack>
-                        </Box>
-                      ))}
-                    </Grid>
-                  </Box>
+                  <ExerciseSectionSkeleton titleWidth="250px" count={4} />
 
                   {/* Section Exercices Skeleton */}
-                  <Box>
-                    <HStack gap={3} mb={4}>
-                      <SkeletonCircle size="6" />
-                      <Skeleton height="32px" width="200px" />
-                    </HStack>
-                    <Grid
-                      templateColumns={{
-                        base: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        md: "repeat(3, 1fr)",
-                        lg: "repeat(4, 1fr)",
-                      }}
-                      gap={4}
-                    >
-                      {[...Array(4)].map((_, index) => (
-                        <Box
-                          key={index}
-                          p={6}
-                          borderTopWidth="3px"
-                          borderTopColor="transparent"
-                          borderRadius="xl"
-                          bg="gray.800"
-                          boxShadow="0 8px 24px rgba(0, 0, 0, 0.4)"
-                        >
-                          <VStack gap={3} align="stretch">
-                            <SkeletonCircle size="16" alignSelf="center" />
-                            <Skeleton height="24px" />
-                            <Skeleton height="16px" />
-                            <Skeleton height="16px" width="80%" />
-                          </VStack>
-                        </Box>
-                      ))}
-                    </Grid>
-                  </Box>
+                  <ExerciseSectionSkeleton titleWidth="250px" count={4} />
                 </VStack>
               </Box>
             ) : (
@@ -191,21 +142,17 @@ const Exercises = () => {
                         variant="ghost"
                         colorPalette="orange"
                       >
-                        {isWarmupExpanded ? <LuChevronUp size={20} /> : <LuChevronDown size={20} />}
+                        {isWarmupExpanded ? (
+                          <LuChevronUp size={20} />
+                        ) : (
+                          <LuChevronDown size={20} />
+                        )}
                       </IconButton>
                     </HStack>
                   </HStack>
 
                   {isWarmupExpanded && (
-                    <Grid
-                      templateColumns={{
-                        base: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        md: "repeat(3, 1fr)",
-                        lg: "repeat(4, 1fr)",
-                      }}
-                      gap={4}
-                    >
+                    <Grid templateColumns={GRID_LAYOUTS.fourColumns} gap={4}>
                       {/* Bloc d'ajout en première position */}
                       <Box
                         p={6}
@@ -224,7 +171,9 @@ const Exercises = () => {
                           bg: "orange.400/5",
                           transform: "translateY(-2px)",
                         }}
-                        onClick={() => navigate("/coach/exercises/new?type=warmup")}
+                        onClick={() =>
+                          navigate("/coach/exercises/new?type=warmup")
+                        }
                       >
                         <VStack gap={3} color="orange.400">
                           <Box
@@ -237,7 +186,11 @@ const Exercises = () => {
                           >
                             <LuPlus size={32} />
                           </Box>
-                          <Box fontWeight="bold" fontSize="md" textAlign="center">
+                          <Box
+                            fontWeight="bold"
+                            fontSize="md"
+                            textAlign="center"
+                          >
                             Ajouter un échauffement
                           </Box>
                         </VStack>
@@ -247,7 +200,9 @@ const Exercises = () => {
                       {warmups.map((exercise) => (
                         <ClickableCard
                           key={exercise._id}
-                          onClick={() => navigate(`/coach/exercises/${exercise._id}`)}
+                          onClick={() =>
+                            navigate(`/coach/exercises/${exercise._id}`)
+                          }
                           p={6}
                           color="orange.400"
                         >
@@ -265,13 +220,23 @@ const Exercises = () => {
                             </Box>
 
                             {/* Nom */}
-                            <Box fontWeight="bold" fontSize="lg" textAlign="center" color="white">
+                            <Box
+                              fontWeight="bold"
+                              fontSize="lg"
+                              textAlign="center"
+                              color="white"
+                            >
                               {exercise.name}
                             </Box>
 
                             {/* Description courte */}
                             {exercise.description && (
-                              <Box fontSize="sm" color="gray.400" lineClamp={2} textAlign="center">
+                              <Box
+                                fontSize="sm"
+                                color="gray.400"
+                                lineClamp={2}
+                                textAlign="center"
+                              >
                                 {exercise.description}
                               </Box>
                             )}
@@ -292,25 +257,23 @@ const Exercises = () => {
                       </Heading>
                       <IconButton
                         aria-label={isExerciseExpanded ? "Réduire" : "Déplier"}
-                        onClick={() => setIsExerciseExpanded(!isExerciseExpanded)}
+                        onClick={() =>
+                          setIsExerciseExpanded(!isExerciseExpanded)
+                        }
                         variant="ghost"
                         colorPalette="yellow"
                       >
-                        {isExerciseExpanded ? <LuChevronUp size={20} /> : <LuChevronDown size={20} />}
+                        {isExerciseExpanded ? (
+                          <LuChevronUp size={20} />
+                        ) : (
+                          <LuChevronDown size={20} />
+                        )}
                       </IconButton>
                     </HStack>
                   </HStack>
 
                   {isExerciseExpanded && (
-                    <Grid
-                      templateColumns={{
-                        base: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        md: "repeat(3, 1fr)",
-                        lg: "repeat(4, 1fr)",
-                      }}
-                      gap={4}
-                    >
+                    <Grid templateColumns={GRID_LAYOUTS.fourColumns} gap={4}>
                       {/* Bloc d'ajout en première position */}
                       <Box
                         p={6}
@@ -329,7 +292,9 @@ const Exercises = () => {
                           bg: "yellow.400/5",
                           transform: "translateY(-2px)",
                         }}
-                        onClick={() => navigate("/coach/exercises/new?type=exercise")}
+                        onClick={() =>
+                          navigate("/coach/exercises/new?type=exercise")
+                        }
                       >
                         <VStack gap={3} color="yellow.400">
                           <Box
@@ -342,7 +307,11 @@ const Exercises = () => {
                           >
                             <LuPlus size={32} />
                           </Box>
-                          <Box fontWeight="bold" fontSize="md" textAlign="center">
+                          <Box
+                            fontWeight="bold"
+                            fontSize="md"
+                            textAlign="center"
+                          >
                             Ajouter un exercice
                           </Box>
                         </VStack>
@@ -352,7 +321,9 @@ const Exercises = () => {
                       {workouts.map((exercise) => (
                         <ClickableCard
                           key={exercise._id}
-                          onClick={() => navigate(`/coach/exercises/${exercise._id}`)}
+                          onClick={() =>
+                            navigate(`/coach/exercises/${exercise._id}`)
+                          }
                           p={6}
                         >
                           <VStack gap={3} align="stretch">
@@ -369,13 +340,23 @@ const Exercises = () => {
                             </Box>
 
                             {/* Nom */}
-                            <Box fontWeight="bold" fontSize="lg" textAlign="center" color="white">
+                            <Box
+                              fontWeight="bold"
+                              fontSize="lg"
+                              textAlign="center"
+                              color="white"
+                            >
                               {exercise.name}
                             </Box>
 
                             {/* Description courte */}
                             {exercise.description && (
-                              <Box fontSize="sm" color="gray.400" lineClamp={2} textAlign="center">
+                              <Box
+                                fontSize="sm"
+                                color="gray.400"
+                                lineClamp={2}
+                                textAlign="center"
+                              >
                                 {exercise.description}
                               </Box>
                             )}

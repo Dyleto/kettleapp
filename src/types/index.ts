@@ -49,14 +49,14 @@ export interface Exercise {
 }
 
 export interface WarmupExercise {
-  exerciseId: Exercise | string;
+  exercise: Exercise;
   duration?: number;
   reps?: number;
   notes?: string;
 }
 
 export interface WorkoutExercise {
-  exerciseId: Exercise | string;
+  exercise: Exercise;
   sets?: number;
   reps?: number;
   weight?: number;

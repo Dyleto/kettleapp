@@ -1,6 +1,7 @@
 import api from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultRoleRoute } from "@/utils/navigation";
+import storage from "@/utils/storage";
 import { Box, Heading, Spinner, VStack } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -18,7 +19,7 @@ const AuthCallback = () => {
         const startTime = Date.now();
         const code = searchParams.get("code");
         const redirectUri = `${window.location.origin}/auth/callback`;
-        const invitationToken = localStorage.getItem("invitation_token");
+        const invitationToken = storage.getItem("invitation_token");
 
         const response = await api.post("/api/auth/google-callback", {
           code,
@@ -28,7 +29,7 @@ const AuthCallback = () => {
 
         // Nettoyer après utilisation
         if (invitationToken) {
-          localStorage.removeItem("invitation_token");
+          storage.removeItem("invitation_token");
         }
 
         // Sauvegarder
@@ -41,7 +42,7 @@ const AuthCallback = () => {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(
           0,
-          MINIMUM_DISPLAY_TIME_MS - elapsedTime
+          MINIMUM_DISPLAY_TIME_MS - elapsedTime,
         );
 
         // Rediriger

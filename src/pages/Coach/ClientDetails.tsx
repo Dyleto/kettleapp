@@ -1,7 +1,6 @@
 import { SlidePanel } from "@/components/SlidePanel";
-import api from "@/config/api";
-import { ClientWithDetails, Session } from "@/types";
-import { formatDuration } from "@/utils/formatters";
+import { ClientWithDetails } from "@/types";
+import { SessionCard } from "@/features/Session";
 import {
   Box,
   Spinner,
@@ -14,18 +13,11 @@ import {
   Heading,
   Text,
   Grid,
-  IconButton,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import {
-  LuArrowLeft,
-  LuChevronDown,
-  LuChevronUp,
-  LuClock,
-  LuDumbbell,
-  LuFlame,
-} from "react-icons/lu";
+import { LuArrowLeft } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
+import { GRID_LAYOUTS } from "@/constants/layouts";
 
 const ClientDetails = () => {
   const { clientId } = useParams();
@@ -61,7 +53,7 @@ const ClientDetails = () => {
             notes: "5 min de cardio léger + mobilité articulaire",
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex1",
                   name: "Jumping Jacks",
                   type: "warmup",
@@ -69,7 +61,7 @@ const ClientDetails = () => {
                 duration: 60,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex2",
                   name: "Rotations des épaules",
                   type: "warmup",
@@ -84,7 +76,7 @@ const ClientDetails = () => {
             restBetweenRounds: 90,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex3",
                   name: "Développé Couché",
                   type: "exercise",
@@ -94,7 +86,7 @@ const ClientDetails = () => {
                 restBetweenSets: 90,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex4",
                   name: "Tractions",
                   type: "exercise",
@@ -104,7 +96,7 @@ const ClientDetails = () => {
                 restBetweenSets: 60,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex5",
                   name: "Squat",
                   type: "exercise",
@@ -127,7 +119,7 @@ const ClientDetails = () => {
             notes: "Échauffement des épaules et bras",
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex6",
                   name: "Arm Circles",
                   type: "warmup",
@@ -142,7 +134,7 @@ const ClientDetails = () => {
             restBetweenRounds: 60,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex7",
                   name: "Développé Incliné",
                   type: "exercise",
@@ -152,7 +144,7 @@ const ClientDetails = () => {
                 restBetweenSets: 75,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex8",
                   name: "Élévations Latérales",
                   type: "exercise",
@@ -162,7 +154,7 @@ const ClientDetails = () => {
                 restBetweenSets: 45,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex9",
                   name: "Dips",
                   type: "exercise",
@@ -172,7 +164,7 @@ const ClientDetails = () => {
                 restBetweenSets: 60,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex10",
                   name: "Pompes",
                   type: "exercise",
@@ -195,7 +187,7 @@ const ClientDetails = () => {
             notes: "Mobilité hanches et chevilles",
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex11",
                   name: "Fentes Dynamiques",
                   type: "warmup",
@@ -203,7 +195,7 @@ const ClientDetails = () => {
                 reps: 20,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex12",
                   name: "Hip Circles",
                   type: "warmup",
@@ -218,7 +210,7 @@ const ClientDetails = () => {
             restBetweenRounds: 120,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex13",
                   name: "Squat Barre",
                   type: "exercise",
@@ -228,7 +220,7 @@ const ClientDetails = () => {
                 restBetweenSets: 120,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex14",
                   name: "Leg Press",
                   type: "exercise",
@@ -238,7 +230,7 @@ const ClientDetails = () => {
                 restBetweenSets: 90,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex15",
                   name: "Leg Curl",
                   type: "exercise",
@@ -263,7 +255,7 @@ const ClientDetails = () => {
             restBetweenRounds: 60,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex16",
                   name: "Rowing Barre",
                   type: "exercise",
@@ -273,7 +265,7 @@ const ClientDetails = () => {
                 restBetweenSets: 90,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex17",
                   name: "Tirage Vertical",
                   type: "exercise",
@@ -283,7 +275,7 @@ const ClientDetails = () => {
                 restBetweenSets: 75,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex18",
                   name: "Curl Barre",
                   type: "exercise",
@@ -293,7 +285,7 @@ const ClientDetails = () => {
                 restBetweenSets: 60,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex19",
                   name: "Curl Marteau",
                   type: "exercise",
@@ -316,7 +308,7 @@ const ClientDetails = () => {
             notes: "Échauffement dynamique complet",
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex20",
                   name: "Burpees légers",
                   type: "warmup",
@@ -331,7 +323,7 @@ const ClientDetails = () => {
             restBetweenRounds: 90,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex21",
                   name: "Soulevé de Terre",
                   type: "exercise",
@@ -341,7 +333,7 @@ const ClientDetails = () => {
                 restBetweenSets: 120,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex22",
                   name: "Développé Militaire",
                   type: "exercise",
@@ -351,7 +343,7 @@ const ClientDetails = () => {
                 restBetweenSets: 90,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex23",
                   name: "Fentes Bulgares",
                   type: "exercise",
@@ -376,7 +368,7 @@ const ClientDetails = () => {
             restBetweenRounds: 30,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex24",
                   name: "Mountain Climbers",
                   type: "exercise",
@@ -384,7 +376,7 @@ const ClientDetails = () => {
                 duration: 60,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex25",
                   name: "Planche",
                   type: "exercise",
@@ -392,7 +384,7 @@ const ClientDetails = () => {
                 duration: 45,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex26",
                   name: "Russian Twists",
                   type: "exercise",
@@ -413,7 +405,7 @@ const ClientDetails = () => {
             notes: "Foam rolling 10 min",
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex27",
                   name: "Foam Rolling Global",
                   type: "warmup",
@@ -428,7 +420,7 @@ const ClientDetails = () => {
             restBetweenRounds: 60,
             exercises: [
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex28",
                   name: "Yoga Flow",
                   type: "exercise",
@@ -436,7 +428,7 @@ const ClientDetails = () => {
                 duration: 120,
               },
               {
-                exerciseId: {
+                exercise: {
                   _id: "ex29",
                   name: "Étirements Complets",
                   type: "exercise",
@@ -454,49 +446,6 @@ const ClientDetails = () => {
     setClient(mockClient);
     setLoading(false);
   }, [clientId]);
-
-  // Fonction pour calculer le temps total d'une séance
-  const calculateSessionDuration = (session: Session): number => {
-    let totalSeconds = 0;
-
-    // Temps d'échauffement
-    if (session.warmup?.exercises) {
-      session.warmup.exercises.forEach((ex) => {
-        if (ex.duration) {
-          totalSeconds += ex.duration; // Déjà en secondes
-        }
-        if (ex.reps) {
-          totalSeconds += 60; // 1 minute par exercice avec reps
-        }
-      });
-    }
-
-    // Temps d'entraînement par tour
-    let workoutTimePerRound = 0;
-    session.workout.exercises.forEach((ex) => {
-      if (ex.duration) {
-        workoutTimePerRound += ex.duration; // Déjà en secondes
-      }
-      if (ex.sets) {
-        workoutTimePerRound += ex.sets * 60; // 1 min par série
-      }
-      // Repos entre séries
-      if (ex.sets && ex.restBetweenSets) {
-        workoutTimePerRound += (ex.sets - 1) * ex.restBetweenSets; // Déjà en secondes
-      }
-    });
-
-    // Multiplier par le nombre de tours
-    totalSeconds += workoutTimePerRound * session.workout.rounds;
-
-    // Ajouter repos entre tours
-    if (session.workout.restBetweenRounds && session.workout.rounds > 1) {
-      totalSeconds +=
-        (session.workout.rounds - 1) * session.workout.restBetweenRounds; // Déjà en secondes
-    }
-
-    return totalSeconds;
-  };
 
   return (
     <SlidePanel onClose={() => navigate("/coach")}>
@@ -555,359 +504,16 @@ const ClientDetails = () => {
                   </Heading>
 
                   <Grid
-                    templateColumns={{
-                      base: "1fr",
-                      md: "repeat(auto-fill, minmax(450px, 450px))",
-                      lg: "repeat(auto-fill, minmax(500px, 500px))",
-                    }}
+                    templateColumns={GRID_LAYOUTS.sessions}
                     gap={8}
                     justifyContent="space-evenly"
                   >
                     {client.sessions.map((session) => (
-                      <Box
+                      <SessionCard
                         key={session._id}
-                        p={0}
-                        borderTopWidth="3px"
-                        borderTopColor="transparent"
-                        borderRadius="xl"
-                        bg="gray.800"
-                        boxShadow="0 8px 24px rgba(0, 0, 0, 0.4)"
-                        position="relative"
-                        overflow="hidden"
-                        cursor="pointer"
-                        transition="all 0.3s ease"
-                        _hover={{
-                          transform: "translateY(-2px)",
-                          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.5)",
-                          borderTopColor: "yellow.400",
-                        }}
-                      >
-                        {/* Effet brillance dans le coin */}
-                        <Box
-                          position="absolute"
-                          top="-50px"
-                          right="-50px"
-                          w="150px"
-                          h="150px"
-                          bg="yellow.400"
-                          opacity={0.1}
-                          borderRadius="full"
-                          filter="blur(40px)"
-                        />
-
-                        {/* Contenu */}
-                        <VStack
-                          align="stretch"
-                          gap={0}
-                          position="relative"
-                          zIndex={1}
-                        >
-                          {/* Header avec numéro et temps */}
-                          <HStack
-                            justify="space-between"
-                            align="center"
-                            p={{ base: 4, md: 6 }}
-                          >
-                            {/* Spacer gauche pour centrer le numéro (desktop uniquement) */}
-                            <Box
-                              w="80px"
-                              display={{ base: "none", md: "block" }}
-                            />
-
-                            {/* Numéro stylisé */}
-                            <Box
-                              px={4}
-                              py={2}
-                              borderRadius="full"
-                              bg="yellow.400"
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="center"
-                              fontWeight="bold"
-                              fontSize="lg"
-                              color="gray.900"
-                              boxShadow="0 4px 12px rgba(251, 191, 36, 0.3)"
-                              position="relative"
-                              _before={{
-                                content: '""',
-                                position: "absolute",
-                                inset: "-3px",
-                                borderRadius: "full",
-                                padding: "3px",
-                                background:
-                                  "linear-gradient(135deg, rgba(251, 191, 36, 0.4), rgba(251, 191, 36, 0.1))",
-                                WebkitMask:
-                                  "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                                WebkitMaskComposite: "xor",
-                                maskComposite: "exclude",
-                              }}
-                            >
-                              Séance {session.order}
-                            </Box>
-
-                            {/* Temps à droite */}
-                            <HStack
-                              gap={2}
-                              color="gray.400"
-                              fontSize="sm"
-                              w={{ base: "auto", md: "80px" }}
-                              justify="flex-end"
-                            >
-                              <LuClock size={14} />
-                              <Text fontWeight="medium">
-                                {formatDuration(
-                                  calculateSessionDuration(session),
-                                )}
-                              </Text>
-                            </HStack>
-                          </HStack>
-
-                          {/* Échauffement */}
-                          {session.warmup &&
-                            session.warmup.exercises?.length > 0 && (
-                              <Box
-                                p={3}
-                                mx={{ base: 0, md: 6 }}
-                                mb={4}
-                                bg="orange.900/20"
-                                borderRadius={{ base: 0, md: "md" }}
-                              >
-                                <HStack gap={2} mb={2}>
-                                  <LuFlame size={14} color="#fb923c" />
-                                  <Text
-                                    fontSize="xs"
-                                    fontWeight="bold"
-                                    color="orange.400"
-                                  >
-                                    Échauffement
-                                  </Text>
-                                </HStack>
-                                <VStack gap={2} align="stretch">
-                                  {session.warmup.exercises.map((ex, idx) => (
-                                    <Box
-                                      key={idx}
-                                      p={3}
-                                      bg="gray.900/50"
-                                      borderRadius="md"
-                                    >
-                                      <VStack align="stretch" gap={1}>
-                                        <Text
-                                          color="gray.300"
-                                          fontWeight="medium"
-                                          fontSize="sm"
-                                        >
-                                          {typeof ex.exerciseId === "object" &&
-                                          "name" in ex.exerciseId
-                                            ? ex.exerciseId.name
-                                            : `Exercice ${idx + 1}`}
-                                        </Text>
-                                        <HStack
-                                          gap={3}
-                                          fontSize="sm"
-                                          color="gray.500"
-                                        >
-                                          {ex.duration && (
-                                            <Text>
-                                              {formatDuration(ex.duration)}
-                                            </Text>
-                                          )}
-                                          {ex.reps && (
-                                            <Text>× {ex.reps} reps</Text>
-                                          )}
-                                        </HStack>
-                                      </VStack>
-                                    </Box>
-                                  ))}
-                                </VStack>
-                              </Box>
-                            )}
-
-                          {/* Entraînement */}
-                          <Box
-                            p={3}
-                            mx={{ base: 0, md: 6 }}
-                            mb={{ base: 0, md: 6 }}
-                            bg="yellow.900/20"
-                            borderRadius={{ base: 0, md: "md" }}
-                          >
-                            <HStack gap={2} mb={2}>
-                              <LuDumbbell size={14} color="#fbbf24" />
-                              <Text
-                                fontSize="xs"
-                                fontWeight="bold"
-                                color="yellow.400"
-                              >
-                                Entraînement
-                              </Text>
-                            </HStack>
-
-                            {/* Exercices avec accolade */}
-                            <HStack gap={3} align="stretch">
-                              {/* Liste des exercices */}
-                              <VStack gap={2} align="stretch" flex={1}>
-                                {session.workout.exercises.map((ex, idx) => (
-                                  <Box
-                                    key={idx}
-                                    p={3}
-                                    bg="gray.900/50"
-                                    borderRadius="md"
-                                  >
-                                    <VStack align="stretch" gap={1}>
-                                      {/* Nom de l'exercice */}
-                                      <Text
-                                        color="gray.300"
-                                        fontWeight="medium"
-                                        fontSize="sm"
-                                      >
-                                        {typeof ex.exerciseId === "object" &&
-                                        "name" in ex.exerciseId
-                                          ? ex.exerciseId.name
-                                          : `Exercice ${idx + 1}`}
-                                      </Text>
-
-                                      {/* Desktop : 1 ligne */}
-                                      <HStack
-                                        gap={3}
-                                        fontSize="sm"
-                                        color="gray.500"
-                                        display={{ base: "none", md: "flex" }}
-                                      >
-                                        {ex.sets && (
-                                          <Text>{ex.sets} séries</Text>
-                                        )}
-                                        {ex.reps && (
-                                          <Text>× {ex.reps} reps</Text>
-                                        )}
-                                        {ex.duration && (
-                                          <Text>
-                                            {formatDuration(ex.duration)}
-                                          </Text>
-                                        )}
-                                        {ex.restBetweenSets && (
-                                          <>
-                                            <Text>•</Text>
-                                            <Text>
-                                              {formatDuration(
-                                                ex.restBetweenSets,
-                                              )}{" "}
-                                              repos
-                                            </Text>
-                                          </>
-                                        )}
-                                      </HStack>
-
-                                      {/* Mobile : 2 lignes */}
-                                      <VStack
-                                        align="stretch"
-                                        gap={0}
-                                        fontSize="sm"
-                                        color="gray.500"
-                                        display={{ base: "flex", md: "none" }}
-                                      >
-                                        {/* Ligne 1 : Séries et reps */}
-                                        <HStack gap={3}>
-                                          {ex.sets && (
-                                            <Text>{ex.sets} séries</Text>
-                                          )}
-                                          {ex.reps && (
-                                            <Text>× {ex.reps} reps</Text>
-                                          )}
-                                          {ex.duration && (
-                                            <Text>
-                                              {formatDuration(ex.duration)}
-                                            </Text>
-                                          )}
-                                        </HStack>
-
-                                        {/* Ligne 2 : Repos */}
-                                        {ex.restBetweenSets && (
-                                          <Text>
-                                            {formatDuration(ex.restBetweenSets)}{" "}
-                                            repos
-                                          </Text>
-                                        )}
-                                      </VStack>
-                                    </VStack>
-                                  </Box>
-                                ))}
-                              </VStack>
-
-                              {/* Accolade + Tours */}
-                              <VStack
-                                justify="center"
-                                align="center"
-                                minW="60px"
-                                gap={1}
-                                alignSelf="stretch"
-                              >
-                                <HStack gap={2} align="stretch" h="full">
-                                  {/* SVG Accolade */}
-                                  <Box h="full" w="20px" position="relative">
-                                    <svg
-                                      width="20"
-                                      height="100%"
-                                      viewBox="0 0 20 100"
-                                      preserveAspectRatio="none"
-                                      style={{
-                                        position: "absolute",
-                                        top: 0,
-                                        left: 0,
-                                        height: "100%",
-                                      }}
-                                    >
-                                      <path
-                                        d="M 5 0 Q 10 0, 10 5 L 10 45 Q 10 50, 15 50 Q 10 50, 10 55 L 10 95 Q 10 100, 5 100"
-                                        fill="none"
-                                        stroke="#fbbf24"
-                                        strokeWidth="2"
-                                        vectorEffect="non-scaling-stroke"
-                                      />
-                                    </svg>
-                                  </Box>
-
-                                  {/* Nombre de tours */}
-                                  <VStack
-                                    gap={0}
-                                    align="start"
-                                    justify="center"
-                                  >
-                                    <Text
-                                      fontSize="xl"
-                                      fontWeight="bold"
-                                      color="yellow.400"
-                                      lineHeight="1"
-                                    >
-                                      ×{session.workout.rounds}
-                                    </Text>
-                                    <Text fontSize="2xs" color="gray.500">
-                                      tours
-                                    </Text>
-                                  </VStack>
-                                </HStack>
-                              </VStack>
-                            </HStack>
-
-                            {/* Repos entre tours */}
-                            {((session.workout?.restBetweenRounds &&
-                              session.workout.restBetweenRounds) ??
-                              0) > 0 && (
-                              <HStack
-                                gap={2}
-                                mt={2}
-                                fontSize="sm"
-                                color="gray.400"
-                              >
-                                <Text>Repos entre tours :</Text>
-                                <Text fontWeight="bold" color="yellow.400">
-                                  {formatDuration(
-                                    session.workout.restBetweenRounds ?? 0,
-                                  )}
-                                </Text>
-                              </HStack>
-                            )}
-                          </Box>
-                        </VStack>
-                      </Box>
+                        session={session}
+                        interactive={false}
+                      />
                     ))}
 
                     {/* Message si aucune séance */}

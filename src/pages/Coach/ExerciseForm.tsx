@@ -1,28 +1,40 @@
 import { SlidePanel } from "@/components/SlidePanel";
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster";
-import api from "@/config/api";
-import { Box, Button, Card, Container, Heading, HStack, Input, Textarea, VStack, Spinner } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Card,
+  Container,
+  Heading,
+  HStack,
+  Input,
+  Textarea,
+  VStack,
+  Spinner,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { LuArrowLeft, LuFlame, LuDumbbell, LuTrash2 } from "react-icons/lu";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { NativeSelectField, NativeSelectRoot } from "@/components/ui/native-select";
+import {
+  NativeSelectField,
+  NativeSelectRoot,
+} from "@/components/ui/native-select";
 import VideoPlayer from "@/components/VideoPlayer";
-
-interface ExerciseFormData {
-  name: string;
-  description: string;
-  videoUrl: string;
-  type: "warmup" | "exercise";
-}
+import { useExercise } from "@/hooks/queries/useExercise";
+import {
+  useCreateExercise,
+  useUpdateExercise,
+  useDeleteExercise,
+} from "@/hooks/mutations/useExerciseMutations";
+import { Exercise } from "@/types";
 
 const ExerciseForm = () => {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(false);
-  const [formData, setFormData] = useState<ExerciseFormData>({
+
+  const [formData, setFormData] = useState<Partial<Exercise>>({
     name: "",
     description: "",
     videoUrl: "",
@@ -31,94 +43,72 @@ const ExerciseForm = () => {
 
   const isEditMode = !!exerciseId;
 
-  useEffect(() => {
-    if (exerciseId) {
-      fetchExercise();
-    }
-  }, [exerciseId]);
+  // ✨ React Query hooks
+  const {
+    data: exercise,
+    isLoading: fetching,
+    error,
+  } = useExercise(exerciseId);
+  const createMutation = useCreateExercise();
+  const updateMutation = useUpdateExercise();
+  const deleteMutation = useDeleteExercise();
 
-  const fetchExercise = async () => {
-    try {
-      setFetching(true);
-      const response = await api.get(`/api/coach/exercises/${exerciseId}`);
-      setFormData(response.data);
-    } catch (error) {
-      console.error("Error fetching exercise:", error);
+  // Remplir le formulaire quand les données arrivent
+  useEffect(() => {
+    if (exercise) {
+      setFormData(exercise);
+    }
+  }, [exercise]);
+
+  // Afficher toast si erreur de chargement
+  useEffect(() => {
+    if (error) {
       toaster.create({
         title: "Erreur",
         description: "Impossible de charger l'exercice",
         type: "error",
       });
-    } finally {
-      setFetching(false);
     }
-  };
+  }, [error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    const itemType = formData.type === "warmup" ? "échauffement" : "exercice";
-
-    try {
-      if (isEditMode) {
-        await api.put(`/api/coach/exercises/${exerciseId}`, formData);
-        toaster.create({
-          title: "Succès",
-          description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} modifié avec succès`,
-          type: "success",
-        });
-      } else {
-        await api.post("/api/coach/exercises", formData);
-        toaster.create({
-          title: "Succès",
-          description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} créé avec succès`,
-          type: "success",
-        });
-      }
-
-      navigate("/coach/exercises");
-    } catch (error) {
-      console.error("Error saving exercise:", error);
-      toaster.create({
-        title: "Erreur",
-        description: `Une erreur est survenue lors de ${
-          isEditMode ? "la modification" : "la création"
-        } de l'${itemType}`,
-        type: "error",
+    if (isEditMode) {
+      updateMutation.mutate(
+        { id: exerciseId!, data: formData },
+        {
+          onSuccess: () => navigate("/coach/exercises"),
+        },
+      );
+    } else {
+      createMutation.mutate(formData, {
+        onSuccess: () => navigate("/coach/exercises"),
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async () => {
     const itemType = formData.type === "warmup" ? "échauffement" : "exercice";
 
-    if (!globalThis.confirm(`Êtes-vous sûr de vouloir supprimer cet ${itemType} ?`)) {
+    if (
+      !globalThis.confirm(
+        `Êtes-vous sûr de vouloir supprimer cet ${itemType} ?`,
+      )
+    ) {
       return;
     }
 
-    try {
-      setLoading(true);
-      await api.delete(`/api/coach/exercises/${exerciseId}`);
-      toaster.create({
-        title: "Succès",
-        description: `${itemType.charAt(0).toUpperCase() + itemType.slice(1)} supprimé avec succès`,
-        type: "success",
-      });
-      navigate("/coach/exercises");
-    } catch (error) {
-      console.error("Error deleting exercise:", error);
-      toaster.create({
-        title: "Erreur",
-        description: `Une erreur est survenue lors de la suppression de l'${itemType}`,
-        type: "error",
-      });
-    } finally {
-      setLoading(false);
-    }
+    deleteMutation.mutate(exerciseId!, {
+      onSuccess: () => navigate("/coach/exercises"),
+    });
   };
+
+  // Loading state global
+  const loading =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   const typeColor = formData.type === "warmup" ? "orange.400" : "yellow.400";
   const TypeIcon = formData.type === "warmup" ? LuFlame : LuDumbbell;
@@ -135,7 +125,11 @@ const ExerciseForm = () => {
             <form onSubmit={handleSubmit}>
               <VStack gap={6} align="stretch">
                 {/* Bouton retour */}
-                <Button variant="ghost" onClick={handleClose} alignSelf="flex-start">
+                <Button
+                  variant="ghost"
+                  onClick={handleClose}
+                  alignSelf="flex-start"
+                >
                   <LuArrowLeft />
                   Retour
                 </Button>
@@ -155,7 +149,9 @@ const ExerciseForm = () => {
                       </Box>
                       <Heading size="xl">
                         {isEditMode ? "Modifier" : "Créer"}{" "}
-                        {formData.type === "warmup" ? "un échauffement" : "un exercice"}
+                        {formData.type === "warmup"
+                          ? "un échauffement"
+                          : "un exercice"}
                       </Heading>
                     </HStack>
                   </Card.Body>
@@ -198,8 +194,14 @@ const ExerciseForm = () => {
                       <Field label="Nom de l'exercice" required>
                         <Input
                           value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          placeholder={formData.type === "warmup" ? "Ex: Cardio léger" : "Ex: Squat goblet"}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          placeholder={
+                            formData.type === "warmup"
+                              ? "Ex: Cardio léger"
+                              : "Ex: Squat goblet"
+                          }
                           required
                         />
                       </Field>
@@ -224,7 +226,12 @@ const ExerciseForm = () => {
                         <Input
                           type="url"
                           value={formData.videoUrl}
-                          onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              videoUrl: e.target.value,
+                            })
+                          }
                           placeholder="https://youtube.com/watch?v=..."
                         />
                       </Field>
@@ -232,7 +239,12 @@ const ExerciseForm = () => {
                       {/* Preview vidéo */}
                       {formData.videoUrl && (
                         <Box>
-                          <Box fontSize="sm" fontWeight="medium" mb={2} color="fg.muted">
+                          <Box
+                            fontSize="sm"
+                            fontWeight="medium"
+                            mb={2}
+                            color="fg.muted"
+                          >
                             Aperçu de la vidéo
                           </Box>
                           <VideoPlayer url={formData.videoUrl} />
@@ -245,12 +257,23 @@ const ExerciseForm = () => {
                 {/* Actions */}
                 <HStack gap={4} justify="flex-end" w="100%">
                   {isEditMode && (
-                    <Button variant="outline" colorPalette="red" onClick={handleDelete} loading={loading}>
+                    <Button
+                      variant="outline"
+                      colorPalette="red"
+                      onClick={handleDelete}
+                      loading={deleteMutation.isPending}
+                    >
                       <LuTrash2 style={{ marginRight: "8px" }} />
                       Supprimer
                     </Button>
                   )}
-                  <Button type="submit" bg={typeColor} color="gray.900" fontWeight="bold" loading={loading}>
+                  <Button
+                    type="submit"
+                    bg={typeColor}
+                    color="gray.900"
+                    fontWeight="bold"
+                    loading={loading}
+                  >
                     {isEditMode ? "Enregistrer" : "Créer"}
                   </Button>
                 </HStack>

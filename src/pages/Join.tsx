@@ -34,7 +34,7 @@ const Join = () => {
       try {
         // Vérifier le token avec le backend
         const response = await api.get(
-          `/api/auth/verify-invite-token?token=${invitationToken}`
+          `/api/auth/verify-invite-token?token=${invitationToken}`,
         );
         setCoach(response.data.coach);
         setStatus("valid");
@@ -49,8 +49,6 @@ const Join = () => {
           default:
             setStatus("error");
         }
-
-        console.error("Token verification error:", error);
       }
     };
 

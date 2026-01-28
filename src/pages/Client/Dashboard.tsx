@@ -1,10 +1,8 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Container, VStack, HStack, Text } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
 
 const ClientDashboard = () => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
     <Container maxW="container.lg" position="relative" py={8}>

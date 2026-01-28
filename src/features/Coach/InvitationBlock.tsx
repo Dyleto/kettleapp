@@ -1,6 +1,6 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { useMinimumLoading } from "@/hooks/useMinimulLoading";
+import { useMinimumLoading } from "@/hooks/useMinimumLoading";
 import { Button, Skeleton, useClipboard } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
@@ -16,7 +16,6 @@ const InvitationBlock = () => {
         const link = `${window.location.origin}/join?token=${response.data.token}`;
         setInvitationLink(link);
       } catch (error) {
-        console.log("Error fetching invitation link:", error);
         toaster.create({
           title: "Erreur",
           description:
