@@ -566,7 +566,7 @@ const ClientDetails = () => {
                     {client.sessions.map((session) => (
                       <Box
                         key={session._id}
-                        p={6}
+                        p={0}
                         borderTopWidth="3px"
                         borderTopColor="transparent"
                         borderRadius="xl"
@@ -598,16 +598,23 @@ const ClientDetails = () => {
                         {/* Contenu */}
                         <VStack
                           align="stretch"
-                          gap={4}
+                          gap={0}
                           position="relative"
                           zIndex={1}
                         >
-                          {/* Header avec numéro centré et temps à droite */}
-                          <HStack justify="space-between" align="center">
-                            {/* Spacer gauche pour centrer le numéro */}
-                            <Box w="80px" />
+                          {/* Header avec numéro et temps */}
+                          <HStack
+                            justify="space-between"
+                            align="center"
+                            p={{ base: 4, md: 6 }}
+                          >
+                            {/* Spacer gauche pour centrer le numéro (desktop uniquement) */}
+                            <Box
+                              w="80px"
+                              display={{ base: "none", md: "block" }}
+                            />
 
-                            {/* Numéro centré et stylisé */}
+                            {/* Numéro stylisé */}
                             <Box
                               px={4}
                               py={2}
@@ -643,7 +650,7 @@ const ClientDetails = () => {
                               gap={2}
                               color="gray.400"
                               fontSize="sm"
-                              w="80px"
+                              w={{ base: "auto", md: "80px" }}
                               justify="flex-end"
                             >
                               <LuClock size={14} />
@@ -658,7 +665,13 @@ const ClientDetails = () => {
                           {/* Échauffement */}
                           {session.warmup &&
                             session.warmup.exercises?.length > 0 && (
-                              <Box p={3} bg="orange.900/20" borderRadius="md">
+                              <Box
+                                p={3}
+                                mx={{ base: 0, md: 6 }}
+                                mb={4}
+                                bg="orange.900/20"
+                                borderRadius={{ base: 0, md: "md" }}
+                              >
                                 <HStack gap={2} mb={2}>
                                   <LuFlame size={14} color="#fb923c" />
                                   <Text
@@ -669,56 +682,54 @@ const ClientDetails = () => {
                                     Échauffement
                                   </Text>
                                 </HStack>
-                                {session.warmup.exercises &&
-                                  session.warmup.exercises.length > 0 && (
-                                    <VStack gap={2} align="stretch">
-                                      {session.warmup.exercises.map(
-                                        (ex, idx) => (
-                                          <Box
-                                            key={idx}
-                                            p={3}
-                                            bg="gray.900/50"
-                                            borderRadius="md"
-                                          >
-                                            <VStack align="stretch" gap={1}>
-                                              <Text
-                                                color="gray.300"
-                                                fontWeight="medium"
-                                                fontSize="sm"
-                                              >
-                                                {typeof ex.exerciseId ===
-                                                  "object" &&
-                                                "name" in ex.exerciseId
-                                                  ? ex.exerciseId.name
-                                                  : `Exercice ${idx + 1}`}
-                                              </Text>
-                                              <HStack
-                                                gap={3}
-                                                fontSize="sm"
-                                                color="gray.500"
-                                              >
-                                                {ex.duration && (
-                                                  <Text>
-                                                    {formatDuration(
-                                                      ex.duration,
-                                                    )}
-                                                  </Text>
-                                                )}
-                                                {ex.reps && (
-                                                  <Text>× {ex.reps} reps</Text>
-                                                )}
-                                              </HStack>
-                                            </VStack>
-                                          </Box>
-                                        ),
-                                      )}
-                                    </VStack>
-                                  )}
+                                <VStack gap={2} align="stretch">
+                                  {session.warmup.exercises.map((ex, idx) => (
+                                    <Box
+                                      key={idx}
+                                      p={3}
+                                      bg="gray.900/50"
+                                      borderRadius="md"
+                                    >
+                                      <VStack align="stretch" gap={1}>
+                                        <Text
+                                          color="gray.300"
+                                          fontWeight="medium"
+                                          fontSize="sm"
+                                        >
+                                          {typeof ex.exerciseId === "object" &&
+                                          "name" in ex.exerciseId
+                                            ? ex.exerciseId.name
+                                            : `Exercice ${idx + 1}`}
+                                        </Text>
+                                        <HStack
+                                          gap={3}
+                                          fontSize="sm"
+                                          color="gray.500"
+                                        >
+                                          {ex.duration && (
+                                            <Text>
+                                              {formatDuration(ex.duration)}
+                                            </Text>
+                                          )}
+                                          {ex.reps && (
+                                            <Text>× {ex.reps} reps</Text>
+                                          )}
+                                        </HStack>
+                                      </VStack>
+                                    </Box>
+                                  ))}
+                                </VStack>
                               </Box>
                             )}
 
                           {/* Entraînement */}
-                          <Box p={3} bg="yellow.900/20" borderRadius="md">
+                          <Box
+                            p={3}
+                            mx={{ base: 0, md: 6 }}
+                            mb={{ base: 0, md: 6 }}
+                            bg="yellow.900/20"
+                            borderRadius={{ base: 0, md: "md" }}
+                          >
                             <HStack gap={2} mb={2}>
                               <LuDumbbell size={14} color="#fbbf24" />
                               <Text
@@ -794,7 +805,7 @@ const ClientDetails = () => {
                                 alignSelf="stretch"
                               >
                                 <HStack gap={2} align="stretch" h="full">
-                                  {/* SVG Accolade qui s'adapte à la hauteur */}
+                                  {/* SVG Accolade */}
                                   <Box h="full" w="20px" position="relative">
                                     <svg
                                       width="20"
@@ -808,7 +819,6 @@ const ClientDetails = () => {
                                         height: "100%",
                                       }}
                                     >
-                                      {/* Accolade droite */}
                                       <path
                                         d="M 5 0 Q 10 0, 10 5 L 10 45 Q 10 50, 15 50 Q 10 50, 10 55 L 10 95 Q 10 100, 5 100"
                                         fill="none"
@@ -819,7 +829,7 @@ const ClientDetails = () => {
                                     </svg>
                                   </Box>
 
-                                  {/* Nombre de tours à droite */}
+                                  {/* Nombre de tours */}
                                   <VStack
                                     gap={0}
                                     align="start"
@@ -833,7 +843,7 @@ const ClientDetails = () => {
                                     >
                                       ×{session.workout.rounds}
                                     </Text>
-                                    <Text fontSize="xs" color="gray.500">
+                                    <Text fontSize="2xs" color="gray.500">
                                       tours
                                     </Text>
                                   </VStack>
