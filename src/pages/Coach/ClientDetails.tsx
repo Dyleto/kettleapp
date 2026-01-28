@@ -752,41 +752,26 @@ const ClientDetails = () => {
                                     bg="gray.900/50"
                                     borderRadius="md"
                                   >
-                                    {/* Desktop : 1 ligne */}
-                                    <HStack
-                                      gap={3}
-                                      fontSize="sm"
-                                      color="gray.500"
-                                      display={{ base: "none", md: "flex" }}
-                                    >
-                                      {ex.sets && <Text>{ex.sets} séries</Text>}
-                                      {ex.reps && <Text>× {ex.reps} reps</Text>}
-                                      {ex.duration && (
-                                        <Text>
-                                          {formatDuration(ex.duration)}
-                                        </Text>
-                                      )}
-                                      {ex.restBetweenSets && (
-                                        <>
-                                          <Text>•</Text>
-                                          <Text>
-                                            {formatDuration(ex.restBetweenSets)}{" "}
-                                            repos
-                                          </Text>
-                                        </>
-                                      )}
-                                    </HStack>
+                                    <VStack align="stretch" gap={1}>
+                                      {/* Nom de l'exercice */}
+                                      <Text
+                                        color="gray.300"
+                                        fontWeight="medium"
+                                        fontSize="sm"
+                                      >
+                                        {typeof ex.exerciseId === "object" &&
+                                        "name" in ex.exerciseId
+                                          ? ex.exerciseId.name
+                                          : `Exercice ${idx + 1}`}
+                                      </Text>
 
-                                    {/* Mobile : 2 lignes */}
-                                    <VStack
-                                      align="stretch"
-                                      gap={0}
-                                      fontSize="sm"
-                                      color="gray.500"
-                                      display={{ base: "flex", md: "none" }}
-                                    >
-                                      {/* Ligne 1 : Séries et reps */}
-                                      <HStack gap={3}>
+                                      {/* Desktop : 1 ligne */}
+                                      <HStack
+                                        gap={3}
+                                        fontSize="sm"
+                                        color="gray.500"
+                                        display={{ base: "none", md: "flex" }}
+                                      >
                                         {ex.sets && (
                                           <Text>{ex.sets} séries</Text>
                                         )}
@@ -798,15 +783,50 @@ const ClientDetails = () => {
                                             {formatDuration(ex.duration)}
                                           </Text>
                                         )}
+                                        {ex.restBetweenSets && (
+                                          <>
+                                            <Text>•</Text>
+                                            <Text>
+                                              {formatDuration(
+                                                ex.restBetweenSets,
+                                              )}{" "}
+                                              repos
+                                            </Text>
+                                          </>
+                                        )}
                                       </HStack>
 
-                                      {/* Ligne 2 : Repos */}
-                                      {ex.restBetweenSets && (
-                                        <Text>
-                                          {formatDuration(ex.restBetweenSets)}{" "}
-                                          repos
-                                        </Text>
-                                      )}
+                                      {/* Mobile : 2 lignes */}
+                                      <VStack
+                                        align="stretch"
+                                        gap={0}
+                                        fontSize="sm"
+                                        color="gray.500"
+                                        display={{ base: "flex", md: "none" }}
+                                      >
+                                        {/* Ligne 1 : Séries et reps */}
+                                        <HStack gap={3}>
+                                          {ex.sets && (
+                                            <Text>{ex.sets} séries</Text>
+                                          )}
+                                          {ex.reps && (
+                                            <Text>× {ex.reps} reps</Text>
+                                          )}
+                                          {ex.duration && (
+                                            <Text>
+                                              {formatDuration(ex.duration)}
+                                            </Text>
+                                          )}
+                                        </HStack>
+
+                                        {/* Ligne 2 : Repos */}
+                                        {ex.restBetweenSets && (
+                                          <Text>
+                                            {formatDuration(ex.restBetweenSets)}{" "}
+                                            repos
+                                          </Text>
+                                        )}
+                                      </VStack>
                                     </VStack>
                                   </Box>
                                 ))}
