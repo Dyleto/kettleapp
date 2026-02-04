@@ -1,38 +1,29 @@
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
+import { useGenerateInvitation } from "@/hooks/mutations/useGenerateInvitation";
 import { useMinimumLoading } from "@/hooks/useMinimumLoading";
 import { Button, Skeleton, useClipboard } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 const InvitationBlock = () => {
-  const [invitationLink, setInvitationLink] = useState("");
-  const { loading, executeWithMinimumLoading } = useMinimumLoading();
-  const clipboard = useClipboard({ value: invitationLink, timeout: 1500 });
+  const { mutate, data, isPending } = useGenerateInvitation();
+  const invitationLink = data?.link ?? "";
 
-  useEffect(() => {
-    executeWithMinimumLoading(async () => {
-      try {
-        const response = await api.post("/api/coach/generate-invitation");
-        const link = `${window.location.origin}/join?token=${response.data.token}`;
-        setInvitationLink(link);
-      } catch (error) {
-        toaster.create({
-          title: "Erreur",
-          description:
-            "Une erreur est survenue lors de la récupération du lien.",
-          type: "error",
-        });
-      }
-    });
-  }, []);
+  const clipboard = useClipboard({
+    value: invitationLink,
+    timeout: 1500,
+  });
 
+  // Copier automatiquement quand le lien est généré
   useEffect(() => {
-    clipboard.setValue(invitationLink);
+    if (invitationLink) {
+      clipboard.copy();
+    }
   }, [invitationLink]);
 
-  if (loading || !invitationLink) {
-    return <Skeleton height="40px" width="13.3em" />;
-  }
+  const handleClick = () => {
+    mutate(); // ✅ Génère un nouveau lien à chaque clic
+  };
 
   return (
     <Button
@@ -49,7 +40,8 @@ const InvitationBlock = () => {
       }}
       pointerEvents={clipboard.copied ? "none" : "auto"}
       width="15em"
-      onClick={clipboard.copy}
+      onClick={handleClick}
+      loading={isPending}
     >
       {clipboard.copied ? "✓ Lien copié !" : "Copier le lien d'invitation"}
     </Button>

@@ -7,7 +7,7 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Données considérées "fraîches" pendant 5 minutes
-      staleTime: 0,
+      staleTime: 5 * 60 * 1000, // 5 minutes
 
       // Cache conservé pendant 10 minutes
       gcTime: 10 * 60 * 1000,

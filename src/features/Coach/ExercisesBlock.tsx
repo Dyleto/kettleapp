@@ -1,34 +1,40 @@
 import ClickableCard from "@/components/ClickableCard";
+import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { Box, Heading, HStack, Skeleton, SkeletonCircle, VStack } from "@chakra-ui/react";
+import { useExerciseStats } from "@/hooks/queries/useExerciseStats";
+import { getErrorMessage } from "@/utils/errorMessages";
+import {
+  Box,
+  Heading,
+  HStack,
+  Skeleton,
+  SkeletonCircle,
+  VStack,
+} from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { LuDumbbell, LuFlame, LuArrowRight, LuLibrary } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 
 const ExercisesBlock = () => {
   const navigate = useNavigate();
-  const [warmupCount, setWarmupCount] = useState(0);
-  const [exerciseCount, setExerciseCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+
+  const {
+    data: { warmupCount = 0, exerciseCount = 0 } = {},
+    isLoading,
+    error,
+  } = useExerciseStats();
 
   useEffect(() => {
-    fetchExerciseCounts();
-  }, []);
-
-  const fetchExerciseCounts = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get("/api/coach/exercises/stats");
-      setWarmupCount(response.data.warmupCount);
-      setExerciseCount(response.data.exerciseCount);
-    } catch (error) {
-      console.error("Error fetching exercises stats:", error);
-    } finally {
-      setLoading(false);
+    if (error) {
+      toaster.create({
+        title: "Impossible de charger le nombre d'exercices",
+        description: getErrorMessage(error, "Chargement du nombre d'exercices"),
+        type: "error",
+      });
     }
-  };
+  }, [error]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <ClickableCard onClick={() => {}} color="yellow.400" minW="50%">
         <VStack gap={4} align="stretch">
@@ -63,7 +69,11 @@ const ExercisesBlock = () => {
   }
 
   return (
-    <ClickableCard onClick={() => navigate("/coach/exercises")} color="yellow.400" minW="50%">
+    <ClickableCard
+      onClick={() => navigate("/coach/exercises")}
+      color="yellow.400"
+      minW="50%"
+    >
       <VStack gap={4} align="stretch">
         {/* En-tête */}
         <HStack justify="space-between" align="start" gap={8}>
@@ -88,7 +98,13 @@ const ExercisesBlock = () => {
         {/* Statistiques */}
         <HStack gap={6} mt={2}>
           <HStack gap={2}>
-            <Box p={2} bg="orange.400/10" borderRadius="md" borderWidth="1px" borderColor="orange.400/30">
+            <Box
+              p={2}
+              bg="orange.400/10"
+              borderRadius="md"
+              borderWidth="1px"
+              borderColor="orange.400/30"
+            >
               <LuFlame size={20} color="#fb923c" />
             </Box>
             <VStack gap={0} align="start">
@@ -102,7 +118,13 @@ const ExercisesBlock = () => {
           </HStack>
 
           <HStack gap={2}>
-            <Box p={2} bg="yellow.400/10" borderRadius="md" borderWidth="1px" borderColor="yellow.400/30">
+            <Box
+              p={2}
+              bg="yellow.400/10"
+              borderRadius="md"
+              borderWidth="1px"
+              borderColor="yellow.400/30"
+            >
               <LuDumbbell size={20} color="#fbbf24" />
             </Box>
             <VStack gap={0} align="start">

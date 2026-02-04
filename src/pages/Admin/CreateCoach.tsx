@@ -1,44 +1,24 @@
-import { toaster } from "@/components/ui/toaster";
-import api from "@/config/api";
-import eventEmitter from "@/utils/eventEmitter";
+import { useCreateCoach } from "@/hooks/mutations/useCreateCoach";
 import { Button, Container, Heading, Input, VStack } from "@chakra-ui/react";
-import { useToast } from "@chakra-ui/toast";
 import React from "react";
 
 const AdminCreateCoach = () => {
-  const [loading, setLoading] = React.useState(false);
+  const { mutate, isPending } = useCreateCoach();
   const [formData, setFormData] = React.useState({
     firstName: "",
     lastName: "",
     email: "",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    try {
-      await api.post("/api/admin/create-coach", formData);
-      toaster.create({
-        title: "Coach créé avec succès",
-        description: `${formData.firstName} ${formData.lastName} (${formData.email}) a été ajouté en tant que coach.`,
-        type: "success",
-        duration: 5000,
-      });
-
-      setFormData({ firstName: "", lastName: "", email: "" });
-    } catch (error: any) {
-      if (error.response?.status !== 403 && error.response?.status !== 401) {
-        eventEmitter.emit("error", {
-          title: "Erreur lors de la création du coach",
-          message:
-            error.response?.data?.message ||
-            "Une erreur est survenue. Veuillez réessayer.",
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
+    mutate(formData, {
+      onSuccess: () => {
+        // Réinitialiser le formulaire après succès
+        setFormData({ firstName: "", lastName: "", email: "" });
+      },
+    });
   };
 
   return (
@@ -76,7 +56,7 @@ const AdminCreateCoach = () => {
           type="submit"
           bg="yellow.400"
           color="fg.inverted"
-          loading={loading}
+          loading={isPending}
         >
           Créer le coach
         </Button>

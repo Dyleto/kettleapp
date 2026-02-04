@@ -16,5 +16,6 @@ export const useExercise = (id: string | undefined) => {
       return response.data;
     },
     enabled: !!id,
+    initialData: undefined,
   });
 };
