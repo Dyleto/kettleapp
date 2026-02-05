@@ -11,10 +11,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const Login: React.FC = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+  const colors = useThemeColors();
 
   useEffect(() => {
     if (!isLoading && user) {

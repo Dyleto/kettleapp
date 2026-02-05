@@ -5,6 +5,7 @@ import { SessionHeader } from "./SessionHeader";
 import { WarmupSection } from "./WarmupSection";
 import { WorkoutSection } from "./WorkoutSection";
 import { calculateSessionDuration } from "@/utils/sessionUtils";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface SessionCardProps {
   session: Session;
@@ -15,10 +16,12 @@ export const SessionCard = ({
   session,
   interactive = true,
 }: SessionCardProps) => {
+  const colors = useThemeColors();
+
   return (
     <Card
       p={0}
-      accentColor="yellow.400"
+      accentColor={colors.primary}
       hoverEffect={interactive ? "both" : "none"}
       onClick={interactive ? undefined : undefined}
     >

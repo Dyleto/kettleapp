@@ -1,4 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import {
   Box,
   Menu,
@@ -20,6 +22,8 @@ import { useNavigate } from "react-router-dom";
 export const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+  const colors = useThemeColors();
 
   const roles = [user?.isClient, user?.isCoach, user?.isAdmin].filter(Boolean);
   const hasMultipleRoles = roles.length > 1;
@@ -48,7 +52,6 @@ export const Header = () => {
           {(menu) => (
             <>
               <Menu.Trigger asChild>
-                {/* <Button variant="ghost" p={0} _focusVisible={{ outline: "none" }}> */}
                 <Box
                   role="group"
                   position="relative"
@@ -65,7 +68,7 @@ export const Header = () => {
                       pointerEvents: "none",
                       transform: menu.open
                         ? "rotate(160deg)"
-                        : "rotate(-120deg)", // ← Rotation animée
+                        : "rotate(-120deg)",
                       transition: "transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)", // ← Animation de rotation
                     }}
                   >
@@ -74,7 +77,7 @@ export const Header = () => {
                       cy="50%"
                       r="calc(50% - 2px)"
                       fill="none"
-                      stroke="var(--chakra-colors-yellow-400)"
+                      stroke={colors.primaryHex}
                       strokeWidth="3"
                       strokeDasharray={menu.open ? "295 295" : "80 295"}
                       strokeLinecap="round"
@@ -149,6 +152,22 @@ export const Header = () => {
                         <Text>Déconnexion</Text>
                       </HStack>
                     </Menu.Item>
+
+                    {/* <Menu.Item
+                      value="toggle-theme"
+                      cursor="pointer"
+                      onClick={() =>
+                        setTheme(theme === "yellow" ? "blue" : "yellow")
+                      }
+                    >
+                      <HStack gap={2}>
+                        <LuWrench />
+                        <Text>
+                          Changer le theme en{" "}
+                          {theme === "yellow" ? "Bleu" : "Jaune"}
+                        </Text>
+                      </HStack>
+                    </Menu.Item> */}
                   </Menu.Content>
                 </Menu.Positioner>
               </Portal>

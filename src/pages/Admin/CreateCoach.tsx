@@ -1,9 +1,11 @@
 import { useCreateCoach } from "@/hooks/mutations/useCreateCoach";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { Button, Container, Heading, Input, VStack } from "@chakra-ui/react";
 import React from "react";
 
 const AdminCreateCoach = () => {
   const { mutate, isPending } = useCreateCoach();
+  const colors = useThemeColors();
   const [formData, setFormData] = React.useState({
     firstName: "",
     lastName: "",
@@ -54,7 +56,7 @@ const AdminCreateCoach = () => {
 
         <Button
           type="submit"
-          bg="yellow.400"
+          bg={colors.primary}
           color="fg.inverted"
           loading={isPending}
         >

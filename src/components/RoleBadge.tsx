@@ -1,5 +1,6 @@
 import { Box, HStack, Text } from "@chakra-ui/react";
 import { LuDumbbell, LuWrench, LuClipboardCheck } from "react-icons/lu";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 type Role = "coach" | "client" | "admin";
 
@@ -25,6 +26,7 @@ const roleConfig = {
 export const RoleBadge = ({ role }: RoleBadgeProps) => {
   const config = roleConfig[role];
   const Icon = config.icon;
+  const colors = useThemeColors();
 
   return (
     <Box
@@ -32,7 +34,7 @@ export const RoleBadge = ({ role }: RoleBadgeProps) => {
       px={2}
       pb={0.5}
       pt="20px"
-      bg="yellow.400"
+      bg={colors.primary}
       color="fg.inverted"
       borderRadius="md"
       fontSize="xs"

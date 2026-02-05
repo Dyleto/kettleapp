@@ -1,5 +1,6 @@
 import { Box, BoxProps } from "@chakra-ui/react";
 import { ReactNode } from "react";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface CardProps extends Omit<BoxProps, "onClick"> {
   children: ReactNode;
@@ -24,11 +25,13 @@ interface CardProps extends Omit<BoxProps, "onClick"> {
 export const Card = ({
   children,
   withGlow = true,
-  accentColor = "yellow.400",
+  accentColor,
   onClick,
   hoverEffect = "both",
   ...props
 }: CardProps) => {
+  const colors = useThemeColors();
+  const finalAccentColor = accentColor || colors.primary;
   const getHoverStyles = () => {
     const styles: any = {};
 

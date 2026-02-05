@@ -5,10 +5,12 @@ import { isPublicRoute } from "@/config/routes";
 import { Header } from "@/components/Header";
 import { RoleBadge } from "@/components/RoleBadge";
 import { getDefaultRoleRoute } from "@/utils/navigation";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
   const { user, isLoading } = useAuth();
+  const colors = useThemeColors();
 
   if (isLoading)
     return (
@@ -20,7 +22,7 @@ const RootLayout: React.FC = () => {
         bg="bg.muted"
       >
         <VStack gap={4}>
-          <Spinner size="xl" color="yellow.400" />
+          <Spinner size="xl" color={colors.primary} />
         </VStack>
       </Box>
     );

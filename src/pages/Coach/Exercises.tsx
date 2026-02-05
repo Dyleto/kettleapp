@@ -3,6 +3,7 @@ import { ExerciseSectionSkeleton } from "@/components/skeletons";
 import { SlidePanel } from "@/components/SlidePanel";
 import api from "@/config/api";
 import { GRID_LAYOUTS } from "@/constants/layouts";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import {
   Box,
   Button,
@@ -40,6 +41,7 @@ interface Exercise {
 
 const Exercises = () => {
   const navigate = useNavigate();
+  const colors = useThemeColors();
 
   const { data: exercises = [], isLoading, error } = useExercises();
 
@@ -88,7 +90,7 @@ const Exercises = () => {
                   Retour
                 </Button>
                 <HStack gap={4}>
-                  <LuLibrary size={28} color="#fbbf24" />
+                  <LuLibrary size={28} color={colors.primaryHex} />
                   <Heading size="xl">Mes exercices</Heading>
                 </HStack>
               </HStack>
@@ -132,15 +134,15 @@ const Exercises = () => {
                 <Box>
                   <HStack gap={3} mb={4} justify="space-between">
                     <HStack gap={3}>
-                      <LuFlame size={24} color="#fb923c" />
-                      <Heading size="lg" color="orange.400">
+                      <LuFlame size={24} color={colors.secondaryHex} />
+                      <Heading size="lg" color={colors.secondary}>
                         Échauffements ({warmups.length})
                       </Heading>
                       <IconButton
                         aria-label={isWarmupExpanded ? "Réduire" : "Déplier"}
                         onClick={() => setIsWarmupExpanded(!isWarmupExpanded)}
                         variant="ghost"
-                        colorPalette="orange"
+                        color={colors.secondary}
                       >
                         {isWarmupExpanded ? (
                           <LuChevronUp size={20} />
@@ -158,7 +160,7 @@ const Exercises = () => {
                         p={6}
                         borderWidth="2px"
                         borderStyle="dashed"
-                        borderColor="orange.400"
+                        borderColor={colors.secondary}
                         borderRadius="xl"
                         cursor="pointer"
                         transition="all 0.3s ease"
@@ -167,22 +169,22 @@ const Exercises = () => {
                         justifyContent="center"
                         minH="200px"
                         _hover={{
-                          borderColor: "orange.300",
-                          bg: "orange.400/5",
+                          borderColor: colors.secondaryHover,
+                          bg: colors.secondaryBg,
                           transform: "translateY(-2px)",
                         }}
                         onClick={() =>
                           navigate("/coach/exercises/new?type=warmup")
                         }
                       >
-                        <VStack gap={3} color="orange.400">
+                        <VStack gap={3} color={colors.secondary}>
                           <Box
                             p={3}
-                            bg="orange.400/10"
+                            bg={colors.secondaryBg}
                             borderRadius="full"
                             borderWidth="2px"
                             borderStyle="dashed"
-                            borderColor="orange.400"
+                            borderColor={colors.secondary}
                           >
                             <LuPlus size={32} />
                           </Box>
@@ -204,19 +206,19 @@ const Exercises = () => {
                             navigate(`/coach/exercises/${exercise._id}`)
                           }
                           p={6}
-                          color="orange.400"
+                          color={colors.secondary}
                         >
                           <VStack gap={3} align="stretch">
                             {/* Icône */}
                             <Box
                               p={3}
-                              bg="orange.400/10"
+                              bg={colors.secondaryBg}
                               borderRadius="md"
                               borderWidth="1px"
-                              borderColor="orange.400/30"
+                              borderColor={colors.secondaryBorder}
                               alignSelf="center"
                             >
-                              <LuFlame size={28} color="#fb923c" />
+                              <LuFlame size={28} color={colors.secondaryHex} />
                             </Box>
 
                             {/* Nom */}
@@ -251,8 +253,8 @@ const Exercises = () => {
                 <Box>
                   <HStack gap={3} mb={4} justify="space-between">
                     <HStack gap={3}>
-                      <LuDumbbell size={24} color="#fbbf24" />
-                      <Heading size="lg" color="yellow.400">
+                      <LuDumbbell size={24} color={colors.primaryHex} />
+                      <Heading size="lg" color={colors.primary}>
                         Exercices ({workouts.length})
                       </Heading>
                       <IconButton
@@ -261,7 +263,7 @@ const Exercises = () => {
                           setIsExerciseExpanded(!isExerciseExpanded)
                         }
                         variant="ghost"
-                        colorPalette="yellow"
+                        color={colors.primary}
                       >
                         {isExerciseExpanded ? (
                           <LuChevronUp size={20} />
@@ -279,7 +281,7 @@ const Exercises = () => {
                         p={6}
                         borderWidth="2px"
                         borderStyle="dashed"
-                        borderColor="yellow.400"
+                        borderColor={colors.primary}
                         borderRadius="xl"
                         cursor="pointer"
                         transition="all 0.3s ease"
@@ -288,22 +290,22 @@ const Exercises = () => {
                         justifyContent="center"
                         minH="200px"
                         _hover={{
-                          borderColor: "yellow.300",
-                          bg: "yellow.400/5",
+                          borderColor: colors.primaryHover,
+                          bg: colors.primaryBg,
                           transform: "translateY(-2px)",
                         }}
                         onClick={() =>
                           navigate("/coach/exercises/new?type=exercise")
                         }
                       >
-                        <VStack gap={3} color="yellow.400">
+                        <VStack gap={3} color={colors.primary}>
                           <Box
                             p={3}
-                            bg="yellow.400/10"
+                            bg={colors.primaryBg}
                             borderRadius="full"
                             borderWidth="2px"
                             borderStyle="dashed"
-                            borderColor="yellow.400"
+                            borderColor={colors.primary}
                           >
                             <LuPlus size={32} />
                           </Box>
@@ -330,13 +332,13 @@ const Exercises = () => {
                             {/* Icône */}
                             <Box
                               p={3}
-                              bg="yellow.400/10"
+                              bg={colors.primaryBg}
                               borderRadius="md"
                               borderWidth="1px"
-                              borderColor="yellow.400/30"
+                              borderColor={colors.primaryBorder}
                               alignSelf="center"
                             >
-                              <LuDumbbell size={28} color="#fbbf24" />
+                              <LuDumbbell size={28} color={colors.primaryHex} />
                             </Box>
 
                             {/* Nom */}

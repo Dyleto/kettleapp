@@ -1,4 +1,5 @@
 import { formatDuration } from "@/utils/formatters";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { Box, HStack, Text } from "@chakra-ui/react";
 import { LuClock } from "react-icons/lu";
 
@@ -8,6 +9,8 @@ interface SessionHeaderProps {
 }
 
 export const SessionHeader = ({ order, duration }: SessionHeaderProps) => {
+  const colors = useThemeColors();
+
   return (
     <HStack justify="space-between" align="center" p={{ base: 4, md: 6 }}>
       {/* Spacer gauche pour centrer le numéro (desktop uniquement) */}
@@ -18,14 +21,14 @@ export const SessionHeader = ({ order, duration }: SessionHeaderProps) => {
         px={4}
         py={2}
         borderRadius="full"
-        bg="yellow.400"
+        bg={colors.primary}
         display="flex"
         alignItems="center"
         justifyContent="center"
         fontWeight="bold"
         fontSize="lg"
         color="gray.900"
-        boxShadow="0 4px 12px rgba(251, 191, 36, 0.3)"
+        boxShadow={`0 4px 12px ${colors.primaryHex}4D`}
         position="relative"
         _before={{
           content: '""',
@@ -33,8 +36,7 @@ export const SessionHeader = ({ order, duration }: SessionHeaderProps) => {
           inset: "-3px",
           borderRadius: "full",
           padding: "3px",
-          background:
-            "linear-gradient(135deg, rgba(251, 191, 36, 0.4), rgba(251, 191, 36, 0.1))",
+          background: `linear-gradient(135deg, ${colors.primaryHex}66, ${colors.primaryHex}1A)`,
           WebkitMask:
             "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
           WebkitMaskComposite: "xor",

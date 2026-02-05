@@ -2,6 +2,7 @@ import ClickableCard from "@/components/ClickableCard";
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
 import { useExerciseStats } from "@/hooks/queries/useExerciseStats";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { getErrorMessage } from "@/utils/errorMessages";
 import {
   Box,
@@ -11,12 +12,13 @@ import {
   SkeletonCircle,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { use, useEffect } from "react";
 import { LuDumbbell, LuFlame, LuArrowRight, LuLibrary } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 
 const ExercisesBlock = () => {
   const navigate = useNavigate();
+  const colors = useThemeColors();
 
   const {
     data: { warmupCount = 0, exerciseCount = 0 } = {},
@@ -36,7 +38,7 @@ const ExercisesBlock = () => {
 
   if (isLoading) {
     return (
-      <ClickableCard onClick={() => {}} color="yellow.400" minW="50%">
+      <ClickableCard onClick={() => {}} color={colors.primary} minW="50%">
         <VStack gap={4} align="stretch">
           <HStack justify="space-between" align="start" gap={8}>
             <VStack align="start" gap={2} flex={1}>
@@ -71,7 +73,7 @@ const ExercisesBlock = () => {
   return (
     <ClickableCard
       onClick={() => navigate("/coach/exercises")}
-      color="yellow.400"
+      color={colors.primary}
       minW="50%"
     >
       <VStack gap={4} align="stretch">
@@ -80,7 +82,7 @@ const ExercisesBlock = () => {
           <VStack align="start" gap={2}>
             <Box fontSize="2xl" fontWeight="bold" color="fg">
               <HStack gap={4}>
-                <LuLibrary size={28} color="#fbbf24" />
+                <LuLibrary size={28} color={colors.primaryHex} />
                 <Heading size="xl">Mes exercices</Heading>
               </HStack>
             </Box>
@@ -90,7 +92,7 @@ const ExercisesBlock = () => {
           </VStack>
 
           {/* Icône flèche visible à droite */}
-          <Box color="yellow.400" fontSize="2xl" flexShrink={0}>
+          <Box color={colors.primary} fontSize="2xl" flexShrink={0}>
             <LuArrowRight />
           </Box>
         </HStack>
@@ -100,12 +102,12 @@ const ExercisesBlock = () => {
           <HStack gap={2}>
             <Box
               p={2}
-              bg="orange.400/10"
+              bg={colors.secondaryBg}
               borderRadius="md"
               borderWidth="1px"
-              borderColor="orange.400/30"
+              borderColor={colors.secondaryBorder}
             >
-              <LuFlame size={20} color="#fb923c" />
+              <LuFlame size={20} color={colors.secondaryHex} />
             </Box>
             <VStack gap={0} align="start">
               <Box fontSize="xl" fontWeight="bold" color="white">
@@ -120,12 +122,12 @@ const ExercisesBlock = () => {
           <HStack gap={2}>
             <Box
               p={2}
-              bg="yellow.400/10"
+              bg={colors.primaryBg}
               borderRadius="md"
               borderWidth="1px"
-              borderColor="yellow.400/30"
+              borderColor={colors.primaryBorder}
             >
-              <LuDumbbell size={20} color="#fbbf24" />
+              <LuDumbbell size={20} color={colors.primaryHex} />
             </Box>
             <VStack gap={0} align="start">
               <Box fontSize="xl" fontWeight="bold" color="white">

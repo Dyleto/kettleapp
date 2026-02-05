@@ -1,5 +1,6 @@
 import { Card } from "./Card";
 import { ReactNode } from "react";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface ClickableCardProps {
   children: ReactNode;
@@ -12,12 +13,19 @@ interface ClickableCardProps {
 const ClickableCard = ({
   children,
   onClick,
-  color = "yellow.400",
+  color,
   minW,
   p = 8,
 }: ClickableCardProps) => {
+  const colors = useThemeColors();
+
   return (
-    <Card onClick={onClick} accentColor={color} minW={minW} p={p}>
+    <Card
+      onClick={onClick}
+      accentColor={color || colors.primary}
+      minW={minW}
+      p={p}
+    >
       {children}
     </Card>
   );

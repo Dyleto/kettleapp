@@ -2,6 +2,34 @@ import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
 
 const customConfig = defineConfig({
   theme: {
+    semanticTokens: {
+      colors: {
+        // Couleurs principales
+        "app.primary": { value: "{colors.yellow.400}" },
+        "app.primary.hover": { value: "{colors.yellow.300}" },
+        "app.primary.active": { value: "{colors.yellow.500}" },
+        "app.primary.bg": { value: "{colors.yellow.400/10}" },
+        "app.primary.border": { value: "{colors.yellow.400/30}" },
+
+        // Couleurs secondaires (échauffements)
+        "app.secondary": { value: "{colors.orange.400}" },
+        "app.secondary.hover": { value: "{colors.orange.300}" },
+        "app.secondary.active": { value: "{colors.orange.500}" },
+        "app.secondary.bg": { value: "{colors.orange.400/10}" },
+        "app.secondary.border": { value: "{colors.orange.400/30}" },
+
+        // États
+        "app.success": { value: "{colors.green.400}" },
+        "app.success.hover": { value: "{colors.green.500}" },
+        "app.success.active": { value: "{colors.green.600}" },
+
+        "app.error": { value: "{colors.red.400}" },
+
+        // Backgrounds spécifiques
+        "app.warmup.bg": { value: "{colors.orange.900/20}" },
+        "app.workout.bg": { value: "{colors.yellow.900/20}" },
+      },
+    },
     tokens: {
       colors: {
         brand: {

@@ -2,6 +2,7 @@ import api from "@/config/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultRoleRoute } from "@/utils/navigation";
 import storage from "@/utils/storage";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import { Box, Heading, Spinner, VStack } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ const AuthCallback = () => {
   const [searchParams] = useSearchParams();
   const { setUser } = useAuth();
   const navigate = useNavigate();
+  const colors = useThemeColors();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -71,7 +73,7 @@ const AuthCallback = () => {
       bg="bg.muted"
     >
       <VStack gap={4}>
-        <Spinner size="xl" color="yellow.400" />
+        <Spinner size="xl" color={colors.primary} />
         <Heading size="md">Connexion en cours...</Heading>
       </VStack>
     </Box>

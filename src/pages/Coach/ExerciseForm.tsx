@@ -1,6 +1,7 @@
 import { SlidePanel } from "@/components/SlidePanel";
 import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import {
   Box,
   Button,
@@ -33,6 +34,7 @@ const ExerciseForm = () => {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const colors = useThemeColors();
 
   const [formData, setFormData] = useState<Partial<Exercise>>({
     name: "",
@@ -110,8 +112,13 @@ const ExerciseForm = () => {
     updateMutation.isPending ||
     deleteMutation.isPending;
 
-  const typeColor = formData.type === "warmup" ? "orange.400" : "yellow.400";
+  const typeColor =
+    formData.type === "warmup" ? colors.secondaryHex : colors.primaryHex;
   const TypeIcon = formData.type === "warmup" ? LuFlame : LuDumbbell;
+  const typeBg =
+    formData.type === "warmup" ? colors.secondaryBg : colors.primaryBg;
+  const typeBorder =
+    formData.type === "warmup" ? colors.secondaryBorder : colors.primaryBorder;
 
   return (
     <SlidePanel onClose={() => navigate("/coach/exercises")}>
@@ -140,10 +147,10 @@ const ExerciseForm = () => {
                     <HStack gap={3}>
                       <Box
                         p={3}
-                        bg={`${typeColor}/10`}
+                        bg={typeBg}
                         borderRadius="md"
                         borderWidth="1px"
-                        borderColor={`${typeColor}/30`}
+                        borderColor={typeBorder}
                       >
                         <TypeIcon size={32} color={typeColor} />
                       </Box>
@@ -176,14 +183,24 @@ const ExerciseForm = () => {
                               {
                                 value: "warmup",
                                 label: "Échauffement",
-                                icon: <LuFlame size={20} color="#fb923c" />,
-                                color: "orange.400",
+                                icon: (
+                                  <LuFlame
+                                    size={20}
+                                    color={colors.secondaryHex}
+                                  />
+                                ),
+                                color: colors.secondary,
                               },
                               {
                                 value: "exercise",
                                 label: "Exercice",
-                                icon: <LuDumbbell size={20} color="#fbbf24" />,
-                                color: "yellow.400",
+                                icon: (
+                                  <LuDumbbell
+                                    size={20}
+                                    color={colors.primaryHex}
+                                  />
+                                ),
+                                color: colors.primary,
                               },
                             ]}
                           />

@@ -3,6 +3,7 @@ import { LuDumbbell } from "react-icons/lu";
 import { ExerciseCard } from "./ExerciseCard";
 import { formatDuration } from "@/utils/formatters";
 import { WorkoutExercise } from "@/types";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface WorkoutSectionProps {
   exercises: WorkoutExercise[];
@@ -15,17 +16,19 @@ export const WorkoutSection = ({
   rounds,
   restBetweenRounds,
 }: WorkoutSectionProps) => {
+  const colors = useThemeColors();
+
   return (
     <Box
       p={3}
       mx={{ base: 0, md: 6 }}
       mb={{ base: 0, md: 6 }}
-      bg="yellow.900/20"
+      bg={colors.workoutBg}
       borderRadius={{ base: 0, md: "md" }}
     >
       <HStack gap={2} mb={2}>
-        <LuDumbbell size={14} color="#fbbf24" />
-        <Text fontSize="xs" fontWeight="bold" color="yellow.400">
+        <LuDumbbell size={14} color={colors.primaryHex} />
+        <Text fontSize="xs" fontWeight="bold" color={colors.primary}>
           Entraînement
         </Text>
       </HStack>
@@ -74,7 +77,7 @@ export const WorkoutSection = ({
                 <path
                   d="M 5 0 Q 10 0, 10 5 L 10 45 Q 10 50, 15 50 Q 10 50, 10 55 L 10 95 Q 10 100, 5 100"
                   fill="none"
-                  stroke="#fbbf24"
+                  stroke={colors.primaryHex}
                   strokeWidth="2"
                   vectorEffect="non-scaling-stroke"
                 />
@@ -86,7 +89,7 @@ export const WorkoutSection = ({
               <Text
                 fontSize="xl"
                 fontWeight="bold"
-                color="yellow.400"
+                color={colors.primary}
                 lineHeight="1"
               >
                 ×{rounds}
@@ -103,7 +106,7 @@ export const WorkoutSection = ({
       {restBetweenRounds && restBetweenRounds > 0 && (
         <HStack gap={2} mt={2} fontSize="sm" color="gray.400">
           <Text>Repos entre tours :</Text>
-          <Text fontWeight="bold" color="yellow.400">
+          <Text fontWeight="bold" color={colors.primary}>
             {formatDuration(restBetweenRounds)}
           </Text>
         </HStack>

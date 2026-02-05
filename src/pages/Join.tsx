@@ -1,5 +1,6 @@
 import GoogleLoginButton from "@/components/GoogleLoginButton";
 import { useVerifyInviteToken } from "@/hooks/queries/useVerifyInviteToken";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import {
   Button,
   Container,
@@ -16,6 +17,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 const Join = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const colors = useThemeColors();
   const invitationToken = searchParams.get("token") ?? undefined;
 
   const { data, isLoading, error } = useVerifyInviteToken(invitationToken);
@@ -92,7 +94,7 @@ const Join = () => {
               KETTLE
             </Heading>
             <Separator
-              borderColor="yellow.400"
+              borderColor={colors.primary}
               borderWidth="1px"
               width="50vw"
             />
