@@ -49,10 +49,6 @@ const customConfig = defineConfig({
     },
   },
   globalCss: {
-    "html, body": {
-      backgroundColor: "bg.muted",
-      overscrollBehavior: "none",
-    },
     "input, textarea": {
       fontSize: "16px !important",
     },
