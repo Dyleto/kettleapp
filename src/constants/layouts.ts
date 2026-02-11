@@ -6,17 +6,17 @@ export const GRID_LAYOUTS = {
    * Grid 4 colonnes responsive (cards, exercices, etc.)
    */
   fourColumns: {
-    base: "1fr",
-    sm: "repeat(2, 1fr)",
-    md: "repeat(3, 1fr)",
+    base: "repeat(2, 1fr)",
+    sm: "repeat(3, 1fr)",
     lg: "repeat(4, 1fr)",
+    xl: "repeat(5, 1fr)",
   },
 
   /**
    * Grid 3 colonnes responsive (sessions, programmes)
    */
   threeColumns: {
-    base: "1fr",
+    base: "repeat(2, 1fr)",
     md: "repeat(2, 1fr)",
     lg: "repeat(3, 1fr)",
   },
@@ -25,8 +25,7 @@ export const GRID_LAYOUTS = {
    * Grid 2 colonnes responsive
    */
   twoColumns: {
-    base: "1fr",
-    md: "repeat(2, 1fr)",
+    base: "repeat(2, 1fr)",
   },
 
   /**
