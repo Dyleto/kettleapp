@@ -5,16 +5,21 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
-import Login from "./pages/Login";
-import AdminCreateCoach from "./pages/Admin/CreateCoach";
-import AuthCallback from "./pages/AuthCallback";
-import AdminDashboard from "./pages/Admin/Dashboard";
-import ClientDashboard from "./pages/Client/Dashboard";
-import CoachDashboard from "./pages/Coach/Dashboard";
-import Join from "./pages/Join";
-import ClientDetails from "./pages/Coach/ClientDetails";
-import Exercises from "./pages/Coach/Exercises";
-import ExerciseForm from "./pages/Coach/ExerciseForm";
+import React from "react";
+
+const Login = React.lazy(() => import("./pages/Login"));
+const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
+const Join = React.lazy(() => import("./pages/Join"));
+
+const AdminDashboard = React.lazy(() => import("./pages/Admin/Dashboard"));
+const AdminCreateCoach = React.lazy(() => import("./pages/Admin/CreateCoach"));
+
+const CoachDashboard = React.lazy(() => import("./pages/Coach/Dashboard"));
+const ClientDetails = React.lazy(() => import("./pages/Coach/ClientDetails"));
+const Exercises = React.lazy(() => import("./pages/Coach/Exercises"));
+const ExerciseForm = React.lazy(() => import("./pages/Coach/ExerciseForm"));
+
+const ClientDashboard = React.lazy(() => import("./pages/Client/Dashboard"));
 
 const router = createBrowserRouter(
   createRoutesFromElements(

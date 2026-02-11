@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/config/api";
 import { toaster } from "@/components/ui/toaster";
 import { Exercise } from "@/types";
+import { queryKeys } from "@/config/queryKeys";
 
 /**
  * Hook pour créer un exercice
@@ -18,7 +19,9 @@ export const useCreateExercise = () => {
         variables.type === "warmup" ? "échauffement" : "exercice";
 
       // Invalide le cache → Refetch automatique
-      queryClient.invalidateQueries({ queryKey: ["coach", "exercises"] });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.exercises.all(),
+      });
 
       toaster.create({
         title: "Succès",
@@ -55,9 +58,11 @@ export const useUpdateExercise = () => {
         variables.data.type === "warmup" ? "échauffement" : "exercice";
 
       // Invalide le cache
-      queryClient.invalidateQueries({ queryKey: ["coach", "exercises"] });
       queryClient.invalidateQueries({
-        queryKey: ["coach", "exercise", variables.id],
+        queryKey: queryKeys.coach.exercises.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.exercises.detail(variables.id),
       });
 
       toaster.create({
@@ -91,7 +96,9 @@ export const useDeleteExercise = () => {
 
     onSuccess: () => {
       // Invalide le cache
-      queryClient.invalidateQueries({ queryKey: ["coach", "exercises"] });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.exercises.all(),
+      });
 
       toaster.create({
         title: "Succès",

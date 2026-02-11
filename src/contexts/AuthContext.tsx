@@ -1,16 +1,12 @@
-import api from "@/config/api";
-import { createContext, useContext, useEffect, useState } from "react";
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture?: string;
-  isAdmin: boolean;
-  isCoach: boolean;
-  isClient: boolean;
-}
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { User } from "@/types";
+import { authService } from "@/services/authService";
 
 interface AuthContextType {
   user: User | null;
@@ -22,7 +18,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -31,9 +27,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await api.get("/api/auth/me");
-        setUser(response.data.user);
+        // APPEL DU SERVICE
+        const data = await authService.getMe();
+        setUser(data.user);
       } catch (error) {
+        // Si 401 ou erreur réseau, on considère non connecté
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -45,31 +43,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
-      await api.post("api/auth/logout");
+      // APPEL DU SERVICE
+      await authService.logout();
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
+      // On nettoie le state côté client quoi qu'il arrive
       setUser(null);
+      window.location.href = "/login"; // Redirection brutale pour nettoyer les états React Query aussi
     }
   };
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    logout,
-    setUser,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        logout,
+        setUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-
   return context;
 };

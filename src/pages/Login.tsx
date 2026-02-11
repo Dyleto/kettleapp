@@ -41,10 +41,9 @@ const Login: React.FC = () => {
               KETTLE
             </Heading>
             <Separator
-              borderColor="yellow.400"
+              borderColor={colors.primary}
               borderWidth="1px"
               width="50vw"
-              // opacity={0.7}
             />
             <Text color="fg.muted" fontSize="md">
               Votre application de coaching personnel

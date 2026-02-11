@@ -8,18 +8,21 @@ import { ErrorHandler } from "./components/ErrorHandler.js";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./config/queryClient.js";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import ErrorBoundary from "./components/ErrorBoundary.js";
 
 ReactDOM.createRoot(document.getElementById("root")! as HTMLElement).render(
   <Provider forcedTheme="dark">
-    <Toaster />
-    <ErrorHandler />
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </ThemeProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <Toaster />
+      <ErrorHandler />
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ThemeProvider>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ErrorBoundary>
   </Provider>,
 );

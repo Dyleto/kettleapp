@@ -48,6 +48,11 @@ export interface Exercise {
   updatedAt: Date;
 }
 
+export interface ExerciseStats {
+  warmupCount: number;
+  exerciseCount: number;
+}
+
 export interface WarmupExercise {
   exercise: Exercise;
   duration?: number;

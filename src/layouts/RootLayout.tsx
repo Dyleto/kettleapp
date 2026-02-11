@@ -6,26 +6,22 @@ import { Header } from "@/components/Header";
 import { RoleBadge } from "@/components/RoleBadge";
 import { getDefaultRoleRoute } from "@/utils/navigation";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { Suspense } from "react";
 
 const RootLayout: React.FC = () => {
   const location = useLocation();
   const { user, isLoading } = useAuth();
   const colors = useThemeColors();
 
-  if (isLoading)
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minH="100vh"
-        bg="bg.muted"
-      >
-        <VStack gap={4}>
-          <Spinner size="xl" color={colors.primary} />
-        </VStack>
-      </Box>
-    );
+  const PageLoader = () => (
+    <Box display="flex" justifyContent="center" alignItems="center" minH="50vh">
+      <VStack gap={4}>
+        <Spinner size="xl" color={colors.primary} />
+      </VStack>
+    </Box>
+  );
+
+  if (isLoading) return <PageLoader />;
 
   if (!user && !isPublicRoute(location.pathname)) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -61,7 +57,9 @@ const RootLayout: React.FC = () => {
         minH="100vh"
       >
         <Box gridArea={"content"}>
-          <Outlet />
+          <Suspense fallback={<PageLoader />}>
+            <Outlet />
+          </Suspense>
         </Box>
       </Grid>
     </>

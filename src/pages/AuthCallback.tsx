@@ -1,13 +1,16 @@
-import api from "@/config/api";
+import { useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { Box, Heading, Spinner, VStack } from "@chakra-ui/react";
+// Services & Hooks
+import { authService } from "@/services/authService";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDefaultRoleRoute } from "@/utils/navigation";
 import storage from "@/utils/storage";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { Box, Heading, Spinner, VStack } from "@chakra-ui/react";
-import { useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { toaster } from "@/components/ui/toaster";
 
-const MINIMUM_DISPLAY_TIME_MS = 500;
+// Temps mini avant redirection (pour ne pas flasher l'écran)
+const MINIMUM_DISPLAY_TIME_MS = 800;
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
@@ -16,53 +19,69 @@ const AuthCallback = () => {
   const colors = useThemeColors();
 
   useEffect(() => {
+    // Flag pour éviter le double appel en React StrictMode (Dev)
+    let isMounted = true;
+
     const handleCallback = async () => {
+      const code = searchParams.get("code");
+      const error = searchParams.get("error");
+
+      if (error || !code) {
+        toaster.create({
+          title: "Connexion annulée ou échouée",
+          type: "error",
+        });
+        return navigate("/login", { replace: true });
+      }
+
       try {
         const startTime = Date.now();
-        const code = searchParams.get("code");
         const redirectUri = `${window.location.origin}/auth/callback`;
         const invitationToken = storage.getItem("invitation_token");
 
-        const response = await api.post("/api/auth/google-callback", {
+        // --- APPEL API VIA SERVICE ---
+        const data = await authService.googleLogin(
           code,
           redirectUri,
-          invitationToken,
-        });
-
-        // Nettoyer après utilisation
-        if (invitationToken) {
-          storage.removeItem("invitation_token");
-        }
-
-        // Sauvegarder
-        setUser(response.data.user);
-
-        // Confirmer la session
-        await api.get("/api/auth/me");
-
-        // Calculer le temps écoulé
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(
-          0,
-          MINIMUM_DISPLAY_TIME_MS - elapsedTime,
+          invitationToken || undefined,
         );
 
-        // Rediriger
-        setTimeout(() => {
-          navigate(getDefaultRoleRoute(response.data.user), { replace: true });
-        }, remainingTime);
-      } catch (error) {
-        console.error("Google OAuth callback error:", error);
-        navigate("/login", { replace: true });
+        // Nettoyage token invitation
+        if (invitationToken) storage.removeItem("invitation_token");
+
+        if (isMounted) {
+          setUser(data.user);
+
+          toaster.create({ title: "Connexion réussie !", type: "success" });
+
+          // Délai esthétique pour UX
+          const elapsedTime = Date.now() - startTime;
+          const remainingTime = Math.max(
+            0,
+            MINIMUM_DISPLAY_TIME_MS - elapsedTime,
+          );
+
+          setTimeout(() => {
+            navigate(getDefaultRoleRoute(data.user), { replace: true });
+          }, remainingTime);
+        }
+      } catch (err) {
+        console.error("Auth Error:", err);
+        toaster.create({
+          title: "Impossible de vous connecter",
+          description: "Veuillez réessayer.",
+          type: "error",
+        });
+        if (isMounted) navigate("/login", { replace: true });
       }
     };
 
-    if (searchParams.get("code")) {
-      handleCallback();
-    } else {
-      navigate("/login", { replace: true });
-    }
-  }, [searchParams, navigate, setUser]);
+    handleCallback();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, navigate, setUser]); // Dépendances stables
 
   return (
     <Box

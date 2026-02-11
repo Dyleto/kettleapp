@@ -3,7 +3,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Button, useClipboard } from "@chakra-ui/react";
 import { useEffect } from "react";
 
-const InvitationBlock = () => {
+export const InvitationBlock = () => {
   const { mutate, data, isPending } = useGenerateInvitation();
   const invitationLink = data?.link ?? "";
   const colors = useThemeColors();
@@ -46,5 +46,3 @@ const InvitationBlock = () => {
     </Button>
   );
 };
-
-export default InvitationBlock;

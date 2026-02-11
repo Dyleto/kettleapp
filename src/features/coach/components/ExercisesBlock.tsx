@@ -16,7 +16,7 @@ import { use, useEffect } from "react";
 import { LuDumbbell, LuFlame, LuArrowRight, LuLibrary } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 
-const ExercisesBlock = () => {
+export const ExercisesBlock = () => {
   const navigate = useNavigate();
   const colors = useThemeColors();
 
@@ -143,5 +143,3 @@ const ExercisesBlock = () => {
     </ClickableCard>
   );
 };
-
-export default ExercisesBlock;

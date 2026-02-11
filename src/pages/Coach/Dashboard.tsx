@@ -1,8 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { ClientsGrid } from "@/features/Coach/ClientsGrid";
-import ExercisesBlock from "@/features/Coach/ExercisesBlock";
-import InvitationBlock from "@/features/Coach/InvitationBlock";
-import { Container, VStack, HStack, Text, Box, Heading } from "@chakra-ui/react";
+import { ClientsGrid, ExercisesBlock, InvitationBlock } from "@/features/coach";
+import { Container, VStack, HStack, Text, Box } from "@chakra-ui/react";
 
 const CoachDashboard = () => {
   const { user } = useAuth();

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/config/api";
 import { Coach } from "@/types";
+import { queryKeys } from "@/config/queryKeys";
 
 interface VerifyTokenResponse {
   coach: Coach;
@@ -11,7 +12,7 @@ interface VerifyTokenResponse {
  */
 export const useVerifyInviteToken = (token: string | undefined) => {
   return useQuery({
-    queryKey: ["auth", "verify-invite-token", token],
+    queryKey: queryKeys.auth.verifyInviteToken(token || ""),
     queryFn: async () => {
       if (!token) throw new Error("No token provided");
 
