@@ -10,9 +10,9 @@ import {
 } from "@chakra-ui/react";
 
 export const toaster = createToaster({
-  placement: "top", // Plus safe que bottom sur iOS
+  placement: "top",
   pauseOnPageIdle: true,
-  offsets: { top: "16px", right: "16px", left: "16px" }, // Marges explicites
+  // On laisse Chakra gérer les offsets de base, mais on va forcer le style conteneur
 });
 
 export const Toaster = () => {
@@ -21,23 +21,28 @@ export const Toaster = () => {
       <ChakraToaster
         toaster={toaster}
         insetInline={{ mdDown: "4" }}
-        // Force le conteneur à être "au dessus de tout" sans bloquer les clics inutiles
         style={{
-          zIndex: 2147483647, // Max Z-Index
-          pointerEvents: "none", // Laisse passer les clics à travers le vide
-          // Hack pour forcer Safari à traiter ce calque séparément (GPU)
-          transform: "translate3d(0,0,0)",
-          WebkitTransform: "translate3d(0,0,0)",
+          position: "fixed",
+          zIndex: 9999,
+          // C'EST ICI QUE TOUT SE JOUE :
+          top: "0",
+          left: "0",
+          right: "0",
+          // On ajoute un padding physique pour que le contenu ne touche pas la barre d'état
+          paddingTop: "calc(env(safe-area-inset-top) + 16px)",
+          pointerEvents: "none",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
         {(toast) => (
           <Toast.Root
-            width={{ base: "90vw", md: "sm" }} // Largeur explicite sur mobile
+            width={{ base: "90vw", md: "sm" }}
             style={{
-              pointerEvents: "auto", // Rétablit les clics sur le toast
-              margin: "0 auto 8px auto", // Centre horizontalement
+              pointerEvents: "auto",
+              marginBottom: "8px",
             }}
-            // Styles visuels défensifs (Opaque pour masquer ce qu'il y a derrière)
             bg="bg.panel"
             shadow="lg"
             rounded="md"
