@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 
 export const toaster = createToaster({
-  placement: "bottom", // On laisse Chakra gérer, on va surcharger le CSS
+  placement: "bottom-end",
   pauseOnPageIdle: true,
 });
 
@@ -19,25 +19,31 @@ export const Toaster = () => {
     <Portal>
       <ChakraToaster
         toaster={toaster}
-        insetInline={{ mdDown: "4" }}
-        style={{
-          position: "fixed",
-          zIndex: 9999,
-          // CENTRAGE TOTAL
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 20,
-          pointerEvents: "none",
-          display: "flex",
-          alignItems: "flex-end", // Vertical Center
-        }}
+        insetInline={{ mdDown: "0" }} // On reset les insets auto qui peuvent gêner
+        // CONTENEUR PLEIN ECRAN
+        position="fixed"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        zIndex={9999}
+        pointerEvents="none"
+        // FLEXBOX MAGIQUE
+        display="flex"
+        flexDirection="column" // Les toasts s'empilent verticalement
+        justifyContent="flex-end" // On pousse tout vers le BAS
+        // ALIGNEMENT HORIZONTAL RESPONSIVE
+        // Mobile (base) = Au centre
+        // Desktop (md) = À droite (flex-end)
+        alignItems={{ base: "center", md: "flex-end" }}
+        // MARGES RESPONSIVES (Pour ne pas coller aux bords)
+        padding={{ base: "0 0 20px 0", md: "0 20px 20px 0" }}
       >
         {(toast) => (
           <Toast.Root
+            // Largeur responsive
             width={{ base: "90vw", md: "sm" }}
-            style={{ pointerEvents: "auto" }}
-            // ON LAISSE LES COULEURS PAR DEFAUT DE CHAKRA (background coloré)
+            style={{ pointerEvents: "auto", marginBottom: "8px" }}
           >
             {toast.type === "loading" ? (
               <Spinner size="sm" color="blue.solid" />
