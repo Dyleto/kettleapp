@@ -9,12 +9,14 @@ import {
 } from "@chakra-ui/react";
 
 export const toaster = createToaster({
-  placement: "top", // <-- ON PASSE EN HAUT
+  placement: "top", // On simplifie pour éviter les coins compliqués
   pauseOnPageIdle: true,
 });
 
 export const Toaster = () => {
   return (
+    // SUPPRESSION DU <PORTAL> ICI
+    // On garde le ChakraToaster mais on force son style
     <ChakraToaster
       toaster={toaster}
       insetInline={{ mdDown: "4" }}
@@ -43,8 +45,21 @@ export const Toaster = () => {
             border: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          {/* ... contenu du toast ... */}
-          {/* ... */}
+          {toast.type === "loading" ? (
+            <Spinner size="sm" color="blue.solid" />
+          ) : (
+            <Toast.Indicator />
+          )}
+          <Stack gap="1" flex="1" maxWidth="100%">
+            {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
+            {toast.description && (
+              <Toast.Description>{toast.description}</Toast.Description>
+            )}
+          </Stack>
+          {toast.action && (
+            <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>
+          )}
+          {toast.closable && <Toast.CloseTrigger />}
         </Toast.Root>
       )}
     </ChakraToaster>
