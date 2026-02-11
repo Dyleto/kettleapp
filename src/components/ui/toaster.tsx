@@ -8,14 +8,21 @@ import {
   Toast,
   createToaster,
 } from "@chakra-ui/react";
+import { useEffect } from "react";
 
 export const toaster = createToaster({
   placement: "top",
   pauseOnPageIdle: true,
-  // On laisse Chakra gérer les offsets de base, mais on va forcer le style conteneur
 });
 
 export const Toaster = () => {
+  // HACK SAFARI : On force la couleur de la barre d'adresse à rester noire
+  // même si un élément coloré apparaît en dessous.
+  useEffect(() => {
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
+    metas.forEach((m) => m.setAttribute("content", "#18181b"));
+  });
+
   return (
     <Portal>
       <ChakraToaster
@@ -24,16 +31,20 @@ export const Toaster = () => {
         style={{
           position: "fixed",
           zIndex: 9999,
-          // C'EST ICI QUE TOUT SE JOUE :
+          // Placement sécurisé sous l'encoche
           top: "0",
           left: "0",
           right: "0",
-          // On ajoute un padding physique pour que le contenu ne touche pas la barre d'état
-          paddingTop: "calc(env(safe-area-inset-top) + 16px)",
+          paddingTop: "calc(env(safe-area-inset-top) + 12px)",
+
           pointerEvents: "none",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
+
+          // ISOLEMENT DU RENDU (Empêche Safari de "boire" la couleur)
+          contain: "paint layout",
+          transform: "translateZ(0)", // Force GPU
         }}
       >
         {(toast) => (
@@ -43,8 +54,9 @@ export const Toaster = () => {
               pointerEvents: "auto",
               marginBottom: "8px",
             }}
+            // On reste sur un fond neutre + bordure colorée (plus prudent)
             bg="bg.panel"
-            shadow="lg"
+            shadow="xl" // Ombre forte pour bien séparer du fond
             rounded="md"
             borderLeftWidth="4px"
             borderLeftColor={
