@@ -8,21 +8,13 @@ import {
   Toast,
   createToaster,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
 
 export const toaster = createToaster({
-  placement: "top",
+  placement: "bottom", // Retour en bas, c'est moins risqué pour la status bar
   pauseOnPageIdle: true,
 });
 
 export const Toaster = () => {
-  // HACK SAFARI : On force la couleur de la barre d'adresse à rester noire
-  // même si un élément coloré apparaît en dessous.
-  useEffect(() => {
-    const metas = document.querySelectorAll('meta[name="theme-color"]');
-    metas.forEach((m) => m.setAttribute("content", "#18181b"));
-  });
-
   return (
     <Portal>
       <ChakraToaster
@@ -31,61 +23,55 @@ export const Toaster = () => {
         style={{
           position: "fixed",
           zIndex: 9999,
-          // Placement sécurisé sous l'encoche
-          top: "0",
-          left: "0",
-          right: "0",
-          paddingTop: "calc(env(safe-area-inset-top) + 12px)",
-
+          bottom: "20px",
+          left: "20px",
+          right: "20px",
           pointerEvents: "none",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-
-          // ISOLEMENT DU RENDU (Empêche Safari de "boire" la couleur)
-          contain: "paint layout",
-          transform: "translateZ(0)", // Force GPU
+          justifyContent: "flex-end",
+          // Marge de sécurité pour la barre du bas iPhone
+          paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
         {(toast) => (
           <Toast.Root
-            width={{ base: "90vw", md: "sm" }}
-            style={{
-              pointerEvents: "auto",
-              marginBottom: "8px",
-            }}
-            // On reste sur un fond neutre + bordure colorée (plus prudent)
-            bg="bg.panel"
-            shadow="xl" // Ombre forte pour bien séparer du fond
-            rounded="md"
+            width={{ base: "100%", md: "sm" }}
+            style={{ pointerEvents: "auto", marginBottom: "8px" }}
+            // FOND NEUTRE (Gris) + BORDURE COLOREE
+            // C'est la clé pour éviter que Safari ne voie du "VERT" partout
+            bg="#27272a"
             borderLeftWidth="4px"
             borderLeftColor={
               toast.type === "error"
-                ? "red.500"
+                ? "#ef4444"
                 : toast.type === "success"
-                  ? "green.500"
-                  : toast.type === "info"
-                    ? "blue.500"
-                    : "gray.500"
+                  ? "#22c55e"
+                  : "#3b82f6"
             }
+            shadow="lg"
+            rounded="md"
+            p={4}
           >
+            {/* Contenu standard... */}
             {toast.type === "loading" ? (
-              <Spinner size="sm" color="blue.solid" />
-            ) : (
-              <Toast.Indicator />
-            )}
-            <Stack gap="1" flex="1" maxWidth="100%">
+              <Spinner size="sm" color="blue.500" />
+            ) : // On peut cacher l'indicateur coloré si on veut être ultra-safe
+            // <Toast.Indicator />
+            null}
+            <Stack gap="1">
               {toast.title && (
-                <Toast.Title fontWeight="bold">{toast.title}</Toast.Title>
+                <Toast.Title fontWeight="bold" color="white">
+                  {toast.title}
+                </Toast.Title>
               )}
               {toast.description && (
-                <Toast.Description>{toast.description}</Toast.Description>
+                <Toast.Description color="gray.300">
+                  {toast.description}
+                </Toast.Description>
               )}
             </Stack>
-            {toast.action && (
-              <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>
-            )}
-            {toast.closable && <Toast.CloseTrigger />}
+            {toast.closable && <Toast.CloseTrigger color="gray.400" />}
           </Toast.Root>
         )}
       </ChakraToaster>
