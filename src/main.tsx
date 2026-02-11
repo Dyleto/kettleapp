@@ -13,12 +13,12 @@ import ErrorBoundary from "./components/ErrorBoundary.js";
 ReactDOM.createRoot(document.getElementById("root")! as HTMLElement).render(
   <Provider forcedTheme="dark">
     <ErrorBoundary>
-      <Toaster />
-      <ErrorHandler />
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
             <App />
+            <ErrorHandler />
+            <Toaster />
           </AuthProvider>
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
