@@ -57,6 +57,9 @@ const customConfig = defineConfig({
       backgroundColor: "bg.canvas", // Utilise la valeur définie au-dessus
       color: "fg",
     },
+    "input, textarea, select": {
+      fontSize: "16px !important", // Empêche le zoom auto sur iOS
+    },
   },
 });
 

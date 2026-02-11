@@ -27,11 +27,10 @@ export const Toaster = () => {
           top: 0,
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: 20,
           pointerEvents: "none",
           display: "flex",
-          alignItems: "center", // Vertical Center
-          justifyContent: "center", // Horizontal Center
+          alignItems: "flex-end", // Vertical Center
         }}
       >
         {(toast) => (
