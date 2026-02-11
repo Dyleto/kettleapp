@@ -40,7 +40,7 @@ export const SlidePanel = ({ children, onClose }: SlidePanelProps) => {
         right={0}
         bottom={0}
         width="100%"
-        bg="bg"
+        bg="bg.canvas"
         zIndex={999}
         overflowY="auto"
       >
