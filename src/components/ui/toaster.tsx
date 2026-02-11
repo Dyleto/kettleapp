@@ -34,22 +34,28 @@ export const Toaster = () => {
     >
       {(toast) => (
         <Toast.Root
-          width={{ md: "sm" }}
+          width="auto" // On veut que la largeur s'adapte au contenu
+          minW="300px" // Largeur min raisonnable
+          maxW="90vw" // Max largeur (pas 100% pour laisser des marges)
+          bg="bg.panel" // FORCEZ UNE COULEUR NEUTRE (Gris/Noir)
+          color="fg" // Texte blanc
+          borderRadius="md" // Coins arrondis
+          p={4} // Padding interne
+          shadow="lg" // Ombre
+          borderLeftWidth="4px" // Juste une bordure colorée à gauche pour le status
+          borderLeftColor={
+            toast.type === "error"
+              ? "red.500"
+              : toast.type === "success"
+                ? "green.500"
+                : "blue.500"
+          }
           style={{
             pointerEvents: "auto",
-            marginBottom: "8px",
-            // On s'assure que le contenu ne dépasse jamais
-            overflow: "hidden",
-            // On retire l'ombre par sécurité le temps de tester
-            boxShadow: "none",
-            border: "1px solid rgba(255,255,255,0.1)",
+            margin: "0 auto 8px auto", // Centrer
+            position: "relative", // Évite les bugs de layout
           }}
         >
-          {toast.type === "loading" ? (
-            <Spinner size="sm" color="blue.solid" />
-          ) : (
-            <Toast.Indicator />
-          )}
           <Stack gap="1" flex="1" maxWidth="100%">
             {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
             {toast.description && (
