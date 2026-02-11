@@ -17,11 +17,7 @@ export const toaster = createToaster({
 export const Toaster = () => {
   return (
     <Portal>
-      <ChakraToaster
-        toaster={toaster}
-        insetInline={{ mdDown: "4" }}
-        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
-      >
+      <ChakraToaster toaster={toaster} insetInline={{ mdDown: "4" }}>
         {(toast) => (
           <Toast.Root width={{ md: "sm" }} shadow="none">
             {toast.type === "loading" ? (
