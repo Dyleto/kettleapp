@@ -23,7 +23,7 @@ export const Toaster = () => {
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
       >
         {(toast) => (
-          <Toast.Root width={{ md: "sm" }}>
+          <Toast.Root width={{ md: "sm" }} shadow="none">
             {toast.type === "loading" ? (
               <Spinner size="sm" color="blue.solid" />
             ) : (
