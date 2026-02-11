@@ -3,43 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="color-scheme" content="dark only" />
+    <meta name="theme-color" content="#18181b" />
 
     <style>
       :root {
         color-scheme: dark only;
       }
-
-      html {
-        /* Force le fond sombre sur tout le document HTML */
-        background-color: #18181b;
+      /* 2. CSS BASE : Le fond ultime */
+      html,
+      body,
+      #root {
         height: 100%;
-      }
-
-      body {
         margin: 0;
         padding: 0;
-        /* Force le fond sombre sur le corps aussi */
-        background-color: #18181b;
-        /* Prend toute la hauteur pour éviter les trous */
-        min-height: 100%;
-        width: 100%;
-
-        /* LA CORRECTION SAFARI : */
-        /* Empêche de scroller "plus loin que la fin" et de voir le vert derrière */
-        overscroll-behavior-y: none;
-
-        /* Optimisation mobile */
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      #root {
-        /* S'assure que React prend toute la place */
-        min-height: 100%;
-        display: flex;
-        flex-direction: column;
-        /* Isole le contexte d'empilement (aide pour les bugs de z-index/couleur) */
-        isolation: isolate;
-        background-color: #18181b;
+        background-color: #18181b !important; /* Zinc-900 */
+        font-family: system-ui, sans-serif;
       }
     </style>
 
@@ -68,7 +46,6 @@
       name="description"
       content="Kettle - Plateforme de coaching sportif personnalisé"
     />
-    <meta name="theme-color" content="#18181b" />
 
     <!-- Open Graph (Facebook, LinkedIn) -->
     <meta property="og:title" content="Kettle" />

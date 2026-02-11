@@ -67,8 +67,7 @@ const RootLayout: React.FC = () => {
       {user && <Header />}
 
       <Grid
-        // On enlève "bg.muted" ici car c'est la Box fixe qui gère le fond global maintenant
-        // (ça évite la double opacité si bg.muted est translucide)
+        bg="bg.canvas"
         color={"fg"}
         templateAreas={{ base: `'content' ` }}
         gridTemplateRows={{ base: "1fr" }}

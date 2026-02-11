@@ -28,6 +28,10 @@ const customConfig = defineConfig({
         // Backgrounds spécifiques
         "app.warmup.bg": { value: "{colors.orange.900/20}" },
         "app.workout.bg": { value: "{colors.yellow.900/20}" },
+
+        "bg.canvas": { value: "#18181b" },
+        "bg.muted": { value: "#18181b" },
+        "bg.panel": { value: "#27272a" },
       },
     },
     tokens: {
@@ -50,28 +54,8 @@ const customConfig = defineConfig({
   },
   globalCss: {
     "html, body": {
-      height: "100%",
-      width: "100%",
-      margin: 0,
-      padding: 0,
-      backgroundColor: "bg.muted", // Utilise le token du thème
+      backgroundColor: "bg.canvas", // Utilise la valeur définie au-dessus
       color: "fg",
-
-      // FIX MOBILE SAFARI :
-      overflowX: "hidden",
-      overscrollBehaviorY: "none", // Le plus important contre le bug vert
-      WebkitTapHighlightColor: "transparent",
-      WebkitTouchCallout: "none", // Optionnel : empêche le menu contextuel au long press
-    },
-    "#root": {
-      height: "100%",
-      width: "100%",
-      display: "flex",
-      flexDirection: "column",
-      isolation: "isolate", // Crée un nouveau contexte d'empilement (utile pour les z-index)
-    },
-    "input, textarea, select": {
-      fontSize: "16px !important", // Empêche le zoom auto sur iOS
     },
   },
 });
