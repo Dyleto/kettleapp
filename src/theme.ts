@@ -49,8 +49,29 @@ const customConfig = defineConfig({
     },
   },
   globalCss: {
-    "input, textarea": {
-      fontSize: "16px !important",
+    "html, body": {
+      height: "100%",
+      width: "100%",
+      margin: 0,
+      padding: 0,
+      backgroundColor: "bg.muted", // Utilise le token du thème
+      color: "fg",
+
+      // FIX MOBILE SAFARI :
+      overflowX: "hidden",
+      overscrollBehaviorY: "none", // Le plus important contre le bug vert
+      WebkitTapHighlightColor: "transparent",
+      WebkitTouchCallout: "none", // Optionnel : empêche le menu contextuel au long press
+    },
+    "#root": {
+      height: "100%",
+      width: "100%",
+      display: "flex",
+      flexDirection: "column",
+      isolation: "isolate", // Crée un nouveau contexte d'empilement (utile pour les z-index)
+    },
+    "input, textarea, select": {
+      fontSize: "16px !important", // Empêche le zoom auto sur iOS
     },
   },
 });

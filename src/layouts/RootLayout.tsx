@@ -54,7 +54,8 @@ const RootLayout: React.FC = () => {
         color={"fg"}
         templateAreas={{ base: `'content' ` }}
         gridTemplateRows={{ base: "1fr" }}
-        minH="100vh"
+        minH="100dvh"
+        w="100%"
       >
         <Box gridArea={"content"}>
           <Suspense fallback={<PageLoader />}>

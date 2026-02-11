@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr" translate="no">
   <head>
     <meta charset="UTF-8" />
@@ -8,20 +8,13 @@
       :root {
         color-scheme: dark only;
       }
+      /* On définit un background "safe" par défaut le temps que React charge */
       html,
       body {
         margin: 0;
         padding: 0;
-        background-color: #18181b !important;
-        min-height: 100vh;
-      }
-
-      /* Empêcher le light mode */
-      @media (prefers-color-scheme: light) {
-        html,
-        body {
-          background-color: #18181b !important;
-        }
+        background-color: #18181b; /* Zinc-900 (proche de votre thème) */
+        overscroll-behavior-y: none; /* Bloque le rebond iOS dès le chargement */
       }
     </style>
 

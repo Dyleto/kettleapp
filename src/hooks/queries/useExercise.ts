@@ -8,14 +8,15 @@ import { queryKeys } from "@/config/queryKeys";
  *
  * @param id - ID de l'exercice
  */
-export const useExercise = (id: string) => {
+export const useExercise = (id?: string) => {
   return useQuery({
-    queryKey: queryKeys.coach.exercises.detail(id),
+    queryKey: queryKeys.coach.exercises.detail(id || ""),
     queryFn: async () => {
       if (!id) throw new Error("No exercise ID provided");
       const response = await api.get<Exercise>(`/api/coach/exercises/${id}`);
       return response.data;
     },
+    enabled: !!id,
     initialData: undefined,
   });
 };
