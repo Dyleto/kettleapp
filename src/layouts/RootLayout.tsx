@@ -45,17 +45,37 @@ const RootLayout: React.FC = () => {
 
   return (
     <>
+      {/* 
+        Mur de fond fixe "Anti-Rebond Safari" 
+        Garantit que même si la page rebondit, on voit ce fond et pas le GPU layer vert.
+      */}
+      <Box
+        position="fixed"
+        top="0"
+        left="0"
+        right="0"
+        bottom="0"
+        bg="bg.muted"
+        zIndex={-1}
+        pointerEvents="none"
+      />
+
       {user && hasMultipleRoles && currentRole && (
         <RoleBadge role={currentRole} />
       )}
+
       {user && <Header />}
+
       <Grid
-        bg={"bg.muted"}
+        // On enlève "bg.muted" ici car c'est la Box fixe qui gère le fond global maintenant
+        // (ça évite la double opacité si bg.muted est translucide)
         color={"fg"}
         templateAreas={{ base: `'content' ` }}
         gridTemplateRows={{ base: "1fr" }}
+        // Utilisation de 100dvh pour gérer la barre d'adresse mobile dynamique
         minH="100dvh"
         w="100%"
+        isolation="isolate" // Crée un nouveau contexte d'empilement
       >
         <Box gridArea={"content"}>
           <Suspense fallback={<PageLoader />}>
