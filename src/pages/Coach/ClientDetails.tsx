@@ -1,6 +1,6 @@
 import { SlidePanel } from "@/components/SlidePanel";
-import { ClientWithDetails } from "@/types";
-import { SessionCard } from "@/features/Session";
+import { ClientWithDetails, Exercise } from "@/types";
+import { SessionCard, ExerciseSelectorPanel } from "@/features/session";
 import {
   Box,
   Spinner,
@@ -15,9 +15,10 @@ import {
   Grid,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { LuArrowLeft } from "react-icons/lu";
+import { LuArrowLeft, LuPencil, LuSave, LuX } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { GRID_LAYOUTS } from "@/constants/layouts";
+import { toaster } from "@/components/ui/toaster";
 
 const ClientDetails = () => {
   const { clientId } = useParams();
@@ -25,8 +26,24 @@ const ClientDetails = () => {
   const [client, setClient] = useState<ClientWithDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // --- États pour l'édition ---
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalClient, setOriginalClient] =
+    useState<ClientWithDetails | null>(null);
+
+  // État du panneau de sélection
+  const [selectorState, setSelectorState] = useState<{
+    isOpen: boolean;
+    sessionId: string | null;
+    sectionType: "warmup" | "workout";
+  }>({
+    isOpen: false,
+    sessionId: null,
+    sectionType: "workout",
+  });
+
   useEffect(() => {
-    // Mock complet avec exercices détaillés
+    // Mock complet
     const mockClient: ClientWithDetails = {
       _id: clientId || "1",
       firstName: "Marie",
@@ -81,7 +98,7 @@ const ClientDetails = () => {
                   name: "Développé Couché",
                   type: "exercise",
                 } as any,
-                sets: 4,
+                sets: 3,
                 reps: 8,
                 restBetweenSets: 90,
               },
@@ -154,11 +171,7 @@ const ClientDetails = () => {
                 restBetweenSets: 45,
               },
               {
-                exercise: {
-                  _id: "ex9",
-                  name: "Dips",
-                  type: "exercise",
-                } as any,
+                exercise: { _id: "ex9", name: "Dips", type: "exercise" } as any,
                 sets: 3,
                 reps: 15,
                 restBetweenSets: 60,
@@ -205,19 +218,19 @@ const ClientDetails = () => {
             ],
           },
           workout: {
-            notes: "Jour jambes intensif",
-            rounds: 4,
+            notes: "Travail des jambes",
+            rounds: 3,
             restBetweenRounds: 120,
             exercises: [
               {
                 exercise: {
                   _id: "ex13",
-                  name: "Squat Barre",
+                  name: "Squat Bulgare",
                   type: "exercise",
                 } as any,
-                sets: 5,
-                reps: 6,
-                restBetweenSets: 120,
+                sets: 3,
+                reps: 10,
+                restBetweenSets: 90,
               },
               {
                 exercise: {
@@ -225,215 +238,19 @@ const ClientDetails = () => {
                   name: "Leg Press",
                   type: "exercise",
                 } as any,
-                sets: 4,
-                reps: 10,
-                restBetweenSets: 90,
-              },
-              {
-                exercise: {
-                  _id: "ex15",
-                  name: "Leg Curl",
-                  type: "exercise",
-                } as any,
                 sets: 3,
                 reps: 15,
-                restBetweenSets: 60,
-              },
-            ],
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          _id: "s4",
-          programId: "prog1",
-          name: "Upper Body Pull",
-          order: 4,
-          workout: {
-            notes: "Focus dos et biceps",
-            rounds: 4,
-            restBetweenRounds: 60,
-            exercises: [
-              {
-                exercise: {
-                  _id: "ex16",
-                  name: "Rowing Barre",
-                  type: "exercise",
-                } as any,
-                sets: 4,
-                reps: 8,
-                restBetweenSets: 90,
-              },
-              {
-                exercise: {
-                  _id: "ex17",
-                  name: "Tirage Vertical",
-                  type: "exercise",
-                } as any,
-                sets: 3,
-                reps: 10,
                 restBetweenSets: 75,
               },
               {
                 exercise: {
-                  _id: "ex18",
-                  name: "Curl Barre",
-                  type: "exercise",
-                } as any,
-                sets: 3,
-                reps: 12,
-                restBetweenSets: 60,
-              },
-              {
-                exercise: {
-                  _id: "ex19",
-                  name: "Curl Marteau",
-                  type: "exercise",
-                } as any,
-                sets: 3,
-                reps: 15,
-                restBetweenSets: 45,
-              },
-            ],
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          _id: "s5",
-          programId: "prog1",
-          name: "Full Body B",
-          order: 5,
-          warmup: {
-            notes: "Échauffement dynamique complet",
-            exercises: [
-              {
-                exercise: {
-                  _id: "ex20",
-                  name: "Burpees légers",
-                  type: "warmup",
-                } as any,
-                reps: 10,
-              },
-            ],
-          },
-          workout: {
-            notes: "Variante du Full Body A",
-            rounds: 3,
-            restBetweenRounds: 90,
-            exercises: [
-              {
-                exercise: {
-                  _id: "ex21",
-                  name: "Soulevé de Terre",
+                  _id: "ex15",
+                  name: "Calf Raises",
                   type: "exercise",
                 } as any,
                 sets: 4,
-                reps: 6,
-                restBetweenSets: 120,
-              },
-              {
-                exercise: {
-                  _id: "ex22",
-                  name: "Développé Militaire",
-                  type: "exercise",
-                } as any,
-                sets: 4,
-                reps: 8,
-                restBetweenSets: 90,
-              },
-              {
-                exercise: {
-                  _id: "ex23",
-                  name: "Fentes Bulgares",
-                  type: "exercise",
-                } as any,
-                sets: 3,
-                reps: 12,
-                restBetweenSets: 60,
-              },
-            ],
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          _id: "s6",
-          programId: "prog1",
-          name: "Cardio & Core",
-          order: 6,
-          workout: {
-            notes: "Travail cardio et gainage",
-            rounds: 5,
-            restBetweenRounds: 30,
-            exercises: [
-              {
-                exercise: {
-                  _id: "ex24",
-                  name: "Mountain Climbers",
-                  type: "exercise",
-                } as any,
-                duration: 60,
-              },
-              {
-                exercise: {
-                  _id: "ex25",
-                  name: "Planche",
-                  type: "exercise",
-                } as any,
-                duration: 45,
-              },
-              {
-                exercise: {
-                  _id: "ex26",
-                  name: "Russian Twists",
-                  type: "exercise",
-                } as any,
                 reps: 20,
-              },
-            ],
-          },
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          _id: "s7",
-          programId: "prog1",
-          name: "Recovery & Stretching",
-          order: 7,
-          warmup: {
-            notes: "Foam rolling 10 min",
-            exercises: [
-              {
-                exercise: {
-                  _id: "ex27",
-                  name: "Foam Rolling Global",
-                  type: "warmup",
-                } as any,
-                duration: 600,
-              },
-            ],
-          },
-          workout: {
-            notes: "Séance de récupération active",
-            rounds: 2,
-            restBetweenRounds: 60,
-            exercises: [
-              {
-                exercise: {
-                  _id: "ex28",
-                  name: "Yoga Flow",
-                  type: "exercise",
-                } as any,
-                duration: 120,
-              },
-              {
-                exercise: {
-                  _id: "ex29",
-                  name: "Étirements Complets",
-                  type: "exercise",
-                } as any,
-                duration: 90,
+                restBetweenSets: 45,
               },
             ],
           },
@@ -446,6 +263,179 @@ const ClientDetails = () => {
     setClient(mockClient);
     setLoading(false);
   }, [clientId]);
+
+  // --- Gestionnaires d'édition ---
+
+  const handleStartEditing = () => {
+    setOriginalClient(JSON.parse(JSON.stringify(client)));
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setClient(originalClient);
+    setIsEditing(false);
+    setOriginalClient(null);
+  };
+
+  const handleSave = () => {
+    // Nettoyage des données avant sauvegarde
+    if (client) {
+      const cleanClient = { ...client };
+
+      cleanClient.sessions.forEach((session) => {
+        // Nettoyage Warmup
+        session.warmup?.exercises.forEach((ex: any) => {
+          if (ex._uiMode === "timer") {
+            ex.reps = 0;
+            ex.sets = 0;
+          } else if (ex._uiMode === "reps") {
+            ex.duration = 0;
+          }
+          // Suppression du champ temporaire
+          delete ex._uiMode;
+        });
+
+        // Nettoyage Workout
+        session.workout.exercises.forEach((ex: any) => {
+          if (ex._uiMode === "timer") {
+            ex.reps = 0;
+            ex.sets = 0;
+          } else if (ex._uiMode === "reps") {
+            ex.duration = 0;
+          }
+          delete ex._uiMode;
+        });
+      });
+
+      // TODO: Envoyer cleanClient à l'API
+      console.log("Données nettoyées envoyées :", cleanClient);
+    }
+
+    setIsEditing(false);
+    setOriginalClient(null);
+    toaster.create({ title: "Programme sauvegardé", type: "success" });
+  };
+
+  // Suppression session
+  const handleRemoveSession = (sessionId: string) => {
+    if (!client) return;
+    setClient({
+      ...client,
+      sessions: client.sessions.filter((s) => s._id !== sessionId),
+    });
+  };
+
+  // Suppression exercice
+  const handleRemoveExercise = (
+    sessionId: string,
+    type: "warmup" | "workout",
+    index: number,
+  ) => {
+    if (!client) return;
+    setClient((prev) => {
+      if (!prev) return null;
+      const newClient = { ...prev };
+      const session = newClient.sessions.find((s) => s._id === sessionId);
+      if (session) {
+        if (type === "warmup" && session.warmup) {
+          session.warmup.exercises.splice(index, 1);
+        } else if (type === "workout") {
+          session.workout.exercises.splice(index, 1);
+        }
+      }
+      return newClient;
+    });
+  };
+
+  // Mise à jour rounds
+  const handleUpdateRounds = (sessionId: string, newRounds: number) => {
+    if (!client) return;
+    setClient((prev) => {
+      if (!prev) return null;
+      const newClient = { ...prev };
+      const session = newClient.sessions.find((s) => s._id === sessionId);
+      if (session) session.workout.rounds = newRounds;
+      return newClient;
+    });
+  };
+
+  // Mise à jour exercice (reps, sets, timer...)
+  const handleUpdateExercise = (
+    sessionId: string,
+    type: "warmup" | "workout",
+    index: number,
+    updates: any,
+  ) => {
+    if (!client) return;
+    setClient((prev) => {
+      if (!prev) return null;
+      const newClient = { ...prev };
+      const session = newClient.sessions.find((s) => s._id === sessionId);
+      if (session) {
+        if (type === "warmup" && session.warmup) {
+          Object.assign(session.warmup.exercises[index], updates);
+        } else if (type === "workout") {
+          Object.assign(session.workout.exercises[index], updates);
+        }
+      }
+      return newClient;
+    });
+  };
+
+  // Ouverture du panneau d'ajout
+  const handleAddExercise = (sessionId: string, type: "warmup" | "workout") => {
+    setSelectorState({ isOpen: true, sessionId, sectionType: type });
+  };
+
+  // Sélection d'un exercice dans le panneau
+  const handleSelectExercise = (exercise: Exercise) => {
+    const { sessionId, sectionType } = selectorState;
+    if (!sessionId || !client) return;
+
+    setClient((prev) => {
+      if (!prev) return null;
+      const newClient = { ...prev };
+      const session = newClient.sessions.find((s) => s._id === sessionId);
+
+      if (session) {
+        const newExercise = {
+          exercise: {
+            _id: exercise._id,
+            name: exercise.name,
+            type: sectionType,
+          },
+          // Valeurs par défaut intelligentes
+          sets: sectionType === "workout" ? 3 : undefined,
+          reps: 10,
+          duration: 0,
+          restBetweenSets: sectionType === "workout" ? 60 : undefined,
+        } as any;
+
+        if (sectionType === "warmup") {
+          if (!session.warmup) session.warmup = { exercises: [], notes: "" };
+          session.warmup.exercises.push(newExercise);
+        } else {
+          session.workout.exercises.push(newExercise);
+        }
+      }
+      return newClient;
+    });
+
+    setSelectorState((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const handleUpdateRestBetweenRounds = (sessionId: string, value: number) => {
+    if (!client) return;
+    setClient((prev) => {
+      if (!prev) return null;
+      const newClient = { ...prev };
+      const session = newClient.sessions.find((s) => s._id === sessionId);
+      if (session) {
+        session.workout.restBetweenRounds = value;
+      }
+      return newClient;
+    });
+  };
 
   return (
     <SlidePanel onClose={() => navigate("/coach")}>
@@ -461,20 +451,20 @@ const ClientDetails = () => {
               <Spinner size="xl" />
             </Box>
           )}
+
           {client && (
             <Container maxW="100%" px={8} py={8}>
               <VStack gap={6} align="stretch">
-                {/* Bouton retour */}
+                {/* Header Navigation */}
                 <Button
                   variant="ghost"
                   onClick={handleClose}
                   alignSelf="flex-start"
                 >
-                  <LuArrowLeft />
-                  Retour
+                  <LuArrowLeft /> Retour
                 </Button>
 
-                {/* En-tête client */}
+                {/* Info Client */}
                 <Card.Root>
                   <Card.Body>
                     <HStack gap={6}>
@@ -484,7 +474,6 @@ const ClientDetails = () => {
                         />
                         <Avatar.Image src={client.picture} />
                       </Avatar.Root>
-
                       <VStack align="start" gap={2} flex={1}>
                         <Heading size="xl">
                           {client.firstName} {client.lastName}
@@ -497,12 +486,39 @@ const ClientDetails = () => {
                   </Card.Body>
                 </Card.Root>
 
-                {/* Programme */}
+                {/* Section Programme */}
                 <Box>
-                  <Heading size="lg" mb={4}>
-                    Programme
-                  </Heading>
+                  <HStack justify="space-between" mb={6}>
+                    <Heading size="lg">Programme</Heading>
+                    {!isEditing ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleStartEditing}
+                      >
+                        <LuPencil /> Modifier
+                      </Button>
+                    ) : (
+                      <HStack>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancel}
+                        >
+                          <LuX /> Annuler
+                        </Button>
+                        <Button
+                          size="sm"
+                          colorPalette="cyan"
+                          onClick={handleSave}
+                        >
+                          <LuSave /> Enregistrer
+                        </Button>
+                      </HStack>
+                    )}
+                  </HStack>
 
+                  {/* Grille des Sessions */}
                   <Grid
                     templateColumns={GRID_LAYOUTS.sessions}
                     gap={8}
@@ -513,10 +529,26 @@ const ClientDetails = () => {
                         key={session._id}
                         session={session}
                         interactive={false}
+                        isEditing={isEditing}
+                        onRemoveSession={() => handleRemoveSession(session._id)}
+                        onAddExercise={(type) =>
+                          handleAddExercise(session._id, type)
+                        }
+                        onRemoveExercise={(type, index) =>
+                          handleRemoveExercise(session._id, type, index)
+                        }
+                        onUpdateRounds={(rounds) =>
+                          handleUpdateRounds(session._id, rounds)
+                        }
+                        onUpdateExercise={(type, idx, updates) =>
+                          handleUpdateExercise(session._id, type, idx, updates)
+                        }
+                        onUpdateRestBetweenRounds={(value) =>
+                          handleUpdateRestBetweenRounds(session._id, value)
+                        }
                       />
                     ))}
 
-                    {/* Message si aucune séance */}
                     {client.sessions.length === 0 && (
                       <Box
                         gridColumn="1 / -1"
@@ -535,6 +567,16 @@ const ClientDetails = () => {
               </VStack>
             </Container>
           )}
+
+          {/* Panneau latéral de sélection d'exercice */}
+          <ExerciseSelectorPanel
+            isOpen={selectorState.isOpen}
+            onClose={() =>
+              setSelectorState((prev) => ({ ...prev, isOpen: false }))
+            }
+            type={selectorState.sectionType}
+            onSelect={handleSelectExercise}
+          />
         </>
       )}
     </SlidePanel>

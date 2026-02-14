@@ -1,5 +1,6 @@
-export { SessionCard } from "./SessionCard";
-export { SessionHeader } from "./SessionHeader";
-export { WarmupSection } from "./WarmupSection";
-export { WorkoutSection } from "./WorkoutSection";
-export { ExerciseCard } from "./ExerciseCard";
+export { SessionCard } from "./components/SessionCard";
+export { SessionHeader } from "./components/SessionHeader";
+export { WarmupSection } from "./components/WarmupSection";
+export { WorkoutSection } from "./components/WorkoutSection";
+export { ExerciseCard } from "./components/ExerciseCard";
+export { ExerciseSelectorPanel } from "./components/ExerciseSelectorPanel";

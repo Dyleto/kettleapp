@@ -19,8 +19,7 @@ export const Toaster = () => {
     <Portal>
       <ChakraToaster
         toaster={toaster}
-        insetInline={{ mdDown: "0" }} // On reset les insets auto qui peuvent gêner
-        // CONTENEUR PLEIN ECRAN
+        insetInline={{ mdDown: "0" }}
         position="fixed"
         top={0}
         left={0}
@@ -28,20 +27,14 @@ export const Toaster = () => {
         bottom={0}
         zIndex={9999}
         pointerEvents="none"
-        // FLEXBOX MAGIQUE
         display="flex"
-        flexDirection="column" // Les toasts s'empilent verticalement
-        justifyContent="flex-end" // On pousse tout vers le BAS
-        // ALIGNEMENT HORIZONTAL RESPONSIVE
-        // Mobile (base) = Au centre
-        // Desktop (md) = À droite (flex-end)
+        flexDirection="column"
+        justifyContent="flex-end"
         alignItems={{ base: "center", md: "flex-end" }}
-        // MARGES RESPONSIVES (Pour ne pas coller aux bords)
         padding={{ base: "0 0 20px 0", md: "0 20px 20px 0" }}
       >
         {(toast) => (
           <Toast.Root
-            // Largeur responsive
             width={{ base: "90vw", md: "sm" }}
             style={{ pointerEvents: "auto", marginBottom: "8px" }}
           >
