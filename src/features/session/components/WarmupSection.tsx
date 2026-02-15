@@ -48,7 +48,7 @@ export const WarmupSection = ({
       <VStack gap={2} align="stretch">
         {exercises?.map((ex, idx) => {
           return (
-            <HStack key={idx} align="center" gap={2}>
+            <HStack key={idx} align="center" gap={2} position="relative">
               <Box flex={1}>
                 <ExerciseCard
                   name={ex.exercise.name}
@@ -56,16 +56,20 @@ export const WarmupSection = ({
                   reps={ex.reps}
                   isEditing={isEditing}
                   onUpdate={(updates) => onUpdateExercise?.(idx, updates)}
-                  uiMode={(ex as any)._uiMode}
-                  hideSets={true}
+                  mode={ex.mode}
+                  type="warmup"
                 />
               </Box>
               {isEditing && (
                 <IconButton
                   aria-label="Supprimer"
                   size="xs"
-                  variant="ghost"
+                  variant="solid"
                   colorPalette="red"
+                  rounded="full"
+                  position="absolute"
+                  top="-10px"
+                  right="-10px"
                   onClick={(e) => {
                     e.stopPropagation();
                     onRemoveExercise?.(idx);

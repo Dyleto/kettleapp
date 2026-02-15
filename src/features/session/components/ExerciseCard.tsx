@@ -8,7 +8,8 @@
   VStack,
 } from "@chakra-ui/react";
 import { formatDuration } from "@/utils/formatters";
-import { LuHash, LuTimer } from "react-icons/lu";
+import { LuClock, LuHash, LuTimer } from "react-icons/lu";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 interface ExerciseCardProps {
   name: string;
@@ -17,14 +18,14 @@ interface ExerciseCardProps {
   duration?: number;
   restBetweenSets?: number;
   isEditing?: boolean;
-  uiMode?: "timer" | "reps";
-  hideSets?: boolean; // Option pour cacher les séries (ex: pour les exercices d'échauffement)
+  mode?: "timer" | "reps";
+  type?: "workout" | "warmup"; // Option pour cacher les séries (ex: pour les exercices d'échauffement)
   onUpdate?: (updates: {
     sets?: number;
     reps?: number;
     duration?: number;
     restBetweenSets?: number;
-    _uiMode?: "timer" | "reps";
+    mode?: "timer" | "reps";
   }) => void;
 }
 
@@ -47,6 +48,8 @@ const NumberInput = ({
       textAlign="center"
       value={value || ""}
       type="number"
+      inputMode="numeric"
+      pattern="[0-9]*"
       variant="subtle"
       bg="whiteAlpha.100"
       _focus={{ bg: "whiteAlpha.200", borderColor: "blue.500" }}
@@ -69,10 +72,10 @@ export const ExerciseCard = ({
   restBetweenSets,
   isEditing,
   onUpdate,
-  uiMode,
-  hideSets,
+  mode,
+  type,
 }: ExerciseCardProps) => {
-  const isTimeMode = uiMode ? uiMode === "timer" : (duration || 0) > 0;
+  const colors = useThemeColors();
 
   if (isEditing) {
     return (
@@ -96,62 +99,68 @@ export const ExerciseCard = ({
           </Text>
 
           {/* Ligne 2 : Switch Mode */}
-          <HStack justify="start">
-            <HStack
-              gap={0}
-              borderWidth="1px"
-              borderColor="whiteAlpha.200"
-              borderRadius="md"
-              bg="blackAlpha.200"
-              p="2px"
+          <HStack
+            bg="blackAlpha.400"
+            p="2px"
+            borderRadius="md"
+            w="fit-content"
+            borderWidth="1px"
+            borderColor="whiteAlpha.100"
+          >
+            <Box
+              as="button"
+              px={3}
+              py={1}
+              borderRadius="sm"
+              bg={mode === "reps" ? "whiteAlpha.200" : "transparent"}
+              color={mode === "reps" ? "white" : "gray.500"}
+              fontSize="xs"
+              fontWeight="medium"
+              onClick={(e: any) => {
+                e.stopPropagation();
+                onUpdate?.({
+                  mode: "reps",
+                  sets: type === "workout" ? sets || 3 : undefined,
+                  reps: reps || 10,
+                });
+              }}
+              _hover={{
+                bg: mode === "reps" ? "whiteAlpha.300" : "whiteAlpha.50",
+              }}
+              transition="all 0.2s"
             >
-              <IconButton
-                size="xs"
-                h="24px"
-                minW="40px"
-                variant={!isTimeMode ? "solid" : "ghost"}
-                colorPalette={!isTimeMode ? "blue" : "gray"}
-                fontSize="xs"
-                aria-label="Mode répétitions"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isTimeMode) {
-                    onUpdate?.({
-                      _uiMode: "reps",
-                      sets: sets || 4,
-                      reps: reps || 12,
-                    });
-                  }
-                }}
-              >
-                <LuHash />
-              </IconButton>
-              <IconButton
-                size="xs"
-                h="24px"
-                minW="40px"
-                variant={isTimeMode ? "solid" : "ghost"}
-                colorPalette={isTimeMode ? "blue" : "gray"}
-                fontSize="xs"
-                aria-label="Mode temps"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isTimeMode) {
-                    onUpdate?.({
-                      _uiMode: "timer",
-                      duration: duration || 30,
-                    });
-                  }
-                }}
-              >
-                <LuTimer />
-              </IconButton>
-            </HStack>
+              <HStack gap={1} align="center">
+                <LuHash size={12} />
+                Reps
+              </HStack>
+            </Box>
+            <Box
+              as="button"
+              px={3}
+              py={1}
+              borderRadius="sm"
+              bg={mode === "timer" ? "whiteAlpha.200" : "transparent"}
+              color={mode === "timer" ? "white" : "gray.500"}
+              fontSize="xs"
+              fontWeight="medium"
+              onClick={(e: any) => {
+                e.stopPropagation();
+                onUpdate?.({ mode: "timer", duration: duration || 30 });
+              }}
+              _hover={{
+                bg: mode === "timer" ? "whiteAlpha.300" : "whiteAlpha.50",
+              }}
+              transition="all 0.2s"
+            >
+              <HStack gap={2} align="center">
+                <LuClock size={12} /> Temps
+              </HStack>
+            </Box>
           </HStack>
 
           {/* Ligne 3 : Metrics (Inputs) */}
           <Flex gap={2} align="center">
-            {isTimeMode ? (
+            {mode === "timer" ? (
               <NumberInput
                 value={duration}
                 label="secondes"
@@ -160,7 +169,7 @@ export const ExerciseCard = ({
               />
             ) : (
               <>
-                {!hideSets && (
+                {type !== "warmup" && (
                   <>
                     <NumberInput
                       value={sets}
@@ -218,13 +227,56 @@ export const ExerciseCard = ({
           display="flex"
         >
           <HStack gap={3}>
-            {sets && <Text>{sets} séries</Text>}
-            {sets && reps && <Text>x</Text>}
-            {reps && <Text>{reps} reps</Text>}
-            {!!duration && <Text>{formatDuration(duration)}</Text>}
+            {type === "workout" && mode === "reps" && (
+              <>
+                <VStack gap={0} align="center">
+                  <Text fontWeight="bold" color={colors.primary} lineHeight="1">
+                    {sets}
+                  </Text>
+                  <Text fontSize="2xs" color="gray.500">
+                    séries
+                  </Text>
+                </VStack>
+                <Text fontSize="lg">x</Text>
+              </>
+            )}
+
+            {mode === "reps" && (
+              <VStack gap={0} align="center">
+                <Text
+                  fontWeight="bold"
+                  color={type === "warmup" ? colors.secondary : colors.primary}
+                  lineHeight="1"
+                >
+                  {reps}
+                </Text>
+                <Text fontSize="2xs" color="gray.500">
+                  reps
+                </Text>
+              </VStack>
+            )}
+            {mode === "timer" && !!duration && (
+              <Text
+                fontWeight="bold"
+                color={type === "warmup" ? colors.secondary : colors.primary}
+              >
+                {formatDuration(duration)}
+              </Text>
+            )}
           </HStack>
           {restBetweenSets && (
-            <Text>{formatDuration(restBetweenSets)} repos</Text>
+            <VStack gap={0} align="start" width="fit-content" mt={2}>
+              <Text
+                alignSelf="center"
+                fontWeight="bold"
+                color={type === "warmup" ? colors.secondary : colors.primary}
+              >
+                {formatDuration(restBetweenSets)}
+              </Text>
+              <Text fontSize="2xs" color="gray.500">
+                repos entre série
+              </Text>
+            </VStack>
           )}
         </VStack>
       </VStack>

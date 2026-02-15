@@ -1,4 +1,4 @@
-import {
+﻿import {
   Box,
   Button,
   HStack,
@@ -63,7 +63,7 @@ export const WorkoutSection = ({
         <VStack gap={2} align="stretch" flex={1}>
           {exercises.map((ex, idx) => {
             return (
-              <HStack key={idx} align="center" gap={2}>
+              <HStack key={idx} align="center" gap={2} position="relative">
                 <Box flex={1}>
                   <ExerciseCard
                     key={idx}
@@ -74,15 +74,21 @@ export const WorkoutSection = ({
                     restBetweenSets={ex.restBetweenSets}
                     isEditing={isEditing}
                     onUpdate={(updates) => onUpdateExercise?.(idx, updates)}
-                    uiMode={(ex as any)._uiMode}
+                    mode={ex.mode}
+                    type="workout"
                   />
                 </Box>
                 {isEditing && (
                   <IconButton
                     aria-label="Supprimer"
                     size="xs"
-                    variant="ghost"
+                    variant="solid"
                     colorPalette="red"
+                    rounded="full"
+                    position="absolute"
+                    top="-10px"
+                    right="-10px"
+                    zIndex={2}
                     onClick={(e) => {
                       e.stopPropagation();
                       onRemoveExercise?.(idx);
@@ -197,7 +203,7 @@ export const WorkoutSection = ({
         color="gray.400"
       >
         {isEditing ? (
-          <HStack justify="space-between">
+          <HStack gap={4}>
             <Text>Repos entre tours :</Text>
             <HStack gap={1}>
               <Input

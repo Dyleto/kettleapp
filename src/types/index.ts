@@ -55,20 +55,19 @@ export interface ExerciseStats {
 
 export interface WarmupExercise {
   exercise: Exercise;
+  mode: "timer" | "reps";
   duration?: number;
   reps?: number;
-  notes?: string;
 }
 
 export interface WorkoutExercise {
   exercise: Exercise;
+  mode: "timer" | "reps";
   sets?: number;
   reps?: number;
-  weight?: number;
-  restBetweenSets?: number;
   duration?: number;
+  restBetweenSets?: number;
   restAfter?: number;
-  notes?: string;
 }
 
 export interface Session {

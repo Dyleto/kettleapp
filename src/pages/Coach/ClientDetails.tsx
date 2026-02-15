@@ -19,12 +19,14 @@ import { LuArrowLeft, LuPencil, LuSave, LuX } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { GRID_LAYOUTS } from "@/constants/layouts";
 import { toaster } from "@/components/ui/toaster";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 const ClientDetails = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const [client, setClient] = useState<ClientWithDetails | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const colors = useThemeColors();
 
   // --- États pour l'édition ---
   const [isEditing, setIsEditing] = useState(false);
@@ -76,6 +78,7 @@ const ClientDetails = () => {
                   type: "warmup",
                 } as any,
                 duration: 60,
+                mode: "timer",
               },
               {
                 exercise: {
@@ -84,6 +87,7 @@ const ClientDetails = () => {
                   type: "warmup",
                 } as any,
                 reps: 15,
+                mode: "reps",
               },
             ],
           },
@@ -101,6 +105,7 @@ const ClientDetails = () => {
                 sets: 3,
                 reps: 8,
                 restBetweenSets: 90,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -111,6 +116,7 @@ const ClientDetails = () => {
                 sets: 4,
                 reps: 10,
                 restBetweenSets: 60,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -121,6 +127,7 @@ const ClientDetails = () => {
                 sets: 3,
                 reps: 12,
                 restBetweenSets: 60,
+                mode: "reps",
               },
             ],
           },
@@ -142,6 +149,7 @@ const ClientDetails = () => {
                   type: "warmup",
                 } as any,
                 duration: 30,
+                mode: "timer",
               },
             ],
           },
@@ -159,6 +167,7 @@ const ClientDetails = () => {
                 sets: 4,
                 reps: 10,
                 restBetweenSets: 75,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -169,12 +178,14 @@ const ClientDetails = () => {
                 sets: 3,
                 reps: 12,
                 restBetweenSets: 45,
+                mode: "reps",
               },
               {
                 exercise: { _id: "ex9", name: "Dips", type: "exercise" } as any,
                 sets: 3,
                 reps: 15,
                 restBetweenSets: 60,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -185,6 +196,7 @@ const ClientDetails = () => {
                 sets: 3,
                 reps: 20,
                 restBetweenSets: 45,
+                mode: "reps",
               },
             ],
           },
@@ -206,6 +218,7 @@ const ClientDetails = () => {
                   type: "warmup",
                 } as any,
                 reps: 20,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -214,6 +227,7 @@ const ClientDetails = () => {
                   type: "warmup",
                 } as any,
                 duration: 45,
+                mode: "timer",
               },
             ],
           },
@@ -231,6 +245,7 @@ const ClientDetails = () => {
                 sets: 3,
                 reps: 10,
                 restBetweenSets: 90,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -241,6 +256,7 @@ const ClientDetails = () => {
                 sets: 3,
                 reps: 15,
                 restBetweenSets: 75,
+                mode: "reps",
               },
               {
                 exercise: {
@@ -251,6 +267,7 @@ const ClientDetails = () => {
                 sets: 4,
                 reps: 20,
                 restBetweenSets: 45,
+                mode: "reps",
               },
             ],
           },
@@ -490,7 +507,7 @@ const ClientDetails = () => {
                 <Box>
                   <HStack justify="space-between" mb={6}>
                     <Heading size="lg">Programme</Heading>
-                    {!isEditing ? (
+                    {!isEditing && (
                       <Button
                         size="sm"
                         variant="outline"
@@ -498,23 +515,6 @@ const ClientDetails = () => {
                       >
                         <LuPencil /> Modifier
                       </Button>
-                    ) : (
-                      <HStack>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancel}
-                        >
-                          <LuX /> Annuler
-                        </Button>
-                        <Button
-                          size="sm"
-                          colorPalette="cyan"
-                          onClick={handleSave}
-                        >
-                          <LuSave /> Enregistrer
-                        </Button>
-                      </HStack>
                     )}
                   </HStack>
 
@@ -563,6 +563,28 @@ const ClientDetails = () => {
                       </Box>
                     )}
                   </Grid>
+                  {isEditing && (
+                    <HStack justify="space-between" mt={6}>
+                      <Box></Box>
+
+                      <HStack>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancel}
+                        >
+                          <LuX /> Annuler
+                        </Button>
+                        <Button
+                          size="sm"
+                          bg={colors.primary}
+                          onClick={handleSave}
+                        >
+                          <LuSave /> Enregistrer
+                        </Button>
+                      </HStack>
+                    </HStack>
+                  )}
                 </Box>
               </VStack>
             </Container>
