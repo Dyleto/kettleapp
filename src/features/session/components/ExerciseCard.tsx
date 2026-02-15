@@ -1,4 +1,4 @@
-import {
+﻿import {
   Box,
   Flex,
   HStack,
@@ -18,6 +18,7 @@ interface ExerciseCardProps {
   restBetweenSets?: number;
   isEditing?: boolean;
   uiMode?: "timer" | "reps";
+  hideSets?: boolean; // Option pour cacher les séries (ex: pour les exercices d'échauffement)
   onUpdate?: (updates: {
     sets?: number;
     reps?: number;
@@ -69,6 +70,7 @@ export const ExerciseCard = ({
   isEditing,
   onUpdate,
   uiMode,
+  hideSets,
 }: ExerciseCardProps) => {
   const isTimeMode = uiMode ? uiMode === "timer" : (duration || 0) > 0;
 
@@ -158,14 +160,18 @@ export const ExerciseCard = ({
               />
             ) : (
               <>
-                <NumberInput
-                  value={sets}
-                  label="séries"
-                  onChange={(v) => onUpdate?.({ sets: v })}
-                />
-                <Text pb={4} color="gray.500" fontSize="sm">
-                  x
-                </Text>
+                {!hideSets && (
+                  <>
+                    <NumberInput
+                      value={sets}
+                      label="séries"
+                      onChange={(v) => onUpdate?.({ sets: v })}
+                    />
+                    <Text pb={4} color="gray.500" fontSize="sm">
+                      x
+                    </Text>
+                  </>
+                )}
                 <NumberInput
                   value={reps}
                   label="reps"
@@ -213,8 +219,9 @@ export const ExerciseCard = ({
         >
           <HStack gap={3}>
             {sets && <Text>{sets} séries</Text>}
-            {reps && <Text>× {reps} reps</Text>}
-            {duration && <Text>{formatDuration(duration)}</Text>}
+            {sets && reps && <Text>x</Text>}
+            {reps && <Text>{reps} reps</Text>}
+            {!!duration && <Text>{formatDuration(duration)}</Text>}
           </HStack>
           {restBetweenSets && (
             <Text>{formatDuration(restBetweenSets)} repos</Text>

@@ -1,4 +1,4 @@
-import {
+﻿import {
   Box,
   Button,
   HStack,
@@ -57,6 +57,7 @@ export const WarmupSection = ({
                   isEditing={isEditing}
                   onUpdate={(updates) => onUpdateExercise?.(idx, updates)}
                   uiMode={(ex as any)._uiMode}
+                  hideSets={true}
                 />
               </Box>
               {isEditing && (
