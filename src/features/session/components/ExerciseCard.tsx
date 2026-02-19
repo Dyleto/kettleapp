@@ -4,6 +4,7 @@
   HStack,
   IconButton,
   Input,
+  NumberInput,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -30,11 +31,11 @@ interface ExerciseCardProps {
 }
 
 // Input helper
-const NumberInput = ({
+const NumberInputHelper = ({
   value,
   label,
   onChange,
-  w = "45px", // Largeur custom
+  w = "75px", // Largeur un peu plus grande pour les steppers
 }: {
   value?: number;
   label: string;
@@ -42,22 +43,29 @@ const NumberInput = ({
   w?: string;
 }) => (
   <VStack gap={0} align="center">
-    <Input
+    <NumberInput.Root
       size="xs"
-      w={w}
-      textAlign="center"
-      value={value || ""}
-      type="number"
-      inputMode="numeric"
-      pattern="[0-9]*"
+      width={w}
+      value={value?.toString() || "0"}
+      min={0}
       variant="subtle"
-      bg="whiteAlpha.100"
-      _focus={{ bg: "whiteAlpha.200", borderColor: "blue.500" }}
-      px={1}
-      h="32px" // Un peu plus haut pour le doigt
-      onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+      onValueChange={(e) => onChange(parseInt(e.value) || 0)}
       onClick={(e) => e.stopPropagation()}
-    />
+    >
+      <NumberInput.Input
+        textAlign="center"
+        bg="whiteAlpha.100"
+        _focus={{ bg: "whiteAlpha.200", borderColor: "blue.500" }}
+        px={1}
+        h="32px"
+        borderRadius="md"
+      />
+      <NumberInput.Control>
+        <NumberInput.IncrementTrigger />
+        <NumberInput.DecrementTrigger />
+      </NumberInput.Control>
+    </NumberInput.Root>
+
     <Text fontSize="2xs" color="gray.500" mt={0.5}>
       {label}
     </Text>
@@ -161,7 +169,7 @@ export const ExerciseCard = ({
           {/* Ligne 3 : Metrics (Inputs) */}
           <Flex gap={2} align="center">
             {mode === "timer" ? (
-              <NumberInput
+              <NumberInputHelper
                 value={duration}
                 label="secondes"
                 w="70px"
@@ -171,7 +179,7 @@ export const ExerciseCard = ({
               <>
                 {type !== "warmup" && (
                   <>
-                    <NumberInput
+                    <NumberInputHelper
                       value={sets}
                       label="séries"
                       onChange={(v) => onUpdate?.({ sets: v })}
@@ -181,7 +189,7 @@ export const ExerciseCard = ({
                     </Text>
                   </>
                 )}
-                <NumberInput
+                <NumberInputHelper
                   value={reps}
                   label="reps"
                   onChange={(v) => onUpdate?.({ reps: v })}
@@ -191,13 +199,13 @@ export const ExerciseCard = ({
           </Flex>
 
           {/* Ligne 4 : Repos (séparé, en dessous) */}
-          {typeof restBetweenSets !== "undefined" && (
+          {!!restBetweenSets && (
             <Box borderTopWidth="1px" borderColor="whiteAlpha.100" pt={2}>
               <Flex align="center" gap={3}>
                 <Text fontSize="xs" color="gray.400">
                   Repos :
                 </Text>
-                <NumberInput
+                <NumberInputHelper
                   value={restBetweenSets}
                   label="sec"
                   onChange={(v) => onUpdate?.({ restBetweenSets: v })}
@@ -264,7 +272,7 @@ export const ExerciseCard = ({
               </Text>
             )}
           </HStack>
-          {restBetweenSets && (
+          {!!restBetweenSets && (
             <VStack gap={0} align="start" width="fit-content" mt={2}>
               <Text
                 alignSelf="center"

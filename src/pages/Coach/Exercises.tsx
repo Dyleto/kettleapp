@@ -30,6 +30,7 @@ import { useNavigate } from "react-router-dom";
 import { toaster } from "@/components/ui/toaster";
 import { useExercises } from "@/hooks/queries/useExercises";
 import { getErrorMessage } from "@/utils/errorMessages";
+import { CreateExerciseCard, ExerciseLibraryCard } from "@/features/exercise";
 
 interface Exercise {
   _id: string;
@@ -155,95 +156,23 @@ const Exercises = () => {
 
                   {isWarmupExpanded && (
                     <Grid templateColumns={GRID_LAYOUTS.fourColumns} gap={4}>
-                      {/* Bloc d'ajout en première position */}
-                      <Box
-                        p={6}
-                        borderWidth="2px"
-                        borderStyle="dashed"
-                        borderColor={colors.secondary}
-                        borderRadius="xl"
-                        cursor="pointer"
-                        transition="all 0.3s ease"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        minH="200px"
-                        _hover={{
-                          borderColor: colors.secondaryHover,
-                          bg: colors.secondaryBg,
-                          transform: "translateY(-2px)",
-                        }}
+                      <CreateExerciseCard
+                        type="warmup"
                         onClick={() =>
-                          navigate("/coach/exercises/new?type=warmup")
+                          navigate(`/coach/exercises/new?type=warmup`)
                         }
-                      >
-                        <VStack gap={3} color={colors.secondary}>
-                          <Box
-                            p={3}
-                            bg={colors.secondaryBg}
-                            borderRadius="full"
-                            borderWidth="2px"
-                            borderStyle="dashed"
-                            borderColor={colors.secondary}
-                          >
-                            <LuPlus size={32} />
-                          </Box>
-                          <Box
-                            fontWeight="bold"
-                            fontSize="md"
-                            textAlign="center"
-                          >
-                            Ajouter un échauffement
-                          </Box>
-                        </VStack>
-                      </Box>
+                      />
 
                       {/* Liste des échauffements */}
                       {warmups.map((exercise) => (
-                        <ClickableCard
+                        <ExerciseLibraryCard
                           key={exercise._id}
+                          exercise={exercise}
                           onClick={() =>
                             navigate(`/coach/exercises/${exercise._id}`)
                           }
-                          p={6}
-                          color={colors.secondary}
-                        >
-                          <VStack gap={3} align="stretch">
-                            {/* Icône */}
-                            <Box
-                              p={3}
-                              bg={colors.secondaryBg}
-                              borderRadius="md"
-                              borderWidth="1px"
-                              borderColor={colors.secondaryBorder}
-                              alignSelf="center"
-                            >
-                              <LuFlame size={28} color={colors.secondaryHex} />
-                            </Box>
-
-                            {/* Nom */}
-                            <Box
-                              fontWeight="bold"
-                              fontSize="lg"
-                              textAlign="center"
-                              color="white"
-                            >
-                              {exercise.name}
-                            </Box>
-
-                            {/* Description courte */}
-                            {exercise.description && (
-                              <Box
-                                fontSize="sm"
-                                color="gray.400"
-                                lineClamp={2}
-                                textAlign="center"
-                              >
-                                {exercise.description}
-                              </Box>
-                            )}
-                          </VStack>
-                        </ClickableCard>
+                          type="warmup"
+                        />
                       ))}
                     </Grid>
                   )}
@@ -276,94 +205,23 @@ const Exercises = () => {
 
                   {isExerciseExpanded && (
                     <Grid templateColumns={GRID_LAYOUTS.fourColumns} gap={4}>
-                      {/* Bloc d'ajout en première position */}
-                      <Box
-                        p={6}
-                        borderWidth="2px"
-                        borderStyle="dashed"
-                        borderColor={colors.primary}
-                        borderRadius="xl"
-                        cursor="pointer"
-                        transition="all 0.3s ease"
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                        minH="200px"
-                        _hover={{
-                          borderColor: colors.primaryHover,
-                          bg: colors.primaryBg,
-                          transform: "translateY(-2px)",
-                        }}
+                      <CreateExerciseCard
+                        type="workout"
                         onClick={() =>
-                          navigate("/coach/exercises/new?type=exercise")
+                          navigate(`/coach/exercises/new?type=workout`)
                         }
-                      >
-                        <VStack gap={3} color={colors.primary}>
-                          <Box
-                            p={3}
-                            bg={colors.primaryBg}
-                            borderRadius="full"
-                            borderWidth="2px"
-                            borderStyle="dashed"
-                            borderColor={colors.primary}
-                          >
-                            <LuPlus size={32} />
-                          </Box>
-                          <Box
-                            fontWeight="bold"
-                            fontSize="md"
-                            textAlign="center"
-                          >
-                            Ajouter un exercice
-                          </Box>
-                        </VStack>
-                      </Box>
+                      />
 
                       {/* Liste des exercices */}
                       {workouts.map((exercise) => (
-                        <ClickableCard
+                        <ExerciseLibraryCard
                           key={exercise._id}
+                          exercise={exercise}
                           onClick={() =>
                             navigate(`/coach/exercises/${exercise._id}`)
                           }
-                          p={6}
-                        >
-                          <VStack gap={3} align="stretch">
-                            {/* Icône */}
-                            <Box
-                              p={3}
-                              bg={colors.primaryBg}
-                              borderRadius="md"
-                              borderWidth="1px"
-                              borderColor={colors.primaryBorder}
-                              alignSelf="center"
-                            >
-                              <LuDumbbell size={28} color={colors.primaryHex} />
-                            </Box>
-
-                            {/* Nom */}
-                            <Box
-                              fontWeight="bold"
-                              fontSize="lg"
-                              textAlign="center"
-                              color="white"
-                            >
-                              {exercise.name}
-                            </Box>
-
-                            {/* Description courte */}
-                            {exercise.description && (
-                              <Box
-                                fontSize="sm"
-                                color="gray.400"
-                                lineClamp={2}
-                                textAlign="center"
-                              >
-                                {exercise.description}
-                              </Box>
-                            )}
-                          </VStack>
-                        </ClickableCard>
+                          type="workout"
+                        />
                       ))}
                     </Grid>
                   )}

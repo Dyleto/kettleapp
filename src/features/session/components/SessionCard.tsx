@@ -1,4 +1,4 @@
-import { VStack, Box, IconButton } from "@chakra-ui/react";
+import { VStack, Box, IconButton, Textarea, Text } from "@chakra-ui/react";
 import { Card } from "@/components/Card";
 import { Session } from "@/types";
 import { SessionHeader } from "./SessionHeader";
@@ -7,6 +7,7 @@ import { WorkoutSection } from "./WorkoutSection";
 import { calculateSessionDuration } from "@/utils/sessionUtils";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { LuTrash } from "react-icons/lu";
+import { color } from "framer-motion";
 
 interface SessionCardProps {
   session: Session;
@@ -22,6 +23,7 @@ interface SessionCardProps {
   onUpdateRounds?: (newRounds: number) => void;
   onRemoveSession?: () => void;
   onUpdateRestBetweenRounds?: (value: number) => void;
+  onUpdateSessionNotes?: (notes: string) => void;
 }
 
 export const SessionCard = ({
@@ -34,6 +36,7 @@ export const SessionCard = ({
   onUpdateRounds,
   onRemoveSession,
   onUpdateRestBetweenRounds,
+  onUpdateSessionNotes,
 }: SessionCardProps) => {
   const colors = useThemeColors();
 
@@ -52,7 +55,10 @@ export const SessionCard = ({
           aria-label="Supprimer la séance"
           size="xs"
           variant="solid"
-          bg={colors.error}
+          bg={`${colors.error}/60`}
+          _hover={{
+            bg: colors.error,
+          }}
           rounded="full"
           position="absolute"
           top="-10px"
@@ -73,11 +79,34 @@ export const SessionCard = ({
         hoverEffect={interactive ? "both" : "none"}
         onClick={interactive ? undefined : undefined}
       >
-        <VStack align="stretch" gap={0}>
+        <VStack align="stretch" gap={4}>
           <SessionHeader
             order={session.order}
             duration={calculateSessionDuration(session)}
           />
+
+          {(isEditing || session.notes) && (
+            <VStack mx={6} gap={2} align="stretch">
+              <Text fontSize="sm" color={colors.primary} fontWeight="bold">
+                Notes
+              </Text>
+              {(isEditing && (
+                <Textarea
+                  value={session.notes || ""}
+                  border="1px solid"
+                  borderColor={colors.primaryBorder}
+                  onChange={(e) => onUpdateSessionNotes?.(e.target.value)}
+                  placeholder="Ajouter des notes sur la séance..."
+                  size="sm"
+                  autoresize
+                />
+              )) || (
+                <Text fontSize="sm" color="gray.400">
+                  {session.notes}
+                </Text>
+              )}
+            </VStack>
+          )}
 
           <WarmupSection
             exercises={session.warmup?.exercises || []}

@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Container,
@@ -22,6 +23,8 @@ const AdminDashboard = () => {
             Bonjour {user?.firstName},
           </Text>
         </VStack>
+
+        <Header />
       </HStack>
       <Button
         colorPalette="yellow"

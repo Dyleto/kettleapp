@@ -64,17 +64,14 @@ const RootLayout: React.FC = () => {
         <RoleBadge role={currentRole} />
       )}
 
-      {user && <Header />}
-
       <Grid
         bg="bg.canvas"
         color={"fg"}
         templateAreas={{ base: `'content' ` }}
         gridTemplateRows={{ base: "1fr" }}
-        // Utilisation de 100dvh pour gérer la barre d'adresse mobile dynamique
         minH="100dvh"
         w="100%"
-        isolation="isolate" // Crée un nouveau contexte d'empilement
+        isolation="isolate"
       >
         <Box gridArea={"content"}>
           <Suspense fallback={<PageLoader />}>

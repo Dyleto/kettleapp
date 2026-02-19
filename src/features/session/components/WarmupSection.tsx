@@ -35,7 +35,6 @@ export const WarmupSection = ({
     <Box
       p={3}
       mx={{ base: 0, md: 6 }}
-      mb={4}
       bg={colors.warmupBg}
       borderRadius={{ base: 0, md: "md" }}
     >
@@ -65,7 +64,10 @@ export const WarmupSection = ({
                   aria-label="Supprimer"
                   size="xs"
                   variant="solid"
-                  bg={colors.error}
+                  bg={`${colors.error}/60`}
+                  _hover={{
+                    bg: colors.error,
+                  }}
                   rounded="full"
                   position="absolute"
                   top="-10px"
@@ -94,8 +96,6 @@ export const WarmupSection = ({
             >
               <LuPlus /> Ajouter un échauffement
             </Button>
-            {/* Espace vide pour compenser l'alignement avec la poubelle au dessus (environ 32px) */}
-            <Box w="32px" />
           </HStack>
         )}
       </VStack>

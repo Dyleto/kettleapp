@@ -60,7 +60,7 @@ export const WorkoutSection = ({
       </HStack>
 
       <HStack gap={3} align="stretch">
-        <VStack gap={2} align="stretch" flex={1}>
+        <VStack gap={2} align="stretch" flex={1} justify="center">
           {exercises.map((ex, idx) => {
             return (
               <HStack key={idx} align="center" gap={2} position="relative">
@@ -83,7 +83,10 @@ export const WorkoutSection = ({
                     aria-label="Supprimer"
                     size="xs"
                     variant="solid"
-                    bg={colors.error}
+                    bg={`${colors.error}/60`}
+                    _hover={{
+                      bg: colors.error,
+                    }}
                     rounded="full"
                     position="absolute"
                     top="-10px"
@@ -113,7 +116,6 @@ export const WorkoutSection = ({
               >
                 <LuPlus /> Ajouter un exercice
               </Button>
-              <Box w="32px" />
             </HStack>
           )}
         </VStack>
@@ -173,7 +175,7 @@ export const WorkoutSection = ({
                 ×{rounds}
               </Text>
               <Text fontSize="2xs" color="gray.500">
-                tours
+                {rounds > 1 ? "tours" : "tour"}
               </Text>
               {isEditing && (
                 <IconButton

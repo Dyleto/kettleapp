@@ -8,6 +8,7 @@ interface ClickableCardProps {
   color?: string;
   minW?: string;
   p?: number;
+  cursor?: string;
 }
 
 const ClickableCard = ({
@@ -16,6 +17,7 @@ const ClickableCard = ({
   color,
   minW,
   p = 8,
+  cursor = "pointer",
 }: ClickableCardProps) => {
   const colors = useThemeColors();
 
@@ -25,6 +27,7 @@ const ClickableCard = ({
       accentColor={color || colors.primary}
       minW={minW}
       p={p}
+      cursor={cursor}
     >
       {children}
     </Card>

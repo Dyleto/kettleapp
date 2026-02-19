@@ -46,8 +46,8 @@ export const Header = () => {
   };
 
   return (
-    <Box position="fixed" top={0} right={0} p={4} zIndex={2}>
-      <Menu.Root positioning={{ placement: "right-start" }}>
+    <Box zIndex={2}>
+      <Menu.Root positioning={{ placement: "bottom-end" }}>
         <Menu.Context>
           {(menu) => (
             <>

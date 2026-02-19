@@ -7,12 +7,15 @@ import {
   HStack,
   Button,
   Spinner,
+  Grid,
 } from "@chakra-ui/react";
 import { useExercises } from "@/hooks/queries/useExercises";
 import { useState, useMemo } from "react";
 import { LuSearch, LuPlus, LuX } from "react-icons/lu";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Exercise } from "@/types";
+import { CreateExerciseCard, ExerciseLibraryCard } from "@/features/exercise";
+import { GRID_LAYOUTS } from "@/constants/layouts";
 
 interface ExerciseSelectorPanelProps {
   isOpen: boolean;
@@ -41,9 +44,14 @@ export const ExerciseSelectorPanel = ({
   }, [exercises, searchQuery, type]);
 
   return (
-    <Drawer.Root open={isOpen} onOpenChange={(e) => !e.open && onClose()}>
-      <Drawer.Backdrop />
-      <Drawer.Positioner>
+    <Drawer.Root
+      open={isOpen}
+      onOpenChange={(e) => !e.open && onClose()}
+      size={{ base: "full", md: "md", lg: "lg", xl: "xl" }}
+      modal={false}
+      preventScroll={false}
+    >
+      <Drawer.Positioner pointerEvents="none">
         <Drawer.Content bg="gray.900">
           <Drawer.Header borderBottomWidth="1px" borderColor="whiteAlpha.100">
             <HStack justify="space-between">
@@ -62,7 +70,7 @@ export const ExerciseSelectorPanel = ({
               {/* Barre de Recherche */}
               <Box position="relative">
                 <Input
-                  placeholder="Rechercher..."
+                  placeholder={`Rechercher un ${type === "warmup" ? "échauffement" : "exercice"}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   pl={10}
@@ -86,50 +94,22 @@ export const ExerciseSelectorPanel = ({
                   <Spinner />
                 </Box>
               ) : (
-                <VStack gap={2} align="stretch" overflowY="auto" flex={1}>
-                  {filteredExercises.map((ex) => (
-                    <Box
-                      key={ex._id}
-                      p={3}
-                      borderRadius="md"
-                      cursor="pointer"
-                      bg="whiteAlpha.50"
-                      _hover={{ bg: "whiteAlpha.100" }}
-                      onClick={() => {
-                        onSelect(ex);
-                        // TODO: Demander reps/sets avant de fermer
-                        onClose();
-                      }}
-                    >
-                      <HStack justify="space-between">
-                        <Text fontWeight="medium">{ex.name}</Text>
-                      </HStack>
-                    </Box>
+                <Grid
+                  templateColumns={{
+                    base: "repeat(2, 1fr)",
+                    lg: "repeat(3, 1fr)",
+                  }}
+                  gap={4}
+                >
+                  {filteredExercises.map((exercise) => (
+                    <ExerciseLibraryCard
+                      key={exercise._id}
+                      exercise={exercise}
+                      onClick={() => onSelect(exercise)}
+                      type={type}
+                    />
                   ))}
-
-                  {/* Bouton création rapide */}
-                  {filteredExercises.length === 0 && searchQuery && (
-                    <Button
-                      variant="outline"
-                      h="60px"
-                      borderStyle="dashed"
-                      borderColor="whiteAlpha.300"
-                      color="gray.400"
-                      _hover={{
-                        bg: "whiteAlpha.50",
-                        borderColor: colors.primary,
-                      }}
-                      onClick={() => {
-                        console.log("Créer nouveau", searchQuery);
-                      }}
-                    >
-                      <VStack gap={0}>
-                        <LuPlus size={20} />
-                        <Text fontSize="sm">Créer "{searchQuery}"</Text>
-                      </VStack>
-                    </Button>
-                  )}
-                </VStack>
+                </Grid>
               )}
             </VStack>
           </Drawer.Body>

@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClientsGrid, ExercisesBlock, InvitationBlock } from "@/features/coach";
 import { Container, VStack, HStack, Text, Box } from "@chakra-ui/react";
@@ -13,6 +14,8 @@ const CoachDashboard = () => {
             Bonjour {user?.firstName},
           </Text>
         </VStack>
+
+        <Header />
       </HStack>
 
       <HStack justify="space-evenly" mt={8}>

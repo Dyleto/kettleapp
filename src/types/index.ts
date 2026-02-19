@@ -72,7 +72,6 @@ export interface WorkoutExercise {
 
 export interface Session {
   _id: string;
-  programId: string;
   name: string;
   order: number;
   warmup?: {
@@ -85,11 +84,15 @@ export interface Session {
     restBetweenRounds?: number;
     exercises: WorkoutExercise[];
   };
+  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface ClientWithDetails extends Client {
-  program: Program | null;
+  program: ClientProgram;
+}
+
+export interface ClientProgram {
   sessions: Session[];
 }
