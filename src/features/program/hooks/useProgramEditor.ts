@@ -5,24 +5,22 @@ import { v4 as uuidv4 } from "uuid";
 // Ce hook gère uniquement la logique de modification d'un programme client
 export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   const [program, setProgram] = useState<ClientProgram | null>(initialProgram);
-  const [isDirty, setIsDirty] = useState(false);
 
   // Réinitialise avec de nouvelles données (ex: après un fetch)
   const initialize = useCallback((data: ClientProgram) => {
     setProgram(data);
-    setIsDirty(false);
   }, []);
 
   // --- ACTIONS SESSIONS ---
 
   const addSession = useCallback(() => {
     if (!program) return;
+
     const newSession: Session = {
       _id: `temp-${uuidv4()}`,
-      name: `Séance ${program.sessions.length + 1}`,
       order: program.sessions.length + 1,
-      warmup: { exercises: [], notes: "" },
-      workout: { exercises: [], notes: "", rounds: 3, restBetweenRounds: 60 },
+      warmup: { exercises: [] },
+      workout: { exercises: [], rounds: 3, restBetweenRounds: 60 },
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -35,7 +33,6 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
           }
         : null,
     );
-    setIsDirty(true);
   }, [program]);
 
   const removeSession = useCallback((sessionId: string) => {
@@ -51,14 +48,9 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       const reorderedSessions = remainingSessions.map((session, index) => {
         const newOrder = index + 1;
 
-        // Vérifie si le nom correspond au format par défaut "Séance X"
-        // Si oui, on le met à jour. Si non (nom custom), on le garde.
-        const isDefaultName = /^Séance \d+$/.test(session.name);
-
         return {
           ...session,
           order: newOrder,
-          name: isDefaultName ? `Séance ${newOrder}` : session.name,
         };
       });
 
@@ -67,12 +59,12 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         sessions: reorderedSessions,
       };
     });
-    setIsDirty(true);
   }, []);
 
   const updateSessionNotes = useCallback((sessionId: string, notes: string) => {
     setProgram((prev) => {
       if (!prev) return null;
+
       return {
         ...prev,
         sessions: prev.sessions.map((s) =>
@@ -80,40 +72,46 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         ),
       };
     });
-    setIsDirty(true);
   }, []);
 
   // --- ACTIONS EXERCICES ---
 
   // Helper pour éviter la répétition de la logique de recherche
-  const updateSessionExercise = (
-    sessionId: string,
-    type: "warmup" | "workout",
-    updater: (exercises: any[]) => any[],
-  ) => {
-    setProgram((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        sessions: prev.sessions.map((session) => {
-          if (session._id !== sessionId) return session;
+  const updateSessionExercise = useCallback(
+    (
+      sessionId: string,
+      type: "warmup" | "workout",
+      updater: (exercises: any[]) => any[],
+    ) => {
+      setProgram((prev) => {
+        if (!prev) return null;
 
-          // Clone profond nécessaire pour éviter mutation directe
-          const newSession = JSON.parse(JSON.stringify(session));
+        return {
+          ...prev,
+          sessions: prev.sessions.map((session) => {
+            if (session._id !== sessionId) return session;
 
-          if (type === "warmup" && newSession.warmup) {
-            newSession.warmup.exercises = updater(newSession.warmup.exercises);
-          } else if (type === "workout") {
-            newSession.workout.exercises = updater(
-              newSession.workout.exercises,
-            );
-          }
-          return newSession;
-        }),
-      };
-    });
-    setIsDirty(true);
-  };
+            const newSession = { ...session };
+
+            if (type === "warmup") {
+              newSession.warmup = {
+                ...session.warmup,
+                exercises: updater(session.warmup?.exercises ?? []),
+              };
+            } else {
+              newSession.workout = {
+                ...session.workout,
+                exercises: updater(session.workout.exercises),
+              };
+            }
+
+            return newSession;
+          }),
+        };
+      });
+    },
+    [],
+  );
 
   const addExercise = useCallback(
     (
@@ -122,7 +120,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       exercise: Partial<Exercise>,
     ) => {
       const newExerciseEntry = {
-        exercise: { ...exercise, type }, // Copie minimale
+        exercise: { ...exercise },
         sets: type === "workout" ? 3 : undefined,
         reps: 10,
         duration: 0,
@@ -135,7 +133,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         newExerciseEntry,
       ]);
     },
-    [],
+    [updateSessionExercise],
   );
 
   const removeExercise = useCallback(
@@ -144,7 +142,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         list.filter((_, i) => i !== index),
       );
     },
-    [],
+    [updateSessionExercise],
   );
 
   const updateExerciseDetails = useCallback(
@@ -158,7 +156,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         list.map((ex, i) => (i === index ? { ...ex, ...updates } : ex)),
       );
     },
-    [],
+    [updateSessionExercise],
   );
 
   const updateRounds = useCallback((sessionId: string, rounds: number) => {
@@ -176,7 +174,6 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         ),
       };
     });
-    setIsDirty(true);
   }, []);
 
   const updateRestBetweenRounds = useCallback(
@@ -195,7 +192,6 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
           ),
         };
       });
-      setIsDirty(true);
     },
     [],
   );
@@ -213,6 +209,5 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       updateRounds,
       updateRestBetweenRounds,
     },
-    isDirty,
   };
 };

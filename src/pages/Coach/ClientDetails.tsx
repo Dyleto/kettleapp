@@ -1,5 +1,5 @@
 import { SlidePanel } from "@/components/SlidePanel";
-import { ClientProgram, ClientWithDetails, Exercise } from "@/types";
+import { Exercise } from "@/types";
 import {
   SessionCard,
   ExerciseSelectorPanel,
@@ -22,7 +22,6 @@ import {
 import { useEffect, useState } from "react";
 import { LuArrowLeft, LuPencil, LuSave, LuX } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
-import { toaster } from "@/components/ui/toaster";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useClientDetails } from "@/hooks/queries/useClientDetails";
 import { useUpdateProgramSessions } from "@/hooks/mutations/useProgramMutations";
@@ -55,10 +54,10 @@ const ClientDetails = () => {
 
   // Chargement des données (Mock ou API)
   useEffect(() => {
-    if (client && client.program) {
+    if (client && client.program && !isEditing) {
       initialize(client.program);
     }
-  }, [client, initialize]);
+  }, [client, initialize, isEditing]);
 
   // --- Gestionnaires d'Actions UI ---
 
@@ -89,7 +88,7 @@ const ClientDetails = () => {
     setSelectorState({ isOpen: true, sessionId, sectionType: type });
   };
 
-  const handleSelectExercise = (exercise: Partial<Exercise>) => {
+  const handleSelectExercise = (exercise: Exercise) => {
     const { sessionId, sectionType } = selectorState;
     if (sessionId) {
       actions.addExercise(sessionId, sectionType, exercise);
@@ -150,7 +149,7 @@ const ClientDetails = () => {
                     <HStack justify="space-between" mb={6}>
                       <Heading size="lg">Programme</Heading>
                       {isEditing ? (
-                        <>
+                        <HStack>
                           <Button
                             variant="ghost"
                             onClick={handleCancel}
@@ -167,7 +166,7 @@ const ClientDetails = () => {
                           >
                             <LuSave /> Enregistrer
                           </Button>
-                        </>
+                        </HStack>
                       ) : (
                         <Button
                           variant="outline"
@@ -248,25 +247,24 @@ const ClientDetails = () => {
                       )}
                     </Grid>
                     {isEditing && (
-                      <HStack justify="space-between" mt={6}>
-                        <Box></Box>
-
-                        <HStack>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={handleCancel}
-                          >
-                            <LuX /> Annuler
-                          </Button>
-                          <Button
-                            size="sm"
-                            bg={colors.primary}
-                            onClick={handleSave}
-                          >
-                            <LuSave /> Enregistrer
-                          </Button>
-                        </HStack>
+                      <HStack justify="flex-end" mt={6} gap={3}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancel}
+                          disabled={updateProgramMutation.isPending}
+                        >
+                          <LuX /> Annuler
+                        </Button>
+                        <Button
+                          size="sm"
+                          bg={colors.primary}
+                          color="gray.900"
+                          onClick={handleSave}
+                          loading={updateProgramMutation.isPending}
+                        >
+                          <LuSave /> Enregistrer
+                        </Button>
                       </HStack>
                     )}
                   </Box>

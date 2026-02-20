@@ -11,11 +11,12 @@ export const useUpdateProgramSessions = (clientId: string) => {
     mutationFn: async (sessions: Partial<Session>[]) => {
       const formattedSessions = sessions.map((session) => ({
         ...session,
+        notes: session.notes || "",
         warmup: {
           ...session.warmup,
           exercises: session.warmup?.exercises.map((ex) => ({
             ...ex,
-            exerciseId: ex.exercise._id,
+            exerciseId: ex.exercise?._id,
             exercise: undefined,
           })),
         },
@@ -23,7 +24,7 @@ export const useUpdateProgramSessions = (clientId: string) => {
           ...session.workout,
           exercises: session.workout?.exercises.map((ex) => ({
             ...ex,
-            exerciseId: ex.exercise._id,
+            exerciseId: ex.exercise?._id,
             exercise: undefined,
           })),
         },
@@ -36,17 +37,20 @@ export const useUpdateProgramSessions = (clientId: string) => {
       return data;
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["client", clientId], (old: any) => {
-        if (!old) return old;
+      queryClient.setQueryData(
+        queryKeys.coach.clients.detail(clientId),
+        (old: any) => {
+          if (!old) return old;
 
-        return {
-          ...old,
-          program: {
-            ...old.program,
-            sessions: data,
-          },
-        };
-      });
+          return {
+            ...old,
+            program: {
+              ...old.program,
+              sessions: data,
+            },
+          };
+        },
+      );
 
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.clients.detail(clientId),

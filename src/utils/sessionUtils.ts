@@ -12,8 +12,8 @@ export const calculateSessionDuration = (session: Session): number => {
   if (session.warmup?.exercises) {
     session.warmup.exercises.forEach((ex: any) => {
       // Si mode explicite
-      if (ex._uiMode) {
-        if (ex._uiMode === "timer") {
+      if (ex.mode) {
+        if (ex.mode === "timer") {
           totalSeconds += ex.duration || 0;
         } else {
           // Estimation arbitraire pour reps en warmup (souvent 1 set)
@@ -34,8 +34,8 @@ export const calculateSessionDuration = (session: Session): number => {
   let workoutTimePerRound = 0;
   session.workout.exercises.forEach((ex: any) => {
     // Déterminer le mode actif
-    const isTimerMode = ex._uiMode
-      ? ex._uiMode === "timer"
+    const isTimerMode = ex.mode
+      ? ex.mode === "timer"
       : (ex.duration || 0) > 0 && !ex.sets; // Fallback simple
 
     if (isTimerMode) {

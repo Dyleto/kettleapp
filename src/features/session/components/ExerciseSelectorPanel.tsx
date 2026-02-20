@@ -23,7 +23,7 @@ interface ExerciseSelectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   type: "warmup" | "workout";
-  onSelect: (exercise: Partial<Exercise>) => void;
+  onSelect: (exercise: Exercise) => void;
 }
 
 export const ExerciseSelectorPanel = ({
@@ -49,8 +49,8 @@ export const ExerciseSelectorPanel = ({
 
   const handleSave = (exercise: Partial<Exercise>) => {
     createMutation.mutate(exercise, {
-      onSuccess: () => {
-        onSelect(exercise);
+      onSuccess: (response) => {
+        onSelect(response.data);
         setOnCreateMode(false);
       },
     });

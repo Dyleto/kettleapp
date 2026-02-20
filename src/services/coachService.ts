@@ -18,7 +18,7 @@ export const coachService = {
         ...session,
         warmup: {
           ...session.warmup,
-          exercises: session.warmup.exercises.map((ex: any) => ({
+          exercises: (session.warmup?.exercises ?? []).map((ex: any) => ({
             ...ex,
             exercise: ex.exerciseId,
             exerciseId: undefined,
@@ -26,7 +26,7 @@ export const coachService = {
         },
         workout: {
           ...session.workout,
-          exercises: session.workout.exercises.map((ex: any) => ({
+          exercises: (session.workout?.exercises ?? []).map((ex: any) => ({
             ...ex,
             exercise: ex.exerciseId,
             exerciseId: undefined,

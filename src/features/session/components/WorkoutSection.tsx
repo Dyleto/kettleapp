@@ -66,7 +66,6 @@ export const WorkoutSection = ({
               <HStack key={idx} align="center" gap={2} position="relative">
                 <Box flex={1}>
                   <ExerciseCard
-                    key={idx}
                     name={ex.exercise.name}
                     sets={ex.sets}
                     reps={ex.reps}

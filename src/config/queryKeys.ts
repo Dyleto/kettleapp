@@ -1,5 +1,3 @@
-import { verify } from "crypto";
-
 /**
  * Source de vérité unique pour les clés de cache React Query.
  * Permet d'éviter les fautes de frappe et facilite l'invalidation du cache.
