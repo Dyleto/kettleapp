@@ -116,7 +116,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   };
 
   const addExercise = useCallback(
-    (sessionId: string, type: "warmup" | "workout", exercise: Exercise) => {
+    (
+      sessionId: string,
+      type: "warmup" | "workout",
+      exercise: Partial<Exercise>,
+    ) => {
       const newExerciseEntry = {
         exercise: { ...exercise, type }, // Copie minimale
         sets: type === "workout" ? 3 : undefined,

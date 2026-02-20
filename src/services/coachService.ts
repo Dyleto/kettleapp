@@ -1,5 +1,5 @@
 import api from "@/config/api";
-import { Client, Exercise, ExerciseStats } from "@/types"; // Assurez-vous d'avoir les types définis
+import { Client, ClientWithDetails, Exercise, ExerciseStats } from "@/types"; // Assurez-vous d'avoir les types définis
 
 export const coachService = {
   // Clients
@@ -9,8 +9,33 @@ export const coachService = {
   },
 
   getClientDetails: async (clientId: string) => {
-    const { data } = await api.get<Client>(`/api/coach/clients/${clientId}`);
-    return data;
+    const { data } = await api.get<ClientWithDetails>(
+      `/api/coach/clients/${clientId}`,
+    );
+
+    if (data.program && data.program.sessions) {
+      data.program.sessions = data.program.sessions.map((session: any) => ({
+        ...session,
+        warmup: {
+          ...session.warmup,
+          exercises: session.warmup.exercises.map((ex: any) => ({
+            ...ex,
+            exercise: ex.exerciseId,
+            exerciseId: undefined,
+          })),
+        },
+        workout: {
+          ...session.workout,
+          exercises: session.workout.exercises.map((ex: any) => ({
+            ...ex,
+            exercise: ex.exerciseId,
+            exerciseId: undefined,
+          })),
+        },
+      }));
+    }
+
+    return data as ClientWithDetails;
   },
 
   // Exercices

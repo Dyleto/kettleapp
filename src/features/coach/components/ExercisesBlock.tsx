@@ -12,7 +12,7 @@ import {
   SkeletonCircle,
   VStack,
 } from "@chakra-ui/react";
-import { use, useEffect } from "react";
+import { useEffect } from "react";
 import { LuDumbbell, LuFlame, LuArrowRight, LuLibrary } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 
@@ -21,7 +21,7 @@ export const ExercisesBlock = () => {
   const colors = useThemeColors();
 
   const {
-    data: { warmupCount = 0, exerciseCount = 0 } = {},
+    data: { warmupCount = 0, workoutCount = 0 } = {},
     isLoading,
     error,
   } = useExerciseStats();
@@ -131,7 +131,7 @@ export const ExercisesBlock = () => {
             </Box>
             <VStack gap={0} align="start">
               <Box fontSize="xl" fontWeight="bold" color="white">
-                {exerciseCount}
+                {workoutCount}
               </Box>
               <Box fontSize="xs" color="gray.400">
                 exercices

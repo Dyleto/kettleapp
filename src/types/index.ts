@@ -29,9 +29,6 @@ export interface Coach {
 
 export interface Program {
   _id: string;
-  name: string;
-  description?: string;
-  startDate: Date;
   endDate?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -42,7 +39,7 @@ export interface Exercise {
   name: string;
   description?: string;
   videoUrl?: string;
-  type: "warmup" | "exercise";
+  type: "warmup" | "workout";
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -50,7 +47,7 @@ export interface Exercise {
 
 export interface ExerciseStats {
   warmupCount: number;
-  exerciseCount: number;
+  workoutCount: number;
 }
 
 export interface WarmupExercise {
@@ -67,19 +64,15 @@ export interface WorkoutExercise {
   reps?: number;
   duration?: number;
   restBetweenSets?: number;
-  restAfter?: number;
 }
 
 export interface Session {
   _id: string;
-  name: string;
   order: number;
   warmup?: {
-    notes?: string;
     exercises: WarmupExercise[];
   };
   workout: {
-    notes?: string;
     rounds: number;
     restBetweenRounds?: number;
     exercises: WorkoutExercise[];

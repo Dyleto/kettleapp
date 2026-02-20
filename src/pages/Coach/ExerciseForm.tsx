@@ -1,27 +1,9 @@
 import { SlidePanel } from "@/components/SlidePanel";
-import { Field } from "@/components/ui/field";
 import { toaster } from "@/components/ui/toaster";
-import { useThemeColors } from "@/hooks/useThemeColors";
-import {
-  Box,
-  Button,
-  Card,
-  Container,
-  Heading,
-  HStack,
-  Input,
-  Textarea,
-  VStack,
-  Spinner,
-} from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { LuArrowLeft, LuFlame, LuDumbbell, LuTrash2 } from "react-icons/lu";
+import { Container, Button, VStack, Box, Spinner } from "@chakra-ui/react";
+import { useEffect } from "react";
+import { LuArrowLeft } from "react-icons/lu";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import {
-  NativeSelectField,
-  NativeSelectRoot,
-} from "@/components/ui/native-select";
-import VideoPlayer from "@/components/VideoPlayer";
 import { useExercise } from "@/hooks/queries/useExercise";
 import {
   useCreateExercise,
@@ -29,23 +11,15 @@ import {
   useDeleteExercise,
 } from "@/hooks/mutations/useExerciseMutations";
 import { Exercise } from "@/types";
+import { ExerciseEditor } from "@/features/exercise/components/ExerciseEditor";
 
 const ExerciseForm = () => {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const colors = useThemeColors();
-
-  const [formData, setFormData] = useState<Partial<Exercise>>({
-    name: "",
-    description: "",
-    videoUrl: "",
-    type: (searchParams.get("type") as "warmup" | "exercise") || "exercise",
-  });
 
   const isEditMode = !!exerciseId;
 
-  // ✨ React Query hooks
   const {
     data: exercise,
     isLoading: fetching,
@@ -54,13 +28,6 @@ const ExerciseForm = () => {
   const createMutation = useCreateExercise();
   const updateMutation = useUpdateExercise();
   const deleteMutation = useDeleteExercise();
-
-  // Remplir le formulaire quand les données arrivent
-  useEffect(() => {
-    if (exercise) {
-      setFormData(exercise);
-    }
-  }, [exercise]);
 
   // Afficher toast si erreur de chargement
   useEffect(() => {
@@ -73,25 +40,25 @@ const ExerciseForm = () => {
     }
   }, [error]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSave = async (data: Partial<Exercise>) => {
     if (isEditMode) {
       updateMutation.mutate(
-        { id: exerciseId!, data: formData },
+        { id: exerciseId!, data },
         {
           onSuccess: () => navigate("/coach/exercises"),
         },
       );
     } else {
-      createMutation.mutate(formData, {
+      createMutation.mutate(data, {
         onSuccess: () => navigate("/coach/exercises"),
       });
     }
   };
 
   const handleDelete = async () => {
-    const itemType = formData.type === "warmup" ? "échauffement" : "exercice";
+    if (!exercise) return;
+
+    const itemType = exercise.type === "warmup" ? "échauffement" : "exercice";
 
     if (
       !globalThis.confirm(
@@ -106,19 +73,15 @@ const ExerciseForm = () => {
     });
   };
 
-  // Loading state global
-  const loading =
+  // Loading state for actions
+  const isSavingOrDeleting =
     createMutation.isPending ||
     updateMutation.isPending ||
     deleteMutation.isPending;
 
-  const typeColor =
-    formData.type === "warmup" ? colors.secondaryHex : colors.primaryHex;
-  const TypeIcon = formData.type === "warmup" ? LuFlame : LuDumbbell;
-  const typeBg =
-    formData.type === "warmup" ? colors.secondaryBg : colors.primaryBg;
-  const typeBorder =
-    formData.type === "warmup" ? colors.secondaryBorder : colors.primaryBorder;
+  // Valeur par défaut pour le type si on crée
+  const defaultType =
+    (searchParams.get("type") as "warmup" | "workout") || "workout";
 
   return (
     <SlidePanel onClose={() => navigate("/coach/exercises")}>
@@ -129,173 +92,26 @@ const ExerciseForm = () => {
               <Spinner size="xl" />
             </Box>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <VStack gap={6} align="stretch">
-                {/* Bouton retour */}
-                <Button
-                  variant="ghost"
-                  onClick={handleClose}
-                  alignSelf="flex-start"
-                >
-                  <LuArrowLeft />
-                  Retour
-                </Button>
+            <VStack gap={6} align="stretch">
+              {/* Bouton retour */}
+              <Button
+                variant="ghost"
+                onClick={handleClose}
+                alignSelf="flex-start"
+              >
+                <LuArrowLeft />
+                Retour
+              </Button>
 
-                {/* Header */}
-                <Card.Root>
-                  <Card.Body>
-                    <HStack gap={3}>
-                      <Box
-                        p={3}
-                        bg={typeBg}
-                        borderRadius="md"
-                        borderWidth="1px"
-                        borderColor={typeBorder}
-                      >
-                        <TypeIcon size={32} color={typeColor} />
-                      </Box>
-                      <Heading size="xl">
-                        {isEditMode ? "Modifier" : "Créer"}{" "}
-                        {formData.type === "warmup"
-                          ? "un échauffement"
-                          : "un exercice"}
-                      </Heading>
-                    </HStack>
-                  </Card.Body>
-                </Card.Root>
-
-                {/* Formulaire */}
-                <Card.Root>
-                  <Card.Body>
-                    <VStack gap={5} align="stretch">
-                      {/* Type */}
-                      <Field label="Type" required>
-                        <NativeSelectRoot>
-                          <NativeSelectField
-                            value={formData.type}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                type: e.target.value as "warmup" | "exercise",
-                              })
-                            }
-                            items={[
-                              {
-                                value: "warmup",
-                                label: "Échauffement",
-                                icon: (
-                                  <LuFlame
-                                    size={20}
-                                    color={colors.secondaryHex}
-                                  />
-                                ),
-                                color: colors.secondary,
-                              },
-                              {
-                                value: "exercise",
-                                label: "Exercice",
-                                icon: (
-                                  <LuDumbbell
-                                    size={20}
-                                    color={colors.primaryHex}
-                                  />
-                                ),
-                                color: colors.primary,
-                              },
-                            ]}
-                          />
-                        </NativeSelectRoot>
-                      </Field>
-
-                      {/* Nom */}
-                      <Field label="Nom de l'exercice" required>
-                        <Input
-                          value={formData.name}
-                          onChange={(e) =>
-                            setFormData({ ...formData, name: e.target.value })
-                          }
-                          placeholder={
-                            formData.type === "warmup"
-                              ? "Ex: Cardio léger"
-                              : "Ex: Squat goblet"
-                          }
-                          required
-                        />
-                      </Field>
-
-                      {/* Description */}
-                      <Field label="Description">
-                        <Textarea
-                          value={formData.description}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              description: e.target.value,
-                            })
-                          }
-                          placeholder="Décrivez l'exercice, les consignes techniques, les points clés..."
-                          rows={5}
-                        />
-                      </Field>
-
-                      {/* URL Vidéo */}
-                      <Field label="Lien vidéo (optionnel)">
-                        <Input
-                          type="url"
-                          value={formData.videoUrl}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              videoUrl: e.target.value,
-                            })
-                          }
-                          placeholder="https://youtube.com/watch?v=..."
-                        />
-                      </Field>
-
-                      {/* Preview vidéo */}
-                      {formData.videoUrl && (
-                        <Box>
-                          <Box
-                            fontSize="sm"
-                            fontWeight="medium"
-                            mb={2}
-                            color="fg.muted"
-                          >
-                            Aperçu de la vidéo
-                          </Box>
-                          <VideoPlayer url={formData.videoUrl} />
-                        </Box>
-                      )}
-                    </VStack>
-                  </Card.Body>
-                </Card.Root>
-
-                {/* Actions */}
-                <HStack gap={4} justify="flex-end" w="100%">
-                  {isEditMode && (
-                    <Button
-                      variant="outline"
-                      colorPalette="red"
-                      onClick={handleDelete}
-                      loading={deleteMutation.isPending}
-                    >
-                      <LuTrash2 style={{ marginRight: "8px" }} />
-                      Supprimer
-                    </Button>
-                  )}
-                  <Button
-                    type="submit"
-                    bg={typeColor}
-                    color="gray.900"
-                    fontWeight="bold"
-                    loading={loading}
-                  >
-                    {isEditMode ? "Enregistrer" : "Créer"}
-                  </Button>
-                </HStack>
-              </VStack>
-            </form>
+              <ExerciseEditor
+                initialData={isEditMode ? exercise : { type: defaultType }}
+                isEditing={isEditMode}
+                isLoading={isSavingOrDeleting}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onCancel={handleClose}
+              />
+            </VStack>
           )}
         </Container>
       )}
