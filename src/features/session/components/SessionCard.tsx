@@ -1,4 +1,11 @@
-import { VStack, Box, IconButton, Textarea, Text } from "@chakra-ui/react";
+import {
+  VStack,
+  Box,
+  IconButton,
+  Textarea,
+  Text,
+  Button,
+} from "@chakra-ui/react";
 import { Card } from "@/components/Card";
 import { Session } from "@/types";
 import { SessionHeader } from "./SessionHeader";
@@ -6,8 +13,7 @@ import { WarmupSection } from "./WarmupSection";
 import { WorkoutSection } from "./WorkoutSection";
 import { calculateSessionDuration } from "@/utils/sessionUtils";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { LuTrash } from "react-icons/lu";
-import { color } from "framer-motion";
+import { LuArrowRight, LuTrash } from "react-icons/lu";
 
 interface SessionCardProps {
   session: Session;
@@ -24,6 +30,7 @@ interface SessionCardProps {
   onRemoveSession?: () => void;
   onUpdateRestBetweenRounds?: (value: number) => void;
   onUpdateSessionNotes?: (notes: string) => void;
+  onComplete?: () => void;
 }
 
 export const SessionCard = ({
@@ -37,6 +44,7 @@ export const SessionCard = ({
   onRemoveSession,
   onUpdateRestBetweenRounds,
   onUpdateSessionNotes,
+  onComplete,
 }: SessionCardProps) => {
   const colors = useThemeColors();
 
@@ -127,6 +135,21 @@ export const SessionCard = ({
             onUpdateExercise={handleUpdateWorkout}
             onUpdateRestBetweenRounds={onUpdateRestBetweenRounds}
           />
+          {onComplete && (
+            <Box px={6} pb={6} pt={2}>
+              <Button
+                w="full"
+                bg={colors.primary}
+                color="gray.900"
+                fontWeight="bold"
+                size="lg"
+                onClick={onComplete}
+                _hover={{ bg: colors.primaryHover }}
+              >
+                Terminer la séance <LuArrowRight />
+              </Button>
+            </Box>
+          )}
         </VStack>
       </Card>
     </Box>

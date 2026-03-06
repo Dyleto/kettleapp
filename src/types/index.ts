@@ -89,3 +89,29 @@ export interface ClientWithDetails extends Client {
 export interface ClientProgram {
   sessions: Session[];
 }
+
+export interface SessionMetrics {
+  stress: number;
+  mood: number;
+  energy: number;
+  sleep: number;
+  soreness: number;
+}
+
+export interface CompletedSession {
+  _id: string;
+  completedAt: Date;
+  originalSessionId: string;
+  sessionOrder: number;
+  // Snapshot du contenu
+  warmup?: { exercises: WarmupExercise[] };
+  workout: {
+    rounds: number;
+    restBetweenRounds?: number;
+    exercises: WorkoutExercise[];
+  };
+  coachNotes?: string;
+  // Ressenti client
+  metrics: SessionMetrics;
+  clientNotes?: string;
+}
