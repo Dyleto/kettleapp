@@ -1,11 +1,9 @@
-import { HStack, Text, VStack } from "@chakra-ui/react";
-import { IconType } from "react-icons";
+import { HStack, Text } from "@chakra-ui/react";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { ReactNode } from "react";
 
 interface MetricStarsProps {
   label: ReactNode;
-  icon: IconType;
   value: number; // 1-5
   readonly?: boolean;
   onChange?: (value: number) => void;
@@ -13,7 +11,6 @@ interface MetricStarsProps {
 
 export const MetricStars = ({
   label,
-  icon: Icon,
   value,
   readonly = false,
   onChange,
@@ -22,11 +19,8 @@ export const MetricStars = ({
 
   return (
     <HStack justify="space-between" w="full">
-      <HStack gap={2} minW="120px">
-        <Icon size={14} color={colors.primaryHex} />
-        <Text fontSize="sm" color="gray.300">
-          {label}
-        </Text>
+      <HStack gap={2} minW="32px">
+        {label}
       </HStack>
       <HStack gap={1}>
         {[1, 2, 3, 4, 5].map((star) => (
