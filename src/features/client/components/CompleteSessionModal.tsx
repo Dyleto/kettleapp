@@ -48,14 +48,35 @@ export const CompleteSessionModal = ({
   const [submitted, setSubmitted] = useState(false);
   const [avgScore, setAvgScore] = useState(0);
 
-  const METRICS_CONFIG: { key: keyof SessionMetrics; label: ReactNode }[] = [
-    { key: "stress", label: <LuBrain size={16} color={colors.primaryHex} /> },
-    { key: "mood", label: <LuSmile size={16} color={colors.primaryHex} /> },
-    { key: "energy", label: <LuZap size={16} color={colors.primaryHex} /> },
-    { key: "sleep", label: <LuMoon size={16} color={colors.primaryHex} /> },
+  const METRICS_CONFIG: {
+    key: keyof SessionMetrics;
+    icon: ReactNode;
+    label: string;
+  }[] = [
+    {
+      key: "stress",
+      icon: <LuBrain size={16} color={colors.primaryHex} />,
+      label: "Stress",
+    },
+    {
+      key: "mood",
+      icon: <LuSmile size={16} color={colors.primaryHex} />,
+      label: "Humeur",
+    },
+    {
+      key: "energy",
+      icon: <LuZap size={16} color={colors.primaryHex} />,
+      label: "Énergie",
+    },
+    {
+      key: "sleep",
+      icon: <LuMoon size={16} color={colors.primaryHex} />,
+      label: "Sommeil",
+    },
     {
       key: "soreness",
-      label: <LuBicepsFlexed size={16} color={colors.primaryHex} />,
+      icon: <LuBicepsFlexed size={16} color={colors.primaryHex} />,
+      label: "Courbatures",
     },
   ];
 
@@ -168,9 +189,10 @@ export const CompleteSessionModal = ({
               <Dialog.Body>
                 <VStack gap={4} align="stretch">
                   <VStack gap={3} align="stretch">
-                    {METRICS_CONFIG.map(({ key, label }) => (
+                    {METRICS_CONFIG.map(({ key, icon, label }) => (
                       <MetricStars
                         key={key}
+                        icon={icon}
                         label={label}
                         value={metrics[key]}
                         onChange={(val) =>
