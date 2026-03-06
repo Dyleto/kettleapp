@@ -36,22 +36,7 @@ export const useUpdateProgramSessions = (clientId: string) => {
       );
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.setQueryData(
-        queryKeys.coach.clients.detail(clientId),
-        (old: any) => {
-          if (!old) return old;
-
-          return {
-            ...old,
-            program: {
-              ...old.program,
-              sessions: data,
-            },
-          };
-        },
-      );
-
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.clients.detail(clientId),
       });
