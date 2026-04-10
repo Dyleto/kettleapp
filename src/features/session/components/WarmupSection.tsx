@@ -57,6 +57,8 @@ export const WarmupSection = ({
                   onUpdate={(updates) => onUpdateExercise?.(idx, updates)}
                   mode={ex.mode}
                   type="warmup"
+                  description={ex.exercise.description}
+                  videoUrl={ex.exercise.videoUrl}
                 />
               </Box>
               {isEditing && (

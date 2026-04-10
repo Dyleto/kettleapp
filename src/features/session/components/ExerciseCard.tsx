@@ -9,8 +9,11 @@
   VStack,
 } from "@chakra-ui/react";
 import { formatDuration } from "@/utils/formatters";
-import { LuClock, LuHash, LuTimer } from "react-icons/lu";
+import { LuClock, LuHash, LuInfo, LuX } from "react-icons/lu";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { useState } from "react";
+import { SlidePanel } from "@/components/SlidePanel";
+import VideoPlayer from "@/components/VideoPlayer";
 
 interface ExerciseCardProps {
   name: string;
@@ -20,7 +23,9 @@ interface ExerciseCardProps {
   restBetweenSets?: number;
   isEditing?: boolean;
   mode?: "timer" | "reps";
-  type?: "workout" | "warmup"; // Option pour cacher les séries (ex: pour les exercices d'échauffement)
+  type?: "workout" | "warmup";
+  description?: string;
+  videoUrl?: string;
   onUpdate?: (updates: {
     sets?: number;
     reps?: number;
@@ -35,10 +40,10 @@ const NumberInputHelper = ({
   value,
   label,
   onChange,
-  w = "75px", // Largeur un peu plus grande pour les steppers
+  w = "75px",
 }: {
   value?: number;
-  label: string;
+  label?: string;
   onChange: (val: number) => void;
   w?: string;
 }) => (
@@ -66,9 +71,11 @@ const NumberInputHelper = ({
       </NumberInput.Control>
     </NumberInput.Root>
 
-    <Text fontSize="2xs" color="gray.500" mt={0.5}>
-      {label}
-    </Text>
+    {label && (
+      <Text fontSize="2xs" color="gray.500" mt={0.5}>
+        {label}
+      </Text>
+    )}
   </VStack>
 );
 
@@ -82,8 +89,13 @@ export const ExerciseCard = ({
   onUpdate,
   mode,
   type,
+  description,
+  videoUrl,
 }: ExerciseCardProps) => {
   const colors = useThemeColors();
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const hasDetail = !isEditing && (!!description || !!videoUrl);
 
   if (isEditing) {
     return (
@@ -181,7 +193,6 @@ export const ExerciseCard = ({
                   <>
                     <NumberInputHelper
                       value={sets}
-                      label="séries"
                       onChange={(v) => onUpdate?.({ sets: v })}
                     />
                     <Text pb={4} color="gray.500" fontSize="sm">
@@ -191,14 +202,14 @@ export const ExerciseCard = ({
                 )}
                 <NumberInputHelper
                   value={reps}
-                  label="reps"
+                  label={type === "warmup" ? "reps" : undefined}
                   onChange={(v) => onUpdate?.({ reps: v })}
                 />
               </>
             )}
           </Flex>
 
-          {/* Ligne 4 : Repos (séparé, en dessous) */}
+          {/* Ligne 4 : Repos */}
           {!!restBetweenSets && (
             <Box borderTopWidth="1px" borderColor="whiteAlpha.100" pt={2}>
               <Flex align="center" gap={3}>
@@ -220,74 +231,150 @@ export const ExerciseCard = ({
 
   // --- Mode Lecture ---
   return (
-    <Box p={3} bg="gray.900/50" borderRadius="md">
-      <VStack align="stretch" gap={1}>
-        <Text color="gray.300" fontWeight="medium" fontSize="sm">
-          {name}
-        </Text>
+    <>
+      <Box p={3} bg="gray.900/50" borderRadius="md">
+        <HStack align="flex-start" justify="space-between">
+          <VStack align="stretch" gap={1} flex={1}>
+            <Text color="gray.300" fontWeight="medium" fontSize="sm">
+              {name}
+            </Text>
 
-        {/* Mobile View */}
-        <VStack
-          align="stretch"
-          gap={0}
-          fontSize="sm"
-          color="gray.500"
-          display="flex"
-        >
-          <HStack gap={3}>
-            {type === "workout" && mode === "reps" && (
-              <>
-                <VStack gap={0} align="center">
-                  <Text fontWeight="bold" color={colors.primary} lineHeight="1">
-                    {sets}
+            <VStack
+              align="center"
+              gap={0}
+              fontSize="sm"
+              color="gray.500"
+              display="flex"
+              width="fit-content"
+            >
+              <HStack gap={3} align="flex-start">
+                {mode === "reps" && (
+                  <>
+                    <VStack gap={0} align="center">
+                      <Text
+                        fontWeight="bold"
+                        color={
+                          type === "warmup" ? colors.secondary : colors.primary
+                        }
+                      >
+                        {reps}
+                      </Text>
+                      {type === "warmup" && (
+                        <Text fontSize="2xs" color="gray.500">
+                          reps
+                        </Text>
+                      )}
+                    </VStack>
+                    {type === "workout" && (
+                      <>
+                        <Text fontSize="lg" lineHeight="1">
+                          x
+                        </Text>
+                        <Text fontWeight="bold" color={colors.primary}>
+                          {sets}
+                        </Text>
+                      </>
+                    )}
+                  </>
+                )}
+                {mode === "timer" && !!duration && (
+                  <Text
+                    fontWeight="bold"
+                    color={
+                      type === "warmup" ? colors.secondary : colors.primary
+                    }
+                  >
+                    {formatDuration(duration)}
+                  </Text>
+                )}
+              </HStack>
+              {!!restBetweenSets && (
+                <VStack gap={0} align="center" width="fit-content" mt={2}>
+                  <Text
+                    alignSelf="center"
+                    fontWeight="bold"
+                    color={
+                      type === "warmup" ? colors.secondary : colors.primary
+                    }
+                  >
+                    {formatDuration(restBetweenSets)}
                   </Text>
                   <Text fontSize="2xs" color="gray.500">
-                    séries
+                    repos
                   </Text>
                 </VStack>
-                <Text fontSize="lg">x</Text>
-              </>
-            )}
+              )}
+            </VStack>
+          </VStack>
 
-            {mode === "reps" && (
-              <VStack gap={0} align="center">
-                <Text
-                  fontWeight="bold"
-                  color={type === "warmup" ? colors.secondary : colors.primary}
-                  lineHeight="1"
+          {hasDetail && (
+            <IconButton
+              aria-label="Détails de l'exercice"
+              size="xs"
+              variant="ghost"
+              color="gray.500"
+              _hover={{ color: "gray.300" }}
+              onClick={() => setIsDetailOpen(true)}
+            >
+              <LuInfo size={16} />
+            </IconButton>
+          )}
+        </HStack>
+      </Box>
+
+      {isDetailOpen && (
+        <SlidePanel onClose={() => setIsDetailOpen(false)}>
+          {(handleClose) => (
+            <VStack align="stretch" gap={0} h="100%">
+              {/* Header */}
+              <HStack
+                px={4}
+                py={4}
+                borderBottomWidth="1px"
+                borderColor="whiteAlpha.100"
+                justify="space-between"
+                align="center"
+              >
+                <Text fontWeight="bold" fontSize="lg" color="white">
+                  {name}
+                </Text>
+                <IconButton
+                  aria-label="Fermer"
+                  size="sm"
+                  variant="ghost"
+                  color="gray.400"
+                  _hover={{ color: "white" }}
+                  onClick={handleClose}
                 >
-                  {reps}
-                </Text>
-                <Text fontSize="2xs" color="gray.500">
-                  reps
-                </Text>
+                  <LuX size={18} />
+                </IconButton>
+              </HStack>
+
+              {/* Contenu */}
+              <VStack align="stretch" gap={6} p={5} overflowY="auto" flex={1}>
+                {!!videoUrl && <VideoPlayer url={videoUrl} />}
+
+                {!!description && (
+                  <VStack align="stretch" gap={2}>
+                    <Text
+                      fontSize="xs"
+                      fontWeight="bold"
+                      color="gray.400"
+                      textTransform="uppercase"
+                      letterSpacing="wider"
+                    >
+                      Description
+                    </Text>
+                    <Text fontSize="sm" color="gray.300" lineHeight="tall">
+                      {description}
+                    </Text>
+                  </VStack>
+                )}
               </VStack>
-            )}
-            {mode === "timer" && !!duration && (
-              <Text
-                fontWeight="bold"
-                color={type === "warmup" ? colors.secondary : colors.primary}
-              >
-                {formatDuration(duration)}
-              </Text>
-            )}
-          </HStack>
-          {!!restBetweenSets && (
-            <VStack gap={0} align="start" width="fit-content" mt={2}>
-              <Text
-                alignSelf="center"
-                fontWeight="bold"
-                color={type === "warmup" ? colors.secondary : colors.primary}
-              >
-                {formatDuration(restBetweenSets)}
-              </Text>
-              <Text fontSize="2xs" color="gray.500">
-                repos entre série
-              </Text>
             </VStack>
           )}
-        </VStack>
-      </VStack>
-    </Box>
+        </SlidePanel>
+      )}
+    </>
   );
 };

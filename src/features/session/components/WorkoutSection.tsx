@@ -75,6 +75,8 @@ export const WorkoutSection = ({
                     onUpdate={(updates) => onUpdateExercise?.(idx, updates)}
                     mode={ex.mode}
                     type="workout"
+                    description={ex.exercise.description}
+                    videoUrl={ex.exercise.videoUrl}
                   />
                 </Box>
                 {isEditing && (
@@ -195,43 +197,45 @@ export const WorkoutSection = ({
       </HStack>
 
       {/* FOOTER : Repos entre tours */}
-      <Box
-        mt={4}
-        borderTopWidth="1px"
-        borderColor="whiteAlpha.100"
-        pt={2}
-        fontSize="sm"
-        color="gray.400"
-      >
-        {isEditing ? (
-          <HStack gap={4}>
-            <Text>Repos entre tours :</Text>
-            <HStack gap={1}>
-              <Input
-                size="xs"
-                w="50px"
-                textAlign="center"
-                type="number"
-                variant="subtle"
-                bg="whiteAlpha.100"
-                value={restBetweenRounds || 0}
-                onChange={(e) =>
-                  onUpdateRestBetweenRounds?.(parseInt(e.target.value) || 0)
-                }
-              />
-              <Text fontSize="xs">sec</Text>
+      {(isEditing || (restBetweenRounds && restBetweenRounds > 0)) && (
+        <Box
+          mt={4}
+          borderTopWidth="1px"
+          borderColor="whiteAlpha.100"
+          pt={2}
+          fontSize="sm"
+          color="gray.400"
+        >
+          {isEditing ? (
+            <HStack gap={4}>
+              <Text>Repos entre tours :</Text>
+              <HStack gap={1}>
+                <Input
+                  size="xs"
+                  w="50px"
+                  textAlign="center"
+                  type="number"
+                  variant="subtle"
+                  bg="whiteAlpha.100"
+                  value={restBetweenRounds || 0}
+                  onChange={(e) =>
+                    onUpdateRestBetweenRounds?.(parseInt(e.target.value) || 0)
+                  }
+                />
+                <Text fontSize="xs">sec</Text>
+              </HStack>
             </HStack>
-          </HStack>
-        ) : // Affichage lecture seul si > 0
-        restBetweenRounds && restBetweenRounds > 0 ? (
-          <HStack gap={2}>
-            <Text>Repos entre tours :</Text>
-            <Text fontWeight="bold" color={colors.primary}>
-              {formatDuration(restBetweenRounds)}
-            </Text>
-          </HStack>
-        ) : null}
-      </Box>
+          ) : (
+            // Affichage lecture seul si > 0
+            <HStack gap={2}>
+              <Text>Repos entre tours :</Text>
+              <Text fontWeight="bold" color={colors.primary}>
+                {formatDuration(restBetweenRounds || 0)}
+              </Text>
+            </HStack>
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

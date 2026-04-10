@@ -32,14 +32,6 @@ import { useExercises } from "@/hooks/queries/useExercises";
 import { getErrorMessage } from "@/utils/errorMessages";
 import { CreateExerciseCard, ExerciseLibraryCard } from "@/features/exercise";
 
-interface Exercise {
-  _id: string;
-  name: string;
-  description?: string;
-  videoUrl?: string;
-  type: "warmup" | "exercise";
-}
-
 const Exercises = () => {
   const navigate = useNavigate();
   const colors = useThemeColors();
@@ -74,7 +66,7 @@ const Exercises = () => {
   );
 
   const workouts = useMemo(
-    () => filteredExercises.filter((ex) => ex.type === "exercise"),
+    () => filteredExercises.filter((ex) => ex.type === "workout"),
     [filteredExercises],
   );
 

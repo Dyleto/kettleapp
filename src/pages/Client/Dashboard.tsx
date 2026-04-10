@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import { LuRefreshCw } from "react-icons/lu";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { Header } from "@/components/Header";
 
 const ClientDashboard = () => {
   const colors = useThemeColors();
@@ -82,12 +83,15 @@ const ClientDashboard = () => {
     <Container py={8} px={4}>
       <VStack gap={8} align="stretch">
         {/* Greeting */}
-        <Box>
-          <Text fontSize="sm" color="gray.500" mb={1}>
-            Bonjour 👋
-          </Text>
-          <Heading size="xl">{user?.firstName}</Heading>
-        </Box>
+        <HStack justify="space-between" w="100%" px={2} align="start">
+          <VStack gap={0}>
+            <Text fontSize="xl" fontWeight="bold" ml={5}>
+              Bonjour {user?.firstName},
+            </Text>
+          </VStack>
+
+          <Header />
+        </HStack>
 
         {/* Progression du cycle */}
         <Box
