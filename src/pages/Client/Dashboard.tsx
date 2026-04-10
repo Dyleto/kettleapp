@@ -31,36 +31,34 @@ const ClientDashboard = () => {
 
   const { sessions } = mockProgram;
 
-  // Historique trié du plus récent au plus ancien
+  // 1. Historique global (pour l'affichage en bas de page)
   const history = [...completed].sort(
     (a, b) =>
       new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime(),
   );
 
-  // Dernière séance complétée
-  const lastCompleted = history[0];
-
-  // Prochaine séance (cyclique)
-  const nextSession = lastCompleted
-    ? sessions.find(
-        (s) => s.order === (lastCompleted.sessionOrder % sessions.length) + 1,
-      )
-    : sessions[0];
-
-  // Trouver l'index de la dernière complétion de la séance finale du cycle
-  const lastCycleEndIndex = history.findIndex(
-    (c) => c.sessionOrder === sessions.length,
+  // 2. Isoler l'historique propre au programme actuel
+  // (Si le programme change, l'historique des ID ne correspondra plus, provoquant un reset naturel et parfait)
+  const currentProgramSessionIds = sessions.map((s) => s._id);
+  const currentProgramHistory = history.filter((c) =>
+    currentProgramSessionIds.includes(c.originalSessionId),
   );
 
-  // Cycle courant = tout ce qui précède cette complétion
-  // Si le cycle n'a jamais été complété → tout l'historique
-  // Si la séance finale vient d'être complétée (index 0) → on montre 4/4
-  const currentCycleCompleted =
-    lastCycleEndIndex === -1
-      ? history
-      : lastCycleEndIndex === 0
-        ? []
-        : history.slice(0, lastCycleEndIndex);
+  // 3. Mathématiques des Cycles
+  const totalCompletedInProgram = currentProgramHistory.length;
+  const completedCycles = Math.floor(totalCompletedInProgram / sessions.length);
+  const currentCycleNumber = completedCycles + 1;
+  const sessionsDoneInCurrentCycle = totalCompletedInProgram % sessions.length;
+
+  // 4. Trouver la prochaine séance (basée uniquement sur l'historique du programme actuel)
+  const lastCompletedInProgram = currentProgramHistory[0]; // le plus récent
+  const nextSession = lastCompletedInProgram
+    ? sessions.find(
+        (s) =>
+          s.order ===
+          (lastCompletedInProgram.sessionOrder % sessions.length) + 1,
+      )
+    : sessions[0];
 
   const handleSubmitLog = (metrics: SessionMetrics, clientNotes: string) => {
     if (!nextSession) return;
@@ -111,18 +109,17 @@ const ClientDashboard = () => {
                 textTransform="uppercase"
                 letterSpacing="wider"
               >
-                Cycle en cours
+                Cycle {currentCycleNumber} en cours
               </Text>
             </HStack>
             <Text fontSize="xs" color="gray.400">
-              {currentCycleCompleted.length} / {sessions.length} séances
+              {sessionsDoneInCurrentCycle} / {sessions.length} séances
             </Text>
           </HStack>
           <HStack gap={2}>
-            {sessions.map((s) => {
-              const isDone = currentCycleCompleted.some(
-                (c) => c.originalSessionId === s._id,
-              );
+            {sessions.map((s, index) => {
+              // Si l'index de la barre est inférieur au nombre de séances faites dans ce cycle, c'est validé
+              const isDone = index < sessionsDoneInCurrentCycle;
               return (
                 <Box
                   key={s._id}
@@ -163,7 +160,7 @@ const ClientDashboard = () => {
           </Box>
         )}
 
-        {/* Historique */}
+        {/* Historique Complet */}
         {history.length > 0 && (
           <VStack align="stretch" gap={4}>
             <Separator borderColor="whiteAlpha.100" />

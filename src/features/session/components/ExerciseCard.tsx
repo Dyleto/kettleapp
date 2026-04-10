@@ -2,17 +2,22 @@
   Box,
   Flex,
   HStack,
-  IconButton,
-  Input,
   NumberInput,
   Text,
   VStack,
+  Collapsible,
 } from "@chakra-ui/react";
 import { formatDuration } from "@/utils/formatters";
-import { LuClock, LuHash, LuInfo, LuX } from "react-icons/lu";
+import {
+  LuClock,
+  LuHash,
+  LuInfo,
+  LuChevronDown,
+  LuChevronUp,
+  LuTimer,
+} from "react-icons/lu";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useState } from "react";
-import { SlidePanel } from "@/components/SlidePanel";
 import VideoPlayer from "@/components/VideoPlayer";
 
 interface ExerciseCardProps {
@@ -35,7 +40,6 @@ interface ExerciseCardProps {
   }) => void;
 }
 
-// Input helper
 const NumberInputHelper = ({
   value,
   label,
@@ -107,7 +111,6 @@ export const ExerciseCard = ({
         borderColor="whiteAlpha.100"
       >
         <VStack align="stretch" gap={3}>
-          {/* Ligne 1 : Titre */}
           <Text
             color="gray.300"
             fontWeight="medium"
@@ -118,7 +121,6 @@ export const ExerciseCard = ({
             {name}
           </Text>
 
-          {/* Ligne 2 : Switch Mode */}
           <HStack
             bg="blackAlpha.400"
             p="2px"
@@ -178,7 +180,6 @@ export const ExerciseCard = ({
             </Box>
           </HStack>
 
-          {/* Ligne 3 : Metrics (Inputs) */}
           <Flex gap={2} align="center">
             {mode === "timer" ? (
               <NumberInputHelper
@@ -209,7 +210,6 @@ export const ExerciseCard = ({
             )}
           </Flex>
 
-          {/* Ligne 4 : Repos */}
           {!!restBetweenSets && (
             <Box borderTopWidth="1px" borderColor="whiteAlpha.100" pt={2}>
               <Flex align="center" gap={3}>
@@ -229,152 +229,199 @@ export const ExerciseCard = ({
     );
   }
 
-  // --- Mode Lecture ---
   return (
-    <>
-      <Box p={3} bg="gray.900/50" borderRadius="md">
+    <Box
+      bg="gray.900/50"
+      borderRadius="md"
+      borderWidth="1px"
+      borderColor={isDetailOpen ? "whiteAlpha.200" : "transparent"}
+      transition="all 0.2s"
+      overflow="hidden"
+    >
+      <Box
+        p={3}
+        as={hasDetail ? "button" : "div"}
+        w="100%"
+        textAlign="left"
+        onClick={() => hasDetail && setIsDetailOpen(!isDetailOpen)}
+        cursor={hasDetail ? "pointer" : "default"}
+        _hover={hasDetail ? { bg: "whiteAlpha.100" } : {}}
+      >
         <HStack align="flex-start" justify="space-between">
           <VStack align="stretch" gap={1} flex={1}>
-            <Text color="gray.300" fontWeight="medium" fontSize="sm">
+            <Text color="gray.200" fontWeight="medium" fontSize="sm">
               {name}
             </Text>
 
-            <VStack
-              align="center"
-              gap={0}
-              fontSize="sm"
-              color="gray.500"
-              display="flex"
-              width="fit-content"
-            >
-              <HStack gap={3} align="flex-start">
+            {/* Métriques d'effort et de repos en badges (Pilules) */}
+            <HStack flexWrap="wrap" gap={2} mt={1}>
+              {/* Badge d'Effort (Séries x Reps ou Timer) */}
+              <HStack
+                bg={
+                  type === "warmup"
+                    ? `${colors.secondary}20`
+                    : `${colors.primary}20`
+                }
+                px={2.5}
+                py={1}
+                borderRadius="md"
+                borderWidth="1px"
+                borderColor={
+                  type === "warmup"
+                    ? `${colors.secondary}40`
+                    : `${colors.primary}40`
+                }
+                gap={1.5}
+                align="center"
+              >
                 {mode === "reps" && (
                   <>
-                    <VStack gap={0} align="center">
-                      <Text
-                        fontWeight="bold"
-                        color={
-                          type === "warmup" ? colors.secondary : colors.primary
-                        }
-                      >
-                        {reps}
-                      </Text>
-                      {type === "warmup" && (
-                        <Text fontSize="2xs" color="gray.500">
-                          reps
-                        </Text>
-                      )}
-                    </VStack>
                     {type === "workout" && (
                       <>
-                        <Text fontSize="lg" lineHeight="1">
-                          x
-                        </Text>
-                        <Text fontWeight="bold" color={colors.primary}>
+                        <Text
+                          fontWeight="bold"
+                          fontSize="sm"
+                          color={colors.primary}
+                        >
                           {sets}
+                        </Text>
+                        <Text fontSize="sm" color={`${colors.primary}90`}>
+                          ×
                         </Text>
                       </>
                     )}
+                    <Text
+                      fontWeight="bold"
+                      fontSize="sm"
+                      color={
+                        type === "warmup" ? colors.secondary : colors.primary
+                      }
+                    >
+                      {reps}
+                    </Text>
+                    <Text
+                      fontSize="sm"
+                      fontWeight="medium"
+                      color={
+                        type === "warmup"
+                          ? `${colors.secondary}90`
+                          : `${colors.primary}90`
+                      }
+                    >
+                      reps
+                    </Text>
                   </>
                 )}
+
                 {mode === "timer" && !!duration && (
-                  <Text
-                    fontWeight="bold"
-                    color={
-                      type === "warmup" ? colors.secondary : colors.primary
-                    }
-                  >
-                    {formatDuration(duration)}
-                  </Text>
+                  <>
+                    <Box
+                      color={
+                        type === "warmup" ? colors.secondary : colors.primary
+                      }
+                    >
+                      <LuClock size={14} />
+                    </Box>
+                    <Text
+                      fontWeight="bold"
+                      fontSize="sm"
+                      color={
+                        type === "warmup" ? colors.secondary : colors.primary
+                      }
+                    >
+                      {formatDuration(duration)}
+                    </Text>
+                  </>
                 )}
               </HStack>
+
+              {/* Badge de Repos */}
               {!!restBetweenSets && (
-                <VStack gap={0} align="center" width="fit-content" mt={2}>
-                  <Text
-                    alignSelf="center"
-                    fontWeight="bold"
-                    color={
-                      type === "warmup" ? colors.secondary : colors.primary
-                    }
-                  >
+                <HStack
+                  bg="whiteAlpha.100"
+                  px={2.5}
+                  py={1}
+                  borderRadius="md"
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                  gap={1.5}
+                  align="center"
+                >
+                  <Box color="gray.400" display="flex" alignItems="center">
+                    <LuTimer size={14} />
+                  </Box>
+                  <Text fontWeight="bold" fontSize="xs" color="gray.300">
                     {formatDuration(restBetweenSets)}
                   </Text>
-                  <Text fontSize="2xs" color="gray.500">
-                    repos
-                  </Text>
-                </VStack>
+                </HStack>
               )}
-            </VStack>
+            </HStack>
           </VStack>
 
           {hasDetail && (
-            <IconButton
-              aria-label="Détails de l'exercice"
-              size="xs"
-              variant="ghost"
-              color="gray.500"
-              _hover={{ color: "gray.300" }}
-              onClick={() => setIsDetailOpen(true)}
-            >
-              <LuInfo size={16} />
-            </IconButton>
+            <HStack color={isDetailOpen ? "gray.200" : "gray.500"} mt={1}>
+              <Text
+                fontSize="xs"
+                fontWeight="medium"
+                display={{ base: "none", sm: "block" }}
+              >
+                {isDetailOpen ? "Masquer détails" : "Voir détails"}
+              </Text>
+              {isDetailOpen ? (
+                <LuChevronUp size={20} />
+              ) : (
+                <LuChevronDown size={20} />
+              )}
+            </HStack>
           )}
         </HStack>
       </Box>
 
-      {isDetailOpen && (
-        <SlidePanel onClose={() => setIsDetailOpen(false)}>
-          {(handleClose) => (
-            <VStack align="stretch" gap={0} h="100%">
-              {/* Header */}
-              <HStack
-                px={4}
-                py={4}
-                borderBottomWidth="1px"
-                borderColor="whiteAlpha.100"
-                justify="space-between"
-                align="center"
-              >
-                <Text fontWeight="bold" fontSize="lg" color="white">
-                  {name}
-                </Text>
-                <IconButton
-                  aria-label="Fermer"
-                  size="sm"
-                  variant="ghost"
-                  color="gray.400"
-                  _hover={{ color: "white" }}
-                  onClick={handleClose}
+      <Collapsible.Root open={isDetailOpen}>
+        <Collapsible.Content>
+          <Box
+            p={3}
+            pt={1}
+            bg="blackAlpha.300"
+            borderTopWidth="1px"
+            borderColor="whiteAlpha.100"
+          >
+            <VStack align="stretch" gap={4}>
+              {!!videoUrl && (
+                <Box borderRadius="md" overflow="hidden">
+                  <VideoPlayer url={videoUrl} />
+                </Box>
+              )}
+
+              {!!description && (
+                <Box
+                  bg="whiteAlpha.50"
+                  p={3}
+                  borderRadius="md"
+                  borderLeftWidth="3px"
+                  borderColor={
+                    type === "warmup" ? colors.secondary : colors.primary
+                  }
                 >
-                  <LuX size={18} />
-                </IconButton>
-              </HStack>
-
-              {/* Contenu */}
-              <VStack align="stretch" gap={6} p={5} overflowY="auto" flex={1}>
-                {!!videoUrl && <VideoPlayer url={videoUrl} />}
-
-                {!!description && (
-                  <VStack align="stretch" gap={2}>
-                    <Text
-                      fontSize="xs"
-                      fontWeight="bold"
-                      color="gray.400"
-                      textTransform="uppercase"
-                      letterSpacing="wider"
+                  <HStack align="flex-start" gap={2}>
+                    <Box
+                      color={
+                        type === "warmup" ? colors.secondary : colors.primary
+                      }
+                      mt={0.5}
                     >
-                      Description
-                    </Text>
+                      <LuInfo size={16} />
+                    </Box>
                     <Text fontSize="sm" color="gray.300" lineHeight="tall">
                       {description}
                     </Text>
-                  </VStack>
-                )}
-              </VStack>
+                  </HStack>
+                </Box>
+              )}
             </VStack>
-          )}
-        </SlidePanel>
-      )}
-    </>
+          </Box>
+        </Collapsible.Content>
+      </Collapsible.Root>
+    </Box>
   );
 };

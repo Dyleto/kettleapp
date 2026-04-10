@@ -12,6 +12,7 @@ import {
   LuChevronUp,
   LuDumbbell,
   LuPlus,
+  LuTimer,
   LuTrash,
 } from "react-icons/lu";
 import { ExerciseCard } from "./ExerciseCard";
@@ -208,7 +209,7 @@ export const WorkoutSection = ({
         >
           {isEditing ? (
             <HStack gap={4}>
-              <Text>Repos entre tours :</Text>
+              <Text>Repos fin de tour :</Text>
               <HStack gap={1}>
                 <Input
                   size="xs"
@@ -227,9 +228,23 @@ export const WorkoutSection = ({
             </HStack>
           ) : (
             // Affichage lecture seul si > 0
-            <HStack gap={2}>
-              <Text>Repos entre tours :</Text>
-              <Text fontWeight="bold" color={colors.primary}>
+            <HStack
+              gap={2}
+              bg="whiteAlpha.50"
+              px={4}
+              py={2.5}
+              borderRadius="md"
+              justify="center"
+              borderWidth="1px"
+              borderColor="whiteAlpha.100"
+            >
+              <Box color="gray.400">
+                <LuTimer size={16} />
+              </Box>
+              <Text color="gray.400" fontSize="sm" fontWeight="medium">
+                Repos fin de tour :
+              </Text>
+              <Text fontWeight="bold" fontSize="sm" color="gray.300">
                 {formatDuration(restBetweenRounds || 0)}
               </Text>
             </HStack>

@@ -120,129 +120,68 @@ export const CompleteSessionModal = ({
           borderColor="whiteAlpha.100"
           borderWidth="1px"
         >
-          {submitted ? (
-            /* Écran de succès */
-            <>
-              <Dialog.Body py={10}>
-                <VStack gap={4} align="center" textAlign="center">
-                  <Box
-                    p={4}
-                    borderRadius="full"
-                    bg={`${colors.primaryHex}15`}
-                    style={{
-                      filter: `drop-shadow(0 0 12px ${colors.primaryHex}40)`,
-                    }}
-                  >
-                    {feedbackMessage.icon}
-                  </Box>
-                  <Text fontSize="xl" fontWeight="bold">
-                    {feedbackMessage.text}
-                  </Text>
-                  <Text fontSize="sm" color="gray.400">
-                    Ton ressenti a bien été enregistré.
-                  </Text>
-                  <Box
-                    mt={2}
-                    px={4}
-                    py={2}
-                    borderRadius="full"
-                    bg={`${colors.primaryHex}15`}
-                    borderWidth="1px"
-                    borderColor={`${colors.primaryHex}30`}
-                  >
-                    <Text
-                      fontSize="lg"
-                      fontWeight="bold"
-                      color={colors.primary}
-                    >
-                      {avgScore.toFixed(1)} / 5
-                    </Text>
-                  </Box>
-                </VStack>
-              </Dialog.Body>
-              <Dialog.Footer>
-                <Button
-                  w="full"
-                  bg={colors.primary}
-                  color="gray.900"
-                  fontWeight="bold"
-                  onClick={handleClose}
-                >
-                  Fermer
-                </Button>
-              </Dialog.Footer>
-            </>
-          ) : (
-            /* Formulaire */
-            <>
-              <Dialog.Header>
-                <VStack align="start" gap={1}>
-                  <Dialog.Title>Comment s'est passée la séance ?</Dialog.Title>
-                  <Text fontSize="sm" color="gray.400" fontWeight="normal">
-                    Note ton ressenti pour que ton coach puisse adapter le
-                    programme.
-                  </Text>
-                </VStack>
-              </Dialog.Header>
-              <Dialog.CloseTrigger />
+          <Dialog.Header>
+            <VStack align="start" gap={1}>
+              <Dialog.Title>Comment s'est passée la séance ?</Dialog.Title>
+              <Text fontSize="sm" color="gray.400" fontWeight="normal">
+                Note ton ressenti pour que ton coach puisse adapter le
+                programme.
+              </Text>
+            </VStack>
+          </Dialog.Header>
+          <Dialog.CloseTrigger />
 
-              <Dialog.Body>
-                <VStack gap={4} align="stretch">
-                  <VStack gap={3} align="stretch">
-                    {METRICS_CONFIG.map(({ key, icon, label }) => (
-                      <MetricStars
-                        key={key}
-                        icon={icon}
-                        label={label}
-                        value={metrics[key]}
-                        onChange={(val) =>
-                          setMetrics((prev) => ({ ...prev, [key]: val }))
-                        }
-                      />
-                    ))}
-                  </VStack>
+          <Dialog.Body>
+            <VStack gap={4} align="stretch">
+              <VStack gap={3} align="stretch">
+                {METRICS_CONFIG.map(({ key, icon, label }) => (
+                  <MetricStars
+                    key={key}
+                    icon={icon}
+                    label={label}
+                    value={metrics[key]}
+                    onChange={(val) =>
+                      setMetrics((prev) => ({ ...prev, [key]: val }))
+                    }
+                  />
+                ))}
+              </VStack>
 
-                  <Separator borderColor="whiteAlpha.100" />
+              <Separator borderColor="whiteAlpha.100" />
 
-                  <Box>
-                    <Text fontSize="sm" color="gray.400" mb={2}>
-                      Commentaire (facultatif)
-                    </Text>
-                    <Textarea
-                      placeholder="Ex : bonne séance, un peu difficile sur les derniers rounds..."
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      size="sm"
-                      border="1px solid"
-                      borderColor="whiteAlpha.200"
-                      _focus={{ borderColor: colors.primaryBorder }}
-                      resize="none"
-                      rows={3}
-                    />
-                  </Box>
-                </VStack>
-              </Dialog.Body>
+              <Box>
+                <Text fontSize="sm" color="gray.400" mb={2}>
+                  Commentaire (facultatif)
+                </Text>
+                <Textarea
+                  placeholder="Ex : bonne séance, un peu difficile sur les derniers rounds..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  size="sm"
+                  border="1px solid"
+                  borderColor="whiteAlpha.200"
+                  _focus={{ borderColor: colors.primaryBorder }}
+                  resize="none"
+                  rows={3}
+                />
+              </Box>
+            </VStack>
+          </Dialog.Body>
 
-              <Dialog.Footer gap={3}>
-                <Button
-                  variant="ghost"
-                  onClick={handleClose}
-                  disabled={isLoading}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  bg={colors.primary}
-                  color="gray.900"
-                  fontWeight="bold"
-                  onClick={handleSubmit}
-                  loading={isLoading}
-                >
-                  Valider
-                </Button>
-              </Dialog.Footer>
-            </>
-          )}
+          <Dialog.Footer gap={3}>
+            <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
+              Annuler
+            </Button>
+            <Button
+              bg={colors.primary}
+              color="gray.900"
+              fontWeight="bold"
+              onClick={handleSubmit}
+              loading={isLoading}
+            >
+              Valider
+            </Button>
+          </Dialog.Footer>
         </Dialog.Content>
       </Dialog.Positioner>
     </Dialog.Root>
