@@ -1,5 +1,10 @@
-export { NextSessionCard } from "./components/NextSessionCard";
+﻿export { NextSessionCard } from "./components/NextSessionCard";
 export { SessionHistoryCard } from "./components/SessionHistoryCard";
 export { CompleteSessionModal } from "./components/CompleteSessionModal";
 export { MetricStars } from "./components/MetricStars";
-export { mockProgram, mockCompleted } from "./mocks";
+export { CycleProgress } from "./components/CycleProgress";
+export { CurrentSession } from "./components/CurrentSession";
+export { SessionHistory } from "./components/SessionHistory";
+export { useCycleProgress } from "./hooks/useCycleProgress";
+export { useClientProgram } from "./hooks/useClientProgram";
+export { useCompleteSession } from "./hooks/useCompleteSession";

@@ -1,7 +1,5 @@
-import ClickableCard from "@/components/ClickableCard";
 import { ExerciseSectionSkeleton } from "@/components/skeletons";
 import { SlidePanel } from "@/components/SlidePanel";
-import api from "@/config/api";
 import { GRID_LAYOUTS } from "@/constants/layouts";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import {
@@ -18,7 +16,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import {
   LuArrowLeft,
-  LuPlus,
   LuSearch,
   LuFlame,
   LuDumbbell,
@@ -28,7 +25,7 @@ import {
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 import { toaster } from "@/components/ui/toaster";
-import { useExercises } from "@/hooks/queries/useExercises";
+import { useExercises } from "@/features/exercise/hooks/useExercises";
 import { getErrorMessage } from "@/utils/errorMessages";
 import { CreateExerciseCard, ExerciseLibraryCard } from "@/features/exercise";
 

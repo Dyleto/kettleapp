@@ -2,7 +2,6 @@ import api from "@/config/api";
 import { Client, ClientWithDetails, Exercise, ExerciseStats } from "@/types"; // Assurez-vous d'avoir les types définis
 
 export const coachService = {
-  // Clients
   getClients: async () => {
     const { data } = await api.get<Client[]>("/api/coach/clients");
     return data;

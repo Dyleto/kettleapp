@@ -4,12 +4,12 @@ import { Container, Button, VStack, Box, Spinner } from "@chakra-ui/react";
 import { useEffect } from "react";
 import { LuArrowLeft } from "react-icons/lu";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { useExercise } from "@/hooks/queries/useExercise";
+import { useExercise } from "@/features/exercise/hooks/useExercise";
 import {
   useCreateExercise,
   useUpdateExercise,
   useDeleteExercise,
-} from "@/hooks/mutations/useExerciseMutations";
+} from "@/features/exercise/hooks/useExerciseMutations";
 import { Exercise } from "@/types";
 import { ExerciseEditor } from "@/features/exercise/components/ExerciseEditor";
 

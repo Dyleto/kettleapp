@@ -1,5 +1,5 @@
 import GoogleLoginButton from "@/components/GoogleLoginButton";
-import { useVerifyInviteToken } from "@/hooks/queries/useVerifyInviteToken";
+import { useVerifyInviteToken } from "@/hooks/useVerifyInviteToken";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import {
   Button,

@@ -4,7 +4,7 @@ import {
   SessionCard,
   ExerciseSelectorPanel,
   CreateSessionCard,
-} from "@/features/session";
+} from "@/features/program";
 import { useProgramEditor } from "@/features/program/hooks/useProgramEditor";
 import {
   Box,
@@ -23,8 +23,8 @@ import { useEffect, useState } from "react";
 import { LuArrowLeft, LuPencil, LuSave, LuX } from "react-icons/lu";
 import { useNavigate, useParams } from "react-router-dom";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { useClientDetails } from "@/hooks/queries/useClientDetails";
-import { useUpdateProgramSessions } from "@/hooks/mutations/useProgramMutations";
+import { useClientDetails } from "@/features/coach/hooks/useClientDetails";
+import { useUpdateProgramSessions } from "@/features/program/hooks/useProgramMutations";
 
 const ClientDetails = () => {
   const { clientId } = useParams();

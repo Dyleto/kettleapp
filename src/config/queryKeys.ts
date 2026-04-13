@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Source de vérité unique pour les clés de cache React Query.
  * Permet d'éviter les fautes de frappe et facilite l'invalidation du cache.
  */
@@ -28,7 +28,6 @@ export const queryKeys = {
       stats: () => [...queryKeys.coach.exercises.all(), "stats"] as const,
     },
 
-    // Si vous avez d'autres sous-domaines comme invitations
     invitations: {
       all: () => [...queryKeys.coach.all, "invitations"] as const,
     },
@@ -37,7 +36,10 @@ export const queryKeys = {
   client: {
     all: ["client"] as const,
     program: {
-      active: () => [...queryKeys.client.all, "program", "active"] as const,
+      get: () => [...queryKeys.client.all, "program", "active"] as const,
+    },
+    history: {
+      all: () => [...queryKeys.client.all, "history"] as const,
     },
     exercises: {
       history: (exerciseId: string) =>

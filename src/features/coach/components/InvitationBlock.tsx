@@ -1,4 +1,4 @@
-import { useGenerateInvitation } from "@/hooks/mutations/useGenerateInvitation";
+import { useGenerateInvitation } from "@/features/coach/hooks/useGenerateInvitation";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Button, useClipboard } from "@chakra-ui/react";
 import { useEffect } from "react";

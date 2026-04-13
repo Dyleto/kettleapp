@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import ClickableCard from "@/components/ClickableCard";
-import { useClients } from "@/hooks/queries/useClients";
+import { useClients } from "@/features/coach/hooks/useClients";
 import { toaster } from "@/components/ui/toaster";
 import { useEffect } from "react";
 import { getErrorMessage } from "@/utils/errorMessages";

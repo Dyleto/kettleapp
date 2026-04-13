@@ -1,7 +1,7 @@
 import ClickableCard from "@/components/ClickableCard";
 import { toaster } from "@/components/ui/toaster";
 import api from "@/config/api";
-import { useExerciseStats } from "@/hooks/queries/useExerciseStats";
+import { useExerciseStats } from "@/features/coach/hooks/useExerciseStats";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { getErrorMessage } from "@/utils/errorMessages";
 import {

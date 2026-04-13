@@ -1,4 +1,4 @@
-import { useCreateCoach } from "@/hooks/mutations/useCreateCoach";
+import { useCreateCoach } from "@/hooks/useCreateCoach";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { Button, Container, Heading, Input, VStack } from "@chakra-ui/react";
 import React from "react";

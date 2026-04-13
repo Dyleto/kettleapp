@@ -8,7 +8,7 @@ import {
   Spinner,
   Grid,
 } from "@chakra-ui/react";
-import { useExercises } from "@/hooks/queries/useExercises";
+import { useExercises } from "@/features/exercise/hooks/useExercises";
 import { useState, useMemo } from "react";
 import { LuSearch, LuX } from "react-icons/lu";
 import { Exercise } from "@/types";
@@ -17,7 +17,7 @@ import {
   ExerciseEditor,
   ExerciseLibraryCard,
 } from "@/features/exercise";
-import { useCreateExercise } from "@/hooks/mutations/useExerciseMutations";
+import { useCreateExercise } from "@/features/exercise/hooks/useExerciseMutations";
 
 interface ExerciseSelectorPanelProps {
   isOpen: boolean;
