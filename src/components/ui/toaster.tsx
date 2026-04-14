@@ -37,6 +37,7 @@ export const Toaster = () => {
           <Toast.Root
             width={{ base: "90vw", md: "sm" }}
             style={{ pointerEvents: "auto", marginBottom: "8px" }}
+            onClick={() => toaster.dismiss(toast.id)}
           >
             {toast.type === "loading" ? (
               <Spinner size="sm" color="blue.solid" />
