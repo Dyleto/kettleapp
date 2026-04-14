@@ -198,7 +198,7 @@ export const WorkoutSection = ({
       </HStack>
 
       {/* FOOTER : Repos entre tours */}
-      {(isEditing || (restBetweenRounds && restBetweenRounds > 0)) && (
+      {(isEditing || (restBetweenRounds ?? 0) > 0) && (
         <Box
           mt={4}
           borderTopWidth="1px"
