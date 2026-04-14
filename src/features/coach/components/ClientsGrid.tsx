@@ -15,10 +15,12 @@ import { useClients } from "@/features/coach/hooks/useClients";
 import { toaster } from "@/components/ui/toaster";
 import { useEffect } from "react";
 import { getErrorMessage } from "@/utils/errorMessages";
+import { useThemeColors } from "@/hooks/useThemeColors";
 
 export const ClientsGrid = () => {
   const navigate = useNavigate();
   const { data: clients = [], isLoading, error, refetch } = useClients();
+  const colors = useThemeColors();
 
   // Afficher un toast avec un message spécifique si erreur
   useEffect(() => {
@@ -103,16 +105,27 @@ export const ClientsGrid = () => {
         {clients.map((client) => (
           <ClickableCard
             key={client._id}
-            onClick={() => navigate(`/coach/clients/${client._id}`)}
+            onClick={() =>
+              navigate(
+                `/coach/clients/${client._id}${client.unseenCount > 0 ? "?tab=journal" : ""}`,
+              )
+            }
+            footerText={
+              client.unseenCount > 0
+                ? `${client.unseenCount} nouvelle${client.unseenCount > 1 ? "s" : ""} séance${client.unseenCount > 1 ? "s" : ""}`
+                : undefined
+            }
             p={8}
           >
             <VStack gap={3}>
-              <Avatar.Root size="lg">
-                <Avatar.Fallback
-                  name={`${client.firstName} ${client.lastName}`}
-                />
-                {client.picture && <Avatar.Image src={client.picture} />}
-              </Avatar.Root>
+              <Box position="relative" display="inline-block">
+                <Avatar.Root size="lg">
+                  <Avatar.Fallback
+                    name={`${client.firstName} ${client.lastName}`}
+                  />
+                  {client.picture && <Avatar.Image src={client.picture} />}
+                </Avatar.Root>
+              </Box>
               <VStack gap={1}>
                 <Text fontWeight="bold" fontSize="lg" textAlign="center">
                   {client.firstName} {client.lastName}

@@ -2,14 +2,14 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { ReactNode } from "react";
 
 interface RadarChartProps {
-  values: number[]; // 5 valeurs entre 1 et 5
+  values: number[];
   labels: ReactNode[];
+  labelTexts?: string[];
   size?: number;
 }
 
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
-// Pentagone : 5 sommets à partir du haut, sens horaire
 const getPoint = (angle: number, radius: number, cx: number, cy: number) => ({
   x: cx + radius * Math.sin(toRad(angle)),
   y: cy - radius * Math.cos(toRad(angle)),
@@ -18,18 +18,24 @@ const getPoint = (angle: number, radius: number, cx: number, cy: number) => ({
 const pointsToPath = (pts: { x: number; y: number }[]) =>
   pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ") + " Z";
 
-export const RadarChart = ({ values, labels, size = 160 }: RadarChartProps) => {
+export const RadarChart = ({
+  values,
+  labels,
+  labelTexts,
+  size = 160,
+}: RadarChartProps) => {
   const colors = useThemeColors();
-  const cx = size / 2;
-  const cy = size / 2;
   const maxRadius = size * 0.35;
-  const labelRadius = size * 0.48;
+  const labelRadius = size * 0.52;
   const levels = 5;
   const sides = 5;
   const angleStep = 360 / sides;
   const padding = 8;
+  const margin = 24;
+  const svgSize = size + margin * 2;
+  const cx = svgSize / 2;
+  const cy = svgSize / 2 + 5;
 
-  // Grille : 5 pentagones concentriques
   const gridLevels = Array.from({ length: levels }, (_, i) => {
     const r = (maxRadius * (i + 1)) / levels;
     const pts = Array.from({ length: sides }, (_, j) =>
@@ -38,28 +44,28 @@ export const RadarChart = ({ values, labels, size = 160 }: RadarChartProps) => {
     return pointsToPath(pts);
   });
 
-  // Axes (lignes du centre vers chaque sommet)
   const axes = Array.from({ length: sides }, (_, i) =>
     getPoint(i * angleStep, maxRadius, cx, cy),
   );
 
-  // Zone de données
   const dataPoints = values.map((v, i) => {
     const r = (Math.max(0, Math.min(5, v)) / 5) * maxRadius;
     return getPoint(i * angleStep, r, cx, cy);
   });
 
-  // Labels
-  const labelPoints = labels.map((_, i) =>
-    getPoint(i * angleStep, labelRadius, cx, cy),
-  );
+  const labelPoints = labels.map((_, i) => {
+    const isBottom = i === 2 || i === 3;
+    const isTop = i === 0;
+    const r = isBottom
+      ? labelRadius * 0.88
+      : isTop
+        ? labelRadius * 1.1
+        : labelRadius;
+    return getPoint(i * angleStep, r, cx, cy);
+  });
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={`${-padding} ${-padding} ${size + padding * 2} ${size + padding * 2}`}
-    >
+    <svg width={svgSize} height={svgSize} viewBox={`0 0 ${svgSize} ${svgSize}`}>
       {/* Grille */}
       {gridLevels.map((d, i) => (
         <path
@@ -108,13 +114,13 @@ export const RadarChart = ({ values, labels, size = 160 }: RadarChartProps) => {
           key={i}
           cx={pt.x}
           cy={pt.y}
-          r={2.5}
+          r={4}
           fill={colors.primaryHex}
           opacity={0.9}
         />
       ))}
 
-      {/* Labels */}
+      {/* Icônes labels */}
       {labelPoints.map((pt, i) => (
         <foreignObject
           key={i}
@@ -129,15 +135,35 @@ export const RadarChart = ({ values, labels, size = 160 }: RadarChartProps) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 16,
-              height: 16,
               color: "rgba(255,255,255,0.5)",
+              overflow: "visible",
+              whiteSpace: "nowrap",
             }}
           >
             {labels[i]}
           </div>
         </foreignObject>
       ))}
+
+      {/* Textes labels */}
+      {labelTexts &&
+        labelPoints.map((pt, i) => {
+          const angle = i * angleStep;
+          const isBottom = angle > 90 && angle < 270;
+          return (
+            <text
+              key={i}
+              x={pt.x}
+              y={isBottom ? pt.y - 4 : pt.y + 16}
+              textAnchor="middle"
+              fontSize="9"
+              fill="rgba(255,255,255,0.6)"
+              fontWeight="600"
+            >
+              {labelTexts[i]}
+            </text>
+          );
+        })}
     </svg>
   );
 };

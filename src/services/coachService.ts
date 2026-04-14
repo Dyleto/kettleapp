@@ -1,5 +1,11 @@
 import api from "@/config/api";
-import { Client, ClientWithDetails, Exercise, ExerciseStats } from "@/types"; // Assurez-vous d'avoir les types définis
+import {
+  Client,
+  ClientWithDetails,
+  CompletedSession,
+  Exercise,
+  ExerciseStats,
+} from "@/types"; // Assurez-vous d'avoir les types définis
 
 export const coachService = {
   getClients: async () => {
@@ -35,6 +41,17 @@ export const coachService = {
     }
 
     return data as ClientWithDetails;
+  },
+
+  getClientHistory: async (clientId: string) => {
+    const { data } = await api.get<CompletedSession[]>(
+      `/api/coach/clients/${clientId}/history`,
+    );
+    return data;
+  },
+
+  markClientHistoryAsViewed: async (clientId: string) => {
+    await api.patch(`/api/coach/clients/${clientId}/history/mark-viewed`);
   },
 
   // Exercices

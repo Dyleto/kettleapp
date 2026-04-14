@@ -18,6 +18,8 @@ export const queryKeys = {
       lists: () => [...queryKeys.coach.clients.all(), "list"] as const,
       detail: (clientId: string) =>
         [...queryKeys.coach.clients.all(), clientId] as const,
+      history: (clientId: string) =>
+        [...queryKeys.coach.clients.all(), clientId, "history"] as const,
     },
 
     exercises: {

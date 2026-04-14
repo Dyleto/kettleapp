@@ -18,13 +18,17 @@ import {
   Heading,
   Text,
   Grid,
+  Tabs,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LuArrowLeft, LuPencil, LuSave, LuX } from "react-icons/lu";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useClientDetails } from "@/features/coach/hooks/useClientDetails";
 import { useUpdateProgramSessions } from "@/features/program/hooks/useProgramMutations";
+import { useClientHistory } from "@/features/coach/hooks/useClientHistory";
+import { useMarkHistoryAsViewed } from "@/features/coach/hooks/useMarkHistoryAsViewed";
+import { SessionHistoryCard } from "@/features/client";
 
 const ClientDetails = () => {
   const { clientId } = useParams();
@@ -32,6 +36,9 @@ const ClientDetails = () => {
   const colors = useThemeColors();
 
   const { data: client, isLoading } = useClientDetails(clientId!);
+
+  const { data: history } = useClientHistory(clientId!);
+  const { mutate: markHistoryAsViewed } = useMarkHistoryAsViewed(clientId!);
 
   const updateProgramMutation = useUpdateProgramSessions(clientId!);
 
@@ -52,12 +59,32 @@ const ClientDetails = () => {
     sectionType: "workout",
   });
 
+  // Tab en cours
+  const [searchParams] = useSearchParams();
+  const defaultTab =
+    searchParams.get("tab") === "programme" ? "programme" : "journal";
+
   // Chargement des données (Mock ou API)
   useEffect(() => {
     if (client && client.program && !isEditing) {
       initialize(client.program);
     }
   }, [client, initialize, isEditing]);
+
+  const initialUnseenIds = useRef<Set<string> | null>(null);
+
+  useEffect(() => {
+    if (history && initialUnseenIds.current === null) {
+      const unseenIds = new Set(
+        history.filter((c) => !c.viewedByCoach).map((c) => c._id),
+      );
+      initialUnseenIds.current = unseenIds;
+
+      if (unseenIds.size > 0) {
+        markHistoryAsViewed();
+      }
+    }
+  }, [history]);
 
   // --- Gestionnaires d'Actions UI ---
 
@@ -143,132 +170,170 @@ const ClientDetails = () => {
                   </Card.Body>
                 </Card.Root>
 
-                {/* 3. Section Programme (Grille de Sessions) */}
-                {program && (
-                  <Box mt={4}>
-                    <HStack justify="space-between" mb={6}>
-                      <Heading size="lg">Programme</Heading>
-                      {isEditing ? (
-                        <HStack>
-                          <Button
-                            variant="ghost"
-                            onClick={handleCancel}
-                            disabled={updateProgramMutation.isPending}
-                          >
-                            <LuX /> Annuler
-                          </Button>
-                          <Button
-                            data-state="active"
-                            bg={colors.primary}
-                            color="gray.900"
-                            onClick={handleSave}
-                            loading={updateProgramMutation.isPending}
-                          >
-                            <LuSave /> Enregistrer
-                          </Button>
-                        </HStack>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsEditing(true)}
-                        >
-                          <LuPencil /> Modifier
-                        </Button>
-                      )}
-                    </HStack>
-
-                    <Grid
-                      templateColumns={{
-                        base: "1fr",
-                        md: "repeat(auto-fill, minmax(400px, 1fr))",
-                      }}
-                      gap={8}
-                      alignItems="start"
-                    >
-                      {/* Liste des sessions */}
-                      {program.sessions.map((session) => (
-                        <SessionCard
-                          key={session._id}
-                          session={session}
-                          interactive={false}
-                          isEditing={isEditing}
-                          onRemoveSession={() =>
-                            actions.removeSession(session._id)
-                          }
-                          onUpdateSessionNotes={(notes) =>
-                            actions.updateSessionNotes(session._id, notes)
-                          }
-                          // Warmup & Workout Actions
-                          onAddExercise={(type) =>
-                            handleOpenSelector(session._id, type)
-                          }
-                          onRemoveExercise={(type, index) =>
-                            actions.removeExercise(session._id, type, index)
-                          }
-                          onUpdateExercise={(type, idx, updates) =>
-                            actions.updateExerciseDetails(
-                              session._id,
-                              type,
-                              idx,
-                              updates,
-                            )
-                          }
-                          // Workout Specifics
-                          onUpdateRounds={(rounds) =>
-                            actions.updateRounds(session._id, rounds)
-                          }
-                          onUpdateRestBetweenRounds={(value) =>
-                            actions.updateRestBetweenRounds(session._id, value)
-                          }
-                        />
-                      ))}
-
-                      {/* Carte d'ajout (visible uniquement en édition) */}
-                      {isEditing && (
-                        <CreateSessionCard onClick={actions.addSession} />
-                      )}
-
-                      {/* Empty State */}
-                      {!isEditing && program.sessions.length === 0 && (
-                        <Box
-                          gridColumn="1 / -1"
-                          p={8}
-                          bg="whiteAlpha.50"
-                          borderRadius="lg"
-                          textAlign="center"
-                          borderWidth="1px"
-                          borderColor="whiteAlpha.200"
-                        >
-                          <Text color="gray.400">
-                            Ce programme ne contient aucune séance pour le
-                            moment.
-                          </Text>
-                        </Box>
-                      )}
-                    </Grid>
-                    {isEditing && (
-                      <HStack justify="flex-end" mt={6} gap={3}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancel}
-                          disabled={updateProgramMutation.isPending}
-                        >
-                          <LuX /> Annuler
-                        </Button>
-                        <Button
-                          size="sm"
-                          bg={colors.primary}
-                          color="gray.900"
-                          onClick={handleSave}
-                          loading={updateProgramMutation.isPending}
-                        >
-                          <LuSave /> Enregistrer
-                        </Button>
-                      </HStack>
+                <Tabs.Root defaultValue={defaultTab} variant="line" mt={4}>
+                  <Tabs.List>
+                    <Tabs.Trigger value="journal">Journal</Tabs.Trigger>
+                    <Tabs.Trigger value="programme">Programme</Tabs.Trigger>
+                  </Tabs.List>
+                  <Tabs.Content value="journal">
+                    {history && history.length > 0 ? (
+                      <Grid
+                        templateColumns={{
+                          base: "1fr",
+                          md: "repeat(2, 1fr)",
+                          xl: "repeat(3, 1fr)",
+                        }}
+                        gap={4}
+                        alignItems="start"
+                      >
+                        {history.map((c) => (
+                          <SessionHistoryCard
+                            key={c._id}
+                            completed={c}
+                            showUnseenIndicator={
+                              initialUnseenIds.current?.has(c._id) ?? false
+                            }
+                          />
+                        ))}
+                      </Grid>
+                    ) : (
+                      <Box p={4} color="gray.400">
+                        Aucune séance réalisée pour l'instant.
+                      </Box>
                     )}
-                  </Box>
-                )}
+                  </Tabs.Content>
+
+                  <Tabs.Content value="programme">
+                    {program && (
+                      <Box mt={4}>
+                        <HStack justify="space-between" mb={6}>
+                          <Heading size="lg">Programme</Heading>
+                          {isEditing ? (
+                            <HStack>
+                              <Button
+                                variant="ghost"
+                                onClick={handleCancel}
+                                disabled={updateProgramMutation.isPending}
+                              >
+                                <LuX /> Annuler
+                              </Button>
+                              <Button
+                                data-state="active"
+                                bg={colors.primary}
+                                color="gray.900"
+                                onClick={handleSave}
+                                loading={updateProgramMutation.isPending}
+                              >
+                                <LuSave /> Enregistrer
+                              </Button>
+                            </HStack>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsEditing(true)}
+                            >
+                              <LuPencil /> Modifier
+                            </Button>
+                          )}
+                        </HStack>
+
+                        <Grid
+                          templateColumns={{
+                            base: "1fr",
+                            md: "repeat(auto-fill, minmax(400px, 1fr))",
+                          }}
+                          gap={8}
+                          alignItems="start"
+                        >
+                          {/* Liste des sessions */}
+                          {program.sessions.map((session) => (
+                            <SessionCard
+                              key={session._id}
+                              session={session}
+                              interactive={false}
+                              isEditing={isEditing}
+                              onRemoveSession={() =>
+                                actions.removeSession(session._id)
+                              }
+                              onUpdateSessionNotes={(notes) =>
+                                actions.updateSessionNotes(session._id, notes)
+                              }
+                              // Warmup & Workout Actions
+                              onAddExercise={(type) =>
+                                handleOpenSelector(session._id, type)
+                              }
+                              onRemoveExercise={(type, index) =>
+                                actions.removeExercise(session._id, type, index)
+                              }
+                              onUpdateExercise={(type, idx, updates) =>
+                                actions.updateExerciseDetails(
+                                  session._id,
+                                  type,
+                                  idx,
+                                  updates,
+                                )
+                              }
+                              // Workout Specifics
+                              onUpdateRounds={(rounds) =>
+                                actions.updateRounds(session._id, rounds)
+                              }
+                              onUpdateRestBetweenRounds={(value) =>
+                                actions.updateRestBetweenRounds(
+                                  session._id,
+                                  value,
+                                )
+                              }
+                            />
+                          ))}
+
+                          {/* Carte d'ajout (visible uniquement en édition) */}
+                          {isEditing && (
+                            <CreateSessionCard onClick={actions.addSession} />
+                          )}
+
+                          {/* Empty State */}
+                          {!isEditing && program.sessions.length === 0 && (
+                            <Box
+                              gridColumn="1 / -1"
+                              p={8}
+                              bg="whiteAlpha.50"
+                              borderRadius="lg"
+                              textAlign="center"
+                              borderWidth="1px"
+                              borderColor="whiteAlpha.200"
+                            >
+                              <Text color="gray.400">
+                                Ce programme ne contient aucune séance pour le
+                                moment.
+                              </Text>
+                            </Box>
+                          )}
+                        </Grid>
+                        {isEditing && (
+                          <HStack justify="flex-end" mt={6} gap={3}>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={handleCancel}
+                              disabled={updateProgramMutation.isPending}
+                            >
+                              <LuX /> Annuler
+                            </Button>
+                            <Button
+                              size="sm"
+                              bg={colors.primary}
+                              color="gray.900"
+                              onClick={handleSave}
+                              loading={updateProgramMutation.isPending}
+                            >
+                              <LuSave /> Enregistrer
+                            </Button>
+                          </HStack>
+                        )}
+                      </Box>
+                    )}
+                  </Tabs.Content>
+                </Tabs.Root>
               </VStack>
             </Container>
           )}

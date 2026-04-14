@@ -8,8 +8,6 @@ import {
   LuBicepsFlexed,
   LuBrain,
   LuClock,
-  LuDumbbell,
-  LuFlame,
   LuMoon,
   LuRepeat,
   LuSmile,
@@ -20,9 +18,13 @@ import { ReactNode } from "react";
 
 interface SessionHistoryCardProps {
   completed: CompletedSession;
+  showUnseenIndicator?: boolean;
 }
 
-export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
+export const SessionHistoryCard = ({
+  completed,
+  showUnseenIndicator = false,
+}: SessionHistoryCardProps) => {
   const colors = useThemeColors();
 
   const duration = calculateSessionDuration({
@@ -44,14 +46,35 @@ export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
     Object.values(completed.metrics).reduce((a, b) => a + b, 0) /
     Object.values(completed.metrics).length;
 
-  const METRICS_CONFIG: { key: keyof SessionMetrics; label: ReactNode }[] = [
-    { key: "stress", label: <LuBrain size={16} color={colors.primaryHex} /> },
-    { key: "mood", label: <LuSmile size={16} color={colors.primaryHex} /> },
-    { key: "energy", label: <LuZap size={16} color={colors.primaryHex} /> },
-    { key: "sleep", label: <LuMoon size={16} color={colors.primaryHex} /> },
+  const METRICS_CONFIG: {
+    key: keyof SessionMetrics;
+    label: ReactNode;
+    text: string;
+  }[] = [
+    {
+      key: "stress",
+      label: <LuBrain size={16} color={colors.primaryHex} />,
+      text: "Stress",
+    },
+    {
+      key: "mood",
+      label: <LuSmile size={16} color={colors.primaryHex} />,
+      text: "Humeur",
+    },
+    {
+      key: "energy",
+      label: <LuZap size={16} color={colors.primaryHex} />,
+      text: "Énergie",
+    },
+    {
+      key: "sleep",
+      label: <LuMoon size={16} color={colors.primaryHex} />,
+      text: "Sommeil",
+    },
     {
       key: "soreness",
       label: <LuBicepsFlexed size={16} color={colors.primaryHex} />,
+      text: "Douleurs",
     },
   ];
 
@@ -67,13 +90,30 @@ export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
   ];
 
   return (
-    <Card accentColor={colors.success} p={0} hoverEffect="none">
+    <Card accentColor={colors.primary} p={0} hoverEffect="none">
       <VStack align="stretch" gap={0}>
         {/* Header */}
         <HStack justify="space-between" px={4} pt={3} pb={2}>
-          <Text fontSize="sm" fontWeight="bold">
-            Séance {completed.sessionOrder}
-          </Text>
+          <HStack gap={2}>
+            <Text fontSize="sm" fontWeight="bold">
+              Séance {completed.sessionOrder}
+            </Text>
+            {showUnseenIndicator && (
+              <Box
+                px={2}
+                py={0.5}
+                borderRadius="full"
+                bg="orange.400"
+                color="white"
+                fontSize="2xs"
+                fontWeight="bold"
+                textTransform="uppercase"
+                letterSpacing="wider"
+              >
+                Nouveau
+              </Box>
+            )}
+          </HStack>
           <Text fontSize="xs" color="gray.500">
             {completedDate}
           </Text>
@@ -91,20 +131,26 @@ export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
             display="flex"
             alignItems="center"
             justifyContent="center"
-            p={3}
+            p={2}
             borderRight="1px solid"
             borderColor="whiteAlpha.100"
           >
             <RadarChart
               values={METRICS_CONFIG.map(({ key }) => completed.metrics[key])}
-              labels={METRICS_CONFIG.map(({ label }) => label)}
-              size={150}
+              labels={METRICS_CONFIG.map(({ label, text }) => (
+                <VStack key={text} gap={0.5} align="center">
+                  {label}
+                  <Text fontSize="2xs" color="gray.500" lineHeight={1.2}>
+                    {text}
+                  </Text>
+                </VStack>
+              ))}
+              size={130}
             />
           </Box>
 
           {/* Colonne droite — Stats + Exercices */}
           <VStack align="stretch" gap={3} p={4}>
-            {/* Métadonnées */}
             <VStack align="start" gap={1}>
               <HStack gap={2} color="gray.400" fontSize="xs">
                 <LuClock size={12} />
@@ -118,7 +164,6 @@ export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
 
             <Separator borderColor="whiteAlpha.100" />
 
-            {/* Liste des exercices */}
             <VStack align="stretch" gap={1}>
               {allExercises.map((ex, i) => (
                 <HStack key={i} gap={2}>
@@ -138,7 +183,6 @@ export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
               ))}
             </VStack>
 
-            {/* Note client */}
             {completed.clientNotes && (
               <>
                 <Separator borderColor="whiteAlpha.100" />
@@ -154,6 +198,8 @@ export const SessionHistoryCard = ({ completed }: SessionHistoryCardProps) => {
             )}
           </VStack>
         </Grid>
+
+        <Separator borderColor="whiteAlpha.100" />
       </VStack>
     </Card>
   );

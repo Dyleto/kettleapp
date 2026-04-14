@@ -16,6 +16,7 @@ export interface Client {
   email: string;
   picture?: string;
   linkedAt: Date;
+  unseenCount: number;
 }
 
 export interface Coach {
@@ -84,6 +85,7 @@ export interface Session {
 
 export interface ClientWithDetails extends Client {
   program: ClientProgram;
+  unseenCount: number;
 }
 
 export interface ClientProgram {
@@ -114,4 +116,5 @@ export interface CompletedSession {
   // Ressenti client
   metrics: SessionMetrics;
   clientNotes?: string;
+  viewedByCoach: boolean;
 }
