@@ -76,7 +76,7 @@ const ClientDetails = () => {
   useEffect(() => {
     if (history && initialUnseenIds.current === null) {
       const unseenIds = new Set(
-        history.filter((c) => !c.viewedByCoach).map((c) => c._id),
+        history.filter((c) => c.viewedByCoach !== true).map((c) => c._id),
       );
       initialUnseenIds.current = unseenIds;
 
