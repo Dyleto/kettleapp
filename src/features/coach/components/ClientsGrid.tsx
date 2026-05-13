@@ -12,9 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import ClickableCard from "@/components/ClickableCard";
 import { useClients } from "@/features/coach/hooks/useClients";
-import { toaster } from "@/components/ui/toaster";
-import { useEffect } from "react";
-import { getErrorMessage } from "@/utils/errorMessages";
+import { useToastError } from "@/hooks/useToastError";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 export const ClientsGrid = () => {
@@ -22,17 +20,7 @@ export const ClientsGrid = () => {
   const { data: clients = [], isLoading, error, refetch } = useClients();
   const colors = useThemeColors();
 
-  // Afficher un toast avec un message spécifique si erreur
-  useEffect(() => {
-    if (error) {
-      toaster.create({
-        title: "Impossible de charger vos clients",
-        description: getErrorMessage(error, "Chargement des clients"),
-        type: "error",
-        duration: 5000,
-      });
-    }
-  }, [error]);
+  useToastError(error, "Impossible de charger vos clients");
 
   // Loading state
   if (isLoading) {

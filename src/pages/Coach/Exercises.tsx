@@ -13,7 +13,7 @@ import {
   VStack,
   IconButton,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   LuArrowLeft,
   LuSearch,
@@ -24,9 +24,9 @@ import {
   LuLibrary,
 } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
-import { toaster } from "@/components/ui/toaster";
 import { useExercises } from "@/features/exercise/hooks/useExercises";
-import { getErrorMessage } from "@/utils/errorMessages";
+import { useExerciseFilter } from "@/features/exercise/hooks/useExerciseFilter";
+import { useToastError } from "@/hooks/useToastError";
 import { CreateExerciseCard, ExerciseLibraryCard } from "@/features/exercise";
 
 const Exercises = () => {
@@ -39,33 +39,10 @@ const Exercises = () => {
   const [isWarmupExpanded, setIsWarmupExpanded] = useState(true);
   const [isExerciseExpanded, setIsExerciseExpanded] = useState(true);
 
-  useEffect(() => {
-    if (error) {
-      toaster.create({
-        title: "Impossible de charger vos exercices",
-        description: getErrorMessage(error, "Chargement des exercices"),
-        type: "error",
-      });
-    }
-  }, [error]);
+  useToastError(error, "Impossible de charger vos exercices");
 
-  const filteredExercises = useMemo(
-    () =>
-      exercises.filter((ex) =>
-        ex.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-    [exercises, searchQuery],
-  );
-
-  const warmups = useMemo(
-    () => filteredExercises.filter((ex) => ex.type === "warmup"),
-    [filteredExercises],
-  );
-
-  const workouts = useMemo(
-    () => filteredExercises.filter((ex) => ex.type === "workout"),
-    [filteredExercises],
-  );
+  const warmups = useExerciseFilter(exercises, searchQuery, "warmup");
+  const workouts = useExerciseFilter(exercises, searchQuery, "workout");
 
   return (
     <SlidePanel onClose={() => navigate("/coach")}>

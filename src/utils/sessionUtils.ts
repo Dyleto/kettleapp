@@ -1,66 +1,77 @@
-import { Session } from "@/types";
+import { BlockSnapshot, Session, SessionBlock } from "@/types";
 
-/**
- * Calcule la durée totale d'une séance en secondes
- * Inclut : échauffement + (workout par tour × nombre de tours) + repos entre tours
- * Prend en compte le mode d'édition (_uiMode) s'il est présent pour ne pas additionner timer + reps.
- */
-export const calculateSessionDuration = (session: Session): number => {
-  let totalSeconds = 0;
+type BlockForDuration = Pick<
+  SessionBlock | BlockSnapshot,
+  | "type"
+  | "durationMinutes"
+  | "intervalMinutes"
+  | "rounds"
+  | "restBetweenRounds"
+  | "workDuration"
+  | "restDuration"
+  | "repsScheme"
+  | "exercises"
+>;
 
-  // Temps d'échauffement
-  if (session.warmup?.exercises) {
-    session.warmup.exercises.forEach((ex: any) => {
-      // Si mode explicite
-      if (ex.mode) {
-        if (ex.mode === "timer") {
-          totalSeconds += ex.duration || 0;
-        } else {
-          // Estimation arbitraire pour reps en warmup (souvent 1 set)
-          totalSeconds += 60;
-        }
-      } else {
-        // Mode classique (lecture ou données propres)
-        if (ex.duration) {
-          totalSeconds += ex.duration;
-        } else if (ex.reps) {
-          totalSeconds += 60;
-        }
-      }
-    });
-  }
+const calculateBlockDuration = (block: BlockForDuration): number => {
+  switch (block.type) {
+    case "emom":
+    case "amrap":
+    case "timecap":
+      return (block.durationMinutes || 0) * 60;
 
-  // Temps d'entraînement par tour
-  let workoutTimePerRound = 0;
-  session.workout.exercises.forEach((ex: any) => {
-    // Déterminer le mode actif
-    const isTimerMode = ex.mode
-      ? ex.mode === "timer"
-      : (ex.duration || 0) > 0 && !ex.sets; // Fallback simple
+    case "every":
+      return (block.intervalMinutes || 0) * 60 * (block.rounds || 0);
 
-    if (isTimerMode) {
-      workoutTimePerRound += ex.duration || 0;
-    } else {
-      // Mode Séries/Reps
-      const sets = ex.sets || 1; // Minimum 1 série si on est en mode reps
-      // Estimation : 1 rep = 3-4s ? ou juste 1 min par set comme avant
-      workoutTimePerRound += sets * 45; // Ex: 45s d'effort par série
+    case "tabata":
+    case "onoff":
+      return (block.rounds || 0) * ((block.workDuration || 0) + (block.restDuration || 0));
 
-      // Repos entre séries
-      if (sets > 1 && ex.restBetweenSets) {
-        workoutTimePerRound += (sets - 1) * ex.restBetweenSets;
-      }
+    case "pyramid":
+    case "ladder": {
+      const scheme = block.repsScheme || [];
+      const exerciseTime =
+        block.exercises.length * scheme.reduce((s, r) => s + r * 4, 0);
+      const restTime = Math.max(0, scheme.length - 1) * (block.restBetweenRounds || 0);
+      return exerciseTime + restTime;
     }
-  });
 
-  // Multiplier par le nombre de tours
-  totalSeconds += workoutTimePerRound * session.workout.rounds;
+    case "warmup":
+    case "classic": {
+      return block.exercises.reduce((sum, ex) => {
+        const sets = (ex as { sets?: number }).sets || 1;
+        const perSet = (ex as { duration?: number }).duration
+          ? (ex as { duration: number }).duration
+          : (ex as { reps?: number }).reps
+          ? (ex as { reps: number }).reps * 4
+          : (ex as { customMetric?: unknown }).customMetric
+          ? 30
+          : 0;
+        const rest =
+          sets > 1 ? (sets - 1) * ((ex as { restBetweenSets?: number }).restBetweenSets || 0) : 0;
+        return sum + sets * perSet + rest;
+      }, 0);
+    }
 
-  // Ajouter repos entre tours
-  if (session.workout.restBetweenRounds && session.workout.rounds > 1) {
-    totalSeconds +=
-      (session.workout.rounds - 1) * session.workout.restBetweenRounds;
+    case "chipper":
+      return block.exercises.reduce((sum, ex) => {
+        if ((ex as { duration?: number }).duration)
+          return sum + (ex as { duration: number }).duration;
+        if ((ex as { reps?: number }).reps)
+          return sum + (ex as { reps: number }).reps * 4;
+        if ((ex as { customMetric?: unknown }).customMetric) return sum + 60;
+        return sum;
+      }, 0);
+
+    default:
+      return 0;
   }
-
-  return totalSeconds;
 };
+
+export const calculateSessionDuration = (
+  session: Session | { blocks: BlockSnapshot[] },
+): number =>
+  (session.blocks as BlockForDuration[]).reduce(
+    (total, block) => total + calculateBlockDuration(block),
+    0,
+  );

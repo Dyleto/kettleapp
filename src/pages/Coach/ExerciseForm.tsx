@@ -1,7 +1,6 @@
 import { SlidePanel } from "@/components/SlidePanel";
-import { toaster } from "@/components/ui/toaster";
 import { Container, Button, VStack, Box, Spinner } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useToastError } from "@/hooks/useToastError";
 import { LuArrowLeft } from "react-icons/lu";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useExercise } from "@/features/exercise/hooks/useExercise";
@@ -29,16 +28,7 @@ const ExerciseForm = () => {
   const updateMutation = useUpdateExercise();
   const deleteMutation = useDeleteExercise();
 
-  // Afficher toast si erreur de chargement
-  useEffect(() => {
-    if (error) {
-      toaster.create({
-        title: "Erreur",
-        description: "Impossible de charger l'exercice",
-        type: "error",
-      });
-    }
-  }, [error]);
+  useToastError(error, "Impossible de charger l'exercice");
 
   const handleSave = async (data: Partial<Exercise>) => {
     if (isEditMode) {

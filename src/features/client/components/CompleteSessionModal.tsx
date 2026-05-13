@@ -10,16 +10,8 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { ReactNode, useState } from "react";
-import {
-  LuBicepsFlexed,
-  LuBrain,
-  LuFlame,
-  LuMoon,
-  LuSmile,
-  LuTrendingUp,
-  LuZap,
-} from "react-icons/lu";
+import { useState } from "react";
+import { METRICS_CONFIG } from "@/constants/metricsConfig";
 
 interface CompleteSessionModalProps {
   isOpen: boolean;
@@ -45,71 +37,15 @@ export const CompleteSessionModal = ({
   const colors = useThemeColors();
   const [metrics, setMetrics] = useState<SessionMetrics>(DEFAULT_METRICS);
   const [notes, setNotes] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [avgScore, setAvgScore] = useState(0);
-
-  const METRICS_CONFIG: {
-    key: keyof SessionMetrics;
-    icon: ReactNode;
-    label: string;
-  }[] = [
-    {
-      key: "stress",
-      icon: <LuBrain size={16} color={colors.primaryHex} />,
-      label: "Stress",
-    },
-    {
-      key: "mood",
-      icon: <LuSmile size={16} color={colors.primaryHex} />,
-      label: "Humeur",
-    },
-    {
-      key: "energy",
-      icon: <LuZap size={16} color={colors.primaryHex} />,
-      label: "Énergie",
-    },
-    {
-      key: "sleep",
-      icon: <LuMoon size={16} color={colors.primaryHex} />,
-      label: "Sommeil",
-    },
-    {
-      key: "soreness",
-      icon: <LuBicepsFlexed size={16} color={colors.primaryHex} />,
-      label: "Courbatures",
-    },
-  ];
-
   const handleSubmit = () => {
-    const avg = Object.values(metrics).reduce((a, b) => a + b, 0) / 5;
-    setAvgScore(avg);
     onSubmit(metrics, notes);
-    setSubmitted(true);
   };
 
   const handleClose = () => {
     setMetrics(DEFAULT_METRICS);
     setNotes("");
-    setSubmitted(false);
-    setAvgScore(0);
     onClose();
   };
-
-  const feedbackMessage =
-    avgScore >= 4
-      ? {
-          icon: <LuFlame size={48} color={colors.primaryHex} />,
-          text: "Excellente séance !",
-        }
-      : avgScore >= 3
-        ? {
-            icon: <LuTrendingUp size={48} color={colors.primaryHex} />,
-            text: "Bonne séance, tu avances bien.",
-          }
-        : {
-            icon: <LuMoon size={48} color={colors.primaryHex} />,
-            text: "Séance complétée, repose-toi bien.",
-          };
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && handleClose()}>
@@ -134,10 +70,10 @@ export const CompleteSessionModal = ({
           <Dialog.Body>
             <VStack gap={4} align="stretch">
               <VStack gap={3} align="stretch">
-                {METRICS_CONFIG.map(({ key, icon, label }) => (
+                {METRICS_CONFIG.map(({ key, Icon, label }) => (
                   <MetricStars
                     key={key}
-                    icon={icon}
+                    icon={<Icon size={16} color={colors.primaryHex} />}
                     label={label}
                     value={metrics[key]}
                     onChange={(val) =>

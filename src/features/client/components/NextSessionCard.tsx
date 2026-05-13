@@ -3,8 +3,7 @@ import { useThemeColors } from "@/hooks/useThemeColors";
 import { Session } from "@/types";
 import { calculateSessionDuration } from "@/utils/sessionUtils";
 import { formatDuration } from "@/utils/formatters";
-import { WarmupSection } from "@/features/program/components/WarmupSection";
-import { WorkoutSection } from "@/features/program/components/WorkoutSection";
+import { BlockCard } from "@/features/program/components/BlockCard";
 import { Box, Button, HStack, Separator, Text, VStack } from "@chakra-ui/react";
 import { LuArrowRight, LuClock, LuZap } from "react-icons/lu";
 import { keyframes } from "@emotion/react";
@@ -19,10 +18,7 @@ interface NextSessionCardProps {
   onComplete: () => void;
 }
 
-export const NextSessionCard = ({
-  session,
-  onComplete,
-}: NextSessionCardProps) => {
+export const NextSessionCard = ({ session, onComplete }: NextSessionCardProps) => {
   const colors = useThemeColors();
   const duration = calculateSessionDuration(session);
 
@@ -31,7 +27,7 @@ export const NextSessionCard = ({
       <Card accentColor={colors.primary} p={0}>
         {/* Header */}
         <Box
-          px={6}
+          px={4}
           pt={4}
           pb={4}
           style={{
@@ -40,34 +36,31 @@ export const NextSessionCard = ({
         >
           <HStack justify="space-between" align="center">
             <VStack align="start" gap={1}>
-              <HStack gap={2}>
-                {/* Badge pulsant */}
-                <HStack
-                  gap={1.5}
-                  px={2}
-                  py={0.5}
+              <HStack
+                gap={1.5}
+                px={2}
+                py={0.5}
+                borderRadius="full"
+                bg={`${colors.primaryHex}20`}
+                borderWidth="1px"
+                borderColor={`${colors.primaryHex}40`}
+              >
+                <Box
+                  w="6px"
+                  h="6px"
                   borderRadius="full"
-                  bg={`${colors.primaryHex}20`}
-                  borderWidth="1px"
-                  borderColor={`${colors.primaryHex}40`}
+                  bg={colors.primary}
+                  animation={`${pulse} 2s ease-in-out infinite`}
+                />
+                <Text
+                  fontSize="xs"
+                  fontWeight="bold"
+                  color={colors.primary}
+                  textTransform="uppercase"
+                  letterSpacing="wider"
                 >
-                  <Box
-                    w="6px"
-                    h="6px"
-                    borderRadius="full"
-                    bg={colors.primary}
-                    animation={`${pulse} 2s ease-in-out infinite`}
-                  />
-                  <Text
-                    fontSize="xs"
-                    fontWeight="bold"
-                    color={colors.primary}
-                    textTransform="uppercase"
-                    letterSpacing="wider"
-                  >
-                    À faire
-                  </Text>
-                </HStack>
+                  À faire
+                </Text>
               </HStack>
               <HStack gap={2} align="baseline">
                 <LuZap size={16} color={colors.primaryHex} />
@@ -76,7 +69,6 @@ export const NextSessionCard = ({
                 </Text>
               </HStack>
             </VStack>
-
             <HStack gap={1} color="gray.400" fontSize="sm">
               <LuClock size={14} />
               <Text>{formatDuration(duration)}</Text>
@@ -86,11 +78,10 @@ export const NextSessionCard = ({
 
         <Separator borderColor="whiteAlpha.100" />
 
-        {/* Contenu de la séance */}
-        <VStack align="stretch" gap={4} py={4}>
-          {session.notes && (
+        {/* Notes coach */}
+        {session.notes && (
+          <Box mx={4} mt={4}>
             <Box
-              mx={6}
               p={3}
               bg="whiteAlpha.50"
               borderRadius="md"
@@ -100,25 +91,31 @@ export const NextSessionCard = ({
               <Text fontSize="xs" color="gray.400" mb={1} fontWeight="bold">
                 Note du coach
               </Text>
-              <Text fontSize="sm" color="gray.300">
+              <Text fontSize="sm" color="gray.300" whiteSpace="pre-wrap">
                 {session.notes}
               </Text>
             </Box>
+          </Box>
+        )}
+
+        {/* Blocks */}
+        <VStack align="stretch" gap={2} p={4}>
+          {session.blocks.map((block) => (
+            <BlockCard key={block._id} block={block} />
+          ))}
+          {session.blocks.length === 0 && (
+            <Box p={4} textAlign="center">
+              <Text color="gray.500" fontSize="sm">
+                Aucun bloc pour cette séance.
+              </Text>
+            </Box>
           )}
-
-          <WarmupSection exercises={session.warmup?.exercises || []} />
-
-          <WorkoutSection
-            exercises={session.workout.exercises}
-            rounds={session.workout.rounds}
-            restBetweenRounds={session.workout.restBetweenRounds}
-          />
         </VStack>
 
         <Separator borderColor="whiteAlpha.100" />
 
         {/* CTA */}
-        <Box px={6} py={4}>
+        <Box px={4} py={4}>
           <Button
             w="full"
             bg={colors.primary}

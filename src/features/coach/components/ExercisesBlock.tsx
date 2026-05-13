@@ -1,9 +1,7 @@
 import ClickableCard from "@/components/ClickableCard";
-import { toaster } from "@/components/ui/toaster";
-import api from "@/config/api";
 import { useExerciseStats } from "@/features/coach/hooks/useExerciseStats";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { getErrorMessage } from "@/utils/errorMessages";
+import { useToastError } from "@/hooks/useToastError";
 import {
   Box,
   Heading,
@@ -12,7 +10,6 @@ import {
   SkeletonCircle,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
 import { LuDumbbell, LuFlame, LuArrowRight, LuLibrary } from "react-icons/lu";
 import { useNavigate } from "react-router-dom";
 
@@ -26,15 +23,7 @@ export const ExercisesBlock = () => {
     error,
   } = useExerciseStats();
 
-  useEffect(() => {
-    if (error) {
-      toaster.create({
-        title: "Impossible de charger le nombre d'exercices",
-        description: getErrorMessage(error, "Chargement du nombre d'exercices"),
-        type: "error",
-      });
-    }
-  }, [error]);
+  useToastError(error, "Impossible de charger le nombre d'exercices");
 
   if (isLoading) {
     return (

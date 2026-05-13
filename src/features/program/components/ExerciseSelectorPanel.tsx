@@ -9,9 +9,11 @@ import {
   Grid,
 } from "@chakra-ui/react";
 import { useExercises } from "@/features/exercise/hooks/useExercises";
-import { useState, useMemo } from "react";
+import { useExerciseFilter } from "@/features/exercise/hooks/useExerciseFilter";
+import { useState } from "react";
 import { LuSearch, LuX } from "react-icons/lu";
-import { Exercise } from "@/types";
+import { BlockType, Exercise } from "@/types";
+import { getExerciseTypeForBlock } from "@/constants/blockTypes";
 import {
   CreateExerciseCard,
   ExerciseEditor,
@@ -22,14 +24,14 @@ import { useCreateExercise } from "@/features/exercise/hooks/useExerciseMutation
 interface ExerciseSelectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "warmup" | "workout";
+  blockType: BlockType;
   onSelect: (exercise: Exercise) => void;
 }
 
 export const ExerciseSelectorPanel = ({
   isOpen,
   onClose,
-  type,
+  blockType,
   onSelect,
 }: ExerciseSelectorPanelProps) => {
   const { data: exercises = [], isLoading } = useExercises();
@@ -37,15 +39,8 @@ export const ExerciseSelectorPanel = ({
   const [onCreateMode, setOnCreateMode] = useState(false);
 
   const createMutation = useCreateExercise();
-
-  // Filtrage des exercices
-  const filteredExercises = useMemo(() => {
-    return exercises.filter(
-      (ex) =>
-        type === ex.type &&
-        ex.name.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-  }, [exercises, searchQuery, type]);
+  const exerciseType = getExerciseTypeForBlock(blockType);
+  const filteredExercises = useExerciseFilter(exercises, searchQuery, exerciseType);
 
   const handleSave = (exercise: Partial<Exercise>) => {
     createMutation.mutate(exercise, {
@@ -69,7 +64,7 @@ export const ExerciseSelectorPanel = ({
           <Drawer.Header borderBottomWidth="1px" borderColor="whiteAlpha.100">
             <HStack justify="space-between">
               <Drawer.Title>
-                Ajouter un {type === "warmup" ? "échauffement" : "exercice"}
+                Ajouter un {exerciseType === "warmup" ? "exercice d'échauffement" : "exercice"}
               </Drawer.Title>
               <Drawer.CloseTrigger asChild>
                 <Button size="sm" variant="ghost" onClick={onClose}>
@@ -81,7 +76,7 @@ export const ExerciseSelectorPanel = ({
           <Drawer.Body p={4}>
             {onCreateMode ? (
               <ExerciseEditor
-                initialData={{ type }}
+                initialData={{ type: exerciseType }}
                 onSave={handleSave}
                 onCancel={() => setOnCreateMode(false)}
               />
@@ -90,7 +85,7 @@ export const ExerciseSelectorPanel = ({
                 {/* Barre de Recherche */}
                 <Box position="relative">
                   <Input
-                    placeholder={`Rechercher un ${type === "warmup" ? "échauffement" : "exercice"}...`}
+                    placeholder={`Rechercher un exercice...`}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     pl={10}
@@ -122,7 +117,7 @@ export const ExerciseSelectorPanel = ({
                     gap={4}
                   >
                     <CreateExerciseCard
-                      type={type}
+                      type={exerciseType}
                       onClick={() => setOnCreateMode(true)}
                     />
 
@@ -131,7 +126,7 @@ export const ExerciseSelectorPanel = ({
                         key={exercise._id}
                         exercise={exercise}
                         onClick={() => onSelect(exercise)}
-                        type={type}
+                        type={exerciseType}
                       />
                     ))}
                   </Grid>

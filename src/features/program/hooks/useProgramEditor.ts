@@ -1,62 +1,68 @@
-import { useState, useCallback } from "react";
-import { ClientWithDetails, Session, Exercise, ClientProgram } from "@/types";
+import { useCallback, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import {
+  BlockExercise,
+  BlockType,
+  ClientProgram,
+  Exercise,
+  Session,
+  SessionBlock,
+} from "@/types";
+import { blockSupportsSets } from "@/constants/blockTypes";
 
-// Ce hook gère uniquement la logique de modification d'un programme client
+type ExerciseUpdate = Partial<Omit<BlockExercise, "exercise">>;
+
+const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
+  warmup:  {},
+  classic: {},
+  chipper: {},
+  emom:    { durationMinutes: 10 },
+  amrap:   { durationMinutes: 8 },
+  timecap: { durationMinutes: 15 },
+  every:   { intervalMinutes: 3, rounds: 5, restBetweenRounds: 60 },
+  tabata:  { rounds: 8, workDuration: 20, restDuration: 10 },
+  onoff:   { rounds: 10, workDuration: 30, restDuration: 30 },
+  pyramid: { repsScheme: [5, 10, 15, 20, 15, 10, 5], restBetweenRounds: 60 },
+  ladder:  { repsScheme: [5, 10, 15, 20], restBetweenRounds: 60 },
+};
+
+const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
+  if (blockSupportsSets(blockType)) return { sets: 3, reps: 10, restBetweenSets: 60 };
+  if (["tabata", "onoff", "pyramid", "ladder"].includes(blockType)) return {};
+  return { reps: 10 };
+};
+
 export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   const [program, setProgram] = useState<ClientProgram | null>(initialProgram);
 
-  // Réinitialise avec de nouvelles données (ex: après un fetch)
   const initialize = useCallback((data: ClientProgram) => {
     setProgram(data);
   }, []);
 
-  // --- ACTIONS SESSIONS ---
+  // ─── Sessions ──────────────────────────────────────────────────────────────
 
   const addSession = useCallback(() => {
-    if (!program) return;
-
-    const newSession: Session = {
-      _id: `temp-${uuidv4()}`,
-      order: program.sessions.length + 1,
-      warmup: { exercises: [] },
-      workout: { exercises: [], rounds: 3, restBetweenRounds: 60 },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    setProgram((prev) =>
-      prev
-        ? {
-            ...prev,
-            sessions: [...prev.sessions, newSession],
-          }
-        : null,
-    );
-  }, [program]);
+    setProgram((prev) => {
+      if (!prev) return null;
+      const newSession: Session = {
+        _id: `temp-${uuidv4()}`,
+        order: prev.sessions.length + 1,
+        blocks: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      return { ...prev, sessions: [...prev.sessions, newSession] };
+    });
+  }, []);
 
   const removeSession = useCallback((sessionId: string) => {
     setProgram((prev) => {
       if (!prev) return null;
-
-      // 1. Filtrer la session supprimée
-      const remainingSessions = prev.sessions.filter(
-        (s) => s._id !== sessionId,
-      );
-
-      // 2. Ré-indexer et renommer si nécessaire
-      const reorderedSessions = remainingSessions.map((session, index) => {
-        const newOrder = index + 1;
-
-        return {
-          ...session,
-          order: newOrder,
-        };
-      });
-
       return {
         ...prev,
-        sessions: reorderedSessions,
+        sessions: prev.sessions
+          .filter((s) => s._id !== sessionId)
+          .map((s, i) => ({ ...s, order: i + 1 })),
       };
     });
   }, []);
@@ -64,7 +70,6 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   const updateSessionNotes = useCallback((sessionId: string, notes: string) => {
     setProgram((prev) => {
       if (!prev) return null;
-
       return {
         ...prev,
         sessions: prev.sessions.map((s) =>
@@ -74,38 +79,88 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     });
   }, []);
 
-  // --- ACTIONS EXERCICES ---
+  // ─── Blocks ────────────────────────────────────────────────────────────────
 
-  // Helper pour éviter la répétition de la logique de recherche
-  const updateSessionExercise = useCallback(
+  const addBlock = useCallback((sessionId: string, type: BlockType) => {
+    setProgram((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        sessions: prev.sessions.map((s) => {
+          if (s._id !== sessionId) return s;
+          const newBlock: SessionBlock = {
+            _id: `temp-${uuidv4()}`,
+            type,
+            order: s.blocks.length + 1,
+            exercises: [],
+            ...BLOCK_DEFAULTS[type],
+          };
+          return { ...s, blocks: [...s.blocks, newBlock] };
+        }),
+      };
+    });
+  }, []);
+
+  const removeBlock = useCallback((sessionId: string, blockId: string) => {
+    setProgram((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        sessions: prev.sessions.map((s) => {
+          if (s._id !== sessionId) return s;
+          return {
+            ...s,
+            blocks: s.blocks
+              .filter((b) => b._id !== blockId)
+              .map((b, i) => ({ ...b, order: i + 1 })),
+          };
+        }),
+      };
+    });
+  }, []);
+
+  const updateBlock = useCallback(
+    (sessionId: string, blockId: string, updates: Partial<SessionBlock>) => {
+      setProgram((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sessions: prev.sessions.map((s) => {
+            if (s._id !== sessionId) return s;
+            return {
+              ...s,
+              blocks: s.blocks.map((b) =>
+                b._id === blockId ? { ...b, ...updates } : b,
+              ),
+            };
+          }),
+        };
+      });
+    },
+    [],
+  );
+
+  // ─── Exercises ─────────────────────────────────────────────────────────────
+
+  const updateBlockExercises = useCallback(
     (
       sessionId: string,
-      type: "warmup" | "workout",
-      updater: (exercises: any[]) => any[],
+      blockId: string,
+      updater: (exercises: BlockExercise[]) => BlockExercise[],
     ) => {
       setProgram((prev) => {
         if (!prev) return null;
-
         return {
           ...prev,
-          sessions: prev.sessions.map((session) => {
-            if (session._id !== sessionId) return session;
-
-            const newSession = { ...session };
-
-            if (type === "warmup") {
-              newSession.warmup = {
-                ...session.warmup,
-                exercises: updater(session.warmup?.exercises ?? []),
-              };
-            } else {
-              newSession.workout = {
-                ...session.workout,
-                exercises: updater(session.workout.exercises),
-              };
-            }
-
-            return newSession;
+          sessions: prev.sessions.map((s) => {
+            if (s._id !== sessionId) return s;
+            return {
+              ...s,
+              blocks: s.blocks.map((b) => {
+                if (b._id !== blockId) return b;
+                return { ...b, exercises: updater(b.exercises) };
+              }),
+            };
           }),
         };
       });
@@ -114,86 +169,55 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   );
 
   const addExercise = useCallback(
-    (
-      sessionId: string,
-      type: "warmup" | "workout",
-      exercise: Partial<Exercise>,
-    ) => {
-      const newExerciseEntry = {
-        exercise: { ...exercise },
-        sets: type === "workout" ? 3 : undefined,
-        reps: 10,
-        duration: 0,
-        restBetweenSets: type === "workout" ? 60 : undefined,
-        mode: "reps",
-      };
-
-      updateSessionExercise(sessionId, type, (list) => [
-        ...list,
-        newExerciseEntry,
-      ]);
-    },
-    [updateSessionExercise],
-  );
-
-  const removeExercise = useCallback(
-    (sessionId: string, type: "warmup" | "workout", index: number) => {
-      updateSessionExercise(sessionId, type, (list) =>
-        list.filter((_, i) => i !== index),
-      );
-    },
-    [updateSessionExercise],
-  );
-
-  const updateExerciseDetails = useCallback(
-    (
-      sessionId: string,
-      type: "warmup" | "workout",
-      index: number,
-      updates: any,
-    ) => {
-      updateSessionExercise(sessionId, type, (list) =>
-        list.map((ex, i) => (i === index ? { ...ex, ...updates } : ex)),
-      );
-    },
-    [updateSessionExercise],
-  );
-
-  const updateRounds = useCallback((sessionId: string, rounds: number) => {
-    setProgram((prev) => {
-      if (!prev) return null;
-      return {
-        ...prev,
-        sessions: prev.sessions.map((s) =>
-          s._id === sessionId
-            ? {
-                ...s,
-                workout: { ...s.workout, rounds },
-              }
-            : s,
-        ),
-      };
-    });
-  }, []);
-
-  const updateRestBetweenRounds = useCallback(
-    (sessionId: string, rest: number) => {
+    (sessionId: string, blockId: string, exercise: Exercise) => {
       setProgram((prev) => {
         if (!prev) return null;
         return {
           ...prev,
-          sessions: prev.sessions.map((s) =>
-            s._id === sessionId
-              ? {
-                  ...s,
-                  workout: { ...s.workout, restBetweenRounds: rest },
-                }
-              : s,
-          ),
+          sessions: prev.sessions.map((s) => {
+            if (s._id !== sessionId) return s;
+            return {
+              ...s,
+              blocks: s.blocks.map((b) => {
+                if (b._id !== blockId) return b;
+                const newExercise: BlockExercise = {
+                  exercise,
+                  order: b.exercises.length + 1,
+                  ...getExerciseDefaults(b.type),
+                };
+                return { ...b, exercises: [...b.exercises, newExercise] };
+              }),
+            };
+          }),
         };
       });
     },
     [],
+  );
+
+  const removeExercise = useCallback(
+    (sessionId: string, blockId: string, index: number) => {
+      updateBlockExercises(sessionId, blockId, (exs) =>
+        exs
+          .filter((_, i) => i !== index)
+          .map((e, i) => ({ ...e, order: i + 1 })),
+      );
+    },
+    [updateBlockExercises],
+  );
+
+  const updateExercise = useCallback(
+    (
+      sessionId: string,
+      blockId: string,
+      index: number,
+      updates: ExerciseUpdate,
+    ) => {
+      updateBlockExercises(sessionId, blockId, (exs) =>
+        exs.map((e, i) => (i === index ? { ...e, ...updates } : e)),
+      );
+    },
+    [updateBlockExercises],
   );
 
   return {
@@ -203,11 +227,12 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       addSession,
       removeSession,
       updateSessionNotes,
+      addBlock,
+      removeBlock,
+      updateBlock,
       addExercise,
       removeExercise,
-      updateExerciseDetails,
-      updateRounds,
-      updateRestBetweenRounds,
+      updateExercise,
     },
   };
 };

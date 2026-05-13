@@ -8,26 +8,16 @@ export const useUpdateProgramSessions = (clientId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (sessions: Partial<Session>[]) => {
+    mutationFn: async (sessions: Session[]) => {
       const formattedSessions = sessions.map((session) => ({
         ...session,
-        notes: session.notes || "",
-        warmup: {
-          ...session.warmup,
-          exercises: session.warmup?.exercises.map((ex) => ({
-            ...ex,
-            exerciseId: ex.exercise?._id,
-            exercise: undefined,
+        blocks: session.blocks.map((block) => ({
+          ...block,
+          exercises: block.exercises.map(({ exercise, ...rest }) => ({
+            ...rest,
+            exerciseId: exercise._id,
           })),
-        },
-        workout: {
-          ...session.workout,
-          exercises: session.workout?.exercises.map((ex) => ({
-            ...ex,
-            exerciseId: ex.exercise?._id,
-            exercise: undefined,
-          })),
-        },
+        })),
       }));
 
       const { data } = await api.put(
@@ -40,11 +30,7 @@ export const useUpdateProgramSessions = (clientId: string) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.clients.detail(clientId),
       });
-
-      toaster.create({
-        title: "Programme sauvegardé",
-        type: "success",
-      });
+      toaster.create({ title: "Programme sauvegardé", type: "success" });
     },
     onError: () => {
       toaster.create({

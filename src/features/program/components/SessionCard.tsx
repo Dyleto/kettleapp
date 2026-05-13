@@ -1,72 +1,64 @@
-import {
-  VStack,
-  Box,
-  IconButton,
-  Textarea,
-  Text,
-  Button,
-} from "@chakra-ui/react";
-import { Card } from "@/components/Card";
-import { Session } from "@/types";
-import { SessionHeader } from "./SessionHeader";
-import { WarmupSection } from "./WarmupSection";
-import { WorkoutSection } from "./WorkoutSection";
+import { BlockExercise, BlockType, Session, SessionBlock } from "@/types";
 import { calculateSessionDuration } from "@/utils/sessionUtils";
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { LuArrowRight, LuTrash } from "react-icons/lu";
+import { Box, Button, HStack, IconButton, Textarea, Text, VStack } from "@chakra-ui/react";
+import { LuArrowRight, LuPlus, LuTrash } from "react-icons/lu";
+import { Card } from "@/components/Card";
+import { SessionHeader } from "./SessionHeader";
+import { BlockCard } from "./BlockCard";
+import { BlockEditor } from "./BlockEditor";
+import { BlockTypeSelector } from "./BlockTypeSelector";
+import { useState } from "react";
 
 interface SessionCardProps {
   session: Session;
   interactive?: boolean;
   isEditing?: boolean;
-  onAddExercise?: (type: "warmup" | "workout") => void;
-  onRemoveExercise?: (type: "warmup" | "workout", index: number) => void;
-  onUpdateExercise?: (
-    type: "warmup" | "workout",
-    index: number,
-    updates: any,
-  ) => void;
-  onUpdateRounds?: (newRounds: number) => void;
-  onRemoveSession?: () => void;
-  onUpdateRestBetweenRounds?: (value: number) => void;
-  onUpdateSessionNotes?: (notes: string) => void;
   onComplete?: () => void;
+  // Edit callbacks
+  onRemoveSession?: () => void;
+  onUpdateSessionNotes?: (notes: string) => void;
+  onAddBlock?: (type: BlockType) => void;
+  onRemoveBlock?: (blockId: string) => void;
+  onUpdateBlock?: (blockId: string, updates: Partial<SessionBlock>) => void;
+  onAddExercise?: (blockId: string, blockType: BlockType) => void;
+  onRemoveExercise?: (blockId: string, index: number) => void;
+  onUpdateExercise?: (
+    blockId: string,
+    index: number,
+    updates: Partial<Omit<BlockExercise, "exercise">>,
+  ) => void;
 }
 
 export const SessionCard = ({
   session,
   interactive = true,
   isEditing,
+  onComplete,
+  onRemoveSession,
+  onUpdateSessionNotes,
+  onAddBlock,
+  onRemoveBlock,
+  onUpdateBlock,
   onAddExercise,
   onRemoveExercise,
   onUpdateExercise,
-  onUpdateRounds,
-  onRemoveSession,
-  onUpdateRestBetweenRounds,
-  onUpdateSessionNotes,
-  onComplete,
 }: SessionCardProps) => {
   const colors = useThemeColors();
+  const [showBlockSelector, setShowBlockSelector] = useState(false);
 
-  // Handlers intermédiaires pour simplifier les appels
-  const handleUpdateWarmup = (index: number, updates: any) =>
-    onUpdateExercise?.("warmup", index, updates);
-
-  const handleUpdateWorkout = (index: number, updates: any) =>
-    onUpdateExercise?.("workout", index, updates);
+  const duration = calculateSessionDuration(session);
 
   return (
     <Box position="relative" w="full">
-      {/* Bouton de suppression de séance (visible uniquement en édition) */}
+      {/* Delete session button */}
       {isEditing && (
         <IconButton
           aria-label="Supprimer la séance"
           size="xs"
           variant="solid"
           bg={`${colors.error}/60`}
-          _hover={{
-            bg: colors.error,
-          }}
+          _hover={{ bg: colors.error }}
           rounded="full"
           position="absolute"
           top="-10px"
@@ -81,62 +73,140 @@ export const SessionCard = ({
         </IconButton>
       )}
 
-      <Card
-        p={0}
-        accentColor={colors.primary}
-        hoverEffect={interactive ? "both" : "none"}
-        onClick={interactive ? undefined : undefined}
-      >
-        <VStack align="stretch" gap={4}>
-          <SessionHeader
-            order={session.order}
-            duration={calculateSessionDuration(session)}
-          />
+      <Card p={0} accentColor={colors.primary} hoverEffect={interactive ? "both" : "none"}>
+        <VStack align="stretch" gap={0}>
+          {/* Header */}
+          <SessionHeader order={session.order} duration={duration} />
 
+          {/* Notes */}
           {(isEditing || session.notes) && (
-            <VStack mx={6} gap={2} align="stretch">
-              <Text fontSize="sm" color={colors.primary} fontWeight="bold">
-                Notes
-              </Text>
-              {(isEditing && (
+            <Box mx={4} mb={3}>
+              {isEditing ? (
                 <Textarea
                   value={session.notes || ""}
+                  onChange={(e) => onUpdateSessionNotes?.(e.target.value)}
+                  placeholder="Notes pour cette séance..."
+                  size="sm"
                   border="1px solid"
                   borderColor={colors.primaryBorder}
-                  onChange={(e) => onUpdateSessionNotes?.(e.target.value)}
-                  placeholder="Ajouter des notes sur la séance..."
-                  size="sm"
-                  autoresize
+                  _focus={{ borderColor: colors.primary }}
+                  borderRadius="md"
+                  rows={2}
+                  resize="none"
+                  fontSize="sm"
                 />
-              )) || (
-                <Text fontSize="sm" color="gray.400">
-                  {session.notes}
-                </Text>
+              ) : (
+                session.notes && (
+                  <Box
+                    p={3}
+                    bg="whiteAlpha.50"
+                    borderRadius="md"
+                    borderLeft="3px solid"
+                    borderLeftColor={colors.primaryBorder}
+                  >
+                    <Text fontSize="xs" color="gray.400" mb={1} fontWeight="bold">
+                      Note du coach
+                    </Text>
+                    <Text fontSize="sm" color="gray.300" whiteSpace="pre-wrap">
+                      {session.notes}
+                    </Text>
+                  </Box>
+                )
               )}
-            </VStack>
+            </Box>
           )}
 
-          <WarmupSection
-            exercises={session.warmup?.exercises || []}
-            isEditing={isEditing}
-            onAddExercise={() => onAddExercise?.("warmup")}
-            onRemoveExercise={(idx) => onRemoveExercise?.("warmup", idx)}
-            onUpdateExercise={handleUpdateWarmup}
-          />
+          {/* Blocks */}
+          <VStack align="stretch" gap={2} px={4} pb={4}>
+            {session.blocks.map((block) =>
+              isEditing ? (
+                <BlockEditor
+                  key={block._id}
+                  block={block}
+                  onUpdate={(updates) => onUpdateBlock?.(block._id, updates)}
+                  onRemove={() => onRemoveBlock?.(block._id)}
+                  onAddExercise={() => onAddExercise?.(block._id, block.type)}
+                  onRemoveExercise={(i) => onRemoveExercise?.(block._id, i)}
+                  onUpdateExercise={(i, updates) =>
+                    onUpdateExercise?.(block._id, i, updates)
+                  }
+                />
+              ) : (
+                <BlockCard key={block._id} block={block} />
+              ),
+            )}
 
-          <WorkoutSection
-            exercises={session.workout.exercises}
-            rounds={session.workout.rounds}
-            restBetweenRounds={session.workout.restBetweenRounds}
-            isEditing={isEditing}
-            onAddExercise={() => onAddExercise?.("workout")}
-            onRemoveExercise={(idx) => onRemoveExercise?.("workout", idx)}
-            onUpdateRounds={onUpdateRounds}
-            onUpdateExercise={handleUpdateWorkout}
-            onUpdateRestBetweenRounds={onUpdateRestBetweenRounds}
-          />
+            {/* Add block (edit mode) */}
+            {isEditing && (
+              <>
+                {showBlockSelector ? (
+                  <Box
+                    p={3}
+                    borderRadius="xl"
+                    borderWidth="1px"
+                    borderColor="whiteAlpha.200"
+                    bg="whiteAlpha.50"
+                  >
+                    <HStack justify="space-between" mb={3}>
+                      <Text fontSize="sm" fontWeight="bold" color="gray.300">
+                        Choisir un type de bloc
+                      </Text>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        color="gray.500"
+                        onClick={() => setShowBlockSelector(false)}
+                      >
+                        Annuler
+                      </Button>
+                    </HStack>
+                    <BlockTypeSelector
+                      onSelect={(type) => {
+                        onAddBlock?.(type);
+                        setShowBlockSelector(false);
+                      }}
+                    />
+                  </Box>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    color="gray.400"
+                    borderWidth="1px"
+                    borderColor="whiteAlpha.200"
+                    borderStyle="dashed"
+                    borderRadius="lg"
+                    onClick={() => setShowBlockSelector(true)}
+                    _hover={{ bg: "whiteAlpha.100", color: "gray.200" }}
+                    w="full"
+                  >
+                    <LuPlus size={14} />
+                    Ajouter un bloc
+                  </Button>
+                )}
+              </>
+            )}
+
+            {/* Empty state */}
+            {!isEditing && session.blocks.length === 0 && (
+              <Box
+                p={6}
+                textAlign="center"
+                bg="whiteAlpha.50"
+                borderRadius="lg"
+                borderWidth="1px"
+                borderColor="whiteAlpha.100"
+              >
+                <Text color="gray.500" fontSize="sm">
+                  Cette séance ne contient aucun bloc.
+                </Text>
+              </Box>
+            )}
+          </VStack>
+
+          {/* Complete button (client view) */}
           {onComplete && (
-            <Box px={6} pb={6} pt={2}>
+            <Box px={4} pb={4} pt={2}>
               <Button
                 w="full"
                 bg={colors.primary}
@@ -146,7 +216,7 @@ export const SessionCard = ({
                 onClick={onComplete}
                 _hover={{ bg: colors.primaryHover }}
               >
-                Terminer la séance <LuArrowRight />
+                J'ai terminé cette séance <LuArrowRight />
               </Button>
             </Box>
           )}

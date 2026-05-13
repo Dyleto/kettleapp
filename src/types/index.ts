@@ -51,36 +51,65 @@ export interface ExerciseStats {
   workoutCount: number;
 }
 
-export interface WarmupExercise {
-  exercise: Exercise;
-  mode: "timer" | "reps";
-  duration?: number;
-  reps?: number;
+// ─── Blocks ──────────────────────────────────────────────────────────────────
+
+export type BlockType =
+  | "warmup"
+  | "emom"
+  | "every"
+  | "amrap"
+  | "timecap"
+  | "chipper"
+  | "classic"
+  | "tabata"
+  | "onoff"
+  | "pyramid"
+  | "ladder";
+
+export interface CustomMetric {
+  value: number;
+  unit: string;
 }
 
-export interface WorkoutExercise {
+export interface BlockExercise {
   exercise: Exercise;
-  mode: "timer" | "reps";
+  order: number;
   sets?: number;
+  restBetweenSets?: number;
   reps?: number;
   duration?: number;
-  restBetweenSets?: number;
+  customMetric?: CustomMetric;
 }
+
+export interface SessionBlock {
+  _id: string;
+  type: BlockType;
+  label?: string;
+  order: number;
+  notes?: string;
+  durationMinutes?: number;
+  intervalMinutes?: number;
+  rounds?: number;
+  restBetweenRounds?: number;
+  workDuration?: number;
+  restDuration?: number;
+  repsScheme?: number[];
+  exercises: BlockExercise[];
+}
+
+// ─── Session ─────────────────────────────────────────────────────────────────
 
 export interface Session {
   _id: string;
   order: number;
-  warmup?: {
-    exercises: WarmupExercise[];
-  };
-  workout: {
-    rounds: number;
-    restBetweenRounds?: number;
-    exercises: WorkoutExercise[];
-  };
   notes?: string;
+  blocks: SessionBlock[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ClientProgram {
+  sessions: Session[];
 }
 
 export interface ClientWithDetails extends Client {
@@ -88,8 +117,43 @@ export interface ClientWithDetails extends Client {
   unseenCount: number;
 }
 
-export interface ClientProgram {
-  sessions: Session[];
+// ─── Completed Session (snapshot) ────────────────────────────────────────────
+
+export interface BlockExerciseSnapshot {
+  exercise: Record<string, unknown>;
+  order: number;
+  sets?: number;
+  restBetweenSets?: number;
+  reps?: number;
+  duration?: number;
+  customMetric?: CustomMetric;
+}
+
+export interface BlockSnapshot {
+  type: string;
+  label?: string;
+  order: number;
+  notes?: string;
+  durationMinutes?: number;
+  intervalMinutes?: number;
+  rounds?: number;
+  restBetweenRounds?: number;
+  workDuration?: number;
+  restDuration?: number;
+  repsScheme?: number[];
+  exercises: BlockExerciseSnapshot[];
+}
+
+export interface CompletedSession {
+  _id: string;
+  completedAt: Date;
+  originalSessionId: string;
+  sessionOrder: number;
+  blocks: BlockSnapshot[];
+  coachNotes?: string;
+  metrics: SessionMetrics;
+  clientNotes?: string;
+  viewedByCoach: boolean;
 }
 
 export interface SessionMetrics {
@@ -98,23 +162,4 @@ export interface SessionMetrics {
   energy: number;
   sleep: number;
   soreness: number;
-}
-
-export interface CompletedSession {
-  _id: string;
-  completedAt: Date;
-  originalSessionId: string;
-  sessionOrder: number;
-  // Snapshot du contenu
-  warmup?: { exercises: WarmupExercise[] };
-  workout: {
-    rounds: number;
-    restBetweenRounds?: number;
-    exercises: WorkoutExercise[];
-  };
-  coachNotes?: string;
-  // Ressenti client
-  metrics: SessionMetrics;
-  clientNotes?: string;
-  viewedByCoach: boolean;
 }

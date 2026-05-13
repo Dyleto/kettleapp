@@ -1,11 +1,29 @@
 import api from "@/config/api";
 import {
+  BlockExercise,
   Client,
   ClientWithDetails,
   CompletedSession,
   Exercise,
   ExerciseStats,
-} from "@/types"; // Assurez-vous d'avoir les types définis
+  Session,
+  SessionBlock,
+} from "@/types";
+
+type RawBlockExercise = Omit<BlockExercise, "exercise"> & { exerciseId: Exercise };
+type RawBlock = Omit<SessionBlock, "exercises"> & { exercises: RawBlockExercise[] };
+type RawSession = Omit<Session, "blocks"> & { blocks: RawBlock[] };
+
+const transformSession = (session: RawSession): Session => ({
+  ...session,
+  blocks: session.blocks.map((block) => ({
+    ...block,
+    exercises: block.exercises.map(({ exerciseId, ...rest }) => ({
+      ...rest,
+      exercise: exerciseId,
+    })),
+  })),
+});
 
 export const coachService = {
   getClients: async () => {
@@ -18,29 +36,13 @@ export const coachService = {
       `/api/coach/clients/${clientId}`,
     );
 
-    if (data.program && data.program.sessions) {
-      data.program.sessions = data.program.sessions.map((session: any) => ({
-        ...session,
-        warmup: {
-          ...session.warmup,
-          exercises: (session.warmup?.exercises ?? []).map((ex: any) => ({
-            ...ex,
-            exercise: ex.exerciseId,
-            exerciseId: undefined,
-          })),
-        },
-        workout: {
-          ...session.workout,
-          exercises: (session.workout?.exercises ?? []).map((ex: any) => ({
-            ...ex,
-            exercise: ex.exerciseId,
-            exerciseId: undefined,
-          })),
-        },
-      }));
+    if (data.program?.sessions) {
+      data.program.sessions = (data.program.sessions as unknown as RawSession[]).map(
+        transformSession,
+      ) as unknown as Session[];
     }
 
-    return data as ClientWithDetails;
+    return data;
   },
 
   getClientHistory: async (clientId: string) => {
@@ -54,7 +56,6 @@ export const coachService = {
     await api.patch(`/api/coach/clients/${clientId}/history/mark-viewed`);
   },
 
-  // Exercices
   getExercises: async () => {
     const { data } = await api.get<Exercise[]>("/api/coach/exercises");
     return data;
@@ -66,18 +67,12 @@ export const coachService = {
   },
 
   createExercise: async (exerciseData: Partial<Exercise>) => {
-    const { data } = await api.post<Exercise>(
-      "/api/coach/exercises",
-      exerciseData,
-    );
+    const { data } = await api.post<Exercise>("/api/coach/exercises", exerciseData);
     return data;
   },
 
-  // Invitations
-  generateInvitation: async (expiresIn: number = 7) => {
-    const { data } = await api.post("/api/coach/generate-invitation", {
-      expiresIn,
-    });
+  generateInvitation: async (expiresIn = 7) => {
+    const { data } = await api.post("/api/coach/generate-invitation", { expiresIn });
     return data;
   },
 };
