@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Source de vérité unique pour les clés de cache React Query.
  * Permet d'éviter les fautes de frappe et facilite l'invalidation du cache.
  */
@@ -8,6 +8,11 @@ export const queryKeys = {
     user: () => [...queryKeys.auth.all, 'user'] as const,
     verifyInviteToken: (token: string) =>
       [...queryKeys.auth.all, 'verify-invite-token', token] as const,
+  },
+
+  account: {
+    all: ['account'] as const,
+    get: () => [...queryKeys.account.all] as const,
   },
 
   coach: {

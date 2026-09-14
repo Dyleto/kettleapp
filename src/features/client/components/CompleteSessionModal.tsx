@@ -7,6 +7,7 @@ import { hitArea } from '@/components/hitArea';
 import { LuX } from 'react-icons/lu';
 import { EffortScale } from './EffortScale';
 import { FeedbackTags } from './FeedbackTags';
+import { useAuth } from '@/contexts/useAuth';
 
 interface CompleteSessionModalProps {
   isOpen: boolean;
@@ -27,6 +28,12 @@ export const CompleteSessionModal = ({
   onSubmit,
   isLoading,
 }: CompleteSessionModalProps) => {
+  // Qui a refusé le partage de ses données de santé ne se voit pas proposer
+  // les étiquettes ni le commentaire : on ne demande pas ce qu'on n'a pas le
+  // droit d'enregistrer. L'effort reste — c'est une mesure d'entraînement.
+  const { user } = useAuth();
+  const partageSante = user?.healthConsent?.granted === true;
+
   const [effort, setEffort] = useState<number | undefined>(undefined);
   const [tags, setTags] = useState<FeedbackTag[]>([]);
   const [notes, setNotes] = useState('');
@@ -86,30 +93,34 @@ export const CompleteSessionModal = ({
             <VStack gap={4} align="stretch">
               <EffortScale value={effort} onChange={setEffort} />
 
-              <Separator borderColor="whiteAlpha.100" />
+              {partageSante && (
+                <>
+                  <Separator borderColor="whiteAlpha.100" />
 
-              <Box>
-                <Text fontSize="sm" color="fg.muted" mb={2}>
-                  Quelque chose à signaler&nbsp;? (facultatif)
-                </Text>
-                <FeedbackTags value={tags} onChange={setTags} />
-              </Box>
+                  <Box>
+                    <Text fontSize="sm" color="fg.muted" mb={2}>
+                      Quelque chose à signaler&nbsp;? (facultatif)
+                    </Text>
+                    <FeedbackTags value={tags} onChange={setTags} />
+                  </Box>
 
-              <Box>
-                <Text fontSize="sm" color="fg.muted" mb={2}>
-                  Commentaire (facultatif)
-                </Text>
-                <AutoResizeTextarea
-                  aria-label="Commentaire sur la séance"
-                  placeholder="Ex : bonne séance, un peu difficile sur les derniers rounds..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  size="sm"
-                  border="1px solid"
-                  borderColor="whiteAlpha.200"
-                  _focus={{ borderColor: 'app.primary.border' }}
-                />
-              </Box>
+                  <Box>
+                    <Text fontSize="sm" color="fg.muted" mb={2}>
+                      Commentaire (facultatif)
+                    </Text>
+                    <AutoResizeTextarea
+                      aria-label="Commentaire sur la séance"
+                      placeholder="Ex : bonne séance, un peu difficile sur les derniers rounds..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      size="sm"
+                      border="1px solid"
+                      borderColor="whiteAlpha.200"
+                      _focus={{ borderColor: 'app.primary.border' }}
+                    />
+                  </Box>
+                </>
+              )}
 
               <Separator borderColor="whiteAlpha.100" />
 

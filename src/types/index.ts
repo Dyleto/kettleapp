@@ -1,3 +1,15 @@
+/**
+ * La décision du client sur le partage de son ressenti.
+ *
+ * `version` est celle du texte auquel il a répondu. Le serveur la compare à
+ * la version courante : c'est lui qui décide si la question se repose.
+ */
+export interface HealthConsent {
+  granted: boolean;
+  decidedAt: string;
+  version: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -7,6 +19,28 @@ export interface User {
   isAdmin: boolean;
   isCoach: boolean;
   isClient: boolean;
+  healthConsent: HealthConsent | null;
+  /** Vrai tant que le client n'a pas répondu au texte en vigueur. */
+  needsHealthConsent: boolean;
+}
+
+/** Ce que l'écran « Mon compte » a besoin de savoir, selon les rôles tenus. */
+export interface AccountSummary {
+  asClient: {
+    coaches: {
+      firstName: string;
+      lastName: string;
+      picture?: string;
+      linkedAt: string;
+    }[];
+    completedCount: number;
+    healthConsent: HealthConsent | null;
+    since: string;
+  } | null;
+  asCoach: {
+    clientCount: number;
+    since: string;
+  } | null;
 }
 
 export interface Client {

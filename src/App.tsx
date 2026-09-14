@@ -33,6 +33,10 @@ const SessionRedirect = React.lazy(
 );
 const History = React.lazy(() => import('./pages/Client/History'));
 
+// Le même écran des deux côtés : un compte peut tenir les deux rôles, et il
+// n'a pas à changer d'espace pour se relire.
+const Account = React.lazy(() => import('./pages/Account'));
+
 const ClientDetailsRedirect = () => {
   const { clientId } = useParams();
   return <Navigate to={COACH_ROUTES.clientSession(clientId!, 1)} replace />;
@@ -57,6 +61,7 @@ const router = createBrowserRouter(
       {/* Routes Coach */}
       <Route path="coach" element={<CoachLayout />}>
         <Route index element={<Clients />} />
+        <Route path="account" element={<Account space="coach" />} />
         <Route path="clients/:clientId" element={<ClientDetailsRedirect />} />
         {/* L'atelier écrit sa propre barre du haut sur mobile — nom du client
             à gauche, journal à droite — au lieu d'empiler deux bandeaux. */}
@@ -88,6 +93,7 @@ const router = createBrowserRouter(
         <Route path="session" element={<SessionRedirect />} />
         <Route path="session/:sessionId" element={<SessionScreen />} />
         <Route path="history" element={<History />} />
+        <Route path="account" element={<Account space="client" />} />
       </Route>
 
       {/* Routes Admin */}

@@ -40,6 +40,7 @@ import {
   truncateAtFirstEmpty,
 } from '../performedFormat';
 import { useUpdateCompletedSession } from '../hooks/useCompleteSession';
+import { useAuth } from '@/contexts/useAuth';
 
 const toSessionBlock = (
   block: CompletedSession['blocks'][number],
@@ -140,6 +141,11 @@ export const CompletedSessionDrawer = ({
   onClose,
   editable = false,
 }: CompletedSessionDrawerProps) => {
+  // Même règle que dans le formulaire de fin de séance : sans accord, on ne
+  // propose pas de saisir ce qu'on n'a pas le droit d'enregistrer.
+  const { user } = useAuth();
+  const partageSante = user?.healthConsent?.granted === true;
+
   const [isEditing, setIsEditing] = useState(false);
   const [effort, setEffort] = useState(completed.feedback?.effort);
   const [tags, setTags] = useState<FeedbackTag[]>(
@@ -247,7 +253,9 @@ export const CompletedSessionDrawer = ({
                     {isEditing ? (
                       <>
                         <EffortScale value={effort} onChange={setEffort} />
-                        <FeedbackTags value={tags} onChange={setTags} />
+                        {partageSante && (
+                          <FeedbackTags value={tags} onChange={setTags} />
+                        )}
                       </>
                     ) : level ? (
                       <VStack align="stretch" gap={2}>
@@ -312,13 +320,13 @@ export const CompletedSessionDrawer = ({
                   </VStack>
 
                   {/* ── Commentaires ── */}
-                  {(isEditing ||
+                  {((isEditing && partageSante) ||
                     completed.clientNotes ||
                     completed.coachNotes) && (
                     <>
                       <Separator borderColor="whiteAlpha.100" />
                       <VStack align="stretch" gap={3}>
-                        {isEditing ? (
+                        {isEditing && partageSante ? (
                           <Box>
                             <SectionTitle>Ton commentaire</SectionTitle>
                             <AutoResizeTextarea

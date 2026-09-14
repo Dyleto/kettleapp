@@ -20,6 +20,7 @@ export const CLIENT_ROUTES = {
   session: '/client/session',
   sessionById: (sessionId: string) => `/client/session/${sessionId}`,
   history: '/client/history',
+  account: '/client/account',
 };
 
 export const COACH_ROUTES = {
@@ -30,6 +31,26 @@ export const COACH_ROUTES = {
   clientJournal: (clientId: string) => `/coach/clients/${clientId}/journal`,
   exercises: '/coach/exercises',
   exerciseDetails: (exerciseId: string) => `/coach/exercises/${exerciseId}`,
+  account: '/coach/account',
+};
+
+/**
+ * Où mène « Mon compte » depuis le menu.
+ *
+ * L'écran vit dans l'espace où l'on se trouve : un compte qui tient les deux
+ * rôles n'a pas à changer de monde pour lire son adresse e-mail. On suit donc
+ * le chemin courant, et on retombe sur le rôle quand il ne dit rien.
+ */
+export const getAccountRoute = (
+  user: User | null,
+  pathname: string
+): string | null => {
+  if (pathname.startsWith('/coach') && user?.isCoach) return COACH_ROUTES.account;
+  if (pathname.startsWith('/client') && user?.isClient)
+    return CLIENT_ROUTES.account;
+  if (user?.isClient) return CLIENT_ROUTES.account;
+  if (user?.isCoach) return COACH_ROUTES.account;
+  return null;
 };
 
 export const NO_ROLE_ROUTES = {

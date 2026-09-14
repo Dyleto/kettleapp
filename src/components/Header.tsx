@@ -17,7 +17,9 @@ import {
   LuChevronUp,
   LuUser,
 } from 'react-icons/lu';
-import { useNavigate } from 'react-router-dom';
+import { hitArea } from './hitArea';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getAccountRoute } from '@/config/routes';
 
 interface HeaderProps {
   variant?: 'rail' | 'compact';
@@ -26,6 +28,8 @@ interface HeaderProps {
 export const Header = ({ variant = 'compact' }: HeaderProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const accountRoute = getAccountRoute(user, location.pathname);
 
   const roles = [user?.isClient, user?.isCoach, user?.isAdmin].filter(Boolean);
   const hasMultipleRoles = roles.length > 1;
@@ -100,25 +104,24 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               <LuChevronUp />
             </Button>
           ) : (
-            // <HStack
-            //   role="group"
-            //   cursor="pointer"
-            //   gap={2.5}
-            //   px={2}
-            //   py={3}
-            //   mt={2}
-            //   borderTopWidth="1px"
-            //   borderColor="whiteAlpha.100"
-            //   color="fg.muted"
-            //   _hover={{ color: 'app.primary' }}
-            //   transition="color 0.15s"
-            // >
-            //   {avatar}
-            //   <Text fontSize="sm" fontWeight="medium" lineClamp={1}>
-            //     {user?.firstName}
-            //   </Text>
-            // </HStack>
-            <Box role="group" cursor="pointer" w="fit-content">
+            // `role="group"` posé ici écrasait le rôle de gâchette du menu :
+            // l'avatar sortait de l'ordre de tabulation et le menu devenait
+            // inatteignable au clavier — sur mobile, c'était le seul chemin
+            // vers la déconnexion. C'est un bouton, et il porte son nom.
+            <Box
+              as="button"
+              aria-label={`Menu du compte de ${user?.firstName ?? 'mon compte'}`}
+              cursor="pointer"
+              w="fit-content"
+              display="flex"
+              borderRadius="full"
+              css={hitArea(44)}
+              _focusVisible={{
+                outline: '2px solid',
+                outlineColor: 'app.primary',
+                outlineOffset: '2px',
+              }}
+            >
               {avatar}
             </Box>
           )}
@@ -131,7 +134,10 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               borderRadius="xl"
               padding={1}
             >
-              <HStack p={2}>
+              {/* Relu par le lecteur d'écran à l'ouverture via le nom de la
+                  gâchette : le répéter comme premier élément du menu ferait
+                  entendre deux fois la même chose avant la première action. */}
+              <HStack p={2} aria-hidden="true">
                 {avatar}
                 <VStack align="start" gap={0} ml={2}>
                   <Text fontSize="sm" fontWeight="bold" color="fg">
@@ -143,19 +149,20 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
                 </VStack>
               </HStack>
               <Menu.Separator bg="whiteAlpha.200" />
-              <Menu.Item
-                value="my-account"
-                cursor="pointer"
-                onClick={() => navigate('/account')}
-                color="fg.muted"
-                _hover={{ color: 'fg', bg: 'whiteAlpha.100' }}
-                borderRadius="md"
-              >
-                <HStack gap={2}>
-                  <LuUser /> <Text>Mon compte</Text>
-                </HStack>
-              </Menu.Item>
-              <Menu.Separator bg="whiteAlpha.200" />
+              {accountRoute && (
+                <Menu.Item
+                  value="my-account"
+                  cursor="pointer"
+                  onClick={() => navigate(accountRoute)}
+                  color="fg.muted"
+                  _hover={{ color: 'fg', bg: 'whiteAlpha.100' }}
+                  borderRadius="md"
+                >
+                  <HStack gap={2}>
+                    <LuUser /> <Text>Mon compte</Text>
+                  </HStack>
+                </Menu.Item>
+              )}
               {hasMultipleRoles && (
                 <>
                   {user?.isClient && (
