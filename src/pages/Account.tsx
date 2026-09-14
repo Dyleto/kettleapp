@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Avatar,
   Box,
@@ -16,7 +16,7 @@ import { useAccount } from '@/features/account/hooks/useAccount';
 import { HealthConsentCard } from '@/features/account/components/HealthConsentCard';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
 import { BackLink } from '@/components/BackLink';
-import { LEGAL } from '@/config/legal';
+import { LEGAL, LEGAL_ROUTES } from '@/config/legal';
 import { CLIENT_ROUTES, COACH_ROUTES } from '@/config/routes';
 
 const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
@@ -252,15 +252,17 @@ const Account = ({ space }: Props) => {
             overflow="hidden"
           >
             {[
-              { label: 'Politique de confidentialité', href: LEGAL.privacyUrl },
-              { label: 'Mentions légales', href: LEGAL.termsUrl },
-            ].map(({ label, href }, index) => (
+              {
+                label: 'Politique de confidentialité',
+                to: LEGAL_ROUTES.confidentialite,
+              },
+              { label: 'Mentions légales', to: LEGAL_ROUTES.mentions },
+            ].map(({ label, to }, index) => (
               <Box key={label}>
                 {index > 0 && <Box h="1px" bg="whiteAlpha.100" />}
                 <Link
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
+                  as={RouterLink}
+                  {...{ to }}
                   display="flex"
                   alignItems="center"
                   justifyContent="space-between"
@@ -288,11 +290,11 @@ const Account = ({ space }: Props) => {
             Pour recevoir une copie de {tu ? 'tes' : 'vos'} données,{' '}
             {tu ? 'écris' : 'écrivez'} à{' '}
             <Link
-              href={`mailto:${LEGAL.contactEmail}`}
+              href={`mailto:${LEGAL.editeur.contactEmail}`}
               color="app.primary"
               textDecoration="underline"
             >
-              {LEGAL.contactEmail}
+              {LEGAL.editeur.contactEmail}
             </Link>
             . Réponse sous un mois.
           </Text>

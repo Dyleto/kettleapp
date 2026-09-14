@@ -9,8 +9,9 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { LuHeartPulse, LuLogOut } from 'react-icons/lu';
+import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '@/contexts/useAuth';
-import { LEGAL } from '@/config/legal';
+import { LEGAL_ROUTES } from '@/config/legal';
 import { useSetHealthConsent } from '../hooks/useAccount';
 
 /**
@@ -74,9 +75,8 @@ export const HealthConsentGate = () => {
             Tu peux revenir sur ta réponse quand tu veux, depuis « Mon
             compte ». Le détail de ce qu'on conserve est dans la{' '}
             <Link
-              href={LEGAL.privacyUrl}
-              target="_blank"
-              rel="noreferrer"
+              as={RouterLink}
+              {...{ to: LEGAL_ROUTES.confidentialite }}
               color="app.primary"
               textDecoration="underline"
             >

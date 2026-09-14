@@ -37,6 +37,9 @@ const History = React.lazy(() => import('./pages/Client/History'));
 // n'a pas à changer d'espace pour se relire.
 const Account = React.lazy(() => import('./pages/Account'));
 
+const Confidentialite = React.lazy(() => import('./pages/Legal/Confidentialite'));
+const MentionsLegales = React.lazy(() => import('./pages/Legal/MentionsLegales'));
+
 const ClientDetailsRedirect = () => {
   const { clientId } = useParams();
   return <Navigate to={COACH_ROUTES.clientSession(clientId!, 1)} replace />;
@@ -57,6 +60,10 @@ const router = createBrowserRouter(
       <Route path="auth/callback" element={<AuthCallback />} />
       <Route path="join" element={<Join />} />
       <Route path="no-role" element={<NoRole />} />
+
+      {/* Servis par l'application, et lisibles sans compte. */}
+      <Route path="confidentialite" element={<Confidentialite />} />
+      <Route path="mentions-legales" element={<MentionsLegales />} />
 
       {/* Routes Coach */}
       <Route path="coach" element={<CoachLayout />}>

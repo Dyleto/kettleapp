@@ -1,6 +1,14 @@
 import { User } from '@/types';
 
-const PUBLIC_ROUTES = new Set(['/login', '/auth/callback', '/join']);
+// Les documents légaux se lisent sans compte : quelqu'un doit pouvoir savoir
+// ce qu'on collecte avant de décider de s'inscrire.
+const PUBLIC_ROUTES = new Set([
+  '/login',
+  '/auth/callback',
+  '/join',
+  '/confidentialite',
+  '/mentions-legales',
+]);
 
 export const isPublicRoute = (pathname: string): boolean => {
   return PUBLIC_ROUTES.has(pathname);
