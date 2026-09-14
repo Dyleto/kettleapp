@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { newObjectId } from '@/utils/objectId';
 import {
   BlockExercise,
   BlockType,
@@ -48,7 +48,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     setProgram((prev) => {
       if (!prev) return null;
       const newSession: Session = {
-        _id: `temp-${uuidv4()}`,
+        _id: newObjectId(),
         order: prev.sessions.length + 1,
         blocks: [],
         createdAt: new Date(),
@@ -85,12 +85,12 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       const source = prev.sessions[index];
       const copy: Session = {
         ...source,
-        _id: `temp-${uuidv4()}`,
+        _id: newObjectId(),
         // Identifiants neufs jusqu'aux blocs : deux séances ne peuvent pas
         // partager la clé d'un même bloc, le glisser-déposer s'y perdrait.
         blocks: source.blocks.map((block) => ({
           ...block,
-          _id: `temp-${uuidv4()}`,
+          _id: newObjectId(),
           exercises: block.exercises.map((ex) => ({ ...ex })),
         })),
         createdAt: new Date(),
@@ -158,7 +158,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         sessions: prev.sessions.map((s) => {
           if (s._id !== sessionId) return s;
           const newBlock: SessionBlock = {
-            _id: `temp-${uuidv4()}`,
+            _id: newObjectId(),
             type,
             order: s.blocks.length + 1,
             exercises: [],

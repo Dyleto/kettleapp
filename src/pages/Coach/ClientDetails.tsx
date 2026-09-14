@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Avatar,
   Box,
   Button,
-  Dialog,
   Heading,
   HStack,
   Spinner,
@@ -13,26 +12,21 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import {
-  LuArrowLeft,
-  LuBookOpen,
-  LuChevronRight,
-  LuSave,
-  LuX,
-} from 'react-icons/lu';
+import { LuArrowLeft, LuBookOpen } from 'react-icons/lu';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
+import { useProgramAutoSave } from '@/features/program/hooks/useProgramAutoSave';
 import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
-import { diffProgram, summarizeChanges } from '@/features/program/diffProgram';
+import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
 import { BackLink } from '@/components/BackLink';
 import { Header } from '@/components/Header';
 import { hitArea } from '@/components/hitArea';
 import { COACH_ROUTES } from '@/config/routes';
-import { Exercise } from '@/types';
+import { Exercise, Session } from '@/types';
 
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
@@ -41,13 +35,29 @@ const ClientDetails = () => {
   const { data: client, isLoading } = useClientDetails(clientId!);
   const { data: history = [] } = useClientHistory(clientId!);
   const { program, initialize, actions } = useProgramEditor(null);
-  const updateProgramMutation = useUpdateProgramSessions(clientId!);
-  const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
-  const [isChangeListOpen, setIsChangeListOpen] = useState(false);
+  const updateProgramMutation = useUpdateProgramSessions(clientId!, {
+    silent: true,
+  });
 
-  useEffect(() => {
-    if (client?.program) initialize(client.program);
-  }, [client, initialize]);
+  // `mutateAsync` est stable, mais la mutation, elle, ne l'est pas : passer
+  // l'objet entier au crochet relancerait sa programmation d'envoi à chaque
+  // rendu.
+  const { mutateAsync } = updateProgramMutation;
+  const save = useCallback(
+    (sessions: Session[]) => mutateAsync(sessions),
+    [mutateAsync]
+  );
+
+  const {
+    state: saveState,
+    savedAt,
+    flush,
+  } = useProgramAutoSave({
+    program,
+    serverProgram: client?.program,
+    initialize,
+    save,
+  });
 
   // À partir de 2xl (1536px), le retour du client passe en colonne de droite
   // plutôt qu'en bandeau : c'est ce qui occupe la largeur d'un 1920.
@@ -78,34 +88,6 @@ const ClientDetails = () => {
         .map((s) => s._id)
     );
   }, [program, history]);
-
-  const isDirty =
-    !!program &&
-    !!client &&
-    JSON.stringify(program.sessions) !==
-      JSON.stringify(client.program.sessions);
-
-  // Ce qui a changé, en clair. La comparaison JSON reste l'autorité sur
-  // « peut-on enregistrer » ; ceci ne sert qu'à le raconter.
-  const changes = useMemo(
-    () =>
-      isDirty && program && client
-        ? diffProgram(client.program.sessions, program.sessions)
-        : [],
-    [isDirty, program, client]
-  );
-  const changeSummary =
-    summarizeChanges(changes) || 'Modifications non enregistrées';
-
-  const handleSave = () => {
-    if (!program) return;
-    updateProgramMutation.mutate(program.sessions);
-  };
-
-  const confirmDiscard = () => {
-    if (client?.program) initialize(client.program);
-    setIsCancelConfirmOpen(false);
-  };
 
   const handleSelectSession = (index: number) => {
     navigate(COACH_ROUTES.clientSession(clientId!, index + 1));
@@ -215,7 +197,14 @@ const ClientDetails = () => {
         </HStack>
       </Box>
 
-      <Box w="100%" px={{ base: 4, md: 8 }} py={{ base: 4, md: 6 }}>
+      {/* La barre d'onglets mobile est fixée par-dessus la page : sans cette
+          réserve, les dernières lignes de l'atelier passent dessous. */}
+      <Box
+        w="100%"
+        px={{ base: 4, md: 8 }}
+        pt={{ base: 4, md: 6 }}
+        pb={{ base: 'calc(env(safe-area-inset-bottom, 0px) + 86px)', md: 6 }}
+      >
         <VStack
           align="stretch"
           gap={1}
@@ -275,7 +264,6 @@ const ClientDetails = () => {
             flex="1 1 auto"
             minW={0}
             maxW={{ base: 'none', md: '980px' }}
-            pb={isDirty ? '90px' : 0}
           >
             {activeSession ? (
               <>
@@ -355,146 +343,11 @@ const ClientDetails = () => {
           )}
         </Stack>
 
-        {isDirty && (
-          <Box
-            position="sticky"
-            bottom={0}
-            bg="bg.canvas"
-            mt={6}
-            borderTop="1px solid"
-            borderColor="whiteAlpha.100"
-          >
-            {/* Le détail est replié par défaut : la barre annonce combien, elle
-              n'impose pas la liste. On l'ouvre quand on ne se rappelle plus. */}
-            {isChangeListOpen && changes.length > 0 && (
-              <VStack
-                align="stretch"
-                gap={0}
-                maxH="180px"
-                overflowY="auto"
-                pt={3}
-              >
-                {changes.map((change, index) => (
-                  <HStack
-                    key={`${change.sessionOrder}-${change.label}-${index}`}
-                    gap={2}
-                    py={0.5}
-                    align="baseline"
-                  >
-                    <Text
-                      as="span"
-                      fontSize="xs"
-                      fontFamily="mono"
-                      color="app.primary"
-                      flexShrink={0}
-                      w="24px"
-                    >
-                      {change.sessionOrder > 0
-                        ? `S${change.sessionOrder}`
-                        : '—'}
-                    </Text>
-                    <Text as="span" fontSize="xs" color="fg.muted">
-                      {change.label}
-                    </Text>
-                  </HStack>
-                ))}
-              </VStack>
-            )}
-
-            <HStack justify="flex-end" gap={3} py={4}>
-              {changes.length > 0 ? (
-                <Box
-                  as="button"
-                  mr="auto"
-                  minW={0}
-                  textAlign="left"
-                  aria-expanded={isChangeListOpen}
-                  aria-label={`${changeSummary} — voir le détail`}
-                  onClick={() => setIsChangeListOpen((open) => !open)}
-                  _focusVisible={{
-                    outline: '2px solid',
-                    outlineColor: 'app.primary',
-                    outlineOffset: '2px',
-                  }}
-                >
-                  <HStack gap={1.5} color="fg.muted" _hover={{ color: 'fg' }}>
-                    <Box
-                      display="flex"
-                      transform={isChangeListOpen ? 'rotate(90deg)' : 'none'}
-                      transition="transform 0.15s"
-                    >
-                      <LuChevronRight size={13} />
-                    </Box>
-                    <Text as="span" fontSize="sm">
-                      {changeSummary}
-                    </Text>
-                  </HStack>
-                </Box>
-              ) : (
-                <Text fontSize="sm" color="fg.muted" mr="auto">
-                  {changeSummary}
-                </Text>
-              )}
-              <Button
-                variant="ghost"
-                onClick={() => setIsCancelConfirmOpen(true)}
-                disabled={updateProgramMutation.isPending}
-              >
-                <LuX /> Annuler
-              </Button>
-              <Button
-                bg="app.primary"
-                color="bg.canvas"
-                onClick={handleSave}
-                loading={updateProgramMutation.isPending}
-              >
-                <LuSave /> Enregistrer
-              </Button>
-            </HStack>
-          </Box>
-        )}
-
-        <Dialog.Root
-          open={isCancelConfirmOpen}
-          onOpenChange={(e) => !e.open && setIsCancelConfirmOpen(false)}
-        >
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content
-              bg="bg.canvas"
-              borderColor="whiteAlpha.100"
-              borderWidth="1px"
-              maxW="sm"
-            >
-              <Dialog.Header>
-                <Dialog.Title>Annuler les modifications ?</Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <Text color="fg.muted" fontSize="sm">
-                  Les changements apportés à ce programme ne seront pas
-                  enregistrés.
-                </Text>
-              </Dialog.Body>
-              <Dialog.Footer gap={2} flexWrap="wrap">
-                <Button
-                  variant="ghost"
-                  color="fg.muted"
-                  onClick={() => setIsCancelConfirmOpen(false)}
-                >
-                  Continuer
-                </Button>
-                <Button
-                  bg="app.error"
-                  color="bg.canvas"
-                  fontWeight="bold"
-                  onClick={confirmDiscard}
-                >
-                  Abandonner
-                </Button>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Dialog.Root>
+        <ProgramSaveStatus
+          state={saveState}
+          savedAt={savedAt}
+          onRetry={flush}
+        />
       </Box>
     </>
   );
