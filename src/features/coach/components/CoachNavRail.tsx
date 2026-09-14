@@ -15,8 +15,9 @@ export const CoachNavRail = () => {
       top={0}
       align="stretch"
       justify="space-between"
-      py={6}
-      px={4}
+      pt={6}
+      pb={2}
+      px={2}
       borderRight="1px solid"
       borderColor="whiteAlpha.100"
     >

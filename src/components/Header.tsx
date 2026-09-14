@@ -1,10 +1,21 @@
 import { useAuth } from '@/contexts/useAuth';
-import { Box, Menu, Avatar, Portal, HStack, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Menu,
+  Avatar,
+  Portal,
+  HStack,
+  Text,
+  Button,
+  VStack,
+} from '@chakra-ui/react';
 import {
   LuDumbbell,
   LuWrench,
   LuLogOut,
   LuClipboardCheck,
+  LuChevronUp,
+  LuUser,
 } from 'react-icons/lu';
 import { useNavigate } from 'react-router-dom';
 
@@ -45,29 +56,68 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
   );
 
   return (
-    <Box zIndex={2}>
-      <Menu.Root positioning={{ placement: 'bottom-end' }}>
+    <Box zIndex={2} borderTopWidth="1px" borderColor="whiteAlpha.200">
+      <Menu.Root positioning={{ placement: 'left-end' }}>
         <Menu.Trigger asChild>
           {variant === 'rail' ? (
-            <HStack
-              role="group"
+            <Button
               cursor="pointer"
+              w="100%"
+              justifyContent="flex-start"
               gap={2.5}
               px={2}
-              py={3}
+              py={7}
               mt={2}
-              borderTopWidth="1px"
-              borderColor="whiteAlpha.100"
+              borderWidth="2px"
+              borderColor="transparent"
+              bg="transparent"
               color="fg.muted"
-              _hover={{ color: 'app.primary' }}
+              _open={{
+                color: 'app.primary',
+                borderColor: 'app.primary',
+                bg: 'app.primary.bg',
+                outline: 'none',
+              }}
+              _hover={{
+                color: 'app.primary',
+                borderColor: 'app.primary',
+                bg: 'app.primary.bg',
+                outline: 'none',
+              }}
               transition="color 0.15s"
+              borderRadius="xl"
             >
               {avatar}
-              <Text fontSize="sm" fontWeight="medium" lineClamp={1}>
+              <Text
+                fontSize="sm"
+                fontWeight="medium"
+                lineClamp={1}
+                flex={1}
+                textAlign="left"
+              >
                 {user?.firstName}
               </Text>
-            </HStack>
+              <LuChevronUp />
+            </Button>
           ) : (
+            // <HStack
+            //   role="group"
+            //   cursor="pointer"
+            //   gap={2.5}
+            //   px={2}
+            //   py={3}
+            //   mt={2}
+            //   borderTopWidth="1px"
+            //   borderColor="whiteAlpha.100"
+            //   color="fg.muted"
+            //   _hover={{ color: 'app.primary' }}
+            //   transition="color 0.15s"
+            // >
+            //   {avatar}
+            //   <Text fontSize="sm" fontWeight="medium" lineClamp={1}>
+            //     {user?.firstName}
+            //   </Text>
+            // </HStack>
             <Box role="group" cursor="pointer" w="fit-content">
               {avatar}
             </Box>
@@ -75,7 +125,37 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
         </Menu.Trigger>
         <Portal>
           <Menu.Positioner>
-            <Menu.Content>
+            <Menu.Content
+              bg="bg.surface"
+              borderWidth="1px"
+              borderRadius="xl"
+              padding={1}
+            >
+              <HStack p={2}>
+                {avatar}
+                <VStack align="start" gap={0} ml={2}>
+                  <Text fontSize="sm" fontWeight="bold" color="fg">
+                    {user?.firstName} {user?.lastName}
+                  </Text>
+                  <Text fontSize="sm" color="fg.muted">
+                    {user?.email}
+                  </Text>
+                </VStack>
+              </HStack>
+              <Menu.Separator bg="whiteAlpha.200" />
+              <Menu.Item
+                value="my-account"
+                cursor="pointer"
+                onClick={() => navigate('/account')}
+                color="fg.muted"
+                _hover={{ color: 'fg', bg: 'whiteAlpha.100' }}
+                borderRadius="md"
+              >
+                <HStack gap={2}>
+                  <LuUser /> <Text>Mon compte</Text>
+                </HStack>
+              </Menu.Item>
+              <Menu.Separator bg="whiteAlpha.200" />
               {hasMultipleRoles && (
                 <>
                   {user?.isClient && (
@@ -83,6 +163,9 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
                       value="change-client"
                       cursor="pointer"
                       onClick={handleSwitchClientView}
+                      color="fg.muted"
+                      _hover={{ color: 'fg', bg: 'whiteAlpha.100' }}
+                      borderRadius="md"
                     >
                       <HStack gap={2}>
                         <LuDumbbell /> <Text>Vue Client</Text>
@@ -94,6 +177,9 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
                       value="change-coach"
                       cursor="pointer"
                       onClick={handleSwitchCoachView}
+                      color="fg.muted"
+                      _hover={{ color: 'fg', bg: 'whiteAlpha.100' }}
+                      borderRadius="md"
                     >
                       <HStack gap={2}>
                         <LuClipboardCheck /> <Text>Vue Coach</Text>
@@ -105,6 +191,9 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
                       value="change-admin"
                       cursor="pointer"
                       onClick={handleSwitchAdminView}
+                      color="fg.muted"
+                      _hover={{ color: 'fg', bg: 'whiteAlpha.100' }}
+                      borderRadius="md"
                     >
                       <HStack gap={2}>
                         <LuWrench /> <Text>Vue Admin</Text>
@@ -113,16 +202,18 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
                   )}
 
                   {(user?.isClient || user?.isCoach || user?.isAdmin) && (
-                    <Menu.Separator />
+                    <Menu.Separator bg="whiteAlpha.200" />
                   )}
                 </>
               )}
+              <Menu.Separator bg="whiteAlpha.200" />
               <Menu.Item
                 value="logout"
                 onClick={handleLogout}
                 color="fg.error"
                 cursor="pointer"
                 _hover={{ bg: 'bg.error', color: 'fg.error' }}
+                borderRadius="md"
               >
                 <HStack gap={2}>
                   <LuLogOut />
