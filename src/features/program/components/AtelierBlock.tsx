@@ -78,9 +78,25 @@ const ExerciseRow = ({
   };
 
   return (
+    // La ligne passe sur deux niveaux d'elle-même quand le nom n'a plus la
+    // place. Pas de point de rupture deviné : c'est la largeur réellement
+    // disponible qui décide, et elle ne dépend pas que de l'écran — à 768 px
+    // le rail des séances apparaît et ne laisse que 116 px au nom, moins qu'à
+    // 390 px. La métrique garde son `ml="auto"` : alignée à droite qu'elle
+    // soit sur la même ligne ou sur la suivante.
+    //
+    // Tout tient dans la `flex-basis` du nom, laissée à `auto` : la base est
+    // alors la largeur du nom écrit d'un trait. Un nom court tient à côté de
+    // la métrique et la ligne ne se casse pas ; un nom long ne tient pas, et
+    // c'est ce qui déclenche le retour. `flex={1}` — base nulle — ne cassait
+    // jamais, et un `min-width` en pourcentage est cyclique ici : la largeur
+    // du conteneur dépend des lignes, les lignes du minimum, le minimum du
+    // conteneur. Chromium le tient alors pour nul au moment de casser.
     <HStack
       py={1.5}
       gap={3}
+      rowGap={1}
+      flexWrap="wrap"
       align="center"
       borderTopWidth="1px"
       borderColor="whiteAlpha.100"
@@ -93,13 +109,15 @@ const ExerciseRow = ({
         },
       }}
     >
-      <HStack gap={1} flex={1} minW={0}>
+      <HStack gap={1} flex="1 1 auto" minW={0}>
         {showPrefix && (
           <Text fontSize="sm" color="fg.muted" flexShrink={0}>
             {index + 1} ·
           </Text>
         )}
-        <Text fontSize="sm" color="fg.muted" lineClamp={1}>
+        {/* Deux lignes plutôt qu'une : « Soulevé de terre jambes tendues à la
+            barre » en demande deux même sur toute la largeur d'un téléphone. */}
+        <Text fontSize="sm" color="fg.muted" lineClamp={2}>
           {exercise.exercise.name}
         </Text>
       </HStack>
@@ -107,7 +125,7 @@ const ExerciseRow = ({
       {/* La prescription, alignée à droite en chiffres tabulaires : c'est ce
           qu'on parcourt verticalement quand on relit une séance. */}
       {!ownMetrics && (
-        <HStack gap={1} flexShrink={0}>
+        <HStack gap={1} flexShrink={0} ml="auto">
           {supportsSets && (
             <>
               <InlineValue

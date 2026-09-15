@@ -69,18 +69,20 @@ export const BlockExerciseRow = ({
         py={1.5}
         minH="44px"
         gap={3}
+        rowGap={1}
+        flexWrap="wrap"
         align="center"
         css={hitArea(44)}
         _hover={{ color: 'fg' }}
         transition="color 0.12s"
       >
-        <HStack gap={1} flex={1} minW={0}>
+        <HStack gap={1} flex="1 1 auto" minW={0}>
           {blockIndexPrefix(blockType) && (
             <Text fontSize="sm" color="fg.muted" flexShrink={0}>
               {index + 1} ·
             </Text>
           )}
-          <Text fontSize="sm" color="fg.muted" lineClamp={1}>
+          <Text fontSize="sm" color="fg.muted" lineClamp={2}>
             {ex.name}
           </Text>
           {hasVideo && (
@@ -93,7 +95,7 @@ export const BlockExerciseRow = ({
         {/* La prescription, alignée à droite en chiffres tabulaires : c'est ce
             qu'on parcourt verticalement quand on relit une séance. */}
         {(metric || rest) && (
-          <VStack gap={0} align="end" flexShrink={0}>
+          <VStack gap={0} align="end" flexShrink={0} ml="auto">
             {metric && (
               <Text
                 fontSize="sm"
