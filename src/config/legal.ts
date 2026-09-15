@@ -44,8 +44,8 @@ export const LEGAL = {
       nom: 'Render Services, Inc.',
       adresse:
         '525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis',
-      /** Région du service Render : « Frankfurt (Allemagne) », « Oregon (États-Unis) »… */
-      region: A_COMPLETER,
+      /** Le service tourne à Francfort : le traitement reste dans l'Union. */
+      region: 'Francfort (Allemagne)',
     },
     base: {
       role: 'Hébergement de la base de données',
@@ -59,7 +59,12 @@ export const LEGAL = {
   /** Durées de conservation, à tenir en cohérence avec ce que fait le code. */
   conservation: {
     compteInactif: '3 ans sans connexion',
-    journaux: '6 mois',
+    /**
+     * Ce que l'hébergeur garde réellement des journaux du serveur. Annoncer
+     * une durée plus longue que la sienne serait une promesse qu'on ne tient
+     * pas ; plus courte, une affirmation fausse. À revoir si le plan change.
+     */
+    journaux: '7 jours, la durée de rétention de notre hébergeur',
   },
 } as const;
 

@@ -178,8 +178,7 @@ const Confidentialite = () => (
           </>,
           <>
             <b>{LEGAL.hebergeurs.api.nom}</b> — hébergement du serveur
-            applicatif, région{' '}
-            <AComplete valeur={LEGAL.hebergeurs.api.region} />.
+            applicatif, région {LEGAL.hebergeurs.api.region}.
           </>,
         ]}
       />
@@ -197,9 +196,10 @@ const Confidentialite = () => (
         permet pas de vous suivre d'un site à l'autre.
       </P>
       <P>
-        Vos données sont stockées en France : le cluster de base de données
-        tourne sur l'infrastructure d'Amazon Web Services à Paris. Elles ne
-        sont pas répliquées hors de l'Union européenne.
+        Vos données restent dans l'Union européenne. Le cluster de base de
+        données tourne sur l'infrastructure d'Amazon Web Services à Paris, et
+        le serveur qui les lit et les écrit est hébergé à Francfort. Rien
+        n'est répliqué hors de l'Union.
       </P>
       <P>
         Vercel, Render et MongoDB sont en revanche des sociétés de droit
