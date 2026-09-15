@@ -46,9 +46,15 @@ export const BlockExerciseRow = ({
       : null;
 
   const ex = exercise.exercise;
+  // Deux niveaux de consigne, qu'il ne faut pas empiler sans les distinguer.
+  // `exercise.note` est ce que le coach a écrit pour cette pose-ci, dans
+  // cette séance ; `ex.description` décrit le mouvement en général et vient
+  // de la bibliothèque, partagée par tous ses clients.
+  const consigne = exercise.note?.trim();
+  const hasNote = !!consigne;
   const hasDescription = !!ex.description?.trim();
   const hasVideo = !!ex.videoUrl?.trim();
-  const hasDetail = hasDescription || hasVideo;
+  const hasDetail = hasNote || hasDescription || hasVideo;
 
   // Toute ligne se déplie, même vide.
   //
@@ -133,15 +139,63 @@ export const BlockExerciseRow = ({
 
       {isOpen && (
         <VStack align="stretch" gap={3} pb={3}>
-          {hasDescription && (
-            <Text
-              fontSize="xs"
-              color="fg.muted"
-              lineHeight="tall"
-              whiteSpace="pre-wrap"
+          {/* Ce que le coach t'a écrit passe devant, et se reconnaît à la
+              barre ambrée — la même que sa note de séance. Ce qui vient de la
+              bibliothèque reste du texte nu, en dessous. */}
+          {hasNote && (
+            <Box
+              p={3}
+              bg="whiteAlpha.50"
+              borderRadius="md"
+              borderLeft="2px solid"
+              borderLeftColor="app.primary.border"
             >
-              {ex.description}
-            </Text>
+              <Text
+                fontSize="2xs"
+                color="fg.muted"
+                fontWeight="bold"
+                letterSpacing="wide"
+                textTransform="uppercase"
+                mb={1}
+              >
+                Consigne du coach
+              </Text>
+              <Text
+                fontSize="xs"
+                color="fg"
+                lineHeight="tall"
+                whiteSpace="pre-wrap"
+              >
+                {consigne}
+              </Text>
+            </Box>
+          )}
+          {hasDescription && (
+            <Box>
+              {/* Le titre n'apparaît que s'il y a deux textes à distinguer :
+                  seul, celui de la bibliothèque n'a pas besoin qu'on dise
+                  d'où il vient. */}
+              {hasNote && (
+                <Text
+                  fontSize="2xs"
+                  color="fg.muted"
+                  fontWeight="bold"
+                  letterSpacing="wide"
+                  textTransform="uppercase"
+                  mb={1}
+                >
+                  Le mouvement
+                </Text>
+              )}
+              <Text
+                fontSize="xs"
+                color="fg.muted"
+                lineHeight="tall"
+                whiteSpace="pre-wrap"
+              >
+                {ex.description}
+              </Text>
+            </Box>
           )}
           {hasVideo && <VideoPlayer url={ex.videoUrl!} />}
           {!hasDetail && (

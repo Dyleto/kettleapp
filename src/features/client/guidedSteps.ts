@@ -13,8 +13,10 @@ export type GuidedStep =
       blockLabel: string;
       exerciseName: string;
       exerciseId: string;
-      /** La consigne et la vidéo du coach, consultables sans quitter l'étape. */
+      /** La technique du mouvement, telle qu'elle vit dans la bibliothèque. */
       description?: string;
+      /** Ce que le coach a écrit pour cet exercice, dans cette séance-là. */
+      coachNote?: string;
       videoUrl?: string;
       metric: string;
       /**
@@ -66,6 +68,7 @@ const pushExerciseSteps = (
       exerciseName: ex.exercise.name,
       exerciseId: ex.exercise._id,
       description: ex.exercise.description,
+      coachNote: ex.note,
       videoUrl: ex.exercise.videoUrl,
       ...effortOf(ex),
     });
@@ -94,6 +97,7 @@ const buildSetBasedSteps = (
         exerciseName: ex.exercise.name,
         exerciseId: ex.exercise._id,
         description: ex.exercise.description,
+        coachNote: ex.note,
         videoUrl: ex.exercise.videoUrl,
         ...effort,
         ...(setCount > 1 ? { setIndex: set, setCount } : {}),

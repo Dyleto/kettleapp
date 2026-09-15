@@ -356,7 +356,9 @@ export const GuidedSession = ({
   const isRest = step.type === 'rest';
   const hasDetail =
     step.type === 'exercise' &&
-    (!!step.description?.trim() || !!step.videoUrl?.trim());
+    (!!step.coachNote?.trim() ||
+      !!step.description?.trim() ||
+      !!step.videoUrl?.trim());
   const lastLabel =
     step.type === 'exercise'
       ? formatLastPerformance(lastPerformance?.get(step.exerciseId))
@@ -546,10 +548,56 @@ export const GuidedSession = ({
               </Box>
             </HStack>
 
+            {/* Ce que le coach a écrit pour cette séance passe devant, et se
+                reconnaît à la barre ambrée. La technique du mouvement, qui
+                vient de la bibliothèque, reste du texte nu en dessous. */}
+            {step.coachNote?.trim() && (
+              <Box
+                p={3}
+                bg="whiteAlpha.50"
+                borderRadius="md"
+                borderLeft="2px solid"
+                borderLeftColor="app.primary.border"
+                mb={4}
+              >
+                <Text
+                  fontSize="2xs"
+                  color="fg.muted"
+                  fontWeight="bold"
+                  letterSpacing="wide"
+                  textTransform="uppercase"
+                  mb={1}
+                >
+                  Consigne du coach
+                </Text>
+                <Text fontSize="sm" color="fg" whiteSpace="pre-wrap">
+                  {step.coachNote}
+                </Text>
+              </Box>
+            )}
             {step.description?.trim() && (
-              <Text fontSize="sm" color="fg" whiteSpace="pre-wrap" mb={4}>
-                {step.description}
-              </Text>
+              <>
+                {step.coachNote?.trim() && (
+                  <Text
+                    fontSize="2xs"
+                    color="fg.muted"
+                    fontWeight="bold"
+                    letterSpacing="wide"
+                    textTransform="uppercase"
+                    mb={1}
+                  >
+                    Le mouvement
+                  </Text>
+                )}
+                <Text
+                  fontSize="sm"
+                  color={step.coachNote?.trim() ? 'fg.muted' : 'fg'}
+                  whiteSpace="pre-wrap"
+                  mb={4}
+                >
+                  {step.description}
+                </Text>
+              </>
             )}
             {step.videoUrl?.trim() && <VideoPlayer url={step.videoUrl} />}
           </Box>

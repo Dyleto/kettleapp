@@ -3,6 +3,7 @@ import { useState } from 'react';
 import {
   LuArrowLeftRight,
   LuGripVertical,
+  LuMessageSquare,
   LuPlus,
   LuTrash2,
   LuX,
@@ -58,6 +59,13 @@ const ExerciseRow = ({
   onUpdate,
   onRemove,
 }: ExerciseRowProps) => {
+  // La consigne d'un exercice n'a pas d'invitation permanente sous chaque
+  // ligne : cinq exercices, ce serait cinq « + consigne » à lire avant de
+  // lire le programme. Elle s'ouvre par la gouttière, là où vivent déjà les
+  // commandes de la ligne, et ne s'affiche ensuite que si elle existe.
+  const [noteOuverte, setNoteOuverte] = useState(false);
+  const aUneNote = !!exercise.note?.trim();
+
   const kind = kindOf(exercise);
   const supportsSets = blockSupportsSets(block.type);
   const ownMetrics = blockDefinesOwnMetrics(block.type);
@@ -77,7 +85,7 @@ const ExerciseRow = ({
       });
   };
 
-  return (
+  const ligne = (
     // La ligne passe sur deux niveaux d'elle-même quand le nom n'a plus la
     // place. Pas de point de rupture deviné : c'est la largeur réellement
     // disponible qui décide, et elle ne dépend pas que de l'écran — à 768 px
@@ -102,8 +110,6 @@ const ExerciseRow = ({
       rowGap={1}
       flexWrap="wrap"
       align="center"
-      borderTopWidth="1px"
-      borderColor="whiteAlpha.100"
       css={{
         // Visibles en permanence, en retrait : à zéro, un coach qui découvre
         // l'atelier ne pouvait pas deviner qu'un bloc se déplace ou se
@@ -239,6 +245,20 @@ const ExerciseRow = ({
           opacity={{ base: 1, md: 0.35 }}
           transition="opacity 0.15s"
         >
+          <IconButton
+            aria-label={
+              aUneNote
+                ? `Modifier la consigne — ${exercise.exercise.name}`
+                : `Ajouter une consigne — ${exercise.exercise.name}`
+            }
+            css={hitArea(32)}
+            size="2xs"
+            variant="ghost"
+            color={aUneNote ? 'app.primary' : 'fg.muted'}
+            onClick={() => setNoteOuverte(true)}
+          >
+            <LuMessageSquare size={11} />
+          </IconButton>
           {!ownMetrics && (
             <IconButton
               aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
@@ -265,6 +285,27 @@ const ExerciseRow = ({
         </HStack>
       </HStack>
     </HStack>
+  );
+
+  return (
+    <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
+      {ligne}
+      {/* La consigne se pose sous sa ligne, hors du calcul de retour à la
+          ligne de celle-ci, et n'apparaît que si elle existe ou qu'on vient
+          de la demander. */}
+      {(aUneNote || noteOuverte) && (
+        <Box pb={1.5} pl={1}>
+          <InlineText
+            value={exercise.note}
+            onChange={(note) => onUpdate({ note })}
+            addLabel="+ consigne"
+            ariaLabel={`Consigne — ${exercise.exercise.name}`}
+            startOpen={noteOuverte && !aUneNote}
+            multiline
+          />
+        </Box>
+      )}
+    </Box>
   );
 };
 

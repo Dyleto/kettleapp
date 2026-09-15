@@ -118,6 +118,14 @@ export interface BlockExercise {
   reps?: number;
   duration?: number;
   customMetric?: CustomMetric;
+  /**
+   * La consigne du coach pour cet exercice, dans cette séance-là.
+   *
+   * À distinguer de `exercise.description`, qui décrit le mouvement en
+   * général et vit dans la bibliothèque, partagée par tous les clients et
+   * toutes les séances.
+   */
+  note?: string;
 }
 
 export interface SessionBlock {
@@ -171,6 +179,8 @@ export interface BlockExerciseSnapshot {
   reps?: number;
   duration?: number;
   customMetric?: CustomMetric;
+  /** La consigne du coach, telle qu'elle était le jour de la séance. */
+  note?: string;
   performed?: PerformedValues;
 }
 

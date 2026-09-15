@@ -53,6 +53,7 @@ export const useUpdateProgramSessions = (
               duration: ex.duration,
               restBetweenSets: ex.restBetweenSets,
               customMetric: ex.customMetric,
+              note: ex.note?.trim() || undefined,
             })),
         })),
       }));

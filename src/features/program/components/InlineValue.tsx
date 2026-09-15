@@ -251,6 +251,12 @@ interface InlineTextProps {
    * Un nom de bloc, lui, reste sur une ligne : il tient dans une étiquette.
    */
   multiline?: boolean;
+  /**
+   * Monte le champ déjà ouvert. Sert quand l'invitation à écrire vit ailleurs
+   * — une commande de la gouttière, par exemple — et qu'il serait absurde de
+   * demander un second clic sur un « + consigne » qu'on vient de réclamer.
+   */
+  startOpen?: boolean;
 }
 
 /**
@@ -269,8 +275,9 @@ export const InlineText = ({
   fontSize = 'xs',
   width = '100%',
   multiline = false,
+  startOpen = false,
 }: InlineTextProps) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startOpen);
   const hasValue = !!value?.trim();
 
   if (!hasValue && !isEditing) {

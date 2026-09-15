@@ -68,6 +68,7 @@ const toSessionBlock = (
         reps: ex.reps,
         duration: ex.duration,
         customMetric: ex.customMetric,
+        note: ex.note,
       }) satisfies BlockExercise
   ),
 });
