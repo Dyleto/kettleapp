@@ -153,6 +153,7 @@ export const ClientProgramTab = ({
               addLabel="+ note de séance"
               ariaLabel="Note de la séance"
               fontSize="sm"
+              multiline
             />
           </Box>
           {/* Le jour conseillé est un attribut de la séance, au même rang que

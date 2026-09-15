@@ -1,5 +1,6 @@
 import { Box, Input, Text } from '@chakra-ui/react';
 import { hitArea } from '@/components/hitArea';
+import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
 import { useState } from 'react';
 
 interface InlineValueProps {
@@ -242,6 +243,14 @@ interface InlineTextProps {
   ariaLabel: string;
   fontSize?: string;
   width?: string;
+  /**
+   * Un texte qui peut tenir sur plusieurs lignes : note de séance, consigne de
+   * bloc. Le champ devient une zone qui grandit avec le texte, et Entrée y
+   * insère un retour au lieu de refermer.
+   *
+   * Un nom de bloc, lui, reste sur une ligne : il tient dans une étiquette.
+   */
+  multiline?: boolean;
 }
 
 /**
@@ -259,6 +268,7 @@ export const InlineText = ({
   ariaLabel,
   fontSize = 'xs',
   width = '100%',
+  multiline = false,
 }: InlineTextProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const hasValue = !!value?.trim();
@@ -294,27 +304,51 @@ export const InlineText = ({
   }
 
   if (isEditing) {
+    const communes = {
+      autoFocus: true,
+      'aria-label': ariaLabel,
+      value: value ?? '',
+      onBlur: () => setIsEditing(false),
+      bg: 'whiteAlpha.100',
+      borderColor: 'app.primary.border',
+      borderRadius: 'sm',
+      fontSize,
+      px: 1,
+      w: width,
+    } as const;
+
+    if (multiline) {
+      return (
+        <AutoResizeTextarea
+          {...communes}
+          minH="20px"
+          py={0.5}
+          lineHeight="1.6"
+          onChange={(e) => onChange(e.target.value || undefined)}
+          onKeyDown={(e) => {
+            // Entrée sert au texte. Échap referme, et Ctrl/⌘+Entrée aussi —
+            // pour qui a l'habitude de valider au clavier.
+            if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
+              e.preventDefault();
+              setIsEditing(false);
+            }
+          }}
+        />
+      );
+    }
+
     return (
       <Input
-        autoFocus
+        {...communes}
         size="xs"
-        w={width}
         h="20px"
-        px={1}
-        fontSize={fontSize}
-        aria-label={ariaLabel}
-        value={value ?? ''}
         onChange={(e) => onChange(e.target.value || undefined)}
-        onBlur={() => setIsEditing(false)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === 'Escape') {
             e.preventDefault();
             setIsEditing(false);
           }
         }}
-        bg="whiteAlpha.100"
-        borderColor="app.primary.border"
-        borderRadius="sm"
       />
     );
   }
@@ -337,7 +371,14 @@ export const InlineText = ({
       css={hitArea(32)}
       transition="text-decoration-color 0.15s"
     >
-      <Text as="span" fontSize={fontSize} color="fg.muted">
+      {/* Sans `pre-wrap`, les retours saisis seraient écrasés à la relecture :
+          le texte repartirait sur une seule ligne, sans que rien ne le dise. */}
+      <Text
+        as="span"
+        fontSize={fontSize}
+        color="fg.muted"
+        whiteSpace={multiline ? 'pre-wrap' : undefined}
+      >
         {value}
       </Text>
     </Box>

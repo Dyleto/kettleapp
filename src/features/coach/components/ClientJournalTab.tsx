@@ -85,7 +85,13 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
         </HStack>
       </HStack>
       {completed.clientNotes ? (
-        <Text fontSize="sm" color="fg" fontStyle="italic" mt={1.5}>
+        <Text
+          fontSize="sm"
+          color="fg"
+          fontStyle="italic"
+          mt={1.5}
+          whiteSpace="pre-wrap"
+        >
           "{completed.clientNotes}"
         </Text>
       ) : (

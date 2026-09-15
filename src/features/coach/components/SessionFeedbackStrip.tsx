@@ -135,7 +135,13 @@ export const SessionFeedbackStrip = ({
                     {getRelativeDate(completed.completedAt)}
                   </Text>
                   {completed.clientNotes ? (
-                    <Text fontSize="xs" color="fg" fontStyle="italic" mt={0.5}>
+                    <Text
+                      fontSize="xs"
+                      color="fg"
+                      fontStyle="italic"
+                      mt={0.5}
+                      whiteSpace="pre-wrap"
+                    >
                       "{completed.clientNotes}"
                     </Text>
                   ) : (

@@ -367,6 +367,7 @@ export const AtelierBlock = ({
           addLabel="+ consigne"
           ariaLabel={`Consigne du bloc ${getBlockLabel(block.type)}`}
           width="100%"
+          multiline
         />
       }
     >
