@@ -48,8 +48,17 @@ export const BLOCK_FAMILIES: {
   { key: 'progressive', label: 'Progressif', types: ['pyramid', 'ladder'] },
 ];
 
+/**
+ * Blocs où un exercice peut porter un nombre de séries — et donc un repos
+ * entre elles.
+ *
+ * L'échauffement en fait partie : « 3 × 10 rotations d'épaules » est un
+ * échauffement parfaitement ordinaire, et le coach ne pouvait écrire que
+ * « 10 ». Il n'y a pas de série par défaut pour autant : sans nombre écrit,
+ * un exercice d'échauffement se fait une fois, comme aujourd'hui.
+ */
 export const blockSupportsSets = (type: BlockType): boolean =>
-  type === 'classic';
+  type === 'classic' || type === 'warmup';
 
 // Blocs où le timing est entièrement défini par le schéma du bloc (aucune métrique par exercice)
 export const blockDefinesOwnMetrics = (type: BlockType): boolean =>

@@ -27,9 +27,13 @@ const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
 };
 
 const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
+  // L'échauffement accepte les séries mais n'en pose pas : le cas courant
+  // reste un passage unique. Poser trois séries par défaut ferait aussi
+  // passer le mode guidé de une à trois pages sur chaque échauffement neuf.
+  // Ce test passe donc avant celui des blocs à séries.
+  if (blockType === 'warmup') return { reps: 10 };
   if (blockSupportsSets(blockType))
     return { sets: 3, reps: 10, restBetweenSets: 60 };
-  if (blockType === 'warmup') return { reps: 10 };
   if (['tabata', 'onoff'].includes(blockType)) return { reps: 5 };
   if (['pyramid', 'ladder'].includes(blockType)) return {};
   return { reps: 10 };

@@ -93,6 +93,10 @@ const ExerciseRow = ({
     // du conteneur dépend des lignes, les lignes du minimum, le minimum du
     // conteneur. Chromium le tient alors pour nul au moment de casser.
     <HStack
+      // Ancrage stable pour les mesures de mise en page : sans lui, une sonde
+      // doit remonter le DOM en comptant les niveaux, et le moindre
+      // regroupement la casse sans rien casser dans l'application.
+      data-exercise-row
       py={1.5}
       gap={3}
       rowGap={1}
@@ -124,131 +128,141 @@ const ExerciseRow = ({
 
       {/* La prescription, alignée à droite en chiffres tabulaires : c'est ce
           qu'on parcourt verticalement quand on relit une séance. */}
-      {!ownMetrics && (
-        <HStack gap={1} flexShrink={0} ml="auto">
-          {supportsSets && (
-            <>
-              <InlineValue
-                value={exercise.sets}
-                onChange={(v) => onUpdate({ sets: v })}
-                ariaLabel={`Séries — ${exercise.exercise.name}`}
-                min={1}
-                width="44px"
-              />
-              <Text as="span" fontSize="sm" color="fg.muted">
-                ×
-              </Text>
-            </>
-          )}
+      {/* La prescription et les commandes forment un seul élément : sans ce
+          groupe, elles se cassaient indépendamment et les commandes se
+          retrouvaient seules sur la ligne du dessous, à gauche, orphelines. */}
+      <HStack gap={3} flexShrink={0} ml="auto" align="center">
+        {!ownMetrics && (
+          <HStack gap={1} flexShrink={0}>
+            {supportsSets && (
+              <>
+                {/* Sans nombre écrit, l'exercice se fait une fois : « 1 » est
+                  la lecture juste, et c'est aussi la cible à cliquer pour en
+                  demander plusieurs. */}
+                <InlineValue
+                  value={exercise.sets}
+                  onChange={(v) => onUpdate({ sets: v })}
+                  ariaLabel={`Séries — ${exercise.exercise.name}`}
+                  emptyLabel="1"
+                  min={1}
+                  width="44px"
+                  clearable
+                />
+                <Text as="span" fontSize="sm" color="fg.muted">
+                  ×
+                </Text>
+              </>
+            )}
 
-          {kind === 'reps' && (
-            <InlineValue
-              value={exercise.reps}
-              onChange={(v) => onUpdate({ reps: v })}
-              suffix="reps"
-              ariaLabel={`Répétitions — ${exercise.exercise.name}`}
-              width="56px"
-            />
-          )}
-          {kind === 'duration' && (
-            <InlineValue
-              value={exercise.duration}
-              onChange={(v) => onUpdate({ duration: v })}
-              suffix="s"
-              ariaLabel={`Durée — ${exercise.exercise.name}`}
-              width="56px"
-            />
-          )}
-          {kind === 'custom' && (
-            <HStack gap={1}>
+            {kind === 'reps' && (
               <InlineValue
-                value={exercise.customMetric?.value}
-                onChange={(v) =>
-                  onUpdate({
-                    customMetric: {
-                      value: v ?? 0,
-                      unit: exercise.customMetric?.unit || 'm',
-                    },
-                  })
-                }
-                ariaLabel={`Mesure — ${exercise.exercise.name}`}
+                value={exercise.reps}
+                onChange={(v) => onUpdate({ reps: v })}
+                suffix="reps"
+                ariaLabel={`Répétitions — ${exercise.exercise.name}`}
                 width="56px"
               />
-              <Input
-                size="xs"
-                w="44px"
-                h="22px"
-                px={1}
-                textAlign="center"
-                aria-label={`Unité — ${exercise.exercise.name}`}
-                value={exercise.customMetric?.unit ?? ''}
-                onChange={(e) =>
-                  onUpdate({
-                    customMetric: {
-                      value: exercise.customMetric?.value ?? 0,
-                      unit: e.target.value,
-                    },
-                  })
-                }
-                bg="whiteAlpha.50"
-                borderColor="whiteAlpha.100"
-                borderRadius="sm"
-                fontSize="xs"
-              />
-            </HStack>
-          )}
-
-          {supportsSets && (exercise.sets ?? 1) > 1 && (
-            <HStack gap={1} pl={2}>
-              <Text as="span" fontSize="xs" color="fg.muted">
-                repos
-              </Text>
+            )}
+            {kind === 'duration' && (
               <InlineValue
-                value={exercise.restBetweenSets}
-                onChange={(v) => onUpdate({ restBetweenSets: v })}
+                value={exercise.duration}
+                onChange={(v) => onUpdate({ duration: v })}
                 suffix="s"
-                emptyLabel="aucun"
-                ariaLabel={`Repos entre séries — ${exercise.exercise.name}`}
-                width="52px"
-                clearable
+                ariaLabel={`Durée — ${exercise.exercise.name}`}
+                width="56px"
               />
-            </HStack>
-          )}
-        </HStack>
-      )}
+            )}
+            {kind === 'custom' && (
+              <HStack gap={1}>
+                <InlineValue
+                  value={exercise.customMetric?.value}
+                  onChange={(v) =>
+                    onUpdate({
+                      customMetric: {
+                        value: v ?? 0,
+                        unit: exercise.customMetric?.unit || 'm',
+                      },
+                    })
+                  }
+                  ariaLabel={`Mesure — ${exercise.exercise.name}`}
+                  width="56px"
+                />
+                <Input
+                  size="xs"
+                  w="44px"
+                  h="22px"
+                  px={1}
+                  textAlign="center"
+                  aria-label={`Unité — ${exercise.exercise.name}`}
+                  value={exercise.customMetric?.unit ?? ''}
+                  onChange={(e) =>
+                    onUpdate({
+                      customMetric: {
+                        value: exercise.customMetric?.value ?? 0,
+                        unit: e.target.value,
+                      },
+                    })
+                  }
+                  bg="whiteAlpha.50"
+                  borderColor="whiteAlpha.100"
+                  borderRadius="sm"
+                  fontSize="xs"
+                />
+              </HStack>
+            )}
 
-      {/* Gouttière : révélée au survol ou au focus clavier, toujours visible
+            {supportsSets && (exercise.sets ?? 1) > 1 && (
+              <HStack gap={1} pl={2}>
+                <Text as="span" fontSize="xs" color="fg.muted">
+                  repos
+                </Text>
+                <InlineValue
+                  value={exercise.restBetweenSets}
+                  onChange={(v) => onUpdate({ restBetweenSets: v })}
+                  suffix="s"
+                  emptyLabel="aucun"
+                  ariaLabel={`Repos entre séries — ${exercise.exercise.name}`}
+                  width="52px"
+                  clearable
+                />
+              </HStack>
+            )}
+          </HStack>
+        )}
+
+        {/* Gouttière : révélée au survol ou au focus clavier, toujours visible
           au tactile où le survol n'existe pas. */}
-      <HStack
-        data-row-gutter
-        gap={2}
-        flexShrink={0}
-        opacity={{ base: 1, md: 0.35 }}
-        transition="opacity 0.15s"
-      >
-        {!ownMetrics && (
+        <HStack
+          data-row-gutter
+          gap={2}
+          flexShrink={0}
+          opacity={{ base: 1, md: 0.35 }}
+          transition="opacity 0.15s"
+        >
+          {!ownMetrics && (
+            <IconButton
+              aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
+              css={hitArea(32)}
+              size="2xs"
+              variant="ghost"
+              color="fg.muted"
+              onClick={switchKind}
+            >
+              <LuArrowLeftRight size={11} />
+            </IconButton>
+          )}
           <IconButton
-            aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
+            aria-label={`Retirer ${exercise.exercise.name}`}
             css={hitArea(32)}
             size="2xs"
             variant="ghost"
             color="fg.muted"
-            onClick={switchKind}
+            _hover={{ color: 'app.error' }}
+            onClick={onRemove}
           >
-            <LuArrowLeftRight size={11} />
+            <LuX size={12} />
           </IconButton>
-        )}
-        <IconButton
-          aria-label={`Retirer ${exercise.exercise.name}`}
-          css={hitArea(32)}
-          size="2xs"
-          variant="ghost"
-          color="fg.muted"
-          _hover={{ color: 'app.error' }}
-          onClick={onRemove}
-        >
-          <LuX size={12} />
-        </IconButton>
+        </HStack>
       </HStack>
     </HStack>
   );

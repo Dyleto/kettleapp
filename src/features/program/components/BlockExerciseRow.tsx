@@ -61,6 +61,7 @@ export const BlockExerciseRow = ({
     <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
       <HStack
         as="button"
+        data-exercise-row
         w="full"
         textAlign="left"
         aria-expanded={isOpen}
@@ -92,37 +93,40 @@ export const BlockExerciseRow = ({
           )}
         </HStack>
 
-        {/* La prescription, alignée à droite en chiffres tabulaires : c'est ce
-            qu'on parcourt verticalement quand on relit une séance. */}
-        {(metric || rest) && (
-          <VStack gap={0} align="end" flexShrink={0} ml="auto">
-            {metric && (
-              <Text
-                fontSize="sm"
-                color="fg"
-                fontWeight="semibold"
-                fontFamily="mono"
-              >
-                {metric}
-              </Text>
-            )}
-            {rest && (
-              <Text fontSize="xs" color="fg.muted">
-                {rest}
-              </Text>
-            )}
-          </VStack>
-        )}
+        {/* La prescription et le chevron forment un seul élément de flex :
+            séparés, ils se cassaient indépendamment et le chevron se
+            retrouvait seul sur la ligne du dessous. */}
+        <HStack gap={3} flexShrink={0} ml="auto" align="center">
+          {(metric || rest) && (
+            <VStack gap={0} align="end" flexShrink={0}>
+              {metric && (
+                <Text
+                  fontSize="sm"
+                  color="fg"
+                  fontWeight="semibold"
+                  fontFamily="mono"
+                >
+                  {metric}
+                </Text>
+              )}
+              {rest && (
+                <Text fontSize="xs" color="fg.muted">
+                  {rest}
+                </Text>
+              )}
+            </VStack>
+          )}
 
-        <Box
-          color="fg.muted"
-          flexShrink={0}
-          opacity={hasDetail ? 1 : 0.45}
-          transition="transform 0.2s"
-          transform={isOpen ? 'rotate(180deg)' : 'none'}
-        >
-          <LuChevronDown size={13} />
-        </Box>
+          <Box
+            color="fg.muted"
+            flexShrink={0}
+            opacity={hasDetail ? 1 : 0.45}
+            transition="transform 0.2s"
+            transform={isOpen ? 'rotate(180deg)' : 'none'}
+          >
+            <LuChevronDown size={13} />
+          </Box>
+        </HStack>
       </HStack>
 
       {extra && <Box pb={1.5}>{extra}</Box>}
