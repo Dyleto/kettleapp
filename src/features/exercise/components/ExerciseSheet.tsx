@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { LuExternalLink, LuTrash2, LuVideo, LuX } from 'react-icons/lu';
 import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
 import { Exercise } from '@/types';
-import { getVideoEmbedUrl } from '@/utils/videoUtils';
+import { parseYouTubeUrl } from '@/utils/videoUtils';
 import { useUpdateExercise } from '@/features/exercise/hooks/useExerciseMutations';
 import VideoPlayer from '@/components/VideoPlayer';
 
@@ -168,8 +168,8 @@ interface ExerciseSheetProps {
  */
 const validateVideoUrl = (value: string): string | null => {
   if (value === '') return null;
-  if (getVideoEmbedUrl(value)) return null;
-  return 'Lien non reconnu — seuls YouTube (watch, youtu.be, Shorts) et Vimeo sont lus.';
+  if (parseYouTubeUrl(value)) return null;
+  return 'Lien non reconnu — seul YouTube est lu : watch, youtu.be ou Shorts.';
 };
 
 /** `blocksDeletion` : une corbeille est offerte, et cet usage l'empêche. */
@@ -194,9 +194,7 @@ export const ExerciseSheet = ({
   onDelete,
 }: ExerciseSheetProps) => {
   const updateMutation = useUpdateExercise();
-  const embedUrl = exercise.videoUrl
-    ? getVideoEmbedUrl(exercise.videoUrl)
-    : null;
+  const video = exercise.videoUrl ? parseYouTubeUrl(exercise.videoUrl) : null;
   const usage = exercise.usageCount ?? 0;
 
   const patch = (field: Editable) => (value: string) =>
@@ -258,7 +256,7 @@ export const ExerciseSheet = ({
       />
 
       {/* ── Vidéo ── */}
-      {embedUrl ? (
+      {video ? (
         <VStack gap={2} align="stretch">
           {/* Vignette d'abord, lecteur au clic : la fiche n'appelle plus
               YouTube tant que personne n'a demandé à voir la vidéo, et ne

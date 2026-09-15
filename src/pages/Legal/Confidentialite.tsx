@@ -177,10 +177,9 @@ const Confidentialite = () => (
             l'application.
           </>,
           <>
-            <b>
-              <AComplete valeur={LEGAL.hebergeurs.api.nom} />
-            </b>{' '}
-            — hébergement du serveur applicatif.
+            <b>{LEGAL.hebergeurs.api.nom}</b> — hébergement du serveur
+            applicatif, région{' '}
+            <AComplete valeur={LEGAL.hebergeurs.api.region} />.
           </>,
         ]}
       />
@@ -198,10 +197,16 @@ const Confidentialite = () => (
         permet pas de vous suivre d'un site à l'autre.
       </P>
       <P>
-        Vercel et MongoDB sont des sociétés de droit américain. Les transferts
-        de données éventuels vers les États-Unis sont encadrés par les clauses
-        contractuelles types de la Commission européenne et, le cas échéant,
-        par le Data Privacy Framework.
+        Vos données sont stockées en France : le cluster de base de données
+        tourne sur l'infrastructure d'Amazon Web Services à Paris. Elles ne
+        sont pas répliquées hors de l'Union européenne.
+      </P>
+      <P>
+        Vercel, Render et MongoDB sont en revanche des sociétés de droit
+        américain, susceptibles d'accéder aux données depuis les États-Unis
+        pour exploiter et maintenir leurs services. Ces accès sont encadrés par
+        les clauses contractuelles types de la Commission européenne et, pour
+        les prestataires qui y ont adhéré, par le Data Privacy Framework.
       </P>
     </Article>
 

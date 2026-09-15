@@ -1,24 +1,11 @@
 import { Box, Image, Text, useBreakpointValue } from '@chakra-ui/react';
 import { useState } from 'react';
 import { LuPlay } from 'react-icons/lu';
+import { parseYouTubeUrl } from '@/utils/videoUtils';
 
 interface VideoPlayerProps {
   url: string;
 }
-
-const parseYouTube = (videoUrl: string) => {
-  // YouTube standard (watch?v=)
-  const standardMatch = videoUrl.match(
-    /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
-  );
-  if (standardMatch) return { id: standardMatch[1], isShort: false };
-
-  // YouTube Shorts
-  const shortsMatch = videoUrl.match(/youtube\.com\/shorts\/([^"&?/\s]+)/);
-  if (shortsMatch) return { id: shortsMatch[1], isShort: true };
-
-  return null;
-};
 
 /**
  * La vidéo d'un exercice : une vignette, puis le lecteur au clic.
@@ -39,7 +26,7 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
   const [thumbFailed, setThumbFailed] = useState(false);
 
   if (!url) return null;
-  const parsed = parseYouTube(url);
+  const parsed = parseYouTubeUrl(url);
 
   if (!parsed) {
     return (

@@ -1,24 +1,31 @@
 /**
- * Retourne l'URL embed (YouTube ou Vimeo) à partir d'une URL de vidéo quelconque.
- * Retourne null si le format n'est pas reconnu.
+ * Lecture d'un lien vidéo d'exercice.
+ *
+ * Seul YouTube est lu. Vimeo était accepté à la saisie par une fonction, et
+ * refusé à l'affichage par une autre : le coach enregistrait son lien, la
+ * validation le laissait passer, puis sa fiche affichait « Lien YouTube non
+ * reconnu ». Deux analyseurs pour la même URL, qui n'étaient pas d'accord.
+ *
+ * Il n'y en a plus qu'un. Ce qui est accepté est exactement ce qui se lit.
  */
-export const getVideoEmbedUrl = (url: string): string | null => {
-  // YouTube : watch?v=, youtu.be/, shorts/, embed/
-  const ytPatterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-  ];
-  for (const pattern of ytPatterns) {
-    const match = url.match(pattern);
-    if (match) {
-      return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1`;
-    }
-  }
+export interface YouTubeVideo {
+  id: string;
+  /** Un Short se lit en vertical sur téléphone. */
+  isShort: boolean;
+}
 
-  // Vimeo : vimeo.com/ID ou player.vimeo.com/video/ID
-  const vimeoMatch = url.match(/(?:vimeo\.com\/(?:video\/)?)(\d+)/);
-  if (vimeoMatch) {
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}?dnt=1`;
-  }
+export const parseYouTubeUrl = (url: string): YouTubeVideo | null => {
+  if (!url?.trim()) return null;
+
+  // Shorts d'abord : leur adresse contient `/shorts/`, que le motif général
+  // ne reconnaît pas.
+  const shorts = url.match(/youtube\.com\/shorts\/([^"&?/\s]+)/);
+  if (shorts) return { id: shorts[1], isShort: true };
+
+  const standard = url.match(
+    /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
+  );
+  if (standard) return { id: standard[1], isShort: false };
 
   return null;
 };
