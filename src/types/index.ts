@@ -34,6 +34,8 @@ export interface AccountSummary {
       linkedAt: string;
     }[];
     completedCount: number;
+    /** Combien de bilans un refus effacerait. Zéro = rien à avertir. */
+    healthDataCount: number;
     healthConsent: HealthConsent | null;
     since: string;
   } | null;

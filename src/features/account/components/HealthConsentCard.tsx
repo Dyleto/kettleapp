@@ -1,18 +1,13 @@
 import { useState } from 'react';
-import {
-  Box,
-  Button,
-  Dialog,
-  HStack,
-  Spinner,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
+import { Box, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
 import { HealthConsent } from '@/types';
 import { useSetHealthConsent } from '../hooks/useAccount';
+import { ConfirmRefusSante } from './ConfirmRefusSante';
 
 interface Props {
   consent: HealthConsent | null;
+  /** Combien de bilans un retrait effacerait. */
+  healthDataCount: number;
 }
 
 const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
@@ -28,7 +23,7 @@ const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
  * geste, au même endroit, sans confirmation. Un accord qu'on ne peut pas
  * reprendre d'un doigt n'en est pas un.
  */
-export const HealthConsentCard = ({ consent }: Props) => {
+export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   const { mutate, isPending } = useSetHealthConsent();
   const [retraitOuvert, setRetraitOuvert] = useState(false);
   const granted = consent?.granted === true;
@@ -38,11 +33,14 @@ export const HealthConsentCard = ({ consent }: Props) => {
   // ce qui a déjà été enregistré est effacé, et ça ne se rattrape pas.
   const basculer = () => {
     if (isPending) return;
-    if (granted) {
+    // Retirer son accord alors qu'il n'y a rien d'enregistré n'efface rien :
+    // la fenêtre n'aurait rien à annoncer, et retirer doit rester aussi
+    // simple que donner.
+    if (granted && healthDataCount > 0) {
       setRetraitOuvert(true);
       return;
     }
-    mutate(true);
+    mutate(!granted);
   };
 
   return (
@@ -117,55 +115,18 @@ export const HealthConsentCard = ({ consent }: Props) => {
         </Text>
       </VStack>
 
-      <Dialog.Root
+      <ConfirmRefusSante
         open={retraitOuvert}
-        onOpenChange={(e) => !e.open && setRetraitOuvert(false)}
-      >
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content
-            bg="bg.canvas"
-            borderColor="whiteAlpha.100"
-            borderWidth="1px"
-            maxW="sm"
-          >
-            <Dialog.Header>
-              <Dialog.Title>Retirer ton accord ?</Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body>
-              <Text fontSize="sm" color="fg.muted" lineHeight="1.6">
-                Les étiquettes de ressenti et les commentaires que tu as déjà
-                écrits seront effacés de toutes tes séances. Tes charges, tes
-                séries et ton niveau d'effort restent, et ton coach continue de
-                les voir.
-              </Text>
-            </Dialog.Body>
-            <Dialog.Footer flexDirection="column" alignItems="stretch" gap={2}>
-              <Button
-                bg="app.error"
-                color="bg.canvas"
-                fontWeight="bold"
-                minH="48px"
-                loading={isPending}
-                onClick={() => {
-                  mutate(false);
-                  setRetraitOuvert(false);
-                }}
-              >
-                Retirer mon accord
-              </Button>
-              <Button
-                variant="ghost"
-                color="fg.muted"
-                minH="48px"
-                onClick={() => setRetraitOuvert(false)}
-              >
-                Annuler
-              </Button>
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Dialog.Root>
+        onClose={() => setRetraitOuvert(false)}
+        onConfirm={() => {
+          mutate(false);
+          setRetraitOuvert(false);
+        }}
+        isPending={isPending}
+        titre="Retirer ton accord ?"
+        action="Retirer mon accord"
+        nombre={healthDataCount}
+      />
     </VStack>
   );
 };

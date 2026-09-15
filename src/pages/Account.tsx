@@ -213,7 +213,10 @@ const Account = ({ space }: Props) => {
         {/* ── Données de santé — côté client seulement ───────────────── */}
         {data?.asClient && (
           <Section title="Tes données de santé">
-            <HealthConsentCard consent={data.asClient.healthConsent} />
+            <HealthConsentCard
+              consent={data.asClient.healthConsent}
+              healthDataCount={data.asClient.healthDataCount}
+            />
           </Section>
         )}
 

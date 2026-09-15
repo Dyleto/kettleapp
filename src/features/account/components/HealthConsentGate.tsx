@@ -10,9 +10,11 @@ import {
 } from '@chakra-ui/react';
 import { LuHeartPulse, LuLogOut } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/useAuth';
 import { LEGAL_ROUTES } from '@/config/legal';
-import { useSetHealthConsent } from '../hooks/useAccount';
+import { useAccount, useSetHealthConsent } from '../hooks/useAccount';
+import { ConfirmRefusSante } from './ConfirmRefusSante';
 
 /**
  * La question posée au client avant qu'il n'entre.
@@ -30,6 +32,22 @@ import { useSetHealthConsent } from '../hooks/useAccount';
 export const HealthConsentGate = () => {
   const { user, logout } = useAuth();
   const { mutate, isPending } = useSetHealthConsent();
+  const { data } = useAccount();
+  const [refusOuvert, setRefusOuvert] = useState(false);
+
+  // Un compte déjà utilisé peut porter des ressentis collectés avant que la
+  // question ne soit posée. Refuser les efface — on le dit avant, avec le
+  // nombre. Sur un compte neuf il n'y a rien à perdre, et refuser reste un
+  // seul geste : un obstacle devant un refus sans objet découragerait le refus.
+  const aPerdre = data?.asClient?.healthDataCount ?? 0;
+
+  const refuser = () => {
+    if (aPerdre > 0) {
+      setRefusOuvert(true);
+      return;
+    }
+    mutate(false);
+  };
 
   return (
     <Box minH="100dvh" bg="bg.canvas" px={4} py={8}>
@@ -98,7 +116,7 @@ export const HealthConsentGate = () => {
             color="fg"
             fontWeight="semibold"
             loading={isPending}
-            onClick={() => mutate(false)}
+            onClick={refuser}
           >
             Je refuse
           </Button>
@@ -137,6 +155,19 @@ export const HealthConsentGate = () => {
           </Box>
         </HStack>
       </VStack>
+
+      <ConfirmRefusSante
+        open={refusOuvert}
+        onClose={() => setRefusOuvert(false)}
+        onConfirm={() => {
+          mutate(false);
+          setRefusOuvert(false);
+        }}
+        isPending={isPending}
+        titre="Refuser le partage ?"
+        action="Refuser et effacer"
+        nombre={aPerdre}
+      />
     </Box>
   );
 };
