@@ -15,6 +15,7 @@ import {
 import { LuArrowLeft, LuBookOpen } from 'react-icons/lu';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
 import { useProgramAutoSave } from '@/features/program/hooks/useProgramAutoSave';
 import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
@@ -35,6 +36,13 @@ const ClientDetails = () => {
 
   const { data: client, isLoading } = useClientDetails(clientId!);
   const { data: history = [] } = useClientHistory(clientId!);
+
+  // Le nom du client, pas « Séance 1 » : c'est ce qui distingue deux onglets
+  // ouverts côte à côte, et c'est le constat qu'on corrige. Tant qu'il charge,
+  // l'onglet garde le nom du produit plutôt que d'afficher un blanc.
+  useDocumentTitle(
+    client ? `${client.firstName} ${client.lastName}` : undefined
+  );
   const { program, initialize, actions } = useProgramEditor(null);
   const updateProgramMutation = useUpdateProgramSessions(clientId!, {
     silent: true,

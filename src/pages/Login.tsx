@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/contexts/useAuth';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { LEGAL_ROUTES } from '@/config/legal';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useEffect, useState } from 'react';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
 import {
@@ -96,6 +97,7 @@ const Chemin = ({
 );
 
 const Login: React.FC = () => {
+  useDocumentTitle('Connexion');
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const [chemin, setChemin] = useState<'client' | 'coach' | null>(null);

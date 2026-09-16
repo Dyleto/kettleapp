@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/useAuth';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import {
   Box,
   VStack,
@@ -9,6 +10,7 @@ import {
 } from '@chakra-ui/react';
 
 const NoRole = () => {
+  useDocumentTitle('Compte sans coach');
   const { logout } = useAuth();
 
   const handleLogout = () => {

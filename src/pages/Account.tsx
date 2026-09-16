@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Avatar,
@@ -72,6 +73,7 @@ interface Props {
  * seul le client voit celle des données de santé : le coach n'en déclare pas.
  */
 const Account = ({ space }: Props) => {
+  useDocumentTitle('Mon compte');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data, isLoading } = useAccount();

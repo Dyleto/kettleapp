@@ -1,4 +1,5 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMemo } from 'react';
 import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { Card } from '@/components/Card';
@@ -111,6 +112,7 @@ const SessionRow = ({ session, status, onSelect }: SessionRowProps) => {
 };
 
 const Program = () => {
+  useDocumentTitle('Mon programme');
   const navigate = useNavigate();
   const { sessions, nextSession, history } =
     useOutletContext<ClientSessionsData>();

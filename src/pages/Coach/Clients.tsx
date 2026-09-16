@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Button, Container, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuCheck, LuUserPlus } from 'react-icons/lu';
 import { ClientsList, COACH_CONTENT_MAX_W } from '@/features/coach';
@@ -10,6 +11,7 @@ const Clients = () => {
   const { data: clients = [] } = useClients();
   const { mutate: generateInvitation, isPending } = useGenerateInvitation();
   const [isCopied, setIsCopied] = useState(false);
+  useDocumentTitle('Mes clients');
 
   const copy = useCallback(async (link: string, expiresAt?: string) => {
     // La date de validité se dit ici, au moment où le lien part — pas sur une

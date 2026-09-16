@@ -1,4 +1,5 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useCallback, useState } from 'react';
 import {
   Box,
@@ -58,6 +59,9 @@ const SessionScreen = () => {
     lastPerformance,
   } = useOutletContext<ClientSessionsData>();
   const [isGuidedOpen, setIsGuidedOpen] = useState(false);
+  useDocumentTitle(
+    activeSession ? `Séance ${activeSession.order}` : undefined
+  );
 
   // Terminer une séance se déroule en deux temps : « tu veux noter tes
   // charges ? », puis le bilan. `idle` couvre la lecture, où l'écran ne

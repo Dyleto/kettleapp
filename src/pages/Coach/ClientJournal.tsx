@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { Box, Heading, Spinner, VStack } from '@chakra-ui/react';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
@@ -12,6 +13,7 @@ const ClientJournal = () => {
   const navigate = useNavigate();
 
   const { data: client, isLoading } = useClientDetails(clientId!);
+  useDocumentTitle(client ? `Journal de ${client.firstName}` : undefined);
   const { data: history = [], isLoading: isHistoryLoading } = useClientHistory(
     clientId!
   );

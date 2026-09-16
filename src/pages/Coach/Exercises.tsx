@@ -1,4 +1,5 @@
 import { ExerciseSectionSkeleton } from '@/components/skeletons';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useExercises } from '@/features/exercise/hooks/useExercises';
 import {
   useCreateExercise,
@@ -31,6 +32,7 @@ import { stripAccents } from '@/utils/formatters';
 const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
 
 const Exercises = () => {
+  useDocumentTitle('Bibliothèque');
   // L'exercice ouvert est dans l'URL, pas dans un état : un lien vers une
   // fiche s'envoie, et le retour du navigateur referme la fiche.
   const { exerciseId } = useParams();

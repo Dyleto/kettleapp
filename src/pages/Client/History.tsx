@@ -1,4 +1,5 @@
 import { useOutletContext } from 'react-router-dom';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useState } from 'react';
 import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import {
@@ -14,6 +15,7 @@ import {
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
 const History = () => {
+  useDocumentTitle('Historique');
   const { history } = useOutletContext<ClientSessionsData>();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 

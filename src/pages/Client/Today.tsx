@@ -1,4 +1,5 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/useAuth';
 import { CompletedSession, Session } from '@/types';
@@ -28,6 +29,7 @@ import { EtatVide } from '@/components/EtatVide';
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
 const Today = () => {
+  useDocumentTitle('Aujourd’hui');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { sessions, nextSession, history, isLoading } =
