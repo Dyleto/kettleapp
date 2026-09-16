@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, HStack, Spinner, Text } from '@chakra-ui/react';
 import { LuCheck, LuTriangleAlert } from 'react-icons/lu';
 import type { SaveState } from '@/features/program/hooks/useProgramAutoSave';
+import { useClaimBottomBar } from '@/hooks/useBottomBar';
 
 interface Props {
   state: SaveState;
@@ -38,7 +39,15 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
   // « En attente » et « en cours » sont un seul état pour qui regarde : les
   // distinguer ferait clignoter la ligne à chaque frappe.
   const enCours = state === 'pending' || state === 'saving';
-  const visible = enCours || state === 'error' || confirme;
+  const enEchec = state === 'error';
+  const visible = enCours || enEchec || confirme;
+
+  // Seul l'échec réclame le bas de l'écran. Un enregistrement qui se déroule
+  // bien ne retire rien au coach : ce qu'il vient d'écrire part, et partir
+  // ailleurs ne lui coûte rien. C'est l'échec, lui, qui dure et qui n'a pas
+  // d'ailleurs à proposer.
+  useClaimBottomBar(enEchec);
+
   if (!visible) return null;
 
   return (
@@ -51,14 +60,17 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
       borderTop="1px solid"
       borderColor="whiteAlpha.100"
     >
-      {/* Sous 768 px, la barre d'onglets est fixée en bas de l'écran. La
-          ligne descend quand même jusqu'en bas — son fond masque le contenu
-          qui défile — mais son texte se pose juste au-dessus des onglets,
-          sinon l'échec passerait dessous sans jamais se voir. */}
+      {/* En échec, la ligne a pris la place de la barre d'onglets : elle se
+          pose donc à même le bas de l'écran. Pendant un envoi qui se passe
+          bien, les onglets sont toujours là et il faut passer au-dessus. */}
       <HStack
         gap={2}
         pt={2.5}
-        pb={{ base: 'calc(env(safe-area-inset-bottom, 0px) + 72px)', md: 2.5 }}
+        pb={
+          enEchec
+            ? 'calc(env(safe-area-inset-bottom, 0px) + 10px)'
+            : { base: 'calc(env(safe-area-inset-bottom, 0px) + 72px)', md: 2.5 }
+        }
         justify="flex-end"
         role="status"
       >
