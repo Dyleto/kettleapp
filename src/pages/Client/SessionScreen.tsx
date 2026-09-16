@@ -52,7 +52,6 @@ const SessionScreen = () => {
   const {
     sessions,
     activeSession,
-    isManualSelection,
     handleSubmitLog,
     isLoading,
     isSubmitting,
@@ -139,9 +138,14 @@ const SessionScreen = () => {
     );
   }
 
-  const pillLabel = isManualSelection ? 'Séance choisie' : 'À faire';
-  // « À faire » est un état, pas une alerte. Le rouge dit « problème »
-  // partout ailleurs dans l'application — il reste à l'effort et à l'erreur.
+  // « Séance choisie » disait « tu es arrivé ici en choisissant » — une
+  // information qui n'intéresse personne, le client sachant qu'il a cliqué.
+  // Elle occupait pourtant la place, la forme et la couleur d'un état de
+  // séance, et empêchait donc d'y lire ce que la séance, elle, a à dire.
+  //
+  // « À faire » est un état, pas une alerte. Le rouge dit « problème » partout
+  // ailleurs dans l'application — il reste à l'effort et à l'erreur.
+  const pillLabel = 'À faire';
   const pillColor = 'app.primary';
   const pillTextColor = 'app.primary';
   const hasExercises = activeSession.blocks.some((b) => b.exercises.length > 0);
