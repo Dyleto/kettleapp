@@ -1,6 +1,9 @@
 import { Box, Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/types';
-import { getBlockConfigSummary } from '@/features/program/constants';
+import {
+  getBlockConfigSummary,
+  getBlockFreeName,
+} from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
 import { BlockExerciseRow } from './BlockExerciseRow';
 import { BlockProps } from './blocks/shared/types';
@@ -21,14 +24,19 @@ interface BlockCardProps {
  */
 export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
   const summary = getBlockConfigSummary(block);
+  const nomLibre = getBlockFreeName(block);
 
   return (
     <BlockFrame
       block={block}
       name={
-        block.label?.trim() ? (
+        /* Le tiret cadratin sépare : sans lui, le type et le nom se
+           collaient en une bouillie — « AMRAP AMRAP 12 ». La règle vit dans
+           `getBlockFreeName`, pas ici : l'atelier du coach, lui, montre le
+           nom tel qu'il l'a tapé, puisque c'est là qu'il le modifie. */
+        nomLibre ? (
           <Text fontSize="xs" color="fg.muted">
-            {block.label.trim()}
+            — {nomLibre}
           </Text>
         ) : undefined
       }

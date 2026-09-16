@@ -98,6 +98,25 @@ export const getBlockAccent = (type: BlockType): BlockAccent => {
   return 'work';
 };
 
+/**
+ * Le nom libre d'un bloc, une fois retiré ce que l'étiquette dit déjà.
+ *
+ * Nommer son bloc d'après son type est le réflexe naturel du coach : il tape
+ * « AMRAP 12 » dans un bloc AMRAP de douze minutes, et le client lit
+ * « AMRAP AMRAP 12 12 min ». C'est à l'affichage d'absorber la redite, pas au
+ * coach de deviner qu'il ne doit pas la produire.
+ *
+ * Quand le nom commence par le type, il ne reste rien à dire : la durée est
+ * déjà dans les réglages, et le type dans l'étiquette. La comparaison ignore
+ * la casse — « amrap 12 » est le même réflexe.
+ */
+export const getBlockFreeName = (block: SessionBlock): string | undefined => {
+  const nom = block.label?.trim();
+  if (!nom) return undefined;
+  const type = getBlockLabel(block.type);
+  return nom.toLowerCase().startsWith(type.toLowerCase()) ? undefined : nom;
+};
+
 export const blockIndexPrefix = (type: BlockType): boolean =>
   ['emom'].includes(type);
 
