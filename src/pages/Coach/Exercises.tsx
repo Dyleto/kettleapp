@@ -31,6 +31,19 @@ import { stripAccents } from '@/utils/formatters';
 
 const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
 
+/**
+ * Les colonnes de la bibliothèque, à une seule adresse.
+ *
+ * Le champ de recherche s'étendait sur toute la largeur — mesuré à 1 620 px —
+ * pendant que les résultats qu'il filtre s'arrêtaient à 660. Un filtre plus
+ * large que ce qu'il filtre donne l'impression qu'il cherche ailleurs.
+ *
+ * L'en-tête et la liste tirent donc leur gabarit du même endroit : ils ne
+ * peuvent plus diverger.
+ */
+const COLONNES = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
+const GOUTTIERE = { base: 0, lg: 8 };
+
 const Exercises = () => {
   useDocumentTitle('Bibliothèque');
   // L'exercice ouvert est dans l'URL, pas dans un état : un lien vers une
@@ -203,56 +216,62 @@ const Exercises = () => {
   return (
     <Container maxW="container.xl" py={6}>
       <VStack gap={4} align="stretch">
-        <HStack justify="space-between" align="baseline" gap={3}>
-          {/* Le même nom que dans la navigation et dans l'onglet. L'écran
+        {/* L'en-tête et la recherche vivent dans la même colonne que la liste :
+            le filtre fait exactement la largeur de ce qu'il filtre. */}
+        <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
+          <VStack gap={4} align="stretch" minW={0}>
+            <HStack justify="space-between" align="baseline" gap={3}>
+              {/* Le même nom que dans la navigation et dans l'onglet. L'écran
               s'appelait « Mes exercices » pendant qu'on y arrivait par
               « Bibliothèque » : trois noms pour un endroit, dont deux à un
               clic d'intervalle. */}
-          <Text as="h1" fontSize="lg" fontWeight="bold">
-            Bibliothèque
-          </Text>
-          <Text fontSize="xs" color="fg.muted" flexShrink={0}>
-            {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
-            {query && ` · « ${query} »`}
-          </Text>
-        </HStack>
+              <Text as="h1" fontSize="lg" fontWeight="bold">
+                Bibliothèque
+              </Text>
+              <Text fontSize="xs" color="fg.muted" flexShrink={0}>
+                {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
+                {query && ` · « ${query} »`}
+              </Text>
+            </HStack>
 
-        <HStack
-          gap={2}
-          px={2}
-          py={1}
-          borderBottomWidth="1px"
-          borderColor="whiteAlpha.200"
-          _focusWithin={{ borderColor: 'app.primary' }}
-          transition="border-color 0.2s"
-        >
-          <LuSearch size={14} color="var(--chakra-colors-fg-muted)" />
-          <Input
-            placeholder="Chercher ou créer un exercice…"
-            aria-label="Chercher un exercice"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            variant="subtle"
-            bg="transparent"
-            border="none"
-            outline="none"
-            size="sm"
-            _focus={{ boxShadow: 'none', outline: 'none' }}
-            _focusVisible={{ boxShadow: 'none', outline: 'none' }}
-          />
-          {query && (
-            <Box
-              as="button"
-              aria-label="Effacer la recherche"
-              color="fg.muted"
-              _hover={{ color: 'fg' }}
-              flexShrink={0}
-              onClick={() => setQuery('')}
+            <HStack
+              gap={2}
+              px={2}
+              py={1}
+              borderBottomWidth="1px"
+              borderColor="whiteAlpha.200"
+              _focusWithin={{ borderColor: 'app.primary' }}
+              transition="border-color 0.2s"
             >
-              <LuX size={13} />
-            </Box>
-          )}
-        </HStack>
+              <LuSearch size={14} color="var(--chakra-colors-fg-muted)" />
+              <Input
+                placeholder="Chercher ou créer un exercice…"
+                aria-label="Chercher un exercice"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                variant="subtle"
+                bg="transparent"
+                border="none"
+                outline="none"
+                size="sm"
+                _focus={{ boxShadow: 'none', outline: 'none' }}
+                _focusVisible={{ boxShadow: 'none', outline: 'none' }}
+              />
+              {query && (
+                <Box
+                  as="button"
+                  aria-label="Effacer la recherche"
+                  color="fg.muted"
+                  _hover={{ color: 'fg' }}
+                  flexShrink={0}
+                  onClick={() => setQuery('')}
+                >
+                  <LuX size={13} />
+                </Box>
+              )}
+            </HStack>
+          </VStack>
+        </Grid>
 
         {isLoading ? (
           <ExerciseSectionSkeleton titleWidth="250px" count={8} />
@@ -262,15 +281,7 @@ const Exercises = () => {
           </Box>
         ) : (
           <>
-            <Grid
-              templateColumns={{
-                base: '1fr',
-                lg: '1fr 380px',
-                xl: '1fr 460px',
-              }}
-              gap={{ base: 0, lg: 8 }}
-              alignItems="start"
-            >
+            <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
               <Box minW={0}>{list}</Box>
 
               {isDesktop && (
