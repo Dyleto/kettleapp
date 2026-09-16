@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Button,
+  Grid,
   HStack,
   Input,
   SkeletonCircle,
@@ -38,33 +39,90 @@ const daysSince = (date: Date | string) =>
 const inactivityDays = (client: Client): number =>
   daysSince(client.lastCompletedAt ?? client.linkedAt);
 
-const silenceLabel = (client: Client): string | null => {
-  if (!client.lastCompletedAt) return null;
-  const days = daysSince(client.lastCompletedAt);
-  if (days < SILENCE_THRESHOLD_DAYS) return null;
+/**
+ * Une ligne de client, en cases fixes.
+ *
+ * Quatre anatomies de ligne cohabitaient : « Trop dure · il y a 3 jours »,
+ * « rien depuis 3 sem. », « nouveau client », « jamais fait de séance » — plus
+ * un « 3 » ambre sans légende à droite. Impossible de balayer une colonne : il
+ * fallait lire les sept lignes une par une, et l'ordre du tri « À traiter »
+ * n'était reconstituable depuis aucune d'elles.
+ *
+ * La grammaire est désormais fixe — état · ancienneté · ce qui attend — et les
+ * cases vides restent vides à leur place. Ce qui attend le coach est écrit en
+ * toutes lettres : c'est ce qui rend le rang de chaque client auto-explicatif.
+ */
+interface LigneClient {
+  /** L'état en un mot : le dernier ressenti, ou « Nouveau ». */
+  etat: string | null;
+  /** Depuis quand, quand ce n'est pas déjà dit par la case suivante. */
+  anciennete: string | null;
+  /** Ce qui attend le coach, ou rien. */
+  attente: string | null;
+  /** Une lecture en attente appelle une action ; un silence ne fait que durer. */
+  attenteEstAction: boolean;
+}
+
+/** « il y a 3 semaines », dans une seule grammaire. */
+const depuis = (days: number): string => {
+  if (days <= 0) return "aujourd'hui";
+  if (days === 1) return 'hier';
+  if (days < 14) return `il y a ${days} jours`;
   const weeks = Math.floor(days / 7);
-  return weeks >= 8 ? 'rien depuis 2 mois+' : `rien depuis ${weeks} sem.`;
+  if (weeks < 9) return `il y a ${weeks} semaines`;
+  const months = Math.floor(days / 30);
+  return `il y a ${months} mois`;
 };
 
-/**
- * La ligne d'état, en une phrase : quand, et comment ça s'est passé.
- * « il y a 3 jours » seul ne dit pas s'il faut agir ; « Trop dure » seul ne
- * dit pas si c'était hier ou le mois dernier.
- */
-const activityLabel = (client: Client): string => {
+const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
+  // Jamais démarré. Au-delà du délai de silence, ce n'est plus un nouveau
+  // client : c'est quelqu'un qu'on a inscrit et qui n'a rien fait.
   if (!client.lastCompletedAt) {
     const days = daysSince(client.linkedAt);
     return days >= SILENCE_THRESHOLD_DAYS
-      ? 'jamais fait de séance'
-      : 'nouveau client';
+      ? {
+          // L'ancienneté compte depuis la mise en relation : c'est elle qui
+          // départage deux clients jamais démarrés dans le tri « À traiter ».
+          etat: null,
+          anciennete: depuis(days),
+          attente: 'jamais démarré',
+          attenteEstAction: false,
+        }
+      : {
+          etat: 'Nouveau',
+          anciennete: depuis(days),
+          attente: null,
+          attenteEstAction: false,
+        };
   }
-  const silence = silenceLabel(client);
-  if (silence) return silence;
 
   const days = daysSince(client.lastCompletedAt);
-  if (days <= 0) return "séance aujourd'hui";
-  if (days === 1) return 'séance hier';
-  return `il y a ${days} jours`;
+  const etat = effortLabel ?? null;
+
+  // Des séances à lire : c'est la seule case qui demande une action, et elle
+  // prime sur le silence — on ne peut pas être muet et avoir écrit.
+  if (client.unseenCount > 0) {
+    const n = client.unseenCount;
+    return {
+      etat,
+      anciennete: depuis(days),
+      attente: `${n} séance${n > 1 ? 's' : ''} à lire`,
+      attenteEstAction: true,
+    };
+  }
+
+  // Le silence. L'ancienneté reste vide : la phrase la porte déjà, et la
+  // répéter à deux centimètres d'intervalle ne dit rien de plus.
+  if (days >= SILENCE_THRESHOLD_DAYS) {
+    return {
+      etat,
+      anciennete: null,
+      attente: `rien ${depuis(days).replace('il y a', 'depuis')}`,
+      attenteEstAction: false,
+    };
+  }
+
+  return { etat, anciennete: depuis(days), attente: null, attenteEstAction: false };
 };
 
 type ClientSort = 'triage' | 'alpha' | 'recent';
@@ -118,6 +176,7 @@ interface ClientRowProps {
 
 const ClientRow = ({ client, onSelect }: ClientRowProps) => {
   const effort = getEffortLevel(client.lastEffort);
+  const ligne = ligneClient(client, effort?.label);
 
   return (
     <Card
@@ -127,68 +186,79 @@ const ClientRow = ({ client, onSelect }: ClientRowProps) => {
       onClick={onSelect}
       p={3}
     >
-      <HStack justify="space-between" gap={3} align="center">
-        <HStack gap={3} minW={0} flex={1}>
-          <Avatar.Root size="sm" flexShrink={0}>
-            <Avatar.Fallback name={`${client.firstName} ${client.lastName}`} />
-            {client.picture && <Avatar.Image src={client.picture} />}
-          </Avatar.Root>
-          <VStack align="start" gap={0} minW={0} flex={1}>
-            <Text fontWeight="semibold" fontSize="sm" truncate maxW="100%">
-              {client.firstName} {client.lastName}
-            </Text>
-            <HStack gap={1.5} fontSize="xs" color="fg.muted" minW={0}>
-              {effort && (
-                <>
-                  <Text
-                    as="span"
-                    fontWeight="bold"
-                    color={EFFORT_ZONE_COLOR[effort.zone]}
-                    flexShrink={0}
-                  >
-                    {effort.label}
-                  </Text>
-                  <Text as="span" flexShrink={0}>
-                    ·
-                  </Text>
-                </>
-              )}
-              <Text as="span" truncate>
-                {activityLabel(client)}
-              </Text>
-            </HStack>
-          </VStack>
-        </HStack>
+      {/* Des colonnes, pas une phrase. Sur large, les cinq cases s'alignent
+          d'une ligne à l'autre : on balaie « ce qui attend » sans lire les
+          noms. Sur téléphone la largeur manque, mais l'ordre de lecture reste
+          le même — état et ancienneté sous le nom, ce qui attend à droite. */}
+      <Grid
+        alignItems="center"
+        columnGap={3}
+        rowGap={0}
+        templateColumns={{
+          base: '32px auto minmax(0, 1fr) auto',
+          md: '32px minmax(0, 1fr) 84px 108px 136px',
+        }}
+        templateAreas={{
+          base: `"avatar nom nom attente" "avatar etat anciennete attente"`,
+          md: `"avatar nom etat anciennete attente"`,
+        }}
+      >
+        <Avatar.Root size="sm" gridArea="avatar" flexShrink={0}>
+          <Avatar.Fallback name={`${client.firstName} ${client.lastName}`} />
+          {client.picture && <Avatar.Image src={client.picture} />}
+        </Avatar.Root>
 
-        {/* Un nombre, pas une pastille : « 2 séances à lire » et « 1 séance à
-            lire » ne demandent pas le même temps.
+        <Text
+          gridArea="nom"
+          fontWeight="semibold"
+          fontSize="sm"
+          truncate
+          minW={0}
+        >
+          {client.firstName} {client.lastName}
+        </Text>
 
-            Doré et non rouge : sur la même ligne, le rouge dit déjà que la
-            séance a été dure. Deux significations sans rapport sur une seule
-            couleur, à quelques centimètres l'une de l'autre, ne se lisent
-            plus. Le doré est partout ailleurs la couleur de ce qui appelle
-            une action. */}
-        {client.unseenCount > 0 && (
-          <Box
-            flexShrink={0}
-            minW="22px"
-            h="22px"
-            px={1.5}
-            borderRadius="full"
-            bg="app.primary"
-            color="bg.canvas"
-            fontSize="xs"
-            fontWeight="bold"
-            fontFamily="mono"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            aria-label={`${client.unseenCount} séance${client.unseenCount > 1 ? 's' : ''} non vue${client.unseenCount > 1 ? 's' : ''}`}
-          >
-            {client.unseenCount}
-          </Box>
-        )}
-      </HStack>
+        {/* Les cases vides restent vides, mais à leur place : c'est ce qui
+            permet de comparer deux lignes sans les relire. */}
+        <Text
+          gridArea="etat"
+          fontSize="xs"
+          fontWeight="bold"
+          color={effort ? EFFORT_ZONE_COLOR[effort.zone] : 'fg.muted'}
+          truncate
+          minW={0}
+        >
+          {ligne.etat}
+        </Text>
+
+        <Text
+          gridArea="anciennete"
+          fontSize="xs"
+          color="fg.muted"
+          truncate
+          minW={0}
+        >
+          {ligne.anciennete}
+        </Text>
+
+        {/* En toutes lettres, à la place du nombre nu.
+            « 3 » ambre ne disait ni ce qu'il comptait, ni ce qu'il fallait en
+            faire — et sur la même ligne que le ressenti, l'ambre entrait en
+            concurrence avec une couleur qui veut dire autre chose. Seule une
+            lecture en attente appelle une action, donc seule elle la porte. */}
+        <Text
+          gridArea="attente"
+          fontSize="xs"
+          textAlign="end"
+          whiteSpace="nowrap"
+          fontWeight={ligne.attenteEstAction ? 'bold' : 'normal'}
+          color={ligne.attenteEstAction ? 'app.primary' : 'fg.muted'}
+          truncate
+          minW={0}
+        >
+          {ligne.attente}
+        </Text>
+      </Grid>
     </Card>
   );
 };
