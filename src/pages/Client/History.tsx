@@ -5,7 +5,7 @@ import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import {
   CLIENT_GRID_MAX_W,
   ExerciseProgressions,
-  SessionCalendar,
+  SessionCalendarFilter,
   SessionHistoryCard,
   dayKey,
   formatDayLabel,
@@ -37,17 +37,21 @@ const History = () => {
           </Box>
         ) : (
           <Grid
-            templateColumns={{ base: '1fr', lg: '300px 1fr' }}
-            gap={{ base: 5, lg: 8 }}
+            templateColumns={{
+              base: '1fr',
+              md: '264px 1fr',
+              lg: '300px 1fr',
+            }}
+            gap={{ base: 5, md: 5, lg: 8 }}
             alignItems="start"
           >
             <Box
               minW={0}
-              position={{ base: 'static', lg: 'sticky' }}
-              top={{ lg: '80px' }}
+              position={{ base: 'static', md: 'sticky' }}
+              top={{ md: '80px' }}
             >
               <VStack align="stretch" gap={6}>
-                <SessionCalendar
+                <SessionCalendarFilter
                   history={history}
                   selectedDay={selectedDay}
                   onSelectDay={setSelectedDay}

@@ -5,7 +5,7 @@ import { useMarkHistoryAsViewed } from '@/features/coach/hooks/useMarkHistoryAsV
 import { EtatVide } from '@/components/EtatVide';
 import {
   CompletedSessionDrawer,
-  SessionCalendar,
+  SessionCalendarFilter,
   dayKey,
   formatDayLabel,
   getEffortSummary,
@@ -19,7 +19,7 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { LuCalendarDays, LuChevronRight } from 'react-icons/lu';
+import { LuChevronRight } from 'react-icons/lu';
 
 interface Props {
   history: CompletedSession[];
@@ -113,19 +113,6 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
   // Une régularité se lit sur huit semaines, pas sur quatre.
   const months = useBreakpointValue<1 | 2>({ base: 1, '2xl': 2 }) ?? 1;
 
-  // Sous 768 px, le calendrier passerait au-dessus de la liste et occuperait
-  // presque tout l'écran : les retours du client, ce pour quoi on ouvre le
-  // journal, commenceraient sous la ligne de flottaison. Il devient alors un
-  // filtre qu'on ouvre.
-  //
-  // Le seuil était à 992 px, ce qui laissait une tablette en portrait avec le
-  // calendrier replié comme un téléphone de 390 px — alors qu'elle a la place
-  // d'une grille de mois à côté de la liste. C'était un seuil mal posé, pas
-  // une décision de conception.
-  const isNarrow = useBreakpointValue({ base: true, md: false }) ?? false;
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const showCalendar = !isNarrow || isFilterOpen || selectedDay !== null;
-
   const [initialUnseenIds] = useState<Set<string>>(
     () =>
       new Set(history.filter((c) => c.viewedByCoach !== true).map((c) => c._id))
@@ -169,44 +156,15 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
           position={{ base: 'static', md: 'sticky' }}
           top={{ md: '80px' }}
         >
-          {isNarrow && (
-            <Box
-              as="button"
-              w="full"
-              aria-expanded={isFilterOpen || selectedDay !== null}
-              onClick={() => {
-                setIsFilterOpen((open) => !open);
-                if (selectedDay !== null) setSelectedDay(null);
-              }}
-              px={3}
-              py={2}
-              mb={showCalendar ? 3 : 0}
-              borderWidth="1px"
-              borderColor="whiteAlpha.200"
-              borderRadius="md"
-              color="fg.muted"
-              _hover={{ color: 'fg', borderColor: 'whiteAlpha.300' }}
-            >
-              <HStack gap={2} justify="center">
-                <LuCalendarDays size={14} />
-                <Text fontSize="sm">
-                  {selectedDay !== null
-                    ? 'Voir tout le journal'
-                    : isFilterOpen
-                      ? 'Masquer le calendrier'
-                      : 'Filtrer par date'}
-                </Text>
-              </HStack>
-            </Box>
-          )}
-          {showCalendar && (
-            <SessionCalendar
-              history={history}
-              selectedDay={selectedDay}
-              onSelectDay={setSelectedDay}
-              months={months}
-            />
-          )}
+          {/* Le même composant que l'historique du client : deux calendriers
+              dans la même application doivent se comporter pareil, et c'est
+              la version repliée qui est la bonne sur téléphone. */}
+          <SessionCalendarFilter
+            history={history}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+            months={months}
+          />
         </Box>
 
         <VStack align="stretch" gap={0} minW={0}>

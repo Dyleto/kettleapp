@@ -6,6 +6,7 @@ export { FeedbackTags } from './components/FeedbackTags';
 export { PerformedFields } from './components/PerformedFields';
 export { RecordPerformed } from './components/RecordPerformed';
 export { SessionCalendar } from './components/SessionCalendar';
+export { SessionCalendarFilter } from './components/SessionCalendarFilter';
 export { WeekStrip } from './components/WeekStrip';
 export { SuggestedDays } from './components/SuggestedDays';
 export { ExerciseProgressions } from './components/ExerciseProgressions';
