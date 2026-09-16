@@ -113,11 +113,16 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
   // Une régularité se lit sur huit semaines, pas sur quatre.
   const months = useBreakpointValue<1 | 2>({ base: 1, '2xl': 2 }) ?? 1;
 
-  // Sous 1024 px, le calendrier passe au-dessus de la liste et occupe presque
-  // tout l'écran : les retours du client, ce pour quoi on ouvre le journal,
-  // commençaient sous la ligne de flottaison. Il devient un filtre qu'on
-  // ouvre. Au-delà, les deux sont côte à côte et la question ne se pose pas.
-  const isNarrow = useBreakpointValue({ base: true, lg: false }) ?? false;
+  // Sous 768 px, le calendrier passerait au-dessus de la liste et occuperait
+  // presque tout l'écran : les retours du client, ce pour quoi on ouvre le
+  // journal, commenceraient sous la ligne de flottaison. Il devient alors un
+  // filtre qu'on ouvre.
+  //
+  // Le seuil était à 992 px, ce qui laissait une tablette en portrait avec le
+  // calendrier replié comme un téléphone de 390 px — alors qu'elle a la place
+  // d'une grille de mois à côté de la liste. C'était un seuil mal posé, pas
+  // une décision de conception.
+  const isNarrow = useBreakpointValue({ base: true, md: false }) ?? false;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const showCalendar = !isNarrow || isFilterOpen || selectedDay !== null;
 
@@ -148,14 +153,21 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
   return (
     <>
       <Grid
-        templateColumns={{ base: '1fr', lg: '300px 1fr', '2xl': '620px 1fr' }}
-        gap={{ base: 5, lg: 8 }}
+        templateColumns={{
+          base: '1fr',
+          // Une colonne plus étroite sur tablette : le mois y tient, et la
+          // liste garde de quoi se lire.
+          md: '264px 1fr',
+          lg: '300px 1fr',
+          '2xl': '620px 1fr',
+        }}
+        gap={{ base: 5, md: 5, lg: 8 }}
         alignItems="start"
       >
         <Box
           minW={0}
-          position={{ base: 'static', lg: 'sticky' }}
-          top={{ lg: '80px' }}
+          position={{ base: 'static', md: 'sticky' }}
+          top={{ md: '80px' }}
         >
           {isNarrow && (
             <Box
