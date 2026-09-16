@@ -157,20 +157,16 @@ const Login: React.FC = () => {
             </Text>
           </VStack>
 
-          {/* Fonctionnalités */}
-          <VStack gap={2.5} w="100%">
+          {/* Ce que fait le produit — une liste, pas trois boutons.
+              Ces trois lignes portaient un fond, une bordure et le même rayon
+              que le bouton Google juste dessous, à la même largeur : trois
+              fausses cibles au-dessus de la seule vraie, donc trois occasions
+              de croire que l'application ne répond pas. Sans fond ni cadre,
+              elles se lisent pour ce qu'elles sont. L'icône garde l'accent :
+              c'est une puce, elle ne prétend rien. */}
+          <VStack gap={2} w="100%" as="ul" listStyleType="none">
             {FEATURES.map(({ label, icon: FeatureIcon }) => (
-              <HStack
-                key={label}
-                gap={3}
-                w="100%"
-                bg="bg.surface"
-                borderWidth="1px"
-                borderColor="whiteAlpha.100"
-                borderRadius="lg"
-                px={3.5}
-                py={3}
-              >
+              <HStack key={label} as="li" gap={3} w="100%" px={1}>
                 <Box color="app.primary" flexShrink={0} display="flex">
                   <FeatureIcon size={16} />
                 </Box>
