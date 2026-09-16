@@ -112,7 +112,7 @@ const Join = () => {
               style={{ filter: 'grayscale(100%)' }}
             >
               <Avatar.Fallback name={coachName} />
-              <Avatar.Image src={data?.coach.picture} />
+              <Avatar.Image alt="" src={data?.coach.picture} />
             </Avatar.Root>
             <Heading
               as="h1"
@@ -159,7 +159,7 @@ const Join = () => {
       <VStack gap={3} w="100%">
         <Avatar.Root size="2xl" mb={2}>
           <Avatar.Fallback name={coachName} />
-          <Avatar.Image src={data?.coach.picture} />
+          <Avatar.Image alt="" src={data?.coach.picture} />
         </Avatar.Root>
         <Text
           fontSize="11px"

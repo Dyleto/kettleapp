@@ -205,7 +205,7 @@ const ClientRow = ({ client, onSelect }: ClientRowProps) => {
       >
         <Avatar.Root size="sm" gridArea="avatar" flexShrink={0}>
           <Avatar.Fallback name={`${client.firstName} ${client.lastName}`} />
-          {client.picture && <Avatar.Image src={client.picture} />}
+          {client.picture && <Avatar.Image alt="" src={client.picture} />}
         </Avatar.Root>
 
         <Text

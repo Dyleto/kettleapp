@@ -229,7 +229,7 @@ const ClientDetails = () => {
               <Avatar.Fallback
                 name={`${client.firstName} ${client.lastName}`}
               />
-              <Avatar.Image src={client.picture} />
+              <Avatar.Image alt="" src={client.picture} />
             </Avatar.Root>
             <VStack align="start" gap={0} flex={1} minW={0}>
               {/* Le h1 de cet écran est celui de la barre mobile : une seule

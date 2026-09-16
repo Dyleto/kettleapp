@@ -160,7 +160,7 @@ const Account = ({ space }: Props) => {
             <HStack gap={3.5}>
               <Avatar.Root size="lg" flexShrink={0}>
                 <Avatar.Fallback name={fullName} />
-                <Avatar.Image src={user?.picture} />
+                <Avatar.Image alt="" src={user?.picture} />
               </Avatar.Root>
               <VStack align="start" gap={0.5} minW={0}>
                 <Text fontSize="sm" fontWeight="semibold">
@@ -191,7 +191,7 @@ const Account = ({ space }: Props) => {
                     <HStack gap={3.5}>
                       <Avatar.Root size="md" flexShrink={0}>
                         <Avatar.Fallback name={nom} />
-                        <Avatar.Image src={coach.picture} />
+                        <Avatar.Image alt="" src={coach.picture} />
                       </Avatar.Root>
                       <VStack align="start" gap={0.5} minW={0}>
                         <Text fontSize="sm" fontWeight="semibold">

@@ -55,7 +55,7 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
   const avatar = (
     <Avatar.Root size="sm" cursor="pointer">
       <Avatar.Fallback name={fullName} />
-      <Avatar.Image src={user?.picture} />
+      <Avatar.Image alt="" src={user?.picture} />
     </Avatar.Root>
   );
 
