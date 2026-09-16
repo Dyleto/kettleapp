@@ -4,6 +4,8 @@ import { useMutation } from '@tanstack/react-query';
 
 interface InvitationResponse {
   token: string;
+  /** Le lien ne vaut que quelques jours : on le dit au moment où on le copie. */
+  expiresAt: string;
 }
 
 /**
@@ -17,7 +19,7 @@ export const useGenerateInvitation = () => {
       );
       const link = `${window.location.origin}/join?token=${response.data.token}`;
 
-      return { link };
+      return { link, expiresAt: response.data.expiresAt };
     },
     onError: () => {
       toaster.create({
