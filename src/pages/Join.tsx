@@ -6,12 +6,12 @@ import {
   Button,
   Container,
   Heading,
-  Spinner,
+  Skeleton,
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { LuUnlink } from 'react-icons/lu';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 /**
@@ -24,8 +24,11 @@ import axios from 'axios';
 const DeadEndExit = () => (
   <Button
     mt={2}
+    w="100%"
+    minH="48px"
     variant="outline"
     borderColor="whiteAlpha.300"
+    color="fg"
     onClick={() => {
       window.location.href = '/login';
     }}
@@ -34,36 +37,65 @@ const DeadEndExit = () => (
   </Button>
 );
 
+/**
+ * L'attente, dessinée comme ce qui va arriver.
+ *
+ * Un rond de chargement ne dit pas ce qu'on attend. La silhouette de la carte
+ * d'invitation, si — et quand elle se remplit, rien ne bouge de place.
+ */
+const Attente = () => (
+  <VStack gap={3} w="100%" aria-busy="true" aria-label="Vérification du lien">
+    <Skeleton w="96px" h="96px" borderRadius="full" mb={2} />
+    <Skeleton w="140px" h="11px" borderRadius="full" />
+    <Skeleton w="80%" h="24px" borderRadius="md" />
+    <Skeleton w="60%" h="24px" borderRadius="md" />
+    <Skeleton w="90%" h="34px" borderRadius="md" mt={2} />
+    <Skeleton w="100%" h="44px" borderRadius="md" mt={2} />
+  </VStack>
+);
+
+/**
+ * Le lien tronqué.
+ *
+ * C'est le cas réel : les messageries coupent les URL longues, et le jeton
+ * est à la fin. On redirigeait alors vers la connexion sans un mot — d'où un
+ * compte créé sans rattachement, c'est-à-dire la boucle de l'entrée A1.
+ */
+const LienIncomplet = () => (
+  <VStack gap={3} w="100%">
+    <Box color="app.error" mb={1}>
+      <LuUnlink size={26} />
+    </Box>
+    <Heading
+      as="h1"
+      fontSize="24px"
+      fontWeight="800"
+      textAlign="center"
+      maxW="20ch"
+    >
+      Il manque quelque chose dans ce lien
+    </Heading>
+    <Text color="fg.muted" fontSize="sm" textAlign="center" maxW="32ch">
+      L'adresse est incomplète — les messageries coupent souvent les liens
+      longs. Demandez à votre coach de vous le renvoyer en entier.
+    </Text>
+    <DeadEndExit />
+  </VStack>
+);
+
 const Join = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const invitationToken = searchParams.get('token') ?? undefined;
 
   const { data, isLoading, error } = useVerifyInviteToken(invitationToken);
-
-  useEffect(() => {
-    if (!invitationToken) {
-      navigate('/login', { replace: true });
-    }
-  }, [invitationToken, navigate]);
 
   const coachName = data?.coach
     ? `${data.coach.firstName} ${data.coach.lastName}`
     : '';
 
   const getContent = () => {
-    if (isLoading) {
-      return (
-        <Box
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          minH="40vh"
-        >
-          <Spinner size="xl" color="app.primary" />
-        </Box>
-      );
-    }
+    if (!invitationToken) return <LienIncomplet />;
+    if (isLoading) return <Attente />;
 
     if (error) {
       const status = axios.isAxiosError(error)
@@ -193,7 +225,7 @@ const Join = () => {
 
           {getContent()}
 
-          {!isLoading && !error && (
+          {invitationToken && !isLoading && !error && (
             <Text fontSize="xs" color="fg.muted" textAlign="center" maxW="32ch">
               Vous serez automatiquement rattaché à {coachName} — aucun autre
               compte à créer.
