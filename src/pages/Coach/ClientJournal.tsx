@@ -44,15 +44,20 @@ const ClientJournal = () => {
       py={8}
     >
       <VStack align="stretch" gap={1} mb={6}>
-        {/* « Programme » et non le nom du client : le libellé dit ce qu'on
-            rejoint. Le nom seul se lisait comme « d'où je viens », et rien
-            n'indiquait qu'il y avait un programme à retrouver. */}
+        {/* Le repère d'identité est dans le titre, pas dans la sortie.
+            C'était l'inverse : « Journal complet » en titre, le nom du client
+            dans le bouton de retour. Sur un écran qu'on consulte client après
+            client, on lisait donc le nom de celui qu'on quitte pour savoir
+            celui qu'on regarde.
+
+            Le retour, lui, n'a plus besoin de le répéter : il dit simplement
+            où il ramène. */}
         <BackLink
-          label={`Programme de ${client.firstName}`}
+          label="Programme"
           onClick={() => navigate(COACH_ROUTES.clientSession(clientId!, 1))}
         />
         <Heading as="h1" size="lg">
-          Journal complet
+          Journal de {client.firstName}
         </Heading>
       </VStack>
 
