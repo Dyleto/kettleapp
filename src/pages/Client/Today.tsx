@@ -23,6 +23,7 @@ import {
 } from '@chakra-ui/react';
 import { LuArrowRight } from 'react-icons/lu';
 import { CLIENT_ROUTES } from '@/config/routes';
+import { EtatVide } from '@/components/EtatVide';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -81,7 +82,8 @@ const Today = () => {
 
         {/* Où en est la semaine, avant ce qu'il reste à faire : c'est le
             contexte dans lequel se lit la séance du jour. */}
-        {(history.length > 0 || weekDays.some((d) => d.suggested.length > 0)) && (
+        {(history.length > 0 ||
+          weekDays.some((d) => d.suggested.length > 0)) && (
           <WeekStrip
             days={weekDays}
             onOpenCompleted={openDrawer}
@@ -90,21 +92,10 @@ const Today = () => {
         )}
 
         {totalCount === 0 ? (
-          <Box
-            p={8}
-            textAlign="center"
-            bg="whiteAlpha.50"
-            borderRadius="xl"
-            borderWidth="1px"
-            borderColor="whiteAlpha.100"
-          >
-            <Text fontSize="lg" fontWeight="bold" mb={1}>
-              Pas encore de programme
-            </Text>
-            <Text color="fg.muted" fontSize="sm">
-              Ton coach n'a pas encore ajouté de séances. Reviens bientôt.
-            </Text>
-          </Box>
+          <EtatVide
+            titre="Pas encore de programme"
+            phrase="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+          />
         ) : (
           nextSession && (
             <VStack align="stretch" gap={2}>

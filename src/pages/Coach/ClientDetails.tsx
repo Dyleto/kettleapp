@@ -25,6 +25,7 @@ import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStat
 import { BackLink } from '@/components/BackLink';
 import { Header } from '@/components/Header';
 import { hitArea } from '@/components/hitArea';
+import { EtatVide } from '@/components/EtatVide';
 import { COACH_ROUTES } from '@/config/routes';
 import { Exercise, Session } from '@/types';
 
@@ -260,11 +261,7 @@ const ClientDetails = () => {
             neverDoneIds={neverDoneIds}
           />
 
-          <Box
-            flex="1 1 auto"
-            minW={0}
-            maxW={{ base: 'none', md: '980px' }}
-          >
+          <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
             {activeSession ? (
               <>
                 <HStack justify="space-between" align="baseline" mb={3}>
@@ -321,18 +318,10 @@ const ClientDetails = () => {
                 />
               </>
             ) : (
-              <Box
-                p={8}
-                textAlign="center"
-                bg="whiteAlpha.50"
-                borderRadius="lg"
-                borderWidth="1px"
-                borderColor="whiteAlpha.100"
-              >
-                <Text color="fg.muted" fontSize="sm">
-                  Ce programme ne contient aucune séance pour le moment.
-                </Text>
-              </Box>
+              <EtatVide
+                titre="Ce programme est vide"
+                phrase="Ajoutez une séance pour commencer à le construire."
+              />
             )}
           </Box>
 

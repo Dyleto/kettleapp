@@ -11,6 +11,7 @@ import {
   useClientSessions,
 } from '@/features/client';
 import { CLIENT_ROUTES } from '@/config/routes';
+import { EtatVide } from '@/components/EtatVide';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 type SessionStatus = 'done' | 'next' | 'upcoming';
@@ -131,9 +132,10 @@ const Program = () => {
         </Text>
 
         {sessions.length === 0 ? (
-          <Box py={16} textAlign="center" color="fg.muted" fontSize="sm">
-            Aucune séance dans le programme.
-          </Box>
+          <EtatVide
+            titre="Pas encore de programme"
+            phrase="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+          />
         ) : (
           <>
             <Text fontSize="xs" color="fg.muted">

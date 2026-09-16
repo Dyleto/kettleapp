@@ -23,6 +23,7 @@ import {
 import { PerformedEntry, PerformedValues } from '@/types';
 import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
 import { CLIENT_ROUTES } from '@/config/routes';
+import { EtatVide } from '@/components/EtatVide';
 import { hitArea } from '@/components/hitArea';
 
 // Le réalisé se saisit exercice par exercice pendant la séance, puis part en
@@ -97,21 +98,10 @@ const SessionScreen = () => {
   if (sessions.length === 0) {
     return (
       <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
-        <Box
-          p={8}
-          textAlign="center"
-          bg="whiteAlpha.50"
-          borderRadius="xl"
-          borderWidth="1px"
-          borderColor="whiteAlpha.100"
-        >
-          <Text fontSize="lg" fontWeight="bold" mb={1}>
-            Pas encore de programme
-          </Text>
-          <Text color="fg.muted" fontSize="sm">
-            Ton coach n'a pas encore ajouté de séances. Reviens bientôt.
-          </Text>
-        </Box>
+        <EtatVide
+          titre="Pas encore de programme"
+          phrase="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+        />
       </Container>
     );
   }
