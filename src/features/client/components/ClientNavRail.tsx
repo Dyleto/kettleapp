@@ -7,6 +7,7 @@ export const ClientNavRail = () => {
   return (
     <VStack
       as="nav"
+      aria-label="Navigation principale"
       display={{ base: 'none', md: 'flex' }}
       w="200px"
       flexShrink={0}

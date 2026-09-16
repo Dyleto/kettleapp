@@ -6,6 +6,7 @@ export const CoachTabBar = () => {
   return (
     <HStack
       as="nav"
+      aria-label="Navigation principale"
       display={{ base: 'flex', md: 'none' }}
       position="fixed"
       bottom={0}
