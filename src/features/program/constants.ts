@@ -1,4 +1,5 @@
 import { BlockType, SessionBlock } from '@/types';
+import { formatDuration } from '@/utils/duration';
 
 export const BLOCK_TYPE_CONFIG: Record<BlockType, { label: string }> = {
   warmup: { label: 'Échauffement' },
@@ -100,49 +101,52 @@ export const getBlockAccent = (type: BlockType): BlockAccent => {
 export const blockIndexPrefix = (type: BlockType): boolean =>
   ['emom'].includes(type);
 
+/**
+ * Le réglage d'un bloc, en une ligne — dans l'écriture du produit.
+ *
+ * Cette seule fonction en comptait cinq : « 12 min », « 12min », « 20s »,
+ * « / 10s », « 90s repos ». C'est le gros du constat B14, et c'est aussi ce
+ * qui mettait deux conventions sur un même écran : la fiche du client tirait
+ * son résumé d'ici, l'atelier du coach le composait autrement.
+ */
 export const getBlockConfigSummary = (block: SessionBlock): string => {
+  const minutes = (m?: number) => (m ? formatDuration(m * 60) : '');
+  const secondes = (sec?: number) =>
+    sec === undefined ? '' : formatDuration(sec);
+
   switch (block.type) {
     case 'emom':
-      return block.rounds ? `${block.rounds} tours` : '';
+      return block.rounds ? `${block.rounds}\u00A0tours` : '';
     case 'amrap':
-      return block.durationMinutes ? `${block.durationMinutes} min` : '';
+      return minutes(block.durationMinutes);
     case 'timecap':
-      return block.durationMinutes ? `${block.durationMinutes} min max` : '';
+    case 'chipper':
+      return block.durationMinutes
+        ? `${minutes(block.durationMinutes)} max`
+        : '';
     case 'every':
-      return [
-        block.intervalMinutes && `${block.intervalMinutes}min`,
-        block.rounds && `× ${block.rounds}`,
-      ]
+      return [minutes(block.intervalMinutes), block.rounds && `× ${block.rounds}`]
         .filter(Boolean)
         .join(' ');
     case 'tabata':
-      return [
-        block.rounds && `${block.rounds} ×`,
-        block.workDuration !== undefined && `${block.workDuration}s`,
-        block.restDuration !== undefined && `/ ${block.restDuration}s`,
-      ]
-        .filter(Boolean)
-        .join(' ');
-
     case 'onoff':
       return [
-        block.rounds && `${block.rounds}×`,
-        block.workDuration !== undefined && `${block.workDuration}s`,
-        block.restDuration !== undefined && `/ ${block.restDuration}s`,
+        block.rounds && `${block.rounds} ×`,
+        secondes(block.workDuration),
+        block.restDuration !== undefined && `/ ${secondes(block.restDuration)}`,
       ]
         .filter(Boolean)
         .join(' ');
     case 'pyramid':
     case 'ladder': {
       const scheme = block.repsScheme?.join('-') ?? '';
-      const rest = block.restBetweenRounds
-        ? `${block.restBetweenRounds}s repos`
+      const repos = block.restBetweenRounds
+        ? `${secondes(block.restBetweenRounds)} repos`
         : '';
-      return [scheme, rest].filter(Boolean).join(' · ');
+      return [scheme, repos].filter(Boolean).join(' · ');
     }
-    case 'chipper':
-      return block.durationMinutes ? `${block.durationMinutes} min max` : '';
     default:
       return '';
   }
 };
+

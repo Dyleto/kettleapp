@@ -16,6 +16,16 @@ interface InlineValueProps {
   width?: string;
   /** Autorise l'effacement complet (réglage facultatif). */
   clearable?: boolean;
+  /**
+   * Comment la valeur se lit une fois posée.
+   *
+   * On édite en secondes — c'est l'unité dans laquelle le coach pense et
+   * qu'il tape —, mais on relit dans l'écriture du produit. Sans ça, une
+   * durée de 120 s se lisait « 120 s » chez le coach et « 2 min » chez son
+   * client : la même donnée, deux conventions, et aucun moyen de vérifier de
+   * l'un ce que verra l'autre.
+   */
+  format?: (value: number) => string;
 }
 
 const parse = (raw: string): number | undefined => {
@@ -39,6 +49,7 @@ export const InlineValue = ({
   min = 0,
   width = '56px',
   clearable = false,
+  format,
 }: InlineValueProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -121,7 +132,11 @@ export const InlineValue = ({
         fontWeight={isEmpty ? 'normal' : 'semibold'}
         color={isEmpty ? 'fg.muted' : 'fg'}
       >
-        {isEmpty ? emptyLabel : `${value}${suffix ? ` ${suffix}` : ''}`}
+        {isEmpty
+          ? emptyLabel
+          : format
+            ? format(value as number)
+            : `${value}${suffix ? `\u00A0${suffix}` : ''}`}
       </Text>
     </Box>
   );

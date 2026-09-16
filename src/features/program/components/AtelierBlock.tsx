@@ -25,6 +25,7 @@ import {
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
 import { hitArea } from '@/components/hitArea';
+import { formatDuration } from '@/utils/formatters';
 import { InlineText, InlineValue } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';
 import { InlineExercisePicker } from './InlineExercisePicker';
@@ -189,6 +190,7 @@ const ExerciseRow = ({
                 value={exercise.duration}
                 onChange={(v) => onUpdate({ duration: v })}
                 suffix="s"
+                format={formatDuration}
                 ariaLabel={`Durée — ${exercise.exercise.name}`}
                 width="56px"
               />
@@ -241,6 +243,7 @@ const ExerciseRow = ({
                   value={exercise.restBetweenSets}
                   onChange={(v) => onUpdate({ restBetweenSets: v })}
                   suffix="s"
+                  format={formatDuration}
                   emptyLabel="aucun"
                   ariaLabel={`Repos entre séries — ${exercise.exercise.name}`}
                   width="52px"

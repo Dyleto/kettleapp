@@ -1,11 +1,22 @@
 import { Box, Flex, HStack, Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/types';
 import { InlineSequence, InlineValue } from './InlineValue';
+import { formatDuration } from '@/utils/formatters';
 
 interface BlockConfigInlineProps {
   block: SessionBlock;
   onUpdate: (updates: Partial<SessionBlock>) => void;
 }
+
+/**
+ * Les réglages de bloc s'écrivent comme les durées de la fiche.
+ *
+ * Ces champs portaient leur unité collée par une espace ordinaire — « 5 s »,
+ * « 12 min » —, soit une convention de plus pour la même grandeur. Le coach
+ * édite toujours dans l'unité où il pense, mais relit dans l'écriture du
+ * produit : « 90 s » posé se relit « 1 min 30 s », comme partout ailleurs.
+ */
+const enMinutes = (minutes: number) => formatDuration(minutes * 60);
 
 const Sep = ({ children }: { children: string }) => (
   <Text as="span" fontSize="sm" color="fg.muted">
@@ -49,6 +60,7 @@ export const BlockConfigInline = ({
           value={block.durationMinutes}
           onChange={(v) => onUpdate({ durationMinutes: v })}
           suffix="min"
+          format={enMinutes}
           emptyLabel="sans limite"
           ariaLabel="Durée en minutes"
           min={1}
@@ -63,6 +75,7 @@ export const BlockConfigInline = ({
             value={block.durationMinutes}
             onChange={(v) => onUpdate({ durationMinutes: v })}
             suffix="min"
+            format={enMinutes}
             emptyLabel="sans limite"
             ariaLabel="Limite de temps en minutes"
             min={1}
@@ -80,6 +93,7 @@ export const BlockConfigInline = ({
             value={block.intervalMinutes}
             onChange={(v) => onUpdate({ intervalMinutes: v })}
             suffix="min"
+            format={enMinutes}
             emptyLabel="—"
             ariaLabel="Intervalle en minutes"
             min={1}
@@ -112,6 +126,7 @@ export const BlockConfigInline = ({
             value={block.workDuration}
             onChange={(v) => onUpdate({ workDuration: v })}
             suffix="s"
+            format={formatDuration}
             emptyLabel="—"
             ariaLabel="Durée de travail en secondes"
             min={1}
@@ -121,6 +136,7 @@ export const BlockConfigInline = ({
             value={block.restDuration}
             onChange={(v) => onUpdate({ restDuration: v })}
             suffix="s"
+            format={formatDuration}
             emptyLabel="—"
             ariaLabel="Durée de repos en secondes"
           />
@@ -149,6 +165,7 @@ export const BlockConfigInline = ({
               value={block.restBetweenRounds}
               onChange={(v) => onUpdate({ restBetweenRounds: v })}
               suffix="s"
+              format={formatDuration}
               emptyLabel="sans repos"
               ariaLabel="Repos entre paliers en secondes"
               width="72px"
