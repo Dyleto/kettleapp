@@ -7,7 +7,10 @@ import {
 } from '@chakra-ui/react';
 import { LuPlus } from 'react-icons/lu';
 import { Session } from '@/types';
-import { getBlockAccent } from '@/features/program/constants';
+import {
+  BLOCK_ACCENT_COLOR,
+  getBlockAccent,
+} from '@/features/program/constants';
 import { WEEKDAY_SHORT } from '@/features/client/sessionDates';
 import {
   DndContext,
@@ -25,12 +28,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-const ACCENT_COLOR = {
-  work: 'session.work',
-  rest: 'session.rest',
-  neutral: 'whiteAlpha.300',
-} as const;
 
 interface SessionRailProps {
   sessions: Session[];
@@ -58,7 +55,7 @@ const Composition = ({ session }: { session: Session }) => {
           flex={1}
           h="full"
           borderRadius="full"
-          bg={ACCENT_COLOR[getBlockAccent(block.type)]}
+          bg={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
           opacity={0.8}
         />
       ))}

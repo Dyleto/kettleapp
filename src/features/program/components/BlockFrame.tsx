@@ -2,13 +2,11 @@ import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/types';
-import { getBlockAccent, getBlockLabel } from '@/features/program/constants';
-
-const ACCENT_COLOR = {
-  work: 'session.work',
-  rest: 'session.rest',
-  neutral: 'whiteAlpha.300',
-} as const;
+import {
+  BLOCK_ACCENT_COLOR,
+  getBlockAccent,
+  getBlockLabel,
+} from '@/features/program/constants';
 
 interface BlockFrameProps {
   block: SessionBlock;
@@ -52,7 +50,7 @@ export const BlockFrame = ({
   <Box
     className="group"
     borderLeftWidth="2px"
-    borderLeftColor={ACCENT_COLOR[getBlockAccent(block.type)]}
+    borderLeftColor={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
     pl={3}
     py={1}
   >

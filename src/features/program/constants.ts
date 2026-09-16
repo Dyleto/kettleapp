@@ -77,6 +77,20 @@ export type BlockAccent = 'work' | 'rest' | 'neutral';
 // L'échauffement n'est ni l'effort principal ni du repos : neutre. Tout le
 // reste est de l'effort continu ou enchaîné, où un repos éventuel n'est
 // qu'un détail de réglage, pas ce que le bloc représente.
+/**
+ * La couleur d'une famille de bloc, à une seule adresse.
+ *
+ * Elle vivait en trois exemplaires — la fiche, le rail du coach, le choix du
+ * type — et les trois avaient déjà divergé : le neutre valait `whiteAlpha.300`
+ * chez deux, `fg.muted` chez le troisième. Ce n'était pas trois réglages à
+ * réaccorder, c'était trois sources à réduire à une.
+ */
+export const BLOCK_ACCENT_COLOR: Record<BlockAccent, string> = {
+  work: 'block.work',
+  rest: 'block.rest',
+  neutral: 'block.neutral',
+};
+
 export const getBlockAccent = (type: BlockType): BlockAccent => {
   if (blockSupportsRepsOnly(type)) return 'rest';
   if (type === 'warmup') return 'neutral';

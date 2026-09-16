@@ -64,6 +64,25 @@ const customConfig = defineConfig({
           hard: { value: '#EC8079' },
         },
 
+        /**
+         * L'accent d'un type de bloc : une famille, pas une gravité.
+         *
+         * Les blocs d'effort portaient le rouge saturé de l'alerte — la même
+         * teinte que « Supprimer » et qu'un ressenti « trop dure ». Un liseré
+         * de bloc ne prévient de rien : il dit de quelle espèce est ce qui
+         * suit, travail, repos ou échauffement.
+         *
+         * La gamme est donc la même en teinte et moitié moins saturée : on
+         * distingue toujours les trois familles d'un coup d'œil, mais aucune
+         * ne réclame plus l'attention qu'une alerte mérite. Le rouge saturé
+         * reste au ressenti difficile et aux gestes qui détruisent.
+         */
+        block: {
+          work: { value: '#B06A61' },
+          rest: { value: '#57908A' },
+          neutral: { value: '#585B61' },
+        },
+
         session: {
           work: {
             DEFAULT: { value: '#E2574C' },

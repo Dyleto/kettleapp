@@ -1,5 +1,6 @@
 import { BlockType } from '@/types';
 import {
+  BLOCK_ACCENT_COLOR,
   BLOCK_FAMILIES,
   BLOCK_TYPE_CONFIG,
   getBlockAccent,
@@ -10,12 +11,6 @@ import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 interface BlockTypeSelectorProps {
   onSelect: (type: BlockType) => void;
 }
-
-const ACCENT_DOT = {
-  work: 'session.work',
-  rest: 'session.rest',
-  neutral: 'fg.muted',
-} as const;
 
 export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => (
   <VStack align="stretch" gap={4}>
@@ -63,7 +58,7 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => (
                       w="8px"
                       h="8px"
                       borderRadius="full"
-                      bg={ACCENT_DOT[getBlockAccent(type)]}
+                      bg={BLOCK_ACCENT_COLOR[getBlockAccent(type)]}
                       flexShrink={0}
                     />
                     <Text
