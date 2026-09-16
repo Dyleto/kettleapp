@@ -266,8 +266,19 @@ export const ClientProgramTab = ({
           </Text>
         )}
 
-        {/* Le chrome de séance, révélé à la demande comme le reste. */}
-        <HStack justify="flex-end" gap={1} pt={2}>
+        {/* Le chrome de séance.
+
+            Les deux commandes étaient côte à côte, de même taille, de même
+            gris et de même style d'icône, à quatre pixels l'une de l'autre.
+            L'une est anodine — on peut dupliquer dix fois sans dommage —,
+            l'autre détruit le travail d'une séance entière. La confirmation
+            existe déjà ; c'est le geste *avant* la confirmation qu'il faut
+            rendre moins facile, et deux boutons jumeaux le rendent facile par
+            erreur.
+
+            « Supprimer » part donc seule à droite, en rouge, avec toute la
+            largeur de la colonne entre elle et sa voisine. */}
+        <HStack justify="space-between" gap={4} pt={2}>
           <Button
             size="xs"
             variant="ghost"
@@ -280,8 +291,8 @@ export const ClientProgramTab = ({
           <Button
             size="xs"
             variant="ghost"
-            color="fg.muted"
-            _hover={{ color: 'app.error', bg: 'app.error/8' }}
+            color="app.error"
+            _hover={{ bg: 'app.error/12' }}
             onClick={() => setIsSessionRemovalOpen(true)}
           >
             <LuTrash2 size={13} />
