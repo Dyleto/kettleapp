@@ -9,8 +9,8 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useAuth } from '@/contexts/useAuth';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { LEGAL_ROUTES } from '@/config/legal';
+import { useNavigate } from 'react-router-dom';
+import { LegalFooter } from '@/components/LegalFooter';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useEffect, useState } from 'react';
 import GoogleLoginButton from '@/components/GoogleLoginButton';
@@ -223,31 +223,7 @@ const Login: React.FC = () => {
             </Chemin>
           </VStack>
 
-          {/* Se connecter, c'est créer un compte. On doit pouvoir lire ce
-              qu'on accepte avant, pas après. */}
-          <HStack gap={3} justify="center" flexWrap="wrap">
-            <Link
-              as={RouterLink}
-              {...{ to: LEGAL_ROUTES.confidentialite }}
-              fontSize="xs"
-              color="fg.muted"
-              _hover={{ color: 'app.primary' }}
-            >
-              Politique de confidentialité
-            </Link>
-            <Text fontSize="xs" color="fg.muted" aria-hidden="true">
-              ·
-            </Text>
-            <Link
-              as={RouterLink}
-              {...{ to: LEGAL_ROUTES.mentions }}
-              fontSize="xs"
-              color="fg.muted"
-              _hover={{ color: 'app.primary' }}
-            >
-              Mentions légales
-            </Link>
-          </HStack>
+          <LegalFooter />
         </VStack>
       </Container>
     </Box>

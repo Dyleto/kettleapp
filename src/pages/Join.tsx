@@ -13,6 +13,7 @@ import {
 import { LuUnlink } from 'react-icons/lu';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
+import { LegalFooter } from '@/components/LegalFooter';
 
 /**
  * La sortie d'un lien qui ne marche pas.
@@ -231,6 +232,10 @@ const Join = () => {
               compte à créer.
             </Text>
           )}
+
+          {/* L'autre endroit où l'on crée un compte : rejoindre un coach, c'est
+              en créer un. Les mêmes pages, lisibles avant d'accepter. */}
+          <LegalFooter />
         </VStack>
       </Container>
     </Box>
