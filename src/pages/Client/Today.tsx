@@ -78,9 +78,19 @@ const Today = () => {
   return (
     <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
       <VStack gap={6} align="stretch">
-        <Text as="h1" fontSize="xl" fontWeight="bold">
-          Bonjour {user?.firstName},
-        </Text>
+        {/* Le titre nomme l'écran, pas celui qui le regarde.
+            « Bonjour Corentin » en `h1` faisait que la navigation par titres
+            — le premier outil d'exploration d'un lecteur d'écran — annonçait
+            une salutation là où elle devait annoncer un endroit. La
+            salutation reste, en texte simple, au-dessus. */}
+        <VStack align="start" gap={0}>
+          <Text fontSize="sm" color="fg.muted">
+            Bonjour {user?.firstName},
+          </Text>
+          <Text as="h1" fontSize="xl" fontWeight="bold">
+            Aujourd&rsquo;hui
+          </Text>
+        </VStack>
 
         {/* Où en est la semaine, avant ce qu'il reste à faire : c'est le
             contexte dans lequel se lit la séance du jour. */}

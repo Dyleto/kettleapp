@@ -204,8 +204,12 @@ const Exercises = () => {
     <Container maxW="container.xl" py={6}>
       <VStack gap={4} align="stretch">
         <HStack justify="space-between" align="baseline" gap={3}>
+          {/* Le même nom que dans la navigation et dans l'onglet. L'écran
+              s'appelait « Mes exercices » pendant qu'on y arrivait par
+              « Bibliothèque » : trois noms pour un endroit, dont deux à un
+              clic d'intervalle. */}
           <Text as="h1" fontSize="lg" fontWeight="bold">
-            Mes exercices
+            Bibliothèque
           </Text>
           <Text fontSize="xs" color="fg.muted" flexShrink={0}>
             {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}

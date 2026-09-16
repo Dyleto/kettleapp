@@ -134,7 +134,11 @@ const Login: React.FC = () => {
         <VStack gap={7} w="100%" maxW="380px">
           {/* Header */}
           <VStack gap={1} textAlign="center">
+            {/* Aucun `h1` sur cet écran : un lecteur d'écran n'avait rien
+                pour l'annoncer ni pour y naviguer. C'est le nom du produit
+                qui le titre — c'est bien ce que la page dit. */}
             <Heading
+              as="h1"
               fontSize="42px"
               fontWeight="800"
               letterSpacing="9px"
