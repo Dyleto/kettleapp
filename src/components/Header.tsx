@@ -116,11 +116,6 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               display="flex"
               borderRadius="full"
               css={hitArea(44)}
-              _focusVisible={{
-                outline: '2px solid',
-                outlineColor: 'app.primary',
-                outlineOffset: '2px',
-              }}
             >
               {avatar}
             </Box>

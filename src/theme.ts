@@ -7,7 +7,7 @@ const customConfig = defineConfig({
         // Couleurs principales
         app: {
           primary: {
-            DEFAULT: { value: '#CF9F3F' },
+            DEFAULT: { value: '{colors.amber}' },
             hover: { value: '#DFB563' },
             active: { value: '#B3852F' },
             bg: { value: '#CF9F3F1A' },
@@ -20,6 +20,21 @@ const customConfig = defineConfig({
             active: { value: '#33908A' },
           },
           error: { value: '#E2574C' },
+        },
+
+        /**
+         * L'anneau de ses propres composants.
+         *
+         * Chakra pose `--focus-ring-color` sur l'élément, depuis ce jeton :
+         * une règle globale ne peut pas la battre en spécificité. Sans cette
+         * reprise, la moitié des cibles gardait le gris par défaut — mesuré
+         * `rgb(161, 161, 170)` — à côté de l'ambre du reste de l'application.
+         */
+        gray: {
+          focusRing: { value: '{colors.amber}' },
+        },
+        red: {
+          focusRing: { value: '{colors.amber}' },
         },
 
         bg: {
@@ -102,6 +117,8 @@ const customConfig = defineConfig({
     },
     tokens: {
       colors: {
+        /** L'ambre de la marque, à une seule adresse. */
+        amber: { value: '#CF9F3F' },
         brand: {
           50: { value: '#fffbeb' },
           100: { value: '#fef3c7' },
@@ -119,6 +136,31 @@ const customConfig = defineConfig({
     },
   },
   globalCss: {
+    /**
+     * L'anneau de focus, à une seule adresse.
+     *
+     * Il était réécrit trente-cinq fois, et pas toujours pareil : l'offset
+     * valait 1, 2 ou 4 px selon l'endroit, et le rail de navigation n'en
+     * avait aucun — il gardait le contour par défaut du navigateur, qui sur
+     * fond sombre ne se voit pas.
+     *
+     * Posé ici, il couvre tout ce qui prend le focus, y compris ce qu'on
+     * n'aurait pas pensé à habiller.
+     */
+    ':root': {
+      // Valeur de repli pour ce qui n'est pas un composant Chakra : sans
+      // elle, l'anneau tombait sur `currentColor` et prenait la couleur du
+      // texte.
+      '--focus-ring-color': 'var(--chakra-colors-amber)',
+      '--focus-ring-width': '2px',
+      '--focus-ring-offset': '2px',
+      '--focus-ring-style': 'solid',
+    },
+    '*:focus-visible': {
+      outline: '2px solid',
+      outlineColor: 'app.primary',
+      outlineOffset: '2px',
+    },
     'html, body': {
       backgroundColor: 'bg.canvas', // Utilise la valeur définie au-dessus
       color: 'fg',

@@ -158,11 +158,6 @@ const MonthGrid = ({
                   bg={isSelected ? 'app.primary/12' : 'transparent'}
                   cursor={isActionable ? 'pointer' : 'default'}
                   _hover={isActionable ? { bg: 'whiteAlpha.50' } : undefined}
-                  _focusVisible={{
-                    outline: '2px solid',
-                    outlineColor: 'app.primary',
-                    outlineOffset: '1px',
-                  }}
                   transition="background-color 0.12s"
                 >
                   <VStack gap={0.5}>

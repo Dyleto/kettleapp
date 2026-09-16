@@ -34,7 +34,6 @@ const GoogleLoginButton = ({
       _active={{
         transform: 'translateY(0px)',
       }}
-      _focusVisible={{ outlineColor: 'app.primary' }}
       borderRadius="xl"
       transition="all 0.3s ease"
       boxShadow="sm"

@@ -59,17 +59,26 @@ export const Card = ({
       position="relative"
       overflow="hidden"
       cursor={onClick ? 'pointer' : 'default'}
-      transition="all 0.3s ease"
+      /* Jamais `all` : cela animait aussi l'anneau de focus, qui mettait
+         300 ms à apparaître. Un anneau qui se fait attendre est un anneau
+         qu'on ne voit pas — c'est ce qui le faisait passer pour absent. */
+      transition="transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease"
       onClick={onClick}
       onKeyDown={handleKeyDown}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      /* Une carte est un `div` porteur de `role="button"` : `:focus-visible`
+         l'atteint bien — mesuré —, mais quelque chose remet son épaisseur à
+         zéro, ce qui n'arrive à aucun vrai `<button>`. L'anneau se pose donc
+         ici, et il lit les variables du thème plutôt que de redire ses
+         valeurs : changer l'anneau une fois le change aussi sur les cartes. */
       _focusVisible={
         onClick
           ? {
-              outline: '2px solid',
-              outlineColor: 'app.primary',
-              outlineOffset: '2px',
+              outlineStyle: 'var(--focus-ring-style, solid)',
+              outlineWidth: 'var(--focus-ring-width, 2px)',
+              outlineColor: 'var(--focus-ring-color, currentColor)',
+              outlineOffset: 'var(--focus-ring-offset, 2px)',
             }
           : undefined
       }

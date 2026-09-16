@@ -70,11 +70,6 @@ const History = () => {
                     fontSize="xs"
                     color="app.primary"
                     onClick={() => setSelectedDay(null)}
-                    _focusVisible={{
-                      outline: '2px solid',
-                      outlineColor: 'app.primary',
-                      outlineOffset: '2px',
-                    }}
                   >
                     tout l'historique
                   </Box>

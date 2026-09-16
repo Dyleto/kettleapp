@@ -54,8 +54,6 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
       }}
       _hover={{ bg: 'whiteAlpha.50' }}
       _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'app.primary',
         outlineOffset: '-2px',
       }}
     >
@@ -212,11 +210,6 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
                 fontSize="xs"
                 color="app.primary"
                 onClick={() => setSelectedDay(null)}
-                _focusVisible={{
-                  outline: '2px solid',
-                  outlineColor: 'app.primary',
-                  outlineOffset: '2px',
-                }}
               >
                 tout le journal
               </Box>

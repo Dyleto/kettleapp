@@ -276,8 +276,6 @@ const Account = ({ space }: Props) => {
                   fontSize="sm"
                   _hover={{ bg: 'whiteAlpha.50', textDecoration: 'none' }}
                   _focusVisible={{
-                    outline: '2px solid',
-                    outlineColor: 'app.primary',
                     outlineOffset: '-2px',
                   }}
                 >
@@ -332,11 +330,6 @@ const Account = ({ space }: Props) => {
             fontSize="sm"
             fontWeight="semibold"
             _hover={{ bg: 'app.error/12' }}
-            _focusVisible={{
-              outline: '2px solid',
-              outlineColor: 'app.error',
-              outlineOffset: '2px',
-            }}
           >
             <LuTrash2 size={17} />
             <Text as="span">Supprimer mon compte</Text>

@@ -83,11 +83,6 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           justifyContent={granted ? 'flex-end' : 'flex-start'}
           bg={granted ? 'app.primary' : 'whiteAlpha.300'}
           transition="background-color 0.15s"
-          _focusVisible={{
-            outline: '2px solid',
-            outlineColor: 'app.primary',
-            outlineOffset: '2px',
-          }}
         >
           {isPending ? (
             <Spinner size="xs" color="bg.canvas" m="auto" />

@@ -46,11 +46,6 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => (
                 borderColor="whiteAlpha.100"
                 onClick={() => onSelect(type)}
                 _hover={{ bg: 'app.primary/12', borderColor: 'app.primary/50' }}
-                _focusVisible={{
-                  outline: '2px solid',
-                  outlineColor: 'app.primary',
-                  outlineOffset: '2px',
-                }}
               >
                 <VStack align="start" gap={1}>
                   <HStack gap={2}>

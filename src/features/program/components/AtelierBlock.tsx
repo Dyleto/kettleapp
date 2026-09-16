@@ -296,11 +296,6 @@ const ExerciseRow = ({
               textTransform="uppercase"
               color="fg.muted"
               _hover={{ color: 'app.primary' }}
-              _focusVisible={{
-                outline: '2px solid',
-                outlineColor: 'app.primary',
-                outlineOffset: '2px',
-              }}
               transition="color 0.15s"
             >
               {KIND_SHORT[kind]}
@@ -540,11 +535,6 @@ export const AtelierBlock = ({
             display="flex"
             alignItems="center"
             _hover={{ color: 'app.primary' }}
-            _focusVisible={{
-              outline: '2px solid',
-              outlineColor: 'app.primary',
-              outlineOffset: '2px',
-            }}
             transition="color 0.15s"
           >
             <HStack gap={1}>

@@ -607,11 +607,6 @@ export const GuidedSession = ({
                   aria-label={`Voir la consigne — ${step.exerciseName}`}
                   onClick={() => setShowDetail(true)}
                   css={hitArea(44)}
-                  _focusVisible={{
-                    outline: '2px solid',
-                    outlineColor: 'app.primary',
-                    outlineOffset: '4px',
-                  }}
                 >
                   <HStack gap={2} justify="center" maxW="22ch">
                     <Text fontSize="28px" fontWeight="800">

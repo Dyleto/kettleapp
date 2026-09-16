@@ -150,11 +150,6 @@ export const CompleteSessionModal = ({
                     fontSize="xs"
                     color="fg.muted"
                     _hover={{ color: 'app.primary' }}
-                    _focusVisible={{
-                      outline: '2px solid',
-                      outlineColor: 'app.primary',
-                      outlineOffset: '2px',
-                    }}
                     css={hitArea(32)}
                   >
                     Ce n'était pas aujourd'hui&nbsp;?

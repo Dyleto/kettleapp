@@ -38,11 +38,6 @@ export const FeedbackTags = ({ value, onChange }: FeedbackTagsProps) => {
             _hover={{
               borderColor: isActive ? 'app.primary' : 'whiteAlpha.400',
             }}
-            _focusVisible={{
-              outline: '2px solid',
-              outlineColor: 'app.primary',
-              outlineOffset: '2px',
-            }}
             transition="background-color 0.15s, border-color 0.15s"
           >
             {FEEDBACK_TAG_LABELS[tag]}

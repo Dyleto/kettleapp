@@ -134,11 +134,6 @@ const SheetField = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'app.primary',
-        outlineOffset: '1px',
-      }}
       transition="text-decoration-color 0.15s"
     >
       <Text

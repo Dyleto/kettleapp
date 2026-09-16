@@ -183,11 +183,6 @@ export const WeekStrip = ({
               cursor="pointer"
               css={hitArea(44)}
               _hover={{ bg: 'app.primary/12' }}
-              _focusVisible={{
-                outline: '2px solid',
-                outlineColor: 'app.primary',
-                outlineOffset: '2px',
-              }}
               transition="background-color 0.15s"
             >
               {content}

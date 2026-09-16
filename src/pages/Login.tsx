@@ -71,8 +71,6 @@ const Chemin = ({
       color="fg"
       _hover={{ bg: 'whiteAlpha.50' }}
       _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'app.primary',
         outlineOffset: '-2px',
       }}
     >

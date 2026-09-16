@@ -185,8 +185,6 @@ const Exercises = () => {
           borderColor="whiteAlpha.100"
           _hover={{ bg: 'app.primary/12' }}
           _focusVisible={{
-            outline: '2px solid',
-            outlineColor: 'app.primary',
             outlineOffset: '-2px',
           }}
           onClick={create}
@@ -332,8 +330,6 @@ const Exercises = () => {
                         minH="28px"
                         _hover={{ color: 'app.primary' }}
                         _focusVisible={{
-                          outline: '2px solid',
-                          outlineColor: 'app.primary',
                           outlineOffset: '-2px',
                         }}
                         userSelect="none"

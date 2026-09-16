@@ -125,11 +125,6 @@ const Today = () => {
                   navigate(CLIENT_ROUTES.sessionById(nextSession._id))
                 }
                 _hover={{ bg: 'app.primary/12' }}
-                _focusVisible={{
-                  outline: '2px solid',
-                  outlineColor: 'app.primary',
-                  outlineOffset: '2px',
-                }}
                 transition="background-color 0.15s"
               >
                 <VStack align="stretch" gap={1.5}>

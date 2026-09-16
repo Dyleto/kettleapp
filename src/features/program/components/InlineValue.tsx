@@ -117,11 +117,6 @@ export const InlineValue = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'app.primary',
-        outlineOffset: '1px',
-      }}
       css={hitArea(32)}
       transition="text-decoration-color 0.15s"
     >
@@ -230,11 +225,6 @@ export const InlineSequence = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'app.primary',
-        outlineOffset: '1px',
-      }}
       css={hitArea(32)}
       transition="text-decoration-color 0.15s"
     >
@@ -314,9 +304,6 @@ export const InlineText = ({
         _groupHover={{ opacity: 0.7 }}
         _focusVisible={{
           opacity: 1,
-          outline: '2px solid',
-          outlineColor: 'app.primary',
-          outlineOffset: '2px',
         }}
         transition="opacity 0.15s"
       >
@@ -385,11 +372,6 @@ export const InlineText = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      _focusVisible={{
-        outline: '2px solid',
-        outlineColor: 'app.primary',
-        outlineOffset: '1px',
-      }}
       css={hitArea(32)}
       transition="text-decoration-color 0.15s"
     >

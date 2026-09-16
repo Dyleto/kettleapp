@@ -70,11 +70,6 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
                 }
               }}
               _hover={{ borderColor: isSelected ? color : 'whiteAlpha.300' }}
-              _focusVisible={{
-                outline: '2px solid',
-                outlineColor: 'app.primary',
-                outlineOffset: '2px',
-              }}
               transition="background-color 0.15s, border-color 0.15s"
             >
               <VStack gap={0.5}>

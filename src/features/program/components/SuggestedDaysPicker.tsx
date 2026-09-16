@@ -60,11 +60,6 @@ export const SuggestedDaysPicker = ({
             {...dayChipStyle(active)}
             css={hitArea(32)}
             _hover={{ borderColor: active ? 'app.primary' : 'whiteAlpha.400' }}
-            _focusVisible={{
-              outline: '2px solid',
-              outlineColor: 'app.primary',
-              outlineOffset: '2px',
-            }}
             transition="border-color 0.15s, background-color 0.15s"
           >
             {short}

@@ -92,11 +92,6 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
               py={1}
               borderRadius="md"
               _hover={{ bg: 'app.primary/12' }}
-              _focusVisible={{
-                outline: '2px solid',
-                outlineColor: 'app.primary',
-                outlineOffset: '2px',
-              }}
             >
               Réessayer
             </Box>

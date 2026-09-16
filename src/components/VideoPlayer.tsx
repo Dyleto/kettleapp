@@ -97,11 +97,6 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
             overflow="hidden"
             bg="bg.canvas"
             cursor="pointer"
-            _focusVisible={{
-              outline: '2px solid',
-              outlineColor: 'app.primary',
-              outlineOffset: '2px',
-            }}
           >
             {/* La vignette peut ne pas arriver (hors-ligne, domaine bloqué) :
                 on la retire alors complètement plutôt que de laisser le

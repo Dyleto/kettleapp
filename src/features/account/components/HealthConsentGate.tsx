@@ -142,11 +142,6 @@ export const HealthConsentGate = () => {
             px={2}
             py={2}
             _hover={{ color: 'fg' }}
-            _focusVisible={{
-              outline: '2px solid',
-              outlineColor: 'app.primary',
-              outlineOffset: '2px',
-            }}
           >
             <HStack gap={1.5}>
               <LuLogOut size={12} />

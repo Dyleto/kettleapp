@@ -38,11 +38,6 @@ export const LegalLayout = ({
               w="fit-content"
               color="fg.muted"
               _hover={{ color: 'app.primary' }}
-              _focusVisible={{
-                outline: '2px solid',
-                outlineColor: 'app.primary',
-                outlineOffset: '2px',
-              }}
               css={hitArea(32)}
             >
               <HStack gap={1.5}>
