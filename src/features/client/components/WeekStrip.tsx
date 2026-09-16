@@ -8,7 +8,7 @@ import { WeekDayPlan } from '../weekPlan';
 
 interface WeekStripProps {
   days: WeekDayPlan[];
-  /** Ouvre le bilan d'une séance déjà faite. */
+  /** Ouvre le détail d'une séance déjà faite. */
   onOpenCompleted: (completed: CompletedSession) => void;
   /** Ouvre une séance conseillée mais pas encore faite. */
   onOpenSession: (session: Session) => void;
@@ -26,7 +26,7 @@ interface WeekStripProps {
  * cliquable et ne l'était pas. Elle ne filtre rien — filtrer trois séances
  * récentes sur sept jours vide l'écran cinq fois sur sept, et l'historique
  * fait déjà ça sur un mois entier. Elle mène à ce que le jour contient : le
- * bilan pour un jour fait, la séance pour un jour conseillé.
+ * le détail pour un jour fait, la séance pour un jour conseillé.
  */
 export const WeekStrip = ({
   days,
@@ -88,7 +88,7 @@ export const WeekStrip = ({
                 : null;
           const label = `${letter} ${date.getDate()} — ${
             done.length > 0
-              ? `${done.length} séance${done.length > 1 ? 's' : ''} faite${done.length > 1 ? 's' : ''}, voir le bilan`
+              ? `${done.length} séance${done.length > 1 ? 's' : ''} faite${done.length > 1 ? 's' : ''}, voir le détail`
               : pending.length > 0
                 ? `séance ${pending[0].order} conseillée, l'ouvrir`
                 : 'aucune séance'

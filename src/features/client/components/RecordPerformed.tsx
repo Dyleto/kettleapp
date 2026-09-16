@@ -21,7 +21,7 @@ interface RecordPerformedProps {
   lastPerformance?: Map<string, LastPerformance>;
   /** Fermé sans aller plus loin : on revient à la séance. */
   onCancel: () => void;
-  /** On passe au bilan, que les charges aient été notées ou non. */
+  /** On passe au ressenti, que les charges aient été notées ou non. */
   onContinue: () => void;
 }
 
@@ -78,13 +78,24 @@ export const RecordPerformed = ({
                 </VStack>
               </Dialog.Header>
 
+              {/* Deux réponses ordinaires, de même forme et de même taille.
+                  Un bouton fantôme à côté d'un bouton plein ne se compare
+                  pas : il se lit comme une sortie de secours, alors que « non
+                  merci » mène exactement au même endroit. */}
               <Dialog.Footer gap={2} flexWrap="wrap">
-                {/* « Non » n'est pas une sortie de secours : c'est une réponse
-                    ordinaire, et elle mène au même endroit. */}
-                <Button variant="ghost" color="fg.muted" onClick={onContinue}>
-                  Passer au bilan
+                <Button
+                  flex="1 1 140px"
+                  minH="48px"
+                  variant="outline"
+                  borderColor="whiteAlpha.300"
+                  color="fg"
+                  onClick={onContinue}
+                >
+                  Passer au ressenti
                 </Button>
                 <Button
+                  flex="1 1 140px"
+                  minH="48px"
                   bg="app.primary"
                   color="bg.canvas"
                   fontWeight="bold"
@@ -147,7 +158,7 @@ export const RecordPerformed = ({
                   onClick={onContinue}
                   _hover={{ bg: 'app.primary.hover' }}
                 >
-                  Continuer vers le bilan
+                  Continuer vers le ressenti
                 </Button>
               </Box>
 
