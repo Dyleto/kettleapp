@@ -5,6 +5,7 @@ import { formatLastPerformance, LastPerformance } from '../lastPerformance';
 import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { hitArea } from '@/components/hitArea';
+import { formatCountdown } from '@/utils/formatters';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuInfo, LuX } from 'react-icons/lu';
@@ -61,6 +62,61 @@ const clearSavedIndex = (sessionId: string) => {
   }
 };
 
+/**
+ * L'anneau autour du chiffre.
+ *
+ * Entre deux secondes, le chiffre ne bouge pas : rien ne dit alors que le
+ * décompte tourne encore, et un chronomètre dont on ignore s'il tourne est
+ * pire que pas de chronomètre. L'anneau se vide, et la transition d'une
+ * seconde le fait couler au lieu de sauter. À l'arrêt, plus de transition —
+ * la pause doit se voir immédiatement, pas glisser encore une seconde.
+ */
+const RAYON = 92;
+const CIRCONFERENCE = 2 * Math.PI * RAYON;
+
+const Anneau = ({
+  part,
+  anime,
+}: {
+  /** Ce qu'il reste, de 1 à 0. */
+  part: number;
+  anime: boolean;
+}) => (
+  <Box
+    as="svg"
+    // @ts-expect-error — viewBox n'est pas typé sur le Box polymorphe.
+    viewBox="0 0 200 200"
+    position="absolute"
+    inset={0}
+    w="100%"
+    h="100%"
+    aria-hidden="true"
+    style={{ transform: 'rotate(-90deg)' }}
+  >
+    <circle
+      cx="100"
+      cy="100"
+      r={RAYON}
+      fill="none"
+      stroke="currentColor"
+      strokeOpacity={0.15}
+      strokeWidth="4"
+    />
+    <circle
+      cx="100"
+      cy="100"
+      r={RAYON}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="4"
+      strokeLinecap="round"
+      strokeDasharray={CIRCONFERENCE}
+      strokeDashoffset={CIRCONFERENCE * (1 - Math.max(0, Math.min(1, part)))}
+      style={{ transition: anime ? 'stroke-dashoffset 1s linear' : 'none' }}
+    />
+  </Box>
+);
+
 const Countdown = ({
   duration,
   onComplete,
@@ -86,23 +142,48 @@ const Countdown = ({
     }
   }, [isDone, onComplete]);
 
+  const lu = formatCountdown(remaining);
+
   return (
     <Box
       as="button"
       onClick={isDone ? undefined : () => (isRunning ? pause() : resume())}
       cursor={isDone ? 'default' : 'pointer'}
-      aria-label={isRunning ? 'Mettre en pause' : 'Reprendre le décompte'}
+      // Le temps restant fait partie du nom : sans lui, qui n'a pas l'écran
+      // sous les yeux peut mettre en pause sans jamais savoir où il en est.
+      aria-label={
+        isDone
+          ? 'Temps écoulé'
+          : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${lu} restant`
+      }
     >
-      <Text
-        fontSize="72px"
-        fontWeight="800"
-        fontFamily="mono"
-        lineHeight="1"
+      <Box
+        position="relative"
+        w="200px"
+        h="200px"
+        maxW="100%"
+        mx="auto"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
         color={color}
-        opacity={isRunning || isDone ? 1 : 0.5}
       >
-        {remaining}s
-      </Text>
+        <Anneau
+          part={duration > 0 ? remaining / duration : 0}
+          anime={isRunning}
+        />
+        <Text
+          fontSize="72px"
+          fontWeight="800"
+          fontFamily="mono"
+          lineHeight="1"
+          color={color}
+          opacity={isRunning || isDone ? 1 : 0.5}
+          position="relative"
+        >
+          {lu}
+        </Text>
+      </Box>
       {isDone && holdLabel ? (
         <Text fontSize="sm" color={color} opacity={0.75} mt={2}>
           {holdLabel}

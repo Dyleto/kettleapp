@@ -15,6 +15,22 @@ export const stripAccents = (str: string): string =>
  * @param seconds Durée en secondes
  * @returns Durée formatée
  */
+/**
+ * Un décompte qui tourne, pas une durée prescrite.
+ *
+ * Délibérément distinct de `formatDuration` : celui-ci écrit « 2min » parce
+ * qu'il décrit une consigne qu'on lit au calme. Un chronomètre en salle
+ * répond à « il me reste combien », et « 119s » oblige à diviser de tête
+ * pendant l'effort. Au-delà d'une minute on écrit donc m:ss, en dessous les
+ * secondes nues — c'est la convention de tous les chronomètres.
+ */
+export const formatCountdown = (seconds: number): string => {
+  const total = Math.max(0, Math.round(seconds));
+  if (total < 60) return `${total} s`;
+  const minutes = Math.floor(total / 60);
+  return `${minutes}:${String(total % 60).padStart(2, '0')}`;
+};
+
 export const formatDuration = (seconds: number): string => {
   const totalMinutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
