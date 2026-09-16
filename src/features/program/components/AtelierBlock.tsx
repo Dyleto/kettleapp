@@ -1,7 +1,6 @@
 import { Box, HStack, IconButton, Input, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 import {
-  LuArrowLeftRight,
   LuGripVertical,
   LuMessageSquare,
   LuPlus,
@@ -40,6 +39,13 @@ const KIND_LABEL: Record<MetricKind, string> = {
   reps: 'répétitions',
   duration: 'durée',
   custom: 'mesure libre',
+};
+
+/** Le même, en assez court pour tenir dans la gouttière d'une ligne. */
+const KIND_SHORT: Record<MetricKind, string> = {
+  reps: 'reps',
+  duration: 'durée',
+  custom: 'libre',
 };
 
 type ExerciseUpdate = Partial<Omit<BlockExercise, 'exercise'>>;
@@ -251,6 +257,7 @@ const ExerciseRow = ({
                 ? `Modifier la consigne — ${exercise.exercise.name}`
                 : `Ajouter une consigne — ${exercise.exercise.name}`
             }
+            title={aUneNote ? 'Modifier la consigne' : 'Ajouter une consigne'}
             css={hitArea(32)}
             size="2xs"
             variant="ghost"
@@ -260,19 +267,36 @@ const ExerciseRow = ({
             <LuMessageSquare size={11} />
           </IconButton>
           {!ownMetrics && (
-            <IconButton
+            /* « ⇄ » ne disait ni qu'il remplace, ni qu'il échange, ni qu'il
+               inverse — un pictogramme que son auteur doit expliquer n'en est
+               pas un. Le mot, lui, porte deux informations que la flèche ne
+               portait ni l'une ni l'autre : ce que cette ligne mesure
+               aujourd'hui, et qu'on peut en changer. */
+            <Box
+              as="button"
               aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
-              css={hitArea(32)}
-              size="2xs"
-              variant="ghost"
-              color="fg.muted"
+              title={`Mesure en ${KIND_LABEL[kind]} — changer`}
               onClick={switchKind}
+              css={hitArea(32)}
+              fontSize="10px"
+              fontWeight="bold"
+              letterSpacing="wide"
+              textTransform="uppercase"
+              color="fg.muted"
+              _hover={{ color: 'app.primary' }}
+              _focusVisible={{
+                outline: '2px solid',
+                outlineColor: 'app.primary',
+                outlineOffset: '2px',
+              }}
+              transition="color 0.15s"
             >
-              <LuArrowLeftRight size={11} />
-            </IconButton>
+              {KIND_SHORT[kind]}
+            </Box>
           )}
           <IconButton
             aria-label={`Retirer ${exercise.exercise.name}`}
+            title="Retirer cet exercice"
             css={hitArea(32)}
             size="2xs"
             variant="ghost"
@@ -374,6 +398,7 @@ export const AtelierBlock = ({
         >
           <IconButton
             aria-label={`Réorganiser le bloc ${getBlockLabel(block.type)}`}
+            title="Déplacer ce bloc"
             css={hitArea(32)}
             size="2xs"
             variant="ghost"
@@ -386,6 +411,7 @@ export const AtelierBlock = ({
           </IconButton>
           <IconButton
             aria-label={`Supprimer le bloc ${getBlockLabel(block.type)}`}
+            title="Supprimer ce bloc"
             css={hitArea(32)}
             size="2xs"
             variant="ghost"
