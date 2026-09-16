@@ -141,10 +141,14 @@ const Exercises = () => {
             pb={1}
           >
             <HStack gap={2} align="center">
+              {/* Une lettre d'index n'est ni une action ni un endroit où
+                  l'on se trouve : elle n'a rien à faire en ambre. Neuf
+                  en-têtes dorés pour dix exercices, c'était aussi neuf
+                  fausses invitations à cliquer. */}
               <Text
                 fontSize="xs"
                 fontWeight="bold"
-                color="app.primary"
+                color="fg.muted"
                 letterSpacing="widest"
                 fontFamily="mono"
                 flexShrink={0}

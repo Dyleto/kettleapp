@@ -36,6 +36,34 @@ const customConfig = defineConfig({
           muted: { value: '#A6A49A' },
         },
 
+        /**
+         * Le ressenti a sa propre échelle, et elle ne croise aucune couleur
+         * d'action.
+         *
+         * L'ambre portait six sens à lui seul : la marque, l'action
+         * principale, le tri actif, le non-lu, les lettres d'index et le
+         * ressenti « Juste ». Une teinte qui veut dire six choses ne veut plus
+         * dire grand-chose, et c'est celle qui doit attirer l'œil.
+         *
+         * La règle tenue désormais : l'ambre ne dit que deux choses — « c'est
+         * une action » et « c'est là que tu es ». Le ressenti, lui, est une
+         * donnée : on ne clique pas dessus, il n'a rien à faire dans la
+         * palette de marque.
+         *
+         * L'échelle est divergente, froid → chaud, parce que la grandeur l'est
+         * aussi : trop facile et trop dure sont deux écarts de part et d'autre
+         * du juste. Le vert médian n'est pas un « bien » moral, c'est le
+         * milieu de l'échelle — et ici le milieu est effectivement la cible.
+         *
+         * Ces valeurs habillent du texte de 12 px : toutes dépassent 5,5:1 sur
+         * le fond le plus clair de l'application.
+         */
+        effort: {
+          easy: { value: '#7FA9E0' },
+          target: { value: '#7FC08A' },
+          hard: { value: '#EC8079' },
+        },
+
         session: {
           work: {
             DEFAULT: { value: '#E2574C' },

@@ -111,7 +111,12 @@ export const WeekStrip = ({
               {/* Trois états sur la même ligne de pastilles : plein pour ce
                   qui est fait — couleur du ressenti, comme le calendrier de
                   l'historique —, creux pour ce qui est conseillé et pas
-                  encore fait, rien du tout sinon. */}
+                  encore fait, rien du tout sinon.
+
+                  Ni l'un ni l'autre n'est en ambre : une pastille de semaine
+                  ne se clique pas et ne dit pas où l'on est. C'est le plein
+                  contre le creux qui distingue fait de prévu — la couleur n'a
+                  jamais rien ajouté là-dessus. */}
               <HStack gap="2px" h="5px" justify="center" aria-hidden>
                 {done.map((s) => (
                   <Box
@@ -119,7 +124,7 @@ export const WeekStrip = ({
                     w="5px"
                     h="5px"
                     borderRadius="full"
-                    bg={effort ? EFFORT_ZONE_COLOR[effort.zone] : 'app.primary'}
+                    bg={effort ? EFFORT_ZONE_COLOR[effort.zone] : 'fg.muted'}
                   />
                 ))}
                 {pending.map((s) => (
@@ -129,7 +134,7 @@ export const WeekStrip = ({
                     h="5px"
                     borderRadius="full"
                     borderWidth="1px"
-                    borderColor="app.primary"
+                    borderColor="fg.muted"
                   />
                 ))}
               </HStack>
