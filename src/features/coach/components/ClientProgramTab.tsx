@@ -5,12 +5,18 @@ import {
   Dialog,
   Drawer,
   HStack,
+  IconButton,
   Portal,
   Text,
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { LuCopy, LuPlus, LuTrash2 } from 'react-icons/lu';
+import {
+  LuCopy,
+  LuMessageSquarePlus,
+  LuPlus,
+  LuTrash2,
+} from 'react-icons/lu';
 import {
   BlockExercise,
   BlockType,
@@ -32,6 +38,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { hitArea } from '@/components/hitArea';
 import {
   closestCenter,
   DndContext,
@@ -119,6 +126,9 @@ export const ClientProgramTab = ({
   );
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
   const [isSessionRemovalOpen, setIsSessionRemovalOpen] = useState(false);
+  const [noteDemandee, setNoteDemandee] = useState(false);
+  const aUneNote = !!session.notes?.trim();
+  const noteVisible = aUneNote || noteDemandee;
 
   const blockSelectorRef = useRef<HTMLDivElement>(null);
   const closeBlockSelector = useCallback(() => setShowBlockSelector(false), []);
@@ -145,25 +155,48 @@ export const ClientProgramTab = ({
   return (
     <>
       <VStack align="stretch" gap={4}>
-        <VStack align="start" gap={1}>
-          <Box className="group" w="fit-content" maxW="full">
-            <InlineText
-              value={session.notes}
-              onChange={(notes) => onUpdateSessionNotes(notes ?? '')}
-              addLabel="+ note de séance"
-              ariaLabel="Note de la séance"
-              fontSize="sm"
-              multiline
+        <VStack align="stretch" gap={1}>
+          {/* La note ne s'affiche que si elle existe, ou si on vient de la
+              demander. « + note de séance » posé en permanence était la
+              septième invitation de l'écran, et la seule dont la plupart des
+              séances se passent. */}
+          {noteVisible && (
+            <Box className="group" w="fit-content" maxW="full">
+              <InlineText
+                value={session.notes}
+                onChange={(notes) => onUpdateSessionNotes(notes ?? '')}
+                addLabel="+ note de séance"
+                ariaLabel="Note de la séance"
+                fontSize="sm"
+                startOpen={noteDemandee && !aUneNote}
+                multiline
+              />
+            </Box>
+          )}
+          <HStack gap={2} align="center">
+            {/* Le jour conseillé est un attribut de la séance, au même rang
+                que sa note : c'est le coach qui le pose, une seule fois, ici.
+                La semaine du client s'en déduit à l'affichage — il n'y a pas
+                de planning séparé à tenir en cohérence. */}
+            <SuggestedDaysPicker
+              value={session.suggestedDays}
+              onChange={onUpdateSessionDays}
             />
-          </Box>
-          {/* Le jour conseillé est un attribut de la séance, au même rang que
-              sa note : c'est le coach qui le pose, une seule fois, ici. La
-              semaine du client s'en déduit à l'affichage — il n'y a pas de
-              planning séparé à tenir en cohérence. */}
-          <SuggestedDaysPicker
-            value={session.suggestedDays}
-            onChange={onUpdateSessionDays}
-          />
+            {!noteVisible && (
+              <IconButton
+                aria-label="Ajouter une note de séance"
+                title="Ajouter une note de séance"
+                onClick={() => setNoteDemandee(true)}
+                css={hitArea(32)}
+                size="2xs"
+                variant="ghost"
+                color="fg.muted"
+                flexShrink={0}
+              >
+                <LuMessageSquarePlus size={14} />
+              </IconButton>
+            )}
+          </HStack>
         </VStack>
 
         <DndContext
@@ -278,7 +311,7 @@ export const ClientProgramTab = ({
 
             « Supprimer » part donc seule à droite, en rouge, avec toute la
             largeur de la colonne entre elle et sa voisine. */}
-        <HStack justify="space-between" gap={4} pt={2}>
+        <HStack justify="flex-start" gap={4} rowGap={2} wrap="wrap" pt={2}>
           <Button
             size="xs"
             variant="ghost"
@@ -291,6 +324,11 @@ export const ClientProgramTab = ({
           <Button
             size="xs"
             variant="ghost"
+            /* `ml="auto"` plutôt que `space-between` : l'écart maximal quand
+               les deux tiennent sur une ligne, et « Supprimer » qui reste à
+               droite quand elles passent à la ligne. `space-between` sur une
+               rangée qui ne se replie pas poussait la page de 51 px à 768. */
+            ml="auto"
             color="app.error"
             _hover={{ bg: 'app.error/12' }}
             onClick={() => setIsSessionRemovalOpen(true)}

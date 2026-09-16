@@ -1,6 +1,15 @@
-import { Box, HStack, IconButton, Input, Text } from '@chakra-ui/react';
+import {
+  Box,
+  HStack,
+  IconButton,
+  Input,
+  Menu,
+  Portal,
+  Text,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 import {
+  LuEllipsis,
   LuGripVertical,
   LuMessageSquare,
   LuPlus,
@@ -373,19 +382,56 @@ export const AtelierBlock = ({
 }: AtelierBlockProps) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
+  /**
+   * Le champ facultatif qu'on vient de réclamer.
+   *
+   * Nom de bloc et consigne s'annonçaient chacun par un « + quelque chose »
+   * posé en permanence. À trois blocs, avec « + exercice » et « + note de
+   * séance », cela faisait sept invitations simultanées sur un écran, toutes
+   * du même gris et du même corps : le programme se lisait comme un
+   * formulaire à remplir plutôt que comme une séance à lire.
+   *
+   * Ils ne s'affichent plus que s'ils portent quelque chose — ou si on vient
+   * de les demander par le « ⋯ » du bloc.
+   */
+  const [champDemande, setChampDemande] = useState<'nom' | 'consigne' | null>(
+    null
+  );
+  /**
+   * Ouvre un champ facultatif — une fois le menu vraiment parti.
+   *
+   * Le menu rend le focus à sa gâchette en se refermant. Monter le champ dans
+   * le même souffle, c'est le voir se refermer aussitôt sur son propre blur :
+   * mesuré, il apparaissait et disparaissait en moins de cent millisecondes,
+   * et le coach retombait sur l'invitation qu'il venait de choisir. On attend
+   * donc que la fermeture ait rendu le focus avant de monter le champ.
+   */
+  const ouvrirChamp = (champ: 'nom' | 'consigne') =>
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => setChampDemande(champ))
+    );
+
+  const aUnNom = !!block.label?.trim();
+  const aUneConsigne = !!block.notes?.trim();
+  const nomVisible = aUnNom || champDemande === 'nom';
+  const consigneVisible = aUneConsigne || champDemande === 'consigne';
+
   return (
     <BlockFrame
       block={block}
       name={
         /* Ni description du type — l'étiquette la dit déjà — ni placeholder
            permanent : un bloc sans nom libre ne laisse aucune trace. */
-        <InlineText
-          value={block.label}
-          onChange={(label) => onUpdate({ label })}
-          addLabel="+ nom"
-          ariaLabel={`Nom personnalisé du bloc ${getBlockLabel(block.type)}`}
-          width="160px"
-        />
+        nomVisible ? (
+          <InlineText
+            value={block.label}
+            onChange={(label) => onUpdate({ label })}
+            addLabel="+ nom"
+            ariaLabel={`Nom personnalisé du bloc ${getBlockLabel(block.type)}`}
+            width="160px"
+            startOpen={champDemande === 'nom' && !aUnNom}
+          />
+        ) : undefined
       }
       config={<BlockConfigInline block={block} onUpdate={onUpdate} />}
       gutter={
@@ -396,6 +442,52 @@ export const AtelierBlock = ({
           _groupFocusWithin={{ opacity: 1 }}
           transition="opacity 0.15s"
         >
+          {/* Une seule commande pour tout ce qui est facultatif. Un « ⋯ »
+              ne promet rien et n'appelle à rien : c'est exactement ce qu'on
+              veut d'un champ dont la plupart des blocs se passent. */}
+          <Menu.Root>
+            <Menu.Trigger asChild>
+              <IconButton
+                aria-label={`Champs facultatifs du bloc ${getBlockLabel(block.type)}`}
+                title="Nom et consigne du bloc"
+                css={hitArea(32)}
+                size="2xs"
+                variant="ghost"
+                color="fg.muted"
+              >
+                <LuEllipsis size={13} />
+              </IconButton>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content
+                  bg="bg.surface"
+                  borderWidth="1px"
+                  borderColor="whiteAlpha.200"
+                  minW="200px"
+                >
+                  <Menu.Item
+                    value="nom"
+                    onClick={() => ouvrirChamp('nom')}
+                    color="fg"
+                    _hover={{ bg: 'whiteAlpha.100' }}
+                  >
+                    {aUnNom ? 'Renommer le bloc' : 'Nommer le bloc'}
+                  </Menu.Item>
+                  <Menu.Item
+                    value="consigne"
+                    onClick={() => ouvrirChamp('consigne')}
+                    color="fg"
+                    _hover={{ bg: 'whiteAlpha.100' }}
+                  >
+                    {aUneConsigne
+                      ? 'Modifier la consigne'
+                      : 'Ajouter une consigne'}
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
           <IconButton
             aria-label={`Réorganiser le bloc ${getBlockLabel(block.type)}`}
             title="Déplacer ce bloc"
@@ -460,14 +552,17 @@ export const AtelierBlock = ({
         )
       }
       notes={
-        <InlineText
-          value={block.notes}
-          onChange={(notes) => onUpdate({ notes })}
-          addLabel="+ consigne"
-          ariaLabel={`Consigne du bloc ${getBlockLabel(block.type)}`}
-          width="100%"
-          multiline
-        />
+        consigneVisible ? (
+          <InlineText
+            value={block.notes}
+            onChange={(notes) => onUpdate({ notes })}
+            addLabel="+ consigne"
+            ariaLabel={`Consigne du bloc ${getBlockLabel(block.type)}`}
+            width="100%"
+            startOpen={champDemande === 'consigne' && !aUneConsigne}
+            multiline
+          />
+        ) : undefined
       }
     >
       {block.exercises.map((exercise, index) => (

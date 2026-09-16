@@ -38,7 +38,16 @@ export const SuggestedDaysPicker = ({
     );
 
   return (
-    <HStack gap={1} role="group" aria-label="Jours conseillés">
+    // Sept boutons ne tiennent pas toujours sur la largeur qu'on leur laisse
+    // — mesuré à 768 px, « Dim » débordait de 22 px. Ils passent à la ligne
+    // plutôt que de pousser la page.
+    <HStack
+      gap={1}
+      rowGap={1}
+      wrap="wrap"
+      role="group"
+      aria-label="Jours conseillés"
+    >
       {WEEKDAY_SHORT.map((short, day) => {
         const active = days.includes(day);
         return (
