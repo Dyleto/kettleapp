@@ -1,5 +1,5 @@
 import { Session } from '@/types';
-import { buildGuidedSteps } from '../guidedSteps';
+import { buildGuidedSteps, type GuidedStep } from '../guidedSteps';
 import { useCountdown } from '../useCountdown';
 import { formatLastPerformance, LastPerformance } from '../lastPerformance';
 import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
@@ -117,6 +117,31 @@ const Anneau = ({
   </Box>
 );
 
+/**
+ * Les étapes regroupées par bloc, dans l'ordre.
+ *
+ * Une trentaine de tirets de deux pixels ne se lisent pas : on ne sait ni où
+ * l'on en est, ni combien il reste. Trois segments — Échauffement, EMOM,
+ * AMRAP — se lisent d'un coup d'œil, et c'est en blocs que le client raisonne,
+ * pas en pages.
+ *
+ * La largeur de chaque segment suit son nombre d'étapes : un EMOM de douze
+ * pages est plus large qu'un échauffement de deux. Des segments égaux
+ * mentiraient sur ce qu'il reste à faire.
+ */
+const decouperEnBlocs = (steps: GuidedStep[]) => {
+  const blocs: { label: string; debut: number; taille: number }[] = [];
+  steps.forEach((step, i) => {
+    const dernier = blocs[blocs.length - 1];
+    if (dernier && dernier.label === step.blockLabel) {
+      dernier.taille += 1;
+      return;
+    }
+    blocs.push({ label: step.blockLabel, debut: i, taille: 1 });
+  });
+  return blocs;
+};
+
 const Countdown = ({
   duration,
   onComplete,
@@ -206,6 +231,8 @@ export const GuidedSession = ({
   lastPerformance,
 }: GuidedSessionProps) => {
   const [steps] = useState(() => buildGuidedSteps(session));
+  // Les blocs ne changent pas pendant la séance : on les découpe une fois.
+  const [blocs] = useState(() => decouperEnBlocs(steps));
   const [savedIndex] = useState(() =>
     Math.min(readSavedIndex(session._id), Math.max(0, steps.length - 1))
   );
@@ -445,15 +472,6 @@ export const GuidedSession = ({
       ? formatLastPerformance(lastPerformance?.get(step.exerciseId))
       : null;
 
-  const dotColor = (i: number) => {
-    if (isRest) {
-      return i <= index ? 'bg.canvas' : 'bg.canvas/25';
-    }
-    if (i < index) return 'session.rest';
-    if (i === index) return 'app.primary';
-    return 'whiteAlpha.200';
-  };
-
   return overlay(
     <Box
       role="dialog"
@@ -493,16 +511,75 @@ export const GuidedSession = ({
           </Button>
         </HStack>
 
-        <HStack gap={steps.length > 24 ? '2px' : '4px'} px={5} pt={2}>
-          {steps.map((_, i) => (
-            <Box
-              key={i}
-              flex={1}
-              h="3px"
-              borderRadius="full"
-              bg={dotColor(i)}
-            />
-          ))}
+        <HStack gap={3} px={5} pt={2} align="center">
+          <HStack
+            gap={1.5}
+            flex={1}
+            role="progressbar"
+            aria-label="Avancement de la séance"
+            aria-valuemin={1}
+            aria-valuemax={steps.length}
+            aria-valuenow={index + 1}
+            aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}
+          >
+            {blocs.map((bloc) => {
+              const fait = Math.max(
+                0,
+                Math.min(bloc.taille, index - bloc.debut)
+              );
+              const encours =
+                index >= bloc.debut && index < bloc.debut + bloc.taille;
+              return (
+                <Box
+                  key={`${bloc.label}-${bloc.debut}`}
+                  flex={bloc.taille}
+                  // Proportionnel, mais jamais au point de disparaître : un
+                  // échauffement de deux pages dans une séance de trente-cinq
+                  // se réduirait à un point.
+                  minW="20px"
+                  h="4px"
+                  borderRadius="full"
+                  // La piste du bloc en cours est un peu plus claire : au
+                  // premier pas d'un bloc, le remplissage est nul et rien
+                  // d'autre ne dirait où l'on se trouve.
+                  bg={
+                    isRest
+                      ? encours
+                        ? 'bg.canvas/40'
+                        : 'bg.canvas/20'
+                      : encours
+                        ? 'whiteAlpha.400'
+                        : 'whiteAlpha.200'
+                  }
+                  overflow="hidden"
+                >
+                  <Box
+                    h="100%"
+                    borderRadius="full"
+                    w={`${(fait / bloc.taille) * 100}%`}
+                    bg={
+                      isRest
+                        ? 'bg.canvas'
+                        : encours
+                          ? 'app.primary'
+                          : 'session.rest'
+                    }
+                    transition="width 0.25s"
+                  />
+                </Box>
+              );
+            })}
+          </HStack>
+          <Text
+            fontSize="xs"
+            fontFamily="mono"
+            flexShrink={0}
+            color={isRest ? 'bg.canvas' : 'fg.muted'}
+            opacity={isRest ? 0.75 : 1}
+            aria-hidden="true"
+          >
+            {index + 1} / {steps.length}
+          </Text>
         </HStack>
 
         <VStack

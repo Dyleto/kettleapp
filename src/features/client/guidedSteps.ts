@@ -31,6 +31,8 @@ export type GuidedStep =
     }
   | {
       type: 'rest';
+      /** Le bloc auquel ce repos appartient — il compte dans son avancement. */
+      blockLabel: string;
       duration: number;
       nextExerciseName: string | null;
     };
@@ -107,6 +109,7 @@ const buildSetBasedSteps = (
       if (set < setCount && ex.restBetweenSets) {
         steps.push({
           type: 'rest',
+          blockLabel,
           duration: ex.restBetweenSets,
           nextExerciseName: ex.exercise.name,
         });
@@ -151,6 +154,7 @@ const buildRoundBasedSteps = (
     if (restDuration) {
       steps.push({
         type: 'rest',
+        blockLabel,
         duration: restDuration,
         nextExerciseName: isLastRound
           ? nextBlockFirstExerciseName
@@ -185,6 +189,7 @@ const buildSchemeBasedSteps = (
     if (block.restBetweenRounds) {
       steps.push({
         type: 'rest',
+        blockLabel,
         duration: block.restBetweenRounds,
         nextExerciseName: isLastStep
           ? nextBlockFirstExerciseName
@@ -238,8 +243,11 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
     const interBlockRest = block.restDuration ?? block.restBetweenRounds;
 
     if (!isLastBlock && !endsWithRest && interBlockRest) {
+      // Ce repos est la queue du bloc qui vient de finir — c'est sa durée à
+      // lui — donc il compte dans son avancement, pas dans celui du suivant.
       steps.push({
         type: 'rest',
+        blockLabel,
         duration: interBlockRest,
         nextExerciseName: nextBlockFirstExerciseName,
       });
