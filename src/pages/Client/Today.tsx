@@ -1,15 +1,13 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/contexts/useAuth';
-import { Card } from '@/components/Card';
 import { CompletedSession, Session } from '@/types';
 import {
   CLIENT_CONTENT_MAX_W,
   CompletedSessionDrawer,
-  getEffortSummary,
-  getRelativeDate,
   getSessionBlockTypes,
   getSessionSummary,
+  SessionHistoryCard,
   useClientSessions,
   WeekStrip,
 } from '@/features/client';
@@ -25,7 +23,6 @@ import {
 } from '@chakra-ui/react';
 import { LuArrowRight } from 'react-icons/lu';
 import { CLIENT_ROUTES } from '@/config/routes';
-import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -193,37 +190,15 @@ const Today = () => {
               Séances récentes
             </Text>
             <VStack align="stretch" gap={2}>
-              {recentSessions.map((completed) => {
-                const effort = getEffortSummary(completed);
-                return (
-                  <Card
-                    key={completed._id}
-                    accentColor="app.primary"
-                    hoverEffect="border"
-                    withGlow={false}
-                    onClick={() => openDrawer(completed)}
-                    p={3}
-                  >
-                    <HStack justify="space-between" align="baseline">
-                      <Text fontSize="sm" fontWeight="bold">
-                        Séance {completed.sessionOrder}
-                      </Text>
-                      {effort && (
-                        <Text
-                          fontSize="xs"
-                          fontWeight="bold"
-                          color={EFFORT_ZONE_COLOR[effort.zone]}
-                        >
-                          {effort.label}
-                        </Text>
-                      )}
-                    </HStack>
-                    <Text fontSize="xs" color="fg.muted" mt={0.5}>
-                      {getRelativeDate(completed.completedAt)}
-                    </Text>
-                  </Card>
-                );
-              })}
+              {/* La même carte que le journal, dans sa variante d'accueil :
+                  une seule définition, donc une seule convention. */}
+              {recentSessions.map((completed) => (
+                <SessionHistoryCard
+                  key={completed._id}
+                  completed={completed}
+                  variant="accueil"
+                />
+              ))}
             </VStack>
           </VStack>
         )}

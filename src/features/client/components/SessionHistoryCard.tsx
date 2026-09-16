@@ -3,6 +3,7 @@ import { CompletedSession } from '@/types';
 import {
   getCompletedSessionBlockTypes,
   getEffortSummary,
+  getRelativeDate,
 } from '@/features/client';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronRight } from 'react-icons/lu';
@@ -13,19 +14,35 @@ import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
 interface SessionHistoryCardProps {
   completed: CompletedSession;
   showUnseenIndicator?: boolean;
+  /**
+   * `journal` sur l'historique : la date exacte, et le commentaire s'il y en
+   * a un — on est venu lire. `accueil` sur la page du jour : la date en
+   * relatif, parce qu'on y répond à « c'était quand », et pas de commentaire,
+   * parce qu'on ne fait que passer.
+   *
+   * Le reste ne change pas, et c'est le but : l'accueil rendait sa propre
+   * carte, sans chevron ni libellé d'action, à côté d'une carte qui en avait
+   * un. Deux cartes voisines qui n'obéissent pas à la même convention font de
+   * l'absence de flèche un signe — alors qu'elle ne signifiait rien.
+   */
+  variant?: 'journal' | 'accueil';
 }
 
 export const SessionHistoryCard = ({
   completed,
   showUnseenIndicator = false,
+  variant = 'journal',
 }: SessionHistoryCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const completedDate = new Intl.DateTimeFormat('fr-FR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  }).format(new Date(completed.completedAt));
+  const completedDate =
+    variant === 'accueil'
+      ? getRelativeDate(completed.completedAt)
+      : new Intl.DateTimeFormat('fr-FR', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        }).format(new Date(completed.completedAt));
 
   // Un mot que le client et le coach lisent pareil, au lieu d'un nombre
   // qu'aucun des deux ne peut interpréter.
@@ -76,7 +93,7 @@ export const SessionHistoryCard = ({
           {completedDate} · {getCompletedSessionBlockTypes(completed)}
         </Text>
 
-        {completed.clientNotes && (
+        {variant === 'journal' && completed.clientNotes && (
           <Text fontSize="xs" color="fg.muted" fontStyle="italic" lineClamp={2}>
             "{completed.clientNotes}"
           </Text>
