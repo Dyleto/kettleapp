@@ -224,6 +224,7 @@ export const SessionRail = ({
           onClick={onAddSession}
           px={3}
           py={2.5}
+          minH="44px"
           borderRadius="md"
           borderWidth="1px"
           borderStyle="dashed"
@@ -262,6 +263,7 @@ export const SessionRail = ({
               as="button"
               onClick={() => onSelect(index)}
               flexShrink={0}
+              minW="44px"
               minH="44px"
               px={3}
               py={1.5}

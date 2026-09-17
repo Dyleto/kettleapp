@@ -25,7 +25,7 @@ import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbac
 import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
 import { BackLink } from '@/components/BackLink';
 import { Header } from '@/components/Header';
-import { hitArea } from '@/components/hitArea';
+import { TACTILE, hitArea } from '@/components/hitArea';
 import { EtatVide } from '@/components/EtatVide';
 import { COACH_ROUTES } from '@/config/routes';
 import { Exercise, Session } from '@/types';
@@ -208,9 +208,15 @@ const ClientDetails = () => {
             onClick={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
             color="fg.muted"
             flexShrink={0}
-            p={2}
+            /* Une taille réelle plutôt qu'une zone invisible : à 34 px de
+               large, ses 44 px débordaient de 5 px sur le menu du compte
+               juste à côté, et le menu l'emportait — on visait le journal,
+               on ouvrait le compte. */
+            boxSize="44px"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
             position="relative"
-            css={hitArea(44)}
           >
             <LuBookOpen size={18} />
             {client.unseenCount > 0 && (
@@ -271,6 +277,7 @@ const ClientDetails = () => {
               size="sm"
               variant="outline"
               flexShrink={0}
+              css={{ [TACTILE]: { minHeight: '44px' } }}
               onClick={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
             >
               Journal complet

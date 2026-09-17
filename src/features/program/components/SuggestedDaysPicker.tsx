@@ -1,5 +1,5 @@
 import { Box, HStack } from '@chakra-ui/react';
-import { hitArea } from '@/components/hitArea';
+import { TACTILE, hitArea } from '@/components/hitArea';
 import { dayChipStyle } from '@/components/dayChip';
 import { WEEKDAY_FULL, WEEKDAY_SHORT } from '@/features/client/sessionDates';
 
@@ -58,7 +58,16 @@ export const SuggestedDaysPicker = ({
             aria-label={WEEKDAY_FULL[day]}
             onClick={() => toggle(day)}
             {...dayChipStyle(active)}
-            css={hitArea(32)}
+            /* Au doigt, la pastille grandit pour de bon plutôt que de se
+               doubler d'une zone invisible : sept d'entre elles se suivent à
+               4 px, et sept zones de 44 se recouvriraient toutes. Sept
+               pastilles de 44 tiennent sur la largeur d'un téléphone — et si
+               elles n'y tiennent pas, la rangée passe à la ligne, ce qu'elle
+               sait déjà faire. */
+            css={{
+              ...hitArea(32),
+              [TACTILE]: { minWidth: '44px', minHeight: '44px' },
+            }}
             _hover={{ borderColor: active ? 'app.primary' : 'whiteAlpha.400' }}
             transition="border-color 0.15s, background-color 0.15s"
           >

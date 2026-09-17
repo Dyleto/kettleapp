@@ -38,7 +38,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { hitArea } from '@/components/hitArea';
+import { TACTILE, gouttiereTactile } from '@/components/hitArea';
 import {
   closestCenter,
   DndContext,
@@ -187,7 +187,7 @@ export const ClientProgramTab = ({
                 aria-label="Ajouter une note de séance"
                 title="Ajouter une note de séance"
                 onClick={() => setNoteDemandee(true)}
-                css={hitArea(32)}
+                css={gouttiereTactile()}
                 size="2xs"
                 variant="ghost"
                 color="fg.muted"
@@ -311,6 +311,10 @@ export const ClientProgramTab = ({
             size="xs"
             variant="ghost"
             color="fg.muted"
+            /* Assez larges, trop basses : 32 px de haut au doigt. Elles sont
+               seules sur leur rangée, donc la hauteur peut monter sans rien
+               recouvrir. */
+            css={{ [TACTILE]: { minHeight: '44px' } }}
             onClick={onDuplicateSession}
           >
             <LuCopy size={13} />
@@ -326,6 +330,7 @@ export const ClientProgramTab = ({
             ml="auto"
             color="app.error"
             _hover={{ bg: 'app.error/12' }}
+            css={{ [TACTILE]: { minHeight: '44px' } }}
             onClick={() => setIsSessionRemovalOpen(true)}
           >
             <LuTrash2 size={13} />

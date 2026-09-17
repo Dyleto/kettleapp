@@ -1,6 +1,6 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
-import { hitArea } from './hitArea';
+import { hitAreaTactile } from './hitArea';
 
 interface BackLinkProps {
   /** Ce qu'on rejoint, pas ce qu'on quitte : « Clients », « Programme ». */
@@ -24,7 +24,7 @@ export const BackLink = ({ label, onClick }: BackLinkProps) => (
     color="fg.muted"
     _hover={{ color: 'app.primary' }}
     transition="color 0.15s"
-    css={hitArea(32)}
+    css={hitAreaTactile()}
   >
     <HStack gap={1.5}>
       <LuArrowLeft size={13} />

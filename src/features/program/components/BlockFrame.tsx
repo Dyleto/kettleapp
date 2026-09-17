@@ -1,5 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
+import { TACTILE } from '@/components/hitArea';
 import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/types';
 import {
@@ -86,6 +87,13 @@ export const BlockFrame = ({
     </VStack>
 
     {footer && <Box pt={1.5}>{footer}</Box>}
-    {notes && <Box mt={1}>{notes}</Box>}
+    {/* 4 px suffisent à l'œil, pas au doigt : la consigne porte une zone de
+        44 px au tactile, qui mordait de 6 px sur « + exercice » juste
+        au-dessus — et c'est le dernier du DOM qui aurait gagné. */}
+    {notes && (
+      <Box mt={1} css={{ [TACTILE]: { marginTop: '10px' } }}>
+        {notes}
+      </Box>
+    )}
   </Box>
 );

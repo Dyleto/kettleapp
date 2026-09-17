@@ -24,7 +24,7 @@ import {
   getBlockLabel,
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
-import { hitArea } from '@/components/hitArea';
+import { gouttiereTactile } from '@/components/hitArea';
 import { formatDuration } from '@/utils/formatters';
 import { InlineText, InlineValue } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';
@@ -270,7 +270,7 @@ const ExerciseRow = ({
                 : `Ajouter une consigne — ${exercise.exercise.name}`
             }
             title={aUneNote ? 'Modifier la consigne' : 'Ajouter une consigne'}
-            css={hitArea(32)}
+            css={gouttiereTactile()}
             size="2xs"
             variant="ghost"
             color={aUneNote ? 'app.primary' : 'fg.muted'}
@@ -289,7 +289,7 @@ const ExerciseRow = ({
               aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
               title={`Mesure en ${KIND_LABEL[kind]} — changer`}
               onClick={switchKind}
-              css={hitArea(32)}
+              css={gouttiereTactile()}
               fontSize="10px"
               fontWeight="bold"
               letterSpacing="wide"
@@ -304,7 +304,7 @@ const ExerciseRow = ({
           <IconButton
             aria-label={`Retirer ${exercise.exercise.name}`}
             title="Retirer cet exercice"
-            css={hitArea(32)}
+            css={gouttiereTactile()}
             size="2xs"
             variant="ghost"
             color="fg.muted"
@@ -448,7 +448,7 @@ export const AtelierBlock = ({
               <IconButton
                 aria-label={`Champs facultatifs du bloc ${getBlockLabel(block.type)}`}
                 title="Nom et consigne du bloc"
-                css={hitArea(32)}
+                css={gouttiereTactile()}
                 size="2xs"
                 variant="ghost"
                 color="fg.muted"
@@ -489,7 +489,7 @@ export const AtelierBlock = ({
           <IconButton
             aria-label={`Réorganiser le bloc ${getBlockLabel(block.type)}`}
             title="Déplacer ce bloc"
-            css={hitArea(32)}
+            css={gouttiereTactile()}
             size="2xs"
             variant="ghost"
             color="fg.muted"
@@ -502,7 +502,7 @@ export const AtelierBlock = ({
           <IconButton
             aria-label={`Supprimer le bloc ${getBlockLabel(block.type)}`}
             title="Supprimer ce bloc"
-            css={hitArea(32)}
+            css={gouttiereTactile()}
             size="2xs"
             variant="ghost"
             color="fg.muted"

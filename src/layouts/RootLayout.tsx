@@ -57,6 +57,12 @@ const RootLayout: React.FC = () => {
         zIndex={100}
         px={4}
         py={2}
+        /* Il s'atteint au clavier, mais il se clique aussi — et rien
+           n'oblige un raccourci d'accessibilité à être la plus petite cible
+           de la page. */
+        minH="44px"
+        display="flex"
+        alignItems="center"
         borderRadius="md"
         bg="app.primary"
         color="bg.canvas"
