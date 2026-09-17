@@ -37,7 +37,9 @@ export const ExerciseRow = ({
   // retire de l'arbre d'accessibilité.
   const label = [
     exercise.name,
-    usage > 0 && `utilisé dans ${usage} séance${usage > 1 ? 's' : ''}`,
+    usage > 0
+      ? `utilisé dans ${usage} séance${usage > 1 ? 's' : ''}`
+      : 'jamais utilisé',
     exercise.videoUrl && 'vidéo',
   ]
     .filter(Boolean)
@@ -85,19 +87,27 @@ export const ExerciseRow = ({
         )}
       </VStack>
 
-      {/* Deux marques discrètes, et seulement quand elles existent. Le compte
-          est suffixé : « 12 » collé à une icône vidéo se lisait comme douze
-          vidéos. */}
+      {/* Le compte est suffixé : « 12 » collé à une icône vidéo se lisait
+          comme douze vidéos.
+
+          Et l'absence s'écrit. Deux exercices sans nombre au milieu de huit
+          qui en portent un posaient une question sans réponse — zéro, ou
+          donnée manquante ? C'est d'ailleurs l'information la plus utile de
+          la liste : ce sont ces exercices-là qu'on peut supprimer. */}
       <HStack gap={2.5} flexShrink={0} color="fg.muted" aria-hidden>
         {exercise.videoUrl && <LuVideo size={12} />}
-        {usage > 0 && (
-          <Text as="span" fontSize="xs" whiteSpace="nowrap">
-            <Text as="span" fontFamily="mono">
-              {usage}
-            </Text>{' '}
-            séance{usage > 1 ? 's' : ''}
-          </Text>
-        )}
+        <Text as="span" fontSize="xs" whiteSpace="nowrap">
+          {usage > 0 ? (
+            <>
+              <Text as="span" fontFamily="mono">
+                {usage}
+              </Text>{' '}
+              séance{usage > 1 ? 's' : ''}
+            </>
+          ) : (
+            'jamais utilisé'
+          )}
+        </Text>
       </HStack>
 
       {extra && (
