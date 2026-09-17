@@ -136,8 +136,16 @@ export const getBlockFreeName = (block: SessionBlock): string | undefined => {
   return nom.toLowerCase().startsWith(type.toLowerCase()) ? undefined : nom;
 };
 
+/**
+ * Blocs dont les exercices se numérotent — « 1) 2) 3) ».
+ *
+ * Dans un bloc à la minute, le numéro n'est pas décoratif : c'est la minute
+ * où l'exercice tombe. « Every » suit exactement la même rotation avec un
+ * autre intervalle, et ne numérotait pas — d'où le retour « il n'a pas le
+ * petit 1) 2) » sur les E2MOM.
+ */
 export const blockIndexPrefix = (type: BlockType): boolean =>
-  ['emom'].includes(type);
+  ['emom', 'every'].includes(type);
 
 /**
  * Le réglage d'un bloc, en une ligne — dans l'écriture du produit.
@@ -153,8 +161,15 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
     sec === undefined ? '' : formatDuration(sec);
 
   switch (block.type) {
-    case 'emom':
-      return block.rounds ? `${block.rounds}\u00A0tours` : '';
+    case 'emom': {
+      // Un EMOM est à la minute par définition : on ne le dit que quand ce
+      // n'en est pas un — « 12 tours, toutes les 2 min », le E2MOM.
+      const tours = block.rounds ? `${block.rounds}\u00A0tours` : '';
+      const intervalle = (block.intervalMinutes ?? 1) > 1
+        ? `toutes les ${minutes(block.intervalMinutes)}`
+        : '';
+      return [tours, intervalle].filter(Boolean).join(' · ');
+    }
     case 'amrap':
       return minutes(block.durationMinutes);
     case 'timecap':

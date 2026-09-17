@@ -42,17 +42,40 @@ export const BlockConfigInline = ({
       return null;
 
     // ── Une valeur ──
+    /*
+     * L'EMOM porte son intervalle, et c'est ce qui en fait un E2MOM.
+     *
+     * Retour du terrain : « quand je fais les EMOM ou E2MOM, je ne peux pas
+     * mettre de durée ». C'était exact — l'intervalle n'existait que sur le
+     * type « Every », replié derrière les sept formats rares, tandis que
+     * l'EMOM, lui, était proposé d'emblée. Un coach qui cherche un E2MOM
+     * tombe donc sur l'EMOM et s'y retrouve coincé.
+     *
+     * Le mode guidé lit déjà `intervalMinutes` pour tous les blocs à tours,
+     * EMOM compris : il n'y avait que le réglage à ouvrir.
+     */
     case 'emom':
       return (
-        <InlineValue
-          value={block.rounds}
-          onChange={(v) => onUpdate({ rounds: v })}
-          suffix="tours"
-          emptyLabel="sans limite"
-          ariaLabel="Nombre de tours"
-          min={1}
-          clearable
-        />
+        <HStack gap={1}>
+          <InlineValue
+            value={block.rounds}
+            onChange={(v) => onUpdate({ rounds: v })}
+            suffix="tours"
+            emptyLabel="sans limite"
+            ariaLabel="Nombre de tours"
+            min={1}
+            clearable
+          />
+          <Sep>toutes les</Sep>
+          <InlineValue
+            value={block.intervalMinutes ?? 1}
+            onChange={(v) => onUpdate({ intervalMinutes: v ?? 1 })}
+            suffix="min"
+            format={enMinutes}
+            ariaLabel="Intervalle en minutes"
+            min={1}
+          />
+        </HStack>
       );
     case 'amrap':
       return (

@@ -1,6 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { TACTILE, pasTactile } from '@/components/hitArea';
+import { TACTILE } from '@/components/hitArea';
 import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/types';
 import {
@@ -50,6 +50,10 @@ export const BlockFrame = ({
 }: BlockFrameProps) => (
   <Box
     className="group"
+    /* Ancrage stable pour les mesures, au même titre que `data-exercise-row`
+       sur les lignes : sans lui, une sonde doit deviner le cadre d'un bloc en
+       remontant le DOM depuis son titre. */
+    data-block-type={block.type}
     borderLeftWidth="2px"
     borderLeftColor={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
     pl={3}
@@ -63,12 +67,27 @@ export const BlockFrame = ({
       align="flex-start"
       gap={3}
       pb={1}
-      css={pasTactile}
+      /* Le pas de 44 px vaut aussi entre la dernière rangée de l'en-tête et
+         la première ligne d'exercice : 4 px les séparaient, et leurs zones se
+         recouvraient de 5. */
+      css={{ [TACTILE]: { minHeight: '44px', paddingBottom: '12px' } }}
     >
       {/* Titre et réglages partagent une colonne souple : les réglages
           passent à la ligne quand ils ne tiennent plus, plutôt que de
           pousser la gouttière hors de l'écran. */}
-      <Flex flex={1} minW={0} wrap="wrap" align="baseline" gap={2} rowGap={1}>
+      {/* Quand le titre, le nom et les réglages passent à la ligne, deux
+          rangées de commandes se suivent à 4 px — et leurs zones de 44 px se
+          recouvrent. Même règle que la gouttière : 20 px d'écart mettent
+          44 px entre deux centres. */}
+      <Flex
+        flex={1}
+        minW={0}
+        wrap="wrap"
+        align="baseline"
+        gap={2}
+        rowGap={1}
+        css={{ [TACTILE]: { rowGap: '20px' } }}
+      >
         <Text
           fontSize="xs"
           fontWeight="bold"
