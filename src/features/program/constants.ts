@@ -50,6 +50,25 @@ export const BLOCK_FAMILIES: {
 ];
 
 /**
+ * Les formats proposés d'emblée, avant que le coach ait posé un exercice.
+ *
+ * Onze types d'un coup, c'est un catalogue à lire là où il faut un choix à
+ * faire. Quatre suffisent à couvrir l'essentiel d'une programmation : un
+ * échauffement, des séries, un format à la minute, un format à durée fixe.
+ *
+ * Cette sélection est une hypothèse, pas une mesure. Elle sera remplacée par
+ * ce que les données diront des types réellement utilisés — c'est le seul
+ * argument qui vaudra. En attendant, replier les sept autres coûte un clic à
+ * qui les cherche, là où les afficher coûte une lecture à tout le monde.
+ */
+export const BLOCK_TYPES_COURANTS: BlockType[] = [
+  'warmup',
+  'classic',
+  'emom',
+  'amrap',
+];
+
+/**
  * Blocs où un exercice peut porter un nombre de séries — et donc un repos
  * entre elles.
  *
