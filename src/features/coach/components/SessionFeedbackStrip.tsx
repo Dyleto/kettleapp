@@ -128,7 +128,7 @@ export const SessionFeedbackStrip = ({
                 <Box
                   key={completed._id}
                   borderLeftWidth="2px"
-                  borderLeftColor="session.rest"
+                  borderLeftColor="whiteAlpha.300"
                   pl={3}
                 >
                   <Text fontSize="xs" color="fg.muted">
@@ -169,10 +169,15 @@ export const SessionFeedbackStrip = ({
   const level = getEffortLevel(last.feedback?.effort);
 
   return (
+    // Neutre, et non turquoise. C'était la seule occurrence de cette teinte
+    // dans un atelier gris et rouge — et le turquoise sert par ailleurs à
+    // qualifier un ressenti facile, ce que ce panneau ne dit pas. Il se
+    // distingue déjà par sa position et son fond ; il n'a pas besoin
+    // d'emprunter une couleur qui veut dire autre chose.
     <Box
-      bg="session.rest/10"
+      bg="whiteAlpha.50"
       borderLeftWidth="2px"
-      borderLeftColor="session.rest"
+      borderLeftColor="whiteAlpha.300"
       borderRadius="0 6px 6px 0"
       px={3}
       py={2}
