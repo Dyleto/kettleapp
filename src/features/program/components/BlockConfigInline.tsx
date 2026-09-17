@@ -54,6 +54,7 @@ export const BlockConfigInline = ({
      * Le mode guidé lit déjà `intervalMinutes` pour tous les blocs à tours,
      * EMOM compris : il n'y avait que le réglage à ouvrir.
      */
+    case 'every':
     case 'emom':
       return (
         <HStack gap={1}>
@@ -109,28 +110,6 @@ export const BlockConfigInline = ({
       );
 
     // ── Valeurs composées ──
-    case 'every':
-      return (
-        <HStack gap={1}>
-          <InlineValue
-            value={block.intervalMinutes}
-            onChange={(v) => onUpdate({ intervalMinutes: v })}
-            suffix="min"
-            format={enMinutes}
-            emptyLabel="—"
-            ariaLabel="Intervalle en minutes"
-            min={1}
-          />
-          <Sep>×</Sep>
-          <InlineValue
-            value={block.rounds}
-            onChange={(v) => onUpdate({ rounds: v })}
-            emptyLabel="—"
-            ariaLabel="Nombre de tours"
-            min={1}
-          />
-        </HStack>
-      );
     case 'tabata':
     case 'onoff':
       return (

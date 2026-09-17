@@ -44,7 +44,11 @@ export const BLOCK_FAMILIES: {
   {
     key: 'timed',
     label: 'Chronométré',
-    types: ['emom', 'every', 'amrap', 'timecap', 'tabata', 'onoff'],
+    // « Every » n'y figure plus : c'est un EMOM sous un autre nom, depuis
+    // que l'EMOM porte son intervalle. Deux noms pour un format, c'est ce
+    // qui a piégé un coach cherchant un E2MOM. Le type reste connu — les
+    // blocs déjà créés s'affichent — mais on n'en crée plus.
+    types: ['emom', 'amrap', 'timecap', 'tabata', 'onoff'],
   },
   { key: 'progressive', label: 'Progressif', types: ['pyramid', 'ladder'] },
 ];
@@ -191,6 +195,9 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
     sec === undefined ? '' : formatDuration(sec);
 
   switch (block.type) {
+    // Un bloc « Every » d'avant la fusion se lit exactement comme un EMOM :
+    // mêmes champs, même rotation, même mode guidé.
+    case 'every':
     case 'emom': {
       // Un EMOM est à la minute par définition : on ne le dit que quand ce
       // n'en est pas un — « 12 tours, toutes les 2 min », le E2MOM.
@@ -207,10 +214,6 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
       return block.durationMinutes
         ? `${minutes(block.durationMinutes)} max`
         : '';
-    case 'every':
-      return [minutes(block.intervalMinutes), block.rounds && `× ${block.rounds}`]
-        .filter(Boolean)
-        .join(' ');
     case 'tabata':
     case 'onoff':
       return [

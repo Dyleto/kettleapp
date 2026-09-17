@@ -32,7 +32,12 @@ export const useUpdateProgramSessions = (
           // remontait à l'écran — insupportable quand on enregistre à chaque
           // modification.
           _id: block._id,
-          type: block.type,
+          // « Every » et EMOM désignent le même format depuis que l'EMOM
+          // porte son intervalle. Plutôt qu'une migration, la conversion se
+          // fait au premier enregistrement : les deux ont exactement les
+          // mêmes champs et le même rendu, donc elle ne se voit pas. Les
+          // données convergent au rythme où le coach touche à ses séances.
+          type: block.type === 'every' ? 'emom' : block.type,
           label: block.label || undefined,
           order: bi + 1,
           notes: block.notes?.trim(),
