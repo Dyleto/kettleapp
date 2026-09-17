@@ -228,5 +228,23 @@ export const useProgramAutoSave = ({
     return () => window.removeEventListener('beforeunload', avertir);
   }, [isDirty, state]);
 
+  // ── Quitter l'atelier n'est pas renoncer ──────────────────────────────────
+  //
+  // `beforeunload` ne couvre que la fermeture de l'onglet. Une navigation
+  // interne — le bouton retour du téléphone, un lien — démontait l'atelier
+  // sans un mot, et les 800 ms d'attente d'une valeur en cours partaient avec
+  // lui. Un coach le vivait comme « l'application a annulé ma séance ».
+  //
+  // L'envoi est sûr à déclencher pour rien : il compare au dernier état
+  // enregistré et ne part que s'il y a quelque chose à dire. Déclaré en
+  // dernier pour que le nettoyage de la programmation, plus haut, ait déjà
+  // rendu son minuteur.
+  useEffect(
+    () => () => {
+      relancer.current();
+    },
+    []
+  );
+
   return { state, isDirty, savedAt, flush };
 };

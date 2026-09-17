@@ -54,6 +54,7 @@ import {
 } from '@dnd-kit/core';
 import { ExerciseSheet } from '@/features/exercise';
 import { useOutsideDismiss } from '@/hooks/useOutsideDismiss';
+import { useBackDismiss } from '@/hooks/useBackDismiss';
 import { getBlockLabel } from '@/features/program/constants';
 
 interface Props {
@@ -139,6 +140,14 @@ export const ClientProgramTab = ({
   useOutsideDismiss(blockSelectorRef, showBlockSelector, closeBlockSelector);
 
   const isMobile = useBreakpointValue({ base: true, md: false });
+
+  // Le retour du téléphone referme ce qui est ouvert par-dessus l'atelier,
+  // au lieu de quitter la séance. Quatre couches, quatre repères — la plus
+  // haute ferme la première, puisque chacune a posé le sien à son ouverture.
+  useBackDismiss(showBlockSelector, closeBlockSelector);
+  useBackDismiss(!!selectorBlockId, () => setSelectorBlockId(null));
+  useBackDismiss(!!sheetExercise, () => setSheetExercise(null));
+  useBackDismiss(isSessionRemovalOpen, () => setIsSessionRemovalOpen(false));
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),

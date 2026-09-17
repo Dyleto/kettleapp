@@ -53,10 +53,33 @@ export const InlineValue = ({
 }: InlineValueProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  /** Ce qu'il y avait avant d'ouvrir — ce qu'Échap doit rendre. */
+  const [initiale, setInitiale] = useState<number | undefined>(undefined);
 
   const open = () => {
+    setInitiale(value);
     setDraft(value === undefined ? '' : String(value));
     setIsEditing(true);
+  };
+
+  /**
+   * Chaque frappe part tout de suite — et c'est ce qui sauve le travail.
+   *
+   * Le champ gardait sa valeur pour lui jusqu'au clic dehors ou à la touche
+   * Entrée. Un coach qui tapait « 12 » puis appuyait sur le retour de son
+   * téléphone perdait les deux caractères : ils n'avaient jamais quitté le
+   * champ, donc l'enregistrement automatique n'avait rien à enregistrer.
+   *
+   * Envoyer au fil de la frappe ne coûte rien : l'enregistrement attend déjà
+   * 800 ms avant de partir, précisément pour absorber une valeur tapée
+   * caractère par caractère. Un champ momentanément vide, lui, n'est pas une
+   * valeur effacée : on ne l'envoie qu'à la validation, qui seule sait ce que
+   * « vider » veut dire ici.
+   */
+  const saisir = (raw: string) => {
+    setDraft(raw);
+    const next = parse(raw);
+    if (next !== undefined && next >= min) onChange(next);
   };
 
   const commit = () => {
@@ -66,6 +89,12 @@ export const InlineValue = ({
     } else if (next >= min) {
       onChange(next);
     }
+    setIsEditing(false);
+  };
+
+  // Échap annule, comme avant — mais il a maintenant quelque chose à défaire.
+  const annuler = () => {
+    if (value !== initiale) onChange(initiale);
     setIsEditing(false);
   };
 
@@ -81,7 +110,7 @@ export const InlineValue = ({
         inputMode="numeric"
         aria-label={ariaLabel}
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => saisir(e.target.value)}
         onFocus={(e) => e.target.select()}
         onBlur={commit}
         onKeyDown={(e) => {
@@ -90,7 +119,7 @@ export const InlineValue = ({
             commit();
           } else if (e.key === 'Escape') {
             e.preventDefault();
-            setIsEditing(false);
+            annuler();
           }
         }}
         bg="whiteAlpha.100"
@@ -162,11 +191,24 @@ export const InlineSequence = ({
 }: InlineSequenceProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
+  const [initiale, setInitiale] = useState<number[] | undefined>(undefined);
 
   const parsed = isEditing ? parseSequence(draft) : (value ?? []);
 
+  // Même raison qu'au-dessus : une séquence tapée mais pas validée n'existait
+  // nulle part, et quitter la page l'emportait.
+  const saisir = (raw: string) => {
+    setDraft(raw);
+    onChange(parseSequence(raw));
+  };
+
   const commit = () => {
     onChange(parseSequence(draft));
+    setIsEditing(false);
+  };
+
+  const annuler = () => {
+    onChange(initiale ?? []);
     setIsEditing(false);
   };
 
@@ -180,7 +222,7 @@ export const InlineSequence = ({
           w="180px"
           aria-label={ariaLabel}
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => saisir(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -188,7 +230,7 @@ export const InlineSequence = ({
               commit();
             } else if (e.key === 'Escape') {
               e.preventDefault();
-              setIsEditing(false);
+              annuler();
             }
           }}
           placeholder="5-10-15-20-15-10-5"
@@ -214,6 +256,7 @@ export const InlineSequence = ({
       as="button"
       aria-label={ariaLabel}
       onClick={() => {
+        setInitiale(value);
         setDraft((value ?? []).join('-'));
         setIsEditing(true);
       }}
