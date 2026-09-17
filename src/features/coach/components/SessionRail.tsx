@@ -35,8 +35,12 @@ interface SessionRailProps {
   onSelect: (index: number) => void;
   onAddSession: () => void;
   onReorder?: (orderedSessionIds: string[]) => void;
-  /** Identifiants des séances jamais réalisées par le client. */
-  neverDoneIds?: Set<string>;
+  /**
+   * Ce que le client a réellement fait de chaque séance : combien de fois, et
+   * quand la dernière. C'est ce qui dit si le programme est suivi, et ça se
+   * lit ici sur toutes les séances plutôt que sur la seule qui est ouverte.
+   */
+  suivi?: Map<string, { fois: number; derniere?: string }>;
 }
 
 /**
@@ -67,7 +71,7 @@ interface RowProps {
   session: Session;
   index: number;
   isActive: boolean;
-  isNeverDone: boolean;
+  suivi?: { fois: number; derniere?: string };
   onSelect: () => void;
   sortable: boolean;
 }
@@ -75,7 +79,7 @@ interface RowProps {
 const RailRow = ({
   session,
   isActive,
-  isNeverDone,
+  suivi,
   onSelect,
   sortable,
 }: RowProps) => {
@@ -120,17 +124,21 @@ const RailRow = ({
         >
           Séance {session.order}
         </Text>
-        {/* Un repère discret, pas une alerte : « jamais faite » est un fait. */}
-        {isNeverDone && (
-          <Text
-            fontSize="xs"
-            color="fg.muted"
-            flexShrink={0}
-            title="Jamais réalisée par ce client"
-          >
-            jamais faite
-          </Text>
-        )}
+        {/* Un repère discret, pas une alerte : « jamais faite » est un fait,
+            et « faite 4 fois » aussi. Ce qui compte, c'est de pouvoir
+            comparer les séances entre elles — donc de les lire toutes. */}
+        <Text
+          fontSize="xs"
+          color="fg.muted"
+          flexShrink={0}
+          title={
+            suivi
+              ? `Réalisée ${suivi.fois} fois par ce client`
+              : 'Jamais réalisée par ce client'
+          }
+        >
+          {suivi ? `${suivi.fois}×` : 'jamais faite'}
+        </Text>
       </HStack>
       <HStack gap={1.5} align="baseline">
         <Text fontSize="xs" color="fg.muted">
@@ -141,6 +149,16 @@ const RailRow = ({
         {(session.suggestedDays?.length ?? 0) > 0 && (
           <Text fontSize="xs" color="app.primary">
             {session.suggestedDays!.map((d) => WEEKDAY_SHORT[d]).join(' · ')}
+          </Text>
+        )}
+        {/* La date de la dernière fois : « faite 4 fois » ne dit pas si
+            c'était la semaine dernière ou en juin. */}
+        {suivi?.derniere && (
+          <Text fontSize="xs" color="fg.muted" flexShrink={0} ml="auto">
+            {new Intl.DateTimeFormat('fr-FR', {
+              day: 'numeric',
+              month: 'short',
+            }).format(new Date(suivi.derniere))}
           </Text>
         )}
       </HStack>
@@ -155,7 +173,7 @@ export const SessionRail = ({
   onSelect,
   onAddSession,
   onReorder,
-  neverDoneIds,
+  suivi,
 }: SessionRailProps) => {
   const isDesktop = useBreakpointValue({ base: false, md: true });
 
@@ -193,7 +211,7 @@ export const SessionRail = ({
                 session={session}
                 index={index}
                 isActive={index === activeIndex}
-                isNeverDone={neverDoneIds?.has(session._id) ?? false}
+                suivi={suivi?.get(session._id)}
                 onSelect={() => onSelect(index)}
                 sortable={!!onReorder}
               />
@@ -252,7 +270,7 @@ export const SessionRail = ({
               color={isActive ? 'bg.canvas' : 'fg.muted'}
               fontSize="sm"
               fontWeight="bold"
-              opacity={neverDoneIds?.has(session._id) && !isActive ? 0.6 : 1}
+              opacity={!suivi?.get(session._id) && !isActive ? 0.6 : 1}
             >
               S{session.order}
             </Box>

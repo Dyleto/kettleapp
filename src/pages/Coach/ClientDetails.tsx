@@ -89,14 +89,27 @@ const ClientDetails = () => {
     );
   }, [program]);
 
-  const neverDoneIds = useMemo(() => {
-    const done = new Set(history.map((h) => h.originalSessionId));
-    return new Set(
-      (program?.sessions ?? [])
-        .filter((s) => !done.has(s._id))
-        .map((s) => s._id)
-    );
-  }, [program, history]);
+  /**
+   * Combien de fois chaque séance a été faite, et quand pour la dernière.
+   *
+   * « faite 4 fois » vivait en gris minuscule à droite du titre de la séance
+   * ouverte — donc une séance à la fois. C'est pourtant l'information qui dit
+   * si le programme est suivi : le coach a besoin de la lire sur toutes les
+   * séances d'un coup, pour voir celles que son client évite.
+   */
+  const suivi = useMemo(() => {
+    const par = new Map<string, { fois: number; derniere?: string }>();
+    for (const h of history) {
+      const courant = par.get(h.originalSessionId) ?? { fois: 0 };
+      const quand = String(h.completedAt);
+      par.set(h.originalSessionId, {
+        fois: courant.fois + 1,
+        derniere:
+          !courant.derniere || quand > courant.derniere ? quand : courant.derniere,
+      });
+    }
+    return par;
+  }, [history]);
 
   const handleSelectSession = (index: number) => {
     navigate(COACH_ROUTES.clientSession(clientId!, index + 1));
@@ -266,7 +279,7 @@ const ClientDetails = () => {
             onSelect={handleSelectSession}
             onAddSession={handleAddSession}
             onReorder={actions.reorderSessions}
-            neverDoneIds={neverDoneIds}
+            suivi={suivi}
           />
 
           <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
@@ -276,11 +289,9 @@ const ClientDetails = () => {
                   <Heading as="h2" size="md">
                     Séance {activeSession.order}
                   </Heading>
-                  {sessionHistory.length > 0 && (
-                    <Text fontSize="xs" color="fg.muted" flexShrink={0}>
-                      faite {sessionHistory.length} fois
-                    </Text>
-                  )}
+                  {/* Le compte est passé dans le rail, où il se lit sur
+                      toutes les séances à la fois. Le répéter ici ne dirait
+                      rien de plus sur celle qui est ouverte. */}
                 </HStack>
 
                 {!isWide && <SessionFeedbackStrip history={sessionHistory} />}
