@@ -12,8 +12,12 @@ import {
 interface PerformedFieldsProps {
   value: PerformedValues;
   onChange: (next: PerformedValues) => void;
-  /** Nombre de séries prescrites par le coach. 1 quand il n'en demande pas. */
-  setCount?: number;
+  /**
+   * Ce que chaque passage demande, une entrée par passage — « 21 reps »,
+   * « 15 reps »… Une entrée vide se numérote. La longueur fait le nombre de
+   * lignes de saisie.
+   */
+  setLabels?: string[];
   /** « la dernière fois : 26 kg · 3 × 12 reps », ou `null`. */
   lastLabel?: string | null;
   /** L'exercice se mesure en temps : demander des répétitions n'a pas de
@@ -106,11 +110,11 @@ const SetInputs = ({
 export const PerformedFields = ({
   value,
   onChange,
-  setCount = 1,
+  setLabels = [''],
   lastLabel,
   isTimed = false,
 }: PerformedFieldsProps) => {
-  const rowCount = Math.max(1, setCount);
+  const rowCount = Math.max(1, setLabels.length);
 
   // Les lignes vivent ici, à leur longueur pleine : sinon une série qu'on
   // vide au milieu de la saisie ferait disparaître les suivantes sous les
@@ -183,14 +187,18 @@ export const PerformedFields = ({
         <VStack align="stretch" gap={1.5} mt={2}>
           {rows.map((row, index) => (
             <HStack key={index} gap={2} align="center">
+              {/* Le palier plutôt que le rang quand il existe : sur une
+                  pyramide, « 1 2 3 » ne dit pas laquelle des trois on
+                  renseigne, « 21 15 9 » si. */}
               <Text
                 fontSize="xs"
                 fontFamily="mono"
                 color="fg.muted"
-                w="16px"
+                w={setLabels[index] ? '56px' : '16px'}
+                textAlign={setLabels[index] ? 'right' : 'left'}
                 flexShrink={0}
               >
-                {index + 1}
+                {setLabels[index] || index + 1}
               </Text>
               <SetInputs
                 set={row}

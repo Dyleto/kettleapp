@@ -1,4 +1,4 @@
-import { BlockType, SessionBlock } from '@/types';
+import { BlockExercise, BlockType, SessionBlock } from '@/types';
 import { formatDuration } from '@/utils/duration';
 
 export const BLOCK_TYPE_CONFIG: Record<BlockType, { label: string }> = {
@@ -79,6 +79,36 @@ export const BLOCK_TYPES_COURANTS: BlockType[] = [
  */
 export const blockSupportsSets = (type: BlockType): boolean =>
   type === 'classic' || type === 'warmup';
+
+/**
+ * Ce que chaque passage d'un exercice demande — une entrée par passage.
+ *
+ * Retour du terrain : « pour noter les charges, dommage de ne pas pouvoir le
+ * faire sur toutes les séries — le pyramidal, je ne peux pas noter chaque
+ * charge que j'ai faite. » C'était exact, et la cause tenait à une seule
+ * ligne : le nombre de lignes de saisie se lisait sur `exercise.sets`, un
+ * champ que seuls le classique et l'échauffement portent. Une pyramide tient
+ * ses paliers sur le bloc, pas sur l'exercice — elle n'avait donc qu'une
+ * ligne, quand elle en demande autant que de paliers.
+ *
+ * Les blocs à tours (EMOM, Tabata, On/Off) restent à une ligne : leurs tours
+ * sont identiques, et dix lignes vides pour un EMOM de dix tours seraient un
+ * formulaire, pas une aide. Ce qui distingue la pyramide, c'est que la
+ * prescription change d'un passage à l'autre — d'où le libellé, qui dit quel
+ * palier on est en train de renseigner.
+ *
+ * Une entrée vide veut dire « ce passage n'a pas de nom » : on le numérote.
+ */
+export const prescribedSetLabels = (
+  block: Pick<SessionBlock, 'type' | 'repsScheme'>,
+  exercise: Pick<BlockExercise, 'sets'>
+): string[] => {
+  if (blockDefinesOwnMetrics(block.type) && block.repsScheme?.length)
+    return block.repsScheme.map((reps) => `${reps}\u00A0reps`);
+  if (blockSupportsSets(block.type))
+    return Array.from({ length: Math.max(1, exercise.sets ?? 1) }, () => '');
+  return [''];
+};
 
 // Blocs où le timing est entièrement défini par le schéma du bloc (aucune métrique par exercice)
 export const blockDefinesOwnMetrics = (type: BlockType): boolean =>

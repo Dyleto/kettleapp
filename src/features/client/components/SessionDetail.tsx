@@ -2,20 +2,25 @@ import { PerformedValues, Session } from '@/types';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import { Box, Skeleton, Text, VStack } from '@chakra-ui/react';
 import { PerformedFields } from './PerformedFields';
+import { prescribedSetLabels } from '@/features/program/constants';
 import {
   formatLastPerformance,
   LastPerformance,
   performedKey,
 } from '../lastPerformance';
 
+/** Le bloc porteur et l'exercice : les deux décident du nombre de passages. */
 const findExercise = (
   session: Session,
   blockOrder: number,
   exerciseOrder: number
-) =>
-  session.blocks
-    .find((b) => b.order === blockOrder)
-    ?.exercises.find((e) => e.order === exerciseOrder);
+) => {
+  const block = session.blocks.find((b) => b.order === blockOrder);
+  return {
+    block,
+    exercise: block?.exercises.find((e) => e.order === exerciseOrder),
+  };
+};
 
 interface SessionDetailProps {
   session: Session;
@@ -74,7 +79,7 @@ export const SessionDetail = ({
 
             if (isRecording) {
               const key = performedKey(blockOrder, exerciseOrder);
-              const prescribed = findExercise(
+              const { block: porteur, exercise: prescribed } = findExercise(
                 session,
                 blockOrder,
                 exerciseOrder
@@ -83,7 +88,11 @@ export const SessionDetail = ({
                 <PerformedFields
                   value={performed[key] ?? { sets: [] }}
                   onChange={(next) => onPerformedChange(key, next)}
-                  setCount={prescribed?.sets ?? 1}
+                  setLabels={
+                    porteur && prescribed
+                      ? prescribedSetLabels(porteur, prescribed)
+                      : ['']
+                  }
                   lastLabel={last}
                   isTimed={prescribed?.duration !== undefined}
                 />

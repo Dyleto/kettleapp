@@ -33,6 +33,7 @@ import { useState } from 'react';
 import { EffortScale } from './EffortScale';
 import { FeedbackTags } from './FeedbackTags';
 import { PerformedFields } from './PerformedFields';
+import { prescribedSetLabels } from '@/features/program/constants';
 import { performedKey } from '../lastPerformance';
 import {
   formatPerformed,
@@ -409,7 +410,14 @@ export const CompletedSessionDrawer = ({
                                         [key]: next,
                                       }))
                                     }
-                                    setCount={prescribed?.sets ?? 1}
+                                    setLabels={
+                                      prescribed
+                                        ? prescribedSetLabels(
+                                            block,
+                                            prescribed
+                                          )
+                                        : ['']
+                                    }
                                     isTimed={prescribed?.duration !== undefined}
                                   />
                                 );
