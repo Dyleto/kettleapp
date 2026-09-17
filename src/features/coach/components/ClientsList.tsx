@@ -172,9 +172,11 @@ const matches = (client: Client, query: string): boolean => {
 interface ClientRowProps {
   client: Client;
   onSelect: () => void;
+  /** Le client dont l'aperçu est affiché à côté. */
+  selected?: boolean;
 }
 
-const ClientRow = ({ client, onSelect }: ClientRowProps) => {
+const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
   const effort = getEffortLevel(client.lastEffort);
   const ligne = ligneClient(client, effort?.label);
 
@@ -185,6 +187,8 @@ const ClientRow = ({ client, onSelect }: ClientRowProps) => {
       withGlow={false}
       onClick={onSelect}
       p={3}
+      bg={selected ? 'bg.surface' : undefined}
+      aria-current={selected ? 'true' : undefined}
     >
       {/* Des colonnes, pas une phrase. Sur large, les cinq cases s'alignent
           d'une ligne à l'autre : on balaie « ce qui attend » sans lire les
@@ -196,7 +200,9 @@ const ClientRow = ({ client, onSelect }: ClientRowProps) => {
         rowGap={0}
         templateColumns={{
           base: '32px auto minmax(0, 1fr) auto',
-          md: '32px minmax(0, 1fr) 84px 108px 136px',
+          // 152 px : « rien depuis 3 semaines » est la plus longue des
+          // phrases de cette colonne, et elle se tronquait à 136.
+          md: '32px minmax(0, 1fr) 84px 108px 152px',
         }}
         templateAreas={{
           base: `"avatar nom nom attente" "avatar etat anciennete attente"`,
@@ -263,7 +269,17 @@ const ClientRow = ({ client, onSelect }: ClientRowProps) => {
   );
 };
 
-export const ClientsList = () => {
+interface ClientsListProps {
+  /**
+   * Quand un aperçu accompagne la liste, cliquer choisit au lieu d'ouvrir :
+   * c'est l'aperçu qui répond, et l'atelier reste à un bouton. Sans aperçu —
+   * sur un écran étroit — le clic ouvre directement, comme avant.
+   */
+  onPreview?: (client: Client) => void;
+  selectedId?: string;
+}
+
+export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
   const navigate = useNavigate();
   const { data: clients = [], isLoading, error, refetch } = useClients();
   const [query, setQuery] = useState('');
@@ -288,8 +304,10 @@ export const ClientsList = () => {
   // séance, se joue dans l'atelier, qui affiche déjà ce même retour à côté du
   // programme qu'il commente. Le journal reste l'historique complet, ouvert
   // par son propre bouton.
-  const handleSelect = (client: Client) =>
+  const handleSelect = (client: Client) => {
+    if (onPreview) return onPreview(client);
     navigate(COACH_ROUTES.clientSession(client._id, 1));
+  };
 
   if (isLoading) {
     return (
@@ -418,6 +436,7 @@ export const ClientsList = () => {
               key={client._id}
               client={client}
               onSelect={() => handleSelect(client)}
+              selected={client._id === selectedId}
             />
           ))}
         </VStack>

@@ -1,8 +1,22 @@
 import { useCallback, useState } from 'react';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { Button, Container, HStack, Text, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  HStack,
+  Text,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { LuCheck, LuUserPlus } from 'react-icons/lu';
-import { ClientsList, COACH_CONTENT_MAX_W } from '@/features/coach';
+import {
+  ClientPreview,
+  ClientsList,
+  COACH_CONTENT_MAX_W,
+} from '@/features/coach';
+import { Client } from '@/types';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { useGenerateInvitation } from '@/features/coach/hooks/useGenerateInvitation';
 import { toaster } from '@/components/ui/toasterInstance';
@@ -11,6 +25,16 @@ const Clients = () => {
   const { data: clients = [] } = useClients();
   const { mutate: generateInvitation, isPending } = useGenerateInvitation();
   const [isCopied, setIsCopied] = useState(false);
+
+  /**
+   * L'aperçu n'existe que là où il y a la place pour lui.
+   *
+   * En dessous de 1280 px, la liste occupe déjà toute la largeur : y ajouter
+   * une colonne la réduirait à un filet. Le clic ouvre alors l'atelier
+   * directement, comme avant.
+   */
+  const avecApercu = useBreakpointValue({ base: false, xl: true }) ?? false;
+  const [apercu, setApercu] = useState<Client | null>(null);
   useDocumentTitle('Mes clients');
 
   const copy = useCallback(async (link: string, expiresAt?: string) => {
@@ -66,7 +90,11 @@ const Clients = () => {
   };
 
   return (
-    <Container maxW={COACH_CONTENT_MAX_W} py={8} px={4}>
+    <Container
+      maxW={avecApercu ? '1400px' : COACH_CONTENT_MAX_W}
+      py={8}
+      px={4}
+    >
       <VStack align="stretch" gap={6}>
         <HStack justify="space-between" align="center" gap={3}>
           <VStack align="start" gap={0} minW={0}>
@@ -109,7 +137,20 @@ const Clients = () => {
             toutes deux : l'API recycle le lien encore valide, donc cliquer à
             nouveau recopie le même. */}
 
-        <ClientsList />
+        {/* Entre 30 et 55 % de la fenêtre restait vide : la liste s'arrêtait à
+            720 px et le reste ne servait à rien. Le coach devait ouvrir
+            l'atelier — donc perdre la liste — pour savoir ce qui l'attendait
+            chez un client, puis revenir pour passer au suivant. */}
+        {avecApercu ? (
+          <Grid templateColumns="minmax(0, 1fr) 420px" gap={8} alignItems="start">
+            <ClientsList onPreview={setApercu} selectedId={apercu?._id} />
+            <Box position="sticky" top="24px" minW={0}>
+              <ClientPreview client={apercu} />
+            </Box>
+          </Grid>
+        ) : (
+          <ClientsList />
+        )}
       </VStack>
     </Container>
   );

@@ -95,13 +95,17 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
           h="1px"
           bg="whiteAlpha.200"
         />
+        {/* Le repère du milieu porte la couleur du milieu de l'échelle, et
+            non l'ambre de l'action : c'est une graduation, on ne clique pas
+            dessus. Cette colonne n'apparaissait qu'au-delà de 1536 px, ce qui
+            l'avait soustraite au désengorgement de l'ambre. */}
         <Box
           position="absolute"
           top="6px"
           left="50%"
           w="1px"
           h="13px"
-          bg="app.primary"
+          bg={EFFORT_ZONE_COLOR.target}
           opacity={0.55}
         />
         {rated.map((completed, i) => {
@@ -136,7 +140,7 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
           c'est le sens qu'annonce déjà la flèche de dérive. */}
       <HStack justify="space-between" fontSize="10px" color="fg.muted">
         <Text>{EFFORT_LEVELS[0].label}</Text>
-        <Text color="app.primary">
+        <Text color={EFFORT_ZONE_COLOR.target}>
           {EFFORT_LEVELS[Math.floor(EFFORT_LEVELS.length / 2)].label}
         </Text>
         <Text>{EFFORT_LEVELS[EFFORT_LEVELS.length - 1].label}</Text>

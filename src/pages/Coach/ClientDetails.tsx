@@ -68,9 +68,19 @@ const ClientDetails = () => {
     save,
   });
 
-  // À partir de 2xl (1536px), le retour du client passe en colonne de droite
-  // plutôt qu'en bandeau : c'est ce qui occupe la largeur d'un 1920.
-  const isWide = useBreakpointValue({ base: false, '2xl': true });
+  /**
+   * À partir de quelle largeur le retour du client passe en colonne.
+   *
+   * Le seuil était à 1536 px, ce qui réservait la troisième colonne aux très
+   * grands écrans : sur un portable ordinaire, le coach lisait le retour de
+   * son client en bandeau au-dessus du programme qu'il commente, donc jamais
+   * en même temps que lui.
+   *
+   * À 1280 px la place existe — le rail fait 220 px, la colonne de retour
+   * 300, il reste plus de 700 px pour le programme, soit davantage que les
+   * 660 qu'il occupait avant ce changement.
+   */
+  const isWide = useBreakpointValue({ base: false, xl: true });
 
   const currentIndex = Math.max(0, (Number(sessionIndex) || 1) - 1);
   const activeSession = program?.sessions[currentIndex] ?? null;
@@ -345,7 +355,7 @@ const ClientDetails = () => {
           </Box>
 
           {isWide && activeSession && (
-            <Box w="320px" flexShrink={0}>
+            <Box w={{ xl: '300px', '2xl': '320px' }} flexShrink={0}>
               <SessionFeedbackStrip history={sessionHistory} variant="panel" />
             </Box>
           )}
