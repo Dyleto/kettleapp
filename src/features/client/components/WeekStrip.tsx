@@ -34,7 +34,25 @@ export const WeekStrip = ({
   onOpenSession,
 }: WeekStripProps) => {
   const todayKey = dayKey(new Date());
-  const count = days.reduce((sum, d) => sum + d.done.length, 0);
+  /**
+   * Ce qui reste à faire, calculé une fois pour la bande et pour son compte.
+   *
+   * Une séance conseillée dont on a déjà fait l'équivalent ce jour-là ne reste
+   * pas « prévue » ; mais une autre séance conseillée le même jour, si — un
+   * dimanche où l'on a fait la 4 ne rend pas la 3 inexistante.
+   *
+   * La règle vivait dans le rendu des pastilles, et le compte de l'en-tête en
+   * appliquait une autre, plus grossière : il annonçait trois séances prévues
+   * là où la bande en dessinait six.
+   */
+  const jours = days.map((d) => ({
+    ...d,
+    pending: d.suggested.filter(
+      (s) => !d.done.some((x) => x.originalSessionId === s._id)
+    ),
+  }));
+  const faites = jours.reduce((sum, d) => sum + d.done.length, 0);
+  const prevues = jours.reduce((sum, d) => sum + d.pending.length, 0);
 
   return (
     <VStack align="stretch" gap={2}>
@@ -48,10 +66,19 @@ export const WeekStrip = ({
         >
           Cette semaine
         </Text>
+        {/* Le compte cesse de contredire ce qui est dessiné juste dessous :
+            l'en-tête annonçait « aucune séance » pendant que la bande montrait
+            trois anneaux. Il ne comptait que le fait, la bande montre aussi le
+            prévu. */}
         <Text fontSize="xs" color="fg.muted">
-          {count === 0
-            ? 'aucune séance'
-            : `${count} séance${count > 1 ? 's' : ''}`}
+          {faites === 0 && prevues === 0
+            ? 'rien de prévu'
+            : [
+                `${faites} faite${faites > 1 ? 's' : ''}`,
+                prevues > 0 && `${prevues} prévue${prevues > 1 ? 's' : ''}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
         </Text>
       </HStack>
 
@@ -66,7 +93,7 @@ export const WeekStrip = ({
         role="group"
         aria-label="Séances de la semaine"
       >
-        {days.map(({ date, key, done, suggested }) => {
+        {jours.map(({ date, key, done, pending }) => {
           const isToday = key === todayKey;
           const isFuture = key > todayKey;
           const effort = done.length > 0 ? getEffortSummary(done[0]) : null;
@@ -74,12 +101,6 @@ export const WeekStrip = ({
 
           // Une séance conseillée qu'on a faite ce jour-là n'a plus à
           // s'annoncer. Mais une autre, conseillée le même jour et pas encore
-          // faite, si : un dimanche où l'on a fait la 4 ne rend pas la 3
-          // inexistante.
-          const pending = suggested.filter(
-            (s) => !done.some((d) => d.originalSessionId === s._id)
-          );
-
           const target =
             done.length > 0
               ? 'completed'
