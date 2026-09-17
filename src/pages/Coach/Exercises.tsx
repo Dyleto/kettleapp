@@ -42,6 +42,16 @@ const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
  * peuvent plus diverger.
  */
 const COLONNES = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
+
+/**
+ * À partir de combien d'exercices un index alphabétique sert à quelque chose.
+ *
+ * Neuf en-têtes de lettre pour dix exercices : la structure coûtait plus de
+ * hauteur qu'elle n'en faisait gagner, et un index de neuf lettres pour dix
+ * lignes ne raccourcit aucun trajet. Elle doit apparaître quand elle sert, pas
+ * par principe.
+ */
+const SEUIL_INDEX = 25;
 const GOUTTIERE = { base: 0, lg: 8 };
 
 const Exercises = () => {
@@ -94,7 +104,25 @@ const Exercises = () => {
     return groups;
   }, [filtered]);
 
-  const letters = grouped.map((g) => g.letter);
+  /**
+   * Ce que le volet droit montre quand aucune fiche n'est ouverte.
+   *
+   * Un exercice jamais posé dans un programme n'y figure pas : ce serait
+   * remplir la place avec ce qui sert le moins.
+   */
+  const lesPlusUtilises = useMemo(
+    () =>
+      [...exercises]
+        .filter((e) => (e.usageCount ?? 0) > 0)
+        .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0))
+        .slice(0, 5),
+    [exercises]
+  );
+
+  // En dessous du seuil, une liste simple et dense : les groupes existent
+  // toujours, mais ils ne portent ni titre ni index.
+  const indexe = filtered.length >= SEUIL_INDEX;
+  const letters = indexe ? grouped.map((g) => g.letter) : [];
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollToLetter = (letter: string) => {
@@ -114,6 +142,20 @@ const Exercises = () => {
         },
       }
     );
+  };
+
+  /**
+   * Créer depuis l'en-tête.
+   *
+   * Il fallait taper un nom qui n'existe pas pour découvrir qu'on peut créer :
+   * la seule porte d'entrée était un accident de recherche. Le bouton la
+   * nomme. Il ne fabrique pas d'exercice sans nom pour autant — un nom est
+   * déjà là, il crée ; sinon il amène le curseur là où on l'écrit.
+   */
+  const champRecherche = useRef<HTMLInputElement>(null);
+  const nouveau = () => {
+    if (canCreate) return create();
+    champRecherche.current?.focus();
   };
 
   const confirmDeletion = () => {
@@ -147,32 +189,34 @@ const Exercises = () => {
               même graphie, même colonne, même couleur. Il passe donc dans la
               marge, avec un filet qui court jusqu'au bord — c'est un
               séparateur, pas une entrée de la liste. */}
-          <Box
-            position="sticky"
-            top={0}
-            zIndex={1}
-            bg="bg.canvas"
-            pt={5}
-            pb={1}
-          >
-            <HStack gap={2} align="center">
-              {/* Une lettre d'index n'est ni une action ni un endroit où
+          {indexe && (
+            <Box
+              position="sticky"
+              top={0}
+              zIndex={1}
+              bg="bg.canvas"
+              pt={5}
+              pb={1}
+            >
+              <HStack gap={2} align="center">
+                {/* Une lettre d'index n'est ni une action ni un endroit où
                   l'on se trouve : elle n'a rien à faire en ambre. Neuf
                   en-têtes dorés pour dix exercices, c'était aussi neuf
                   fausses invitations à cliquer. */}
-              <Text
-                fontSize="xs"
-                fontWeight="bold"
-                color="fg.muted"
-                letterSpacing="widest"
-                fontFamily="mono"
-                flexShrink={0}
-              >
-                {letter}
-              </Text>
-              <Box flex={1} h="1px" bg="whiteAlpha.100" />
-            </HStack>
-          </Box>
+                <Text
+                  fontSize="xs"
+                  fontWeight="bold"
+                  color="fg.muted"
+                  letterSpacing="widest"
+                  fontFamily="mono"
+                  flexShrink={0}
+                >
+                  {letter}
+                </Text>
+                <Box flex={1} h="1px" bg="whiteAlpha.100" />
+              </HStack>
+            </Box>
+          )}
           {group.map((exercise) => (
             <ExerciseRow
               key={exercise._id}
@@ -228,10 +272,31 @@ const Exercises = () => {
               <Text as="h1" fontSize="lg" fontWeight="bold">
                 Bibliothèque
               </Text>
-              <Text fontSize="xs" color="fg.muted" flexShrink={0}>
-                {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
-                {query && ` · « ${query} »`}
-              </Text>
+              <HStack gap={3} flexShrink={0} align="center">
+                <Text fontSize="xs" color="fg.muted">
+                  {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
+                  {query && ` · « ${query} »`}
+                </Text>
+                {/* La création avait pour seule porte d'entrée un accident de
+                    recherche : taper un nom qui n'existe pas. Le bouton la
+                    nomme. */}
+                <Box
+                  as="button"
+                  onClick={nouveau}
+                  fontSize="sm"
+                  fontWeight="bold"
+                  color="app.primary"
+                  minH="44px"
+                  display="flex"
+                  alignItems="center"
+                  _hover={{ color: 'app.primary.hover' }}
+                >
+                  <HStack gap={1}>
+                    <LuPlus size={13} />
+                    <Text as="span">Nouvel exercice</Text>
+                  </HStack>
+                </Box>
+              </HStack>
             </HStack>
 
             <HStack
@@ -245,6 +310,7 @@ const Exercises = () => {
             >
               <LuSearch size={14} color="var(--chakra-colors-fg-muted)" />
               <Input
+                ref={champRecherche}
                 placeholder="Chercher ou créer un exercice…"
                 aria-label="Chercher un exercice"
                 value={query}
@@ -298,9 +364,40 @@ const Exercises = () => {
                   {selected ? (
                     sheet
                   ) : (
-                    <Text fontSize="sm" color="fg.muted">
-                      Choisissez un exercice pour voir et modifier sa fiche.
-                    </Text>
+                    /* La moitié d'un écran de bureau ne peut pas rester une
+                       phrase d'attente. À défaut d'une fiche, le volet montre
+                       ce qui sert le plus — c'est aussi ce qu'on vient
+                       rouvrir le plus souvent. */
+                    <VStack align="stretch" gap={3}>
+                      <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        color="fg.muted"
+                        textTransform="uppercase"
+                        letterSpacing="wider"
+                      >
+                        Les plus utilisés
+                      </Text>
+                      {lesPlusUtilises.length === 0 ? (
+                        <Text fontSize="sm" color="fg.muted">
+                          Aucun exercice n'est encore posé dans un programme.
+                        </Text>
+                      ) : (
+                        <VStack align="stretch" gap={0}>
+                          {lesPlusUtilises.map((exercise) => (
+                            <ExerciseRow
+                              key={exercise._id}
+                              exercise={exercise}
+                              selected={false}
+                              onClick={() => openSheet(exercise._id)}
+                            />
+                          ))}
+                        </VStack>
+                      )}
+                      <Text fontSize="xs" color="fg.muted">
+                        Choisissez un exercice pour voir et modifier sa fiche.
+                      </Text>
+                    </VStack>
                   )}
                 </Box>
               )}
