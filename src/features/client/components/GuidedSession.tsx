@@ -757,13 +757,21 @@ export const GuidedSession = ({
         )}
 
         <HStack p={4} gap={3}>
+          {/* Un contour, comme en a « J'ai terminé cette séance ».
+              Du texte gris sans cadre, face à un « Suivant » ambre plein deux
+              fois plus large, se lit « indisponible » : le contraste était
+              conforme, la hiérarchie mentait. Secondaire et indisponible
+              doivent rester deux choses distinctes — le bouton porte donc son
+              cadre, et ne s'efface vraiment que sur la première étape, où il
+              est réellement désactivé. */}
           <Button
-            variant="ghost"
+            variant="outline"
+            borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}
             onClick={goPrev}
             disabled={index === 0}
             flexShrink={0}
             minH="52px"
-            color={isRest ? 'bg.canvas' : 'fg.muted'}
+            color={isRest ? 'bg.canvas' : 'fg'}
           >
             Précédent
           </Button>
