@@ -279,6 +279,8 @@ const SessionScreen = () => {
             setFlow('record');
           }}
           lastPerformance={lastPerformance}
+          performed={performed}
+          onPerformedChange={handlePerformedChange}
         />
       )}
 

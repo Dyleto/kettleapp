@@ -5,7 +5,7 @@ import { formatDuration } from '@/utils/duration';
 import { BlockExercise, BlockType, SessionBlock } from '@/types';
 import {
   blockIndexPrefix,
-  blockSupportsSets,
+  restBetweenSetsOf,
 } from '@/features/program/constants';
 import { formatExerciseMetric } from '@/utils/formatters';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -39,12 +39,8 @@ export const BlockExerciseRow = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const metric = formatExerciseMetric(exercise, blockType, block);
-  const rest =
-    blockSupportsSets(blockType) &&
-    (exercise.sets ?? 1) > 1 &&
-    exercise.restBetweenSets
-      ? `${formatDuration(exercise.restBetweenSets)} repos`
-      : null;
+  const restSeconds = restBetweenSetsOf({ type: blockType }, exercise);
+  const rest = restSeconds ? `${formatDuration(restSeconds)} repos` : null;
 
   const ex = exercise.exercise;
   // Deux niveaux de consigne, qu'il ne faut pas empiler sans les distinguer.

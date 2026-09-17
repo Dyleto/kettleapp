@@ -1,8 +1,6 @@
 import { Session, SessionBlock, BlockExercise, BlockType } from '@/types';
 import {
   getBlockLabel,
-  blockSupportsSets,
-  blockDefinesOwnMetrics,
   blockSupportsRepsOnly,
 } from '@/features/program/constants';
 import { formatDuration } from '@/utils/formatters';
@@ -28,6 +26,29 @@ export type GuidedStep =
       /** Rang de la série (1-indexé) quand l'exercice en compte plusieurs. */
       setIndex?: number;
       setCount?: number;
+    }
+  | {
+      /**
+       * Un bloc entier, lu d'un coup.
+       *
+       * Retour du terrain : « pendant l'exercice, on devrait voir toutes les
+       * infos d'un coup — pas 7 reps back squat, puis 120 s repos, puis
+       * 6 reps… Et quand je suis rendu à l'AMRAP c'est pire, je ne vois
+       * carrément pas tous les mouvements, c'est bloquant si je ne l'ai pas
+       * écrit sur un cahier. »
+       *
+       * Il avait raison sur le fond : un AMRAP est une liste qu'on boucle,
+       * pas une file d'attente. Le déroulé page par page a du sens là où une
+       * minuterie impose le rythme — EMOM, Tabata, On/Off — et nulle part
+       * ailleurs.
+       *
+       * Le bloc voyage entier plutôt que recopié : sa liste se rend avec la
+       * carte de la fiche, celle que le client lit déjà avant de commencer.
+       * Une seule écriture pour les deux écrans.
+       */
+      type: 'block';
+      blockLabel: string;
+      block: SessionBlock;
     }
   | {
       type: 'rest';
@@ -77,49 +98,6 @@ const pushExerciseSteps = (
   });
 };
 
-// Séries : « 4 × 12 reps » sur le programme est un raccourci d'écriture, pas
-// une page. Pendant l'effort on veut savoir où on en est — série 2 sur 4 — et
-// souffler entre les deux, donc chaque série a sa page et son repos.
-const buildSetBasedSteps = (
-  block: SessionBlock,
-  exercises: BlockExercise[],
-  blockLabel: string
-): GuidedStep[] => {
-  const steps: GuidedStep[] = [];
-
-  exercises.forEach((ex) => {
-    const effort = singleEffort(ex);
-    const setCount =
-      blockSupportsSets(block.type) && ex.sets && ex.sets > 1 ? ex.sets : 1;
-
-    for (let set = 1; set <= setCount; set++) {
-      steps.push({
-        type: 'exercise',
-        blockLabel,
-        exerciseName: ex.exercise.name,
-        exerciseId: ex.exercise._id,
-        description: ex.exercise.description,
-        coachNote: ex.note,
-        videoUrl: ex.exercise.videoUrl,
-        ...effort,
-        ...(setCount > 1 ? { setIndex: set, setCount } : {}),
-      });
-
-      // Jamais de repos inventé : seulement celui que le coach a écrit.
-      if (set < setCount && ex.restBetweenSets) {
-        steps.push({
-          type: 'rest',
-          blockLabel,
-          duration: ex.restBetweenSets,
-          nextExerciseName: ex.exercise.name,
-        });
-      }
-    }
-  });
-
-  return steps;
-};
-
 // EMOM/Every (chronométré par intervalle) et Tabata/On-Off (travail/repos) :
 // on répète le passage sur les exercices du bloc `rounds` fois, avec un
 // repos réel entre chaque tour.
@@ -166,41 +144,6 @@ const buildRoundBasedSteps = (
   return steps;
 };
 
-// Pyramide/Échelle : le nombre de reps change à chaque tour selon
-// `repsScheme` (ex. 2-4-6-8-6-4-2), pas selon la config de l'exercice.
-const buildSchemeBasedSteps = (
-  block: SessionBlock,
-  exercises: BlockExercise[],
-  blockLabel: string,
-  nextBlockFirstExerciseName: string | null
-): GuidedStep[] => {
-  const steps: GuidedStep[] = [];
-  const scheme =
-    block.repsScheme && block.repsScheme.length > 0
-      ? block.repsScheme
-      : [undefined];
-
-  scheme.forEach((reps, i) => {
-    pushExerciseSteps(steps, exercises, blockLabel, () => ({
-      metric: reps !== undefined ? `${reps} reps` : '',
-    }));
-
-    const isLastStep = i === scheme.length - 1;
-    if (block.restBetweenRounds) {
-      steps.push({
-        type: 'rest',
-        blockLabel,
-        duration: block.restBetweenRounds,
-        nextExerciseName: isLastStep
-          ? nextBlockFirstExerciseName
-          : (exercises[0]?.exercise.name ?? null),
-      });
-    }
-  });
-
-  return steps;
-};
-
 export function buildGuidedSteps(session: Session): GuidedStep[] {
   const steps: GuidedStep[] = [];
   const sortedBlocks = sortByOrder(session.blocks);
@@ -211,27 +154,20 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
     const nextBlockFirstExerciseName =
       sortedBlocks[blockIndex + 1]?.exercises[0]?.exercise.name ?? null;
 
-    let blockSteps: GuidedStep[];
-    if (blockDefinesOwnMetrics(block.type)) {
-      blockSteps = buildSchemeBasedSteps(
-        block,
-        exercises,
-        blockLabel,
-        nextBlockFirstExerciseName
-      );
-    } else if (
-      ROUND_BASED_TYPES.includes(block.type) &&
-      (block.rounds ?? 1) > 1
-    ) {
-      blockSteps = buildRoundBasedSteps(
-        block,
-        exercises,
-        blockLabel,
-        nextBlockFirstExerciseName
-      );
-    } else {
-      blockSteps = buildSetBasedSteps(block, exercises, blockLabel);
-    }
+    // La forme suit le bloc. Un rythme imposé par une minuterie se déroule
+    // page à page, un grand chiffre au milieu de l'écran et les mains
+    // occupées. Tout le reste est une liste, et se lit comme telle.
+    const cadence =
+      ROUND_BASED_TYPES.includes(block.type) && (block.rounds ?? 1) > 1;
+
+    const blockSteps: GuidedStep[] = cadence
+      ? buildRoundBasedSteps(
+          block,
+          exercises,
+          blockLabel,
+          nextBlockFirstExerciseName
+        )
+      : [{ type: 'block', blockLabel, block }];
 
     steps.push(...blockSteps);
 

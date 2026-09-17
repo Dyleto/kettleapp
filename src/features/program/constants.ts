@@ -85,6 +85,24 @@ export const blockSupportsSets = (type: BlockType): boolean =>
   type === 'classic' || type === 'warmup';
 
 /**
+ * Le repos qu'un exercice prescrit entre ses séries, en secondes.
+ *
+ * Trois conditions, et il fallait les trois : un bloc qui compte des séries,
+ * plus d'une série, et un repos écrit. La règle vivait dans la ligne de
+ * lecture ; le mode guidé en a besoin aussi, pour proposer le décompte au
+ * moment où on souffle.
+ */
+export const restBetweenSetsOf = (
+  block: Pick<SessionBlock, 'type'>,
+  exercise: Pick<BlockExercise, 'sets' | 'restBetweenSets'>
+): number | undefined =>
+  blockSupportsSets(block.type) &&
+  (exercise.sets ?? 1) > 1 &&
+  exercise.restBetweenSets
+    ? exercise.restBetweenSets
+    : undefined;
+
+/**
  * Ce que chaque passage d'un exercice demande — une entrée par passage.
  *
  * Retour du terrain : « pour noter les charges, dommage de ne pas pouvoir le
@@ -117,6 +135,18 @@ export const prescribedSetLabels = (
 // Blocs où le timing est entièrement défini par le schéma du bloc (aucune métrique par exercice)
 export const blockDefinesOwnMetrics = (type: BlockType): boolean =>
   ['pyramid', 'ladder'].includes(type);
+
+/**
+ * Blocs dont la durée fait partie du format — et qui méritent donc une
+ * pendule en mode guidé.
+ *
+ * `durationMinutes` traîne sur des blocs qui n'en font rien : l'échauffement
+ * du jeu d'essai en porte huit, que ni son réglage ni son résumé ne lisent.
+ * Se fier au champ seul faisait apparaître un décompte sur un échauffement,
+ * qui n'a pas de fin à décompter. Le type décide, pas la présence du champ.
+ */
+export const blockHasClock = (type: BlockType): boolean =>
+  ['amrap', 'timecap', 'chipper'].includes(type);
 
 // Blocs où seul un nombre de reps cible par exercice a du sens (pas de durée ni mesure)
 export const blockSupportsRepsOnly = (type: BlockType): boolean =>

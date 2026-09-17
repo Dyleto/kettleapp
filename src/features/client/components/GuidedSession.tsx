@@ -1,20 +1,40 @@
-import { Session } from '@/types';
+import { PerformedValues, Session } from '@/types';
 import { buildGuidedSteps, type GuidedStep } from '../guidedSteps';
 import { useCountdown } from '../useCountdown';
-import { formatLastPerformance, LastPerformance } from '../lastPerformance';
+import { BlockCard } from '@/features/program/components/BlockCard';
+import {
+  blockHasClock,
+  prescribedSetLabels,
+  restBetweenSetsOf,
+} from '@/features/program/constants';
+import { PerformedFields } from './PerformedFields';
+import {
+  formatLastPerformance,
+  LastPerformance,
+  performedKey,
+} from '../lastPerformance';
 import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { hitArea } from '@/components/hitArea';
 import { formatCountdown } from '@/utils/formatters';
+import { formatDuration } from '@/utils/duration';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LuInfo, LuX } from 'react-icons/lu';
+import { LuInfo, LuTimer, LuX } from 'react-icons/lu';
 
 interface GuidedSessionProps {
   session: Session;
   onExit: () => void;
   onFinish: () => void;
   lastPerformance?: Map<string, LastPerformance>;
+  /**
+   * Ce qui a déjà été noté, et de quoi le compléter — le même état que celui
+   * du bilan de fin. Retour du terrain : « dommage de ne pas pouvoir noter
+   * les charges pendant. » On note donc là où on est, et le bilan retrouve la
+   * saisie déjà faite au lieu de la redemander.
+   */
+  performed?: Record<string, PerformedValues>;
+  onPerformedChange?: (key: string, next: PerformedValues) => void;
 }
 
 interface CountdownProps {
@@ -27,6 +47,11 @@ interface CountdownProps {
   onComplete?: () => void;
   color: string;
   holdLabel?: string;
+  /**
+   * Plus petit quand il coiffe une liste : dans un AMRAP, la pendule compte,
+   * mais c'est la liste des mouvements qu'on est venu lire.
+   */
+  compact?: boolean;
 }
 
 // C'est le seul écran utilisé pendant l'effort, celui où l'on peut le moins se
@@ -129,15 +154,38 @@ const Anneau = ({
  * pages est plus large qu'un échauffement de deux. Des segments égaux
  * mentiraient sur ce qu'il reste à faire.
  */
+/**
+ * Ce qu'une étape pèse dans la barre — pas toujours une page.
+ *
+ * Un bloc lu d'un coup ne fait qu'une étape, mais un AMRAP de douze minutes
+ * n'est pas un douzième de l'effort d'un EMOM de douze pages. Sa largeur suit
+ * donc ce qu'il contient, et pas le nombre de fois qu'on tape « Suivant ».
+ */
+const poidsDe = (step: GuidedStep) =>
+  step.type === 'block' ? Math.max(1, step.block.exercises.length) : 1;
+
 const decouperEnBlocs = (steps: GuidedStep[]) => {
-  const blocs: { label: string; debut: number; taille: number }[] = [];
+  const blocs: {
+    label: string;
+    debut: number;
+    /** Nombre d'étapes — ce qui fait avancer le remplissage. */
+    taille: number;
+    /** Ce que le bloc représente — ce qui fait la largeur du segment. */
+    poids: number;
+  }[] = [];
   steps.forEach((step, i) => {
     const dernier = blocs[blocs.length - 1];
     if (dernier && dernier.label === step.blockLabel) {
       dernier.taille += 1;
+      dernier.poids += poidsDe(step);
       return;
     }
-    blocs.push({ label: step.blockLabel, debut: i, taille: 1 });
+    blocs.push({
+      label: step.blockLabel,
+      debut: i,
+      taille: 1,
+      poids: poidsDe(step),
+    });
   });
   return blocs;
 };
@@ -147,6 +195,7 @@ const Countdown = ({
   onComplete,
   color,
   holdLabel,
+  compact = false,
 }: CountdownProps) => {
   const { remaining, isRunning, pause, resume } = useCountdown(duration, {
     onComplete,
@@ -184,8 +233,8 @@ const Countdown = ({
     >
       <Box
         position="relative"
-        w="200px"
-        h="200px"
+        w={compact ? '132px' : '200px'}
+        h={compact ? '132px' : '200px'}
         maxW="100%"
         mx="auto"
         display="flex"
@@ -198,7 +247,7 @@ const Countdown = ({
           anime={isRunning}
         />
         <Text
-          fontSize="72px"
+          fontSize={compact ? '40px' : '72px'}
           fontWeight="800"
           fontFamily="mono"
           lineHeight="1"
@@ -224,11 +273,77 @@ const Countdown = ({
   );
 };
 
+/**
+ * Un décompte proposé plutôt qu'imposé.
+ *
+ * Le déroulé page à page donnait un chronomètre plein écran à chaque effort
+ * chronométré et à chaque repos. C'est cette mise en scène que le retour du
+ * terrain refusait — « pas 7 reps back squat, puis 120 s repos, puis
+ * 6 reps » —, pas le chronomètre lui-même, qui rendait service. Le supprimer
+ * avec l'écran, ce serait jeter la chose utile avec sa mauvaise présentation.
+ *
+ * Il vit donc sous la ligne qui le prescrit : « 2 min » pour l'effort,
+ * « repos 45 s » pour ce qui suit. On le lance quand on y est, et il redevient
+ * un bouton une fois fini — parce qu'il reste trois séries à faire.
+ */
+const MinuteurALaDemande = ({
+  duration,
+  libelle,
+  couleur,
+}: {
+  duration: number;
+  libelle: string;
+  couleur: string;
+}) => {
+  const [enCours, setEnCours] = useState(false);
+
+  if (enCours)
+    return (
+      <Box pl={4} py={1}>
+        <Countdown
+          duration={duration}
+          color={couleur}
+          onComplete={() => {
+            // Personne ne regarde l'écran à ce moment-là : on le dit au
+            // poignet. `Countdown` ne le fait lui-même que sans `onComplete`.
+            navigator.vibrate?.([120, 80, 120]);
+            setEnCours(false);
+          }}
+          compact
+        />
+      </Box>
+    );
+
+  return (
+    <Box pl={4}>
+      <Box
+        as="button"
+        onClick={() => setEnCours(true)}
+        aria-label={`Lancer le décompte — ${libelle}`}
+        minH="44px"
+        display="flex"
+        alignItems="center"
+        fontSize="xs"
+        color={couleur}
+        fontWeight="bold"
+        _hover={{ opacity: 0.8 }}
+      >
+        <HStack gap={1.5}>
+          <LuTimer size={13} />
+          <Text as="span">{libelle}</Text>
+        </HStack>
+      </Box>
+    </Box>
+  );
+};
+
 export const GuidedSession = ({
   session,
   onExit,
   onFinish,
   lastPerformance,
+  performed,
+  onPerformedChange,
 }: GuidedSessionProps) => {
   const [steps] = useState(() => buildGuidedSteps(session));
   // Les blocs ne changent pas pendant la séance : on les découpe une fois.
@@ -532,7 +647,7 @@ export const GuidedSession = ({
               return (
                 <Box
                   key={`${bloc.label}-${bloc.debut}`}
-                  flex={bloc.taille}
+                  flex={bloc.poids}
                   // Proportionnel, mais jamais au point de disparaître : un
                   // échauffement de deux pages dans une séance de trente-cinq
                   // se réduirait à un point.
@@ -582,6 +697,71 @@ export const GuidedSession = ({
           </Text>
         </HStack>
 
+        {step.type === 'block' ? (
+          /*
+           * Un bloc entier, lu d'un coup.
+           *
+           * C'est la carte de la fiche — celle que le client lit avant de
+           * commencer — reposée ici telle quelle. Une seule écriture pour les
+           * deux écrans : ce qu'il a mémorisé en préparant sa séance, il le
+           * retrouve pendant. Les consignes et les vidéos s'y déplient déjà,
+           * ligne par ligne, ce que le plein écran ne savait faire que pour
+           * l'exercice affiché.
+           */
+          <VStack flex={1} align="stretch" gap={5} px={5} py={2} overflowY="auto">
+            {/* La pendule d'un bloc à durée : dans un AMRAP, c'est elle qui
+                dit quand s'arrêter. Plus petite qu'en plein écran — on est
+                venu lire la liste, pas la pendule. */}
+            {blockHasClock(step.block.type) && step.block.durationMinutes ? (
+              <Countdown
+                key={index}
+                duration={step.block.durationMinutes * 60}
+                color="fg"
+                holdLabel="Temps écoulé"
+                compact
+              />
+            ) : null}
+            <BlockCard
+              block={step.block}
+              renderExerciseExtra={({ blockOrder, exerciseOrder }) => {
+                const prescrit = step.block.exercises.find(
+                  (e) => e.order === exerciseOrder
+                );
+                if (!prescrit) return null;
+                const cle = performedKey(blockOrder, exerciseOrder);
+                const repos = restBetweenSetsOf(step.block, prescrit);
+                return (
+                  <>
+                    {performed && onPerformedChange && (
+                      <PerformedFields
+                        value={performed[cle] ?? { sets: [] }}
+                        onChange={(next) => onPerformedChange(cle, next)}
+                        setLabels={prescribedSetLabels(step.block, prescrit)}
+                        isTimed={prescrit.duration !== undefined}
+                      />
+                    )}
+                    {/* L'effort chronométré d'abord, le repos ensuite :
+                        c'est l'ordre dans lequel on les vit. */}
+                    {prescrit.duration ? (
+                      <MinuteurALaDemande
+                        duration={prescrit.duration}
+                        libelle={formatDuration(prescrit.duration)}
+                        couleur="app.primary"
+                      />
+                    ) : null}
+                    {repos ? (
+                      <MinuteurALaDemande
+                        duration={repos}
+                        libelle={`repos ${formatDuration(repos)}`}
+                        couleur="session.rest"
+                      />
+                    ) : null}
+                  </>
+                );
+              }}
+            />
+          </VStack>
+        ) : (
         <VStack
           flex={1}
           justify="center"
@@ -675,6 +855,7 @@ export const GuidedSession = ({
             </>
           )}
         </VStack>
+        )}
 
         {showDetail && step.type === 'exercise' && (
           <Box
