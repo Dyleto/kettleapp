@@ -264,7 +264,18 @@ const Exercises = () => {
             le filtre fait exactement la largeur de ce qu'il filtre. */}
         <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
           <VStack gap={4} align="stretch" minW={0}>
-            <HStack justify="space-between" align="baseline" gap={3}>
+            {/* `space-between` sur une rangée qui ne se replie pas poussait
+                la page de 27 px à 360 : « Bibliothèque », le compte et
+                « Nouvel exercice » n'y tiennent pas d'un trait. `ml="auto"`
+                donne le même écart maximal quand ils tiennent, et laisse le
+                compte passer à la ligne quand ils ne tiennent pas. */}
+            <HStack
+              justify="flex-start"
+              align="baseline"
+              gap={3}
+              rowGap={1}
+              wrap="wrap"
+            >
               {/* Le même nom que dans la navigation et dans l'onglet. L'écran
               s'appelait « Mes exercices » pendant qu'on y arrivait par
               « Bibliothèque » : trois noms pour un endroit, dont deux à un
@@ -272,7 +283,7 @@ const Exercises = () => {
               <Text as="h1" fontSize="lg" fontWeight="bold">
                 Bibliothèque
               </Text>
-              <HStack gap={3} flexShrink={0} align="center">
+              <HStack gap={3} flexShrink={0} ml="auto" align="center">
                 <Text fontSize="xs" color="fg.muted">
                   {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
                   {query && ` · « ${query} »`}
