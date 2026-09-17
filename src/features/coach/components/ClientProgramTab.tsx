@@ -38,7 +38,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TACTILE, gouttiereTactile } from '@/components/hitArea';
+import {
+  TACTILE,
+  ecartTactile,
+  hitAreaTactile,
+} from '@/components/hitArea';
 import {
   closestCenter,
   DndContext,
@@ -173,7 +177,10 @@ export const ClientProgramTab = ({
               />
             </Box>
           )}
-          <HStack gap={2} align="center">
+          {/* Les pastilles de jour font 44 px au doigt, le bouton de note en
+              porte 44 d'invisibles autour de ses 24 : sans cet écart, sa zone
+              mordrait sur la pastille de dimanche. */}
+          <HStack gap={2} css={ecartTactile} align="center">
             {/* Le jour conseillé est un attribut de la séance, au même rang
                 que sa note : c'est le coach qui le pose, une seule fois, ici.
                 La semaine du client s'en déduit à l'affichage — il n'y a pas
@@ -187,7 +194,7 @@ export const ClientProgramTab = ({
                 aria-label="Ajouter une note de séance"
                 title="Ajouter une note de séance"
                 onClick={() => setNoteDemandee(true)}
-                css={gouttiereTactile()}
+                css={hitAreaTactile()}
                 size="2xs"
                 variant="ghost"
                 color="fg.muted"

@@ -71,27 +71,28 @@ export const hitAreaTactile = (souris = 32): SystemStyleObject => ({
 });
 
 /**
- * Une commande de gouttière, dimensionnée pour le doigt.
+ * L'écart à mettre entre deux commandes dont les zones font 44 px.
  *
- * Les pictogrammes de l'atelier font 11 à 13 px et leur bouton 20 : trois de
- * suite espacés de 8 px ne peuvent pas porter trois zones de 44 sans se
- * recouvrir — et c'est alors le dernier du DOM qui reçoit le doigt, donc
- * « Supprimer » à la place de « Changer l'unité ». On écarte d'abord, on
- * élargit ensuite : au tactile la boîte visible passe à 40 px, ce qui met
- * 48 px entre deux centres, et les 44 px tiennent sans se chevaucher.
+ * Trois pictogrammes de 24 px espacés de 8 ne peuvent pas porter trois zones
+ * de 44 : elles se recouvrent, et c'est le dernier du DOM qui reçoit le doigt
+ * — donc « Supprimer » à la place de « Changer l'unité ». 24 + 20 met 44 px
+ * entre deux centres : les zones se touchent sans jamais se croiser.
  *
- * À la souris, rien ne change : la densité de l'atelier reste entière.
+ * On écarte plutôt qu'on ne grossit, et c'est un choix mesuré : avec des
+ * boîtes de 40 px la gouttière passait de 103 à 136 px de large, la ligne de
+ * l'atelier se cassait en deux niveaux et doublait de hauteur — 36 px à 77.
+ * L'écartement coûte 9 px de large et garde l'atelier lisible.
  */
-export const gouttiereTactile = (souris = 32): SystemStyleObject => ({
-  ...hitArea(souris),
-  [TACTILE]: {
-    // Un plancher, pas une taille : « durée » écrit en 10 px fait déjà 39 px,
-    // et une largeur fixe l'aurait coupé.
-    minWidth: '40px',
-    minHeight: '40px',
-    '&::after': {
-      minWidth: '44px',
-      minHeight: '44px',
-    },
-  },
-});
+export const ecartTactile: SystemStyleObject = {
+  [TACTILE]: { gap: '20px' },
+};
+
+/**
+ * Le pas vertical minimal d'une liste de commandes au doigt.
+ *
+ * Même règle dans l'autre sens : deux lignes qui se suivent à 36 px ne
+ * peuvent pas porter chacune une zone de 44.
+ */
+export const pasTactile: SystemStyleObject = {
+  [TACTILE]: { minHeight: '44px' },
+};

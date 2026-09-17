@@ -1,6 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { TACTILE } from '@/components/hitArea';
+import { TACTILE, pasTactile } from '@/components/hitArea';
 import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/types';
 import {
@@ -56,7 +56,15 @@ export const BlockFrame = ({
     py={1}
   >
     {/* ── En-tête : type · nom libre · réglages ── */}
-    <HStack justify="space-between" align="flex-start" gap={3} pb={1}>
+    {/* Sa gouttière porte des zones de 44 px, comme celle de la première
+        ligne juste dessous : sans ce pas, les deux se recouvraient de 5 px. */}
+    <HStack
+      justify="space-between"
+      align="flex-start"
+      gap={3}
+      pb={1}
+      css={pasTactile}
+    >
       {/* Titre et réglages partagent une colonne souple : les réglages
           passent à la ligne quand ils ne tiennent plus, plutôt que de
           pousser la gouttière hors de l'écran. */}
