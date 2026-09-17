@@ -94,10 +94,25 @@ export const SessionDetail = ({
             // fois. Le mode guidé le rappelait déjà — tout le monde ne
             // l'utilise pas, et c'est justement au moment de charger la barre
             // qu'on cherche l'information.
-            if (!last) return null;
+            //
+            // Sa hauteur est réservée même quand elle est vide. Présente sur
+            // trois exercices sur sept, elle décalait les lignes voisines : la
+            // liste devenait irrégulière et l'absence se lisait comme une
+            // donnée manquante, alors qu'elle veut seulement dire « on n'a
+            // encore rien noté ici ».
             return (
-              <Text fontSize="xs" color="fg.muted" pl={4} opacity={0.8}>
-                la dernière fois&nbsp;: {last}
+              <Text
+                fontSize="xs"
+                color="fg.muted"
+                pl={4}
+                opacity={0.8}
+                aria-hidden={!last}
+              >
+                {last ? (
+                  <>la dernière fois&nbsp;: {last}</>
+                ) : (
+                  '\u00A0'
+                )}
               </Text>
             );
           }}
