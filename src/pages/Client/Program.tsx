@@ -27,9 +27,23 @@ function getStatus(
   return 'upcoming';
 }
 
+/**
+ * `bg` habille la pastille d'état ; `surface`, la carte entière.
+ *
+ * Cinq cartes de poids identique, dont seules la couleur d'une pastille et
+ * celle d'un liseré de deux pixels changeaient : la seule qui porte une action
+ * ne se voyait qu'après lecture. Elle se pose maintenant sur un fond plus
+ * clair — la carte se distingue avant qu'on la lise.
+ */
 const STATUS_CONFIG: Record<
   SessionStatus,
-  { label: string; color: string; textColor: string; bg: string }
+  {
+    label: string;
+    color: string;
+    textColor: string;
+    bg: string;
+    surface?: string;
+  }
 > = {
   done: {
     label: 'Terminée',
@@ -42,6 +56,7 @@ const STATUS_CONFIG: Record<
     color: 'app.primary',
     textColor: 'app.primary',
     bg: 'app.primary/16',
+    surface: 'bg.surface',
   },
   upcoming: {
     label: 'À venir',
@@ -67,6 +82,7 @@ const SessionRow = ({ session, status, onSelect }: SessionRowProps) => {
       withGlow={false}
       onClick={onSelect}
       p={4}
+      bg={config.surface}
     >
       <VStack align="stretch" gap={1.5}>
         <HStack justify="space-between" align="center">
