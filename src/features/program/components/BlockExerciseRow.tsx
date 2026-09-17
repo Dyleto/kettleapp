@@ -1,6 +1,7 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { ReactNode, useState } from 'react';
 import { LuChevronDown, LuVideo } from 'react-icons/lu';
+import { formatDuration } from '@/utils/duration';
 import { BlockExercise, BlockType, SessionBlock } from '@/types';
 import {
   blockIndexPrefix,
@@ -42,7 +43,7 @@ export const BlockExerciseRow = ({
     blockSupportsSets(blockType) &&
     (exercise.sets ?? 1) > 1 &&
     exercise.restBetweenSets
-      ? `${exercise.restBetweenSets}s repos`
+      ? `${formatDuration(exercise.restBetweenSets)} repos`
       : null;
 
   const ex = exercise.exercise;
@@ -71,7 +72,11 @@ export const BlockExerciseRow = ({
         w="full"
         textAlign="left"
         aria-expanded={isOpen}
-        aria-label={`${ex.name} — voir la consigne`}
+        aria-label={
+          hasDetail
+            ? `${ex.name} — voir la consigne`
+            : `${ex.name} — aucune consigne`
+        }
         onClick={() => setIsOpen((v) => !v)}
         py={1.5}
         minH="44px"
@@ -92,10 +97,17 @@ export const BlockExerciseRow = ({
           <Text fontSize="sm" color="fg.muted" lineClamp={2}>
             {ex.name}
           </Text>
+          {/* Un pictogramme de la taille d'un caractère, dans la couleur du
+              texte : un client qui ne l'a jamais remarqué ignore que
+              l'application contient des vidéos. Un exercice sur sept en porte
+              une — la place existe pour le dire. */}
           {hasVideo && (
-            <Box color="fg.muted" flexShrink={0} opacity={0.7}>
-              <LuVideo size={11} />
-            </Box>
+            <HStack gap={1} color="app.primary" flexShrink={0}>
+              <LuVideo size={13} />
+              <Text fontSize="2xs" fontWeight="bold" letterSpacing="wide">
+                vidéo
+              </Text>
+            </HStack>
           )}
         </HStack>
 
@@ -123,15 +135,22 @@ export const BlockExerciseRow = ({
             </VStack>
           )}
 
-          <Box
-            color="fg.muted"
-            flexShrink={0}
-            opacity={hasDetail ? 1 : 0.45}
-            transition="transform 0.2s"
-            transform={isOpen ? 'rotate(180deg)' : 'none'}
-          >
-            <LuChevronDown size={13} />
-          </Box>
+          {/* Pas de chevron quand il n'y a rien dessous : son absence devient
+              une information juste, au lieu d'une déception à chaque
+              ouverture. La ligne reste cliquable pour autant — taper sur un
+              nom et n'obtenir aucune réponse ne dit pas si on a mal visé, si
+              l'écran est cassé, ou s'il n'y a rien à lire ; le dépliage, lui,
+              répond « ton coach n'a pas laissé de consigne ». */}
+          {hasDetail && (
+            <Box
+              color="fg.muted"
+              flexShrink={0}
+              transition="transform 0.2s"
+              transform={isOpen ? 'rotate(180deg)' : 'none'}
+            >
+              <LuChevronDown size={13} />
+            </Box>
+          )}
         </HStack>
       </HStack>
 
