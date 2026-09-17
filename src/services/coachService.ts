@@ -1,5 +1,11 @@
 import api from '@/config/api';
-import { Client, ClientWithDetails, CompletedSession, Exercise } from '@/types';
+import {
+  Client,
+  ClientWithDetails,
+  CompletedSession,
+  Exercise,
+  Session,
+} from '@/types';
 
 export const coachService = {
   getClients: async () => {
@@ -10,6 +16,28 @@ export const coachService = {
   getClientDetails: async (clientId: string) => {
     const { data } = await api.get<ClientWithDetails>(
       `/api/coach/clients/${clientId}`
+    );
+    return data;
+  },
+
+  /**
+   * Copier une séance chez un autre client.
+   *
+   * Rien du contenu ne transite : on désigne la séance, le serveur la relit
+   * lui-même. Il rend la copie telle qu'il l'a écrite — le nouveau client
+   * reçoit ses propres identifiants.
+   */
+  copySessionToClient: async (params: {
+    targetClientId: string;
+    sourceClientId: string;
+    sourceSessionId: string;
+  }) => {
+    const { data } = await api.post<Session>(
+      `/api/coach/clients/${params.targetClientId}/program/sessions/copy`,
+      {
+        sourceClientId: params.sourceClientId,
+        sourceSessionId: params.sourceSessionId,
+      }
     );
     return data;
   },

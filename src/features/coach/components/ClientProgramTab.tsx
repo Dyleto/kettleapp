@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import {
   LuCopy,
+  LuUsers,
   LuMessageSquarePlus,
   LuPlus,
   LuTrash2,
@@ -54,11 +55,14 @@ import {
 } from '@dnd-kit/core';
 import { ExerciseSheet } from '@/features/exercise';
 import { useOutsideDismiss } from '@/hooks/useOutsideDismiss';
+import { CopySessionToClient } from './CopySessionToClient';
 import { useBackDismiss } from '@/hooks/useBackDismiss';
 import { getBlockLabel } from '@/features/program/constants';
 
 interface Props {
   session: Session;
+  /** Le client dont on édite le programme — la source d'une copie. */
+  clientId: string;
   /** Exercices déjà posés ailleurs dans le programme, pour le sélecteur. */
   inProgram: Exercise[];
   onRemoveSession: () => void;
@@ -110,6 +114,7 @@ const SortableBlock = ({
 
 export const ClientProgramTab = ({
   session,
+  clientId,
   inProgram,
   onRemoveSession,
   onDuplicateSession,
@@ -131,6 +136,7 @@ export const ClientProgramTab = ({
   );
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
   const [isSessionRemovalOpen, setIsSessionRemovalOpen] = useState(false);
+  const [isCopyOpen, setIsCopyOpen] = useState(false);
   const [noteDemandee, setNoteDemandee] = useState(false);
   const aUneNote = !!session.notes?.trim();
   const noteVisible = aUneNote || noteDemandee;
@@ -148,6 +154,7 @@ export const ClientProgramTab = ({
   useBackDismiss(!!selectorBlockId, () => setSelectorBlockId(null));
   useBackDismiss(!!sheetExercise, () => setSheetExercise(null));
   useBackDismiss(isSessionRemovalOpen, () => setIsSessionRemovalOpen(false));
+  useBackDismiss(isCopyOpen, () => setIsCopyOpen(false));
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -336,6 +343,20 @@ export const ClientProgramTab = ({
             <LuCopy size={13} />
             Dupliquer la séance
           </Button>
+          {/* Dupliquer et copier se ressemblent assez pour tenir côte à côte,
+              et assez peu pour ne pas se confondre : l'une reste chez ce
+              client, l'autre part chez un autre — et son libellé le dit avant
+              le clic, par les points de suspension qui annoncent un choix. */}
+          <Button
+            size="xs"
+            variant="ghost"
+            color="fg.muted"
+            css={{ [TACTILE]: { minHeight: '44px' } }}
+            onClick={() => setIsCopyOpen(true)}
+          >
+            <LuUsers size={13} />
+            Copier vers un client…
+          </Button>
           <Button
             size="xs"
             variant="ghost"
@@ -354,6 +375,14 @@ export const ClientProgramTab = ({
           </Button>
         </HStack>
       </VStack>
+
+      <CopySessionToClient
+        sourceClientId={clientId}
+        sourceSessionId={session._id}
+        sessionOrder={session.order}
+        isOpen={isCopyOpen}
+        onClose={() => setIsCopyOpen(false)}
+      />
 
       {selectorBlockId && (
         <ExerciseSelectorPanel

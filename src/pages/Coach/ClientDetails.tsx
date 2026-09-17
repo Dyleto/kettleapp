@@ -318,6 +318,7 @@ const ClientDetails = () => {
                   session={activeSession}
                   inProgram={inProgram}
                   onRemoveSession={handleRemoveActiveSession}
+                  clientId={clientId!}
                   onDuplicateSession={handleDuplicateActiveSession}
                   onUpdateSessionDays={(days) =>
                     actions.updateSessionDays(activeSession._id, days)
