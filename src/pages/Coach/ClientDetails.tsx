@@ -98,7 +98,8 @@ const ClientDetails = () => {
   const isWide = useBreakpointValue({ base: false, xl: true });
 
   const currentIndex = Math.max(0, (Number(sessionIndex) || 1) - 1);
-  const activeSession = program?.sessions[currentIndex] ?? null;
+  const sessions = program?.sessions ?? [];
+  const activeSession = sessions[currentIndex] ?? null;
 
   // Le programme entier est en mémoire : « déjà dans ce programme » et
   // « jamais faite » se calculent sans une seule requête de plus.
@@ -458,10 +459,50 @@ const ClientDetails = () => {
                   }
                 />
               </>
-            ) : (
+            ) : sessions.length === 0 ? (
               <EtatVide
                 titre="Ce programme est vide"
                 phrase="Ajoutez une séance pour commencer à le construire."
+                action={
+                  <Button
+                    bg="app.primary"
+                    color="bg.canvas"
+                    fontWeight="bold"
+                    minH="44px"
+                    onClick={handleAddSession}
+                    _hover={{ bg: 'app.primary.hover' }}
+                  >
+                    Ajouter une séance
+                  </Button>
+                }
+              />
+            ) : (
+              /*
+               * Le programme n'est pas vide : c'est cette séance-là qui
+               * n'existe pas.
+               *
+               * Les deux états disaient « Ce programme est vide », rail plein
+               * de S1…S5 à côté. C'est faux et c'est alarmant : un coach qui
+               * tombe dessus croit avoir perdu le travail de son client. On y
+               * arrive par une adresse en signet qui a vieilli, par un lien
+               * partagé, ou en supprimant la dernière séance alors qu'on
+               * était dessus.
+               */
+              <EtatVide
+                titre={`La séance ${currentIndex + 1} n'existe pas`}
+                phrase={`Ce programme en compte ${sessions.length}. Elle a peut-être été supprimée, ou l'adresse a vieilli.`}
+                action={
+                  <Button
+                    bg="app.primary"
+                    color="bg.canvas"
+                    fontWeight="bold"
+                    minH="44px"
+                    onClick={() => handleSelectSession(0)}
+                    _hover={{ bg: 'app.primary.hover' }}
+                  >
+                    Aller à la séance 1
+                  </Button>
+                }
               />
             )}
           </Box>
