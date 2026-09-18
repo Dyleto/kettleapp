@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from 'react';
 import {
   Box,
   Button,
-  Dialog,
   Drawer,
   HStack,
   IconButton,
@@ -57,7 +56,6 @@ import { ExerciseSheet } from '@/features/exercise';
 import { useOutsideDismiss } from '@/hooks/useOutsideDismiss';
 import { CopySessionToClient } from './CopySessionToClient';
 import { useBackDismiss } from '@/hooks/useBackDismiss';
-import { getBlockLabel } from '@/features/program/constants';
 
 interface Props {
   session: Session;
@@ -131,11 +129,8 @@ export const ClientProgramTab = ({
   const [showBlockSelector, setShowBlockSelector] = useState(false);
   const [selectorBlockId, setSelectorBlockId] = useState<string | null>(null);
 
-  const [pendingRemoval, setPendingRemoval] = useState<SessionBlock | null>(
-    null
-  );
+
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
-  const [isSessionRemovalOpen, setIsSessionRemovalOpen] = useState(false);
   const [isCopyOpen, setIsCopyOpen] = useState(false);
   const [noteDemandee, setNoteDemandee] = useState(false);
   const aUneNote = !!session.notes?.trim();
@@ -153,7 +148,6 @@ export const ClientProgramTab = ({
   useBackDismiss(showBlockSelector, closeBlockSelector);
   useBackDismiss(!!selectorBlockId, () => setSelectorBlockId(null));
   useBackDismiss(!!sheetExercise, () => setSheetExercise(null));
-  useBackDismiss(isSessionRemovalOpen, () => setIsSessionRemovalOpen(false));
   useBackDismiss(isCopyOpen, () => setIsCopyOpen(false));
 
   const sensors = useSensors(
@@ -240,7 +234,7 @@ export const ClientProgramTab = ({
                       inProgram={inProgram}
                       dragHandleProps={dragHandleProps}
                       onUpdate={(updates) => onUpdateBlock(block._id, updates)}
-                      onRemove={() => setPendingRemoval(block)}
+                      onRemove={() => onRemoveBlock(block._id)}
                       onAddExercise={(exercise) =>
                         onAddExercise(block._id, exercise)
                       }
@@ -368,7 +362,7 @@ export const ClientProgramTab = ({
             color="app.error"
             _hover={{ bg: 'app.error/12' }}
             css={{ [TACTILE]: { minHeight: '44px' } }}
-            onClick={() => setIsSessionRemovalOpen(true)}
+            onClick={onRemoveSession}
           >
             <LuTrash2 size={13} />
             Supprimer la séance
@@ -421,110 +415,6 @@ export const ClientProgramTab = ({
         </Portal>
       </Drawer.Root>
 
-      {/* Supprimer une séance emporte tous ses blocs d'un coup — la même
-          question que pour un bloc, à plus forte raison. */}
-      <Dialog.Root
-        role="alertdialog"
-        open={isSessionRemovalOpen}
-        onOpenChange={(e) => !e.open && setIsSessionRemovalOpen(false)}
-      >
-        <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content
-              bg="bg.canvas"
-              borderColor="whiteAlpha.100"
-              borderWidth="1px"
-              maxW="sm"
-            >
-              <Dialog.Header>
-                <Dialog.Title>
-                  Supprimer la séance {session.order} ?
-                </Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <Text color="fg.muted" fontSize="sm">
-                  {session.blocks.length
-                    ? `Ses ${session.blocks.length} bloc${session.blocks.length > 1 ? 's' : ''} seront retirés du programme.`
-                    : 'Cette séance ne contient aucun bloc.'}
-                </Text>
-              </Dialog.Body>
-              <Dialog.Footer gap={2} flexWrap="wrap">
-                <Button
-                  variant="ghost"
-                  color="fg.muted"
-                  onClick={() => setIsSessionRemovalOpen(false)}
-                >
-                  Conserver
-                </Button>
-                <Button
-                  bg="app.error"
-                  color="bg.canvas"
-                  fontWeight="bold"
-                  onClick={() => {
-                    setIsSessionRemovalOpen(false);
-                    onRemoveSession();
-                  }}
-                >
-                  Supprimer
-                </Button>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
-      </Dialog.Root>
-
-      <Dialog.Root
-        role="alertdialog"
-        open={!!pendingRemoval}
-        onOpenChange={(e) => !e.open && setPendingRemoval(null)}
-      >
-        <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content
-              bg="bg.canvas"
-              borderColor="whiteAlpha.100"
-              borderWidth="1px"
-              maxW="sm"
-            >
-              <Dialog.Header>
-                <Dialog.Title>
-                  Supprimer le bloc{' '}
-                  {pendingRemoval ? getBlockLabel(pendingRemoval.type) : ''} ?
-                </Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <Text color="fg.muted" fontSize="sm">
-                  {pendingRemoval?.exercises.length
-                    ? `Ses ${pendingRemoval.exercises.length} exercice${pendingRemoval.exercises.length > 1 ? 's' : ''} seront retirés de la séance.`
-                    : 'Ce bloc ne contient aucun exercice.'}
-                </Text>
-              </Dialog.Body>
-              <Dialog.Footer gap={2} flexWrap="wrap">
-                <Button
-                  variant="ghost"
-                  color="fg.muted"
-                  onClick={() => setPendingRemoval(null)}
-                >
-                  Conserver
-                </Button>
-                <Button
-                  bg="app.error"
-                  color="bg.canvas"
-                  fontWeight="bold"
-                  onClick={() => {
-                    if (pendingRemoval) onRemoveBlock(pendingRemoval._id);
-                    setPendingRemoval(null);
-                  }}
-                >
-                  Supprimer
-                </Button>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
-      </Dialog.Root>
     </>
   );
 };

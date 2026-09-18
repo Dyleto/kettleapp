@@ -78,6 +78,21 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
+   * Repose une séance à son rang — le retour du filet d'annulation.
+   */
+  const insertSession = useCallback((index: number, session: Session) => {
+    setProgram((prev) => {
+      if (!prev) return null;
+      const sessions = [...prev.sessions];
+      sessions.splice(Math.min(index, sessions.length), 0, session);
+      return {
+        ...prev,
+        sessions: sessions.map((s, i) => ({ ...s, order: i + 1 })),
+      };
+    });
+  }, []);
+
+  /**
    * « La séance 4, c'est la 2 en plus lourd » est le geste central de la
    * construction d'un programme. Coût serveur nul : le programme entier est
    * déjà en mémoire et l'enregistrement groupé s'en charge, exactement comme
@@ -195,6 +210,34 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     });
   }, []);
 
+  /**
+   * Repose un bloc à sa place — le retour du filet d'annulation.
+   *
+   * Un bloc emporte ses exercices en partant : il repart donc entier, tel
+   * qu'il était, et à son rang. Le reposer en dernier ferait passer
+   * l'échauffement après l'AMRAP.
+   */
+  const insertBlock = useCallback(
+    (sessionId: string, index: number, block: SessionBlock) => {
+      setProgram((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sessions: prev.sessions.map((s) => {
+            if (s._id !== sessionId) return s;
+            const blocks = [...s.blocks];
+            blocks.splice(Math.min(index, blocks.length), 0, block);
+            return {
+              ...s,
+              blocks: blocks.map((b, i) => ({ ...b, order: i + 1 })),
+            };
+          }),
+        };
+      });
+    },
+    []
+  );
+
   const updateBlock = useCallback(
     (sessionId: string, blockId: string, updates: Partial<SessionBlock>) => {
       setProgram((prev) => {
@@ -282,6 +325,29 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     [updateBlockExercises]
   );
 
+  /**
+   * Repose un exercice à sa place — le retour du filet d'annulation.
+   *
+   * À sa place, pas à la fin : un exercice retiré par erreur au milieu d'un
+   * bloc n'a pas changé d'avis sur son rang, et le voir réapparaître en
+   * dernier obligerait à le redéplacer.
+   */
+  const insertExercise = useCallback(
+    (
+      sessionId: string,
+      blockId: string,
+      index: number,
+      exercise: BlockExercise
+    ) => {
+      updateBlockExercises(sessionId, blockId, (exs) => {
+        const suivants = [...exs];
+        suivants.splice(Math.min(index, suivants.length), 0, exercise);
+        return suivants.map((e, i) => ({ ...e, order: i + 1 }));
+      });
+    },
+    [updateBlockExercises]
+  );
+
   const updateExercise = useCallback(
     (
       sessionId: string,
@@ -326,15 +392,18 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     actions: {
       addSession,
       removeSession,
+      insertSession,
       duplicateSession,
       reorderSessions,
       updateSessionNotes,
       updateSessionDays,
       addBlock,
       removeBlock,
+      insertBlock,
       updateBlock,
       addExercise,
       removeExercise,
+      insertExercise,
       updateExercise,
       reorderBlocks,
     },

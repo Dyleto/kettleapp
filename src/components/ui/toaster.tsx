@@ -70,8 +70,23 @@ export const Toaster = () => {
                 <Toast.Description>{toast.description}</Toast.Description>
               )}
             </Stack>
+            {/* « Annuler » doit se voir et se viser : c'est la seule chose
+                d'un bandeau sur laquelle on appuie, et elle passait en texte
+                nu de la taille du message. */}
             {toast.action && (
-              <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>
+              <Toast.ActionTrigger
+                color="app.primary"
+                fontWeight="bold"
+                fontSize="sm"
+                flexShrink={0}
+                minH="44px"
+                px={2}
+                display="flex"
+                alignItems="center"
+                _hover={{ color: 'app.primary.hover' }}
+              >
+                {toast.action.label}
+              </Toast.ActionTrigger>
             )}
             {toast.closable && <Toast.CloseTrigger />}
           </Toast.Root>

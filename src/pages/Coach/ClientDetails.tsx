@@ -18,6 +18,8 @@ import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
 import { useProgramAutoSave } from '@/features/program/hooks/useProgramAutoSave';
+import { annulable } from '@/components/annulable';
+import { getBlockLabel } from '@/features/program/constants';
 import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
@@ -29,6 +31,18 @@ import { TACTILE, hitArea } from '@/components/hitArea';
 import { EtatVide } from '@/components/EtatVide';
 import { COACH_ROUTES } from '@/config/routes';
 import { Exercise, Session } from '@/types';
+
+/**
+ * « Avec ses 3 exercices. », « Avec son exercice. », ou rien du tout.
+ *
+ * Le pluriel n'est pas une affaire de « s » collé au bout : « Avec ses
+ * 1 bloc » ne se dit pas, et c'est ce que produisait la forme courte.
+ */
+const compteRendu = (combien: number, nom: string): string | undefined => {
+  if (combien === 0) return undefined;
+  if (combien === 1) return `Avec son ${nom}.`;
+  return `Avec ses ${combien} ${nom}s.`;
+};
 
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
@@ -132,10 +146,80 @@ const ClientDetails = () => {
     );
   };
 
+  /**
+   * Supprimer la séance ouverte, avec de quoi la reposer.
+   *
+   * C'est la plus grosse perte possible d'un seul geste — une séance emporte
+   * tous ses blocs — et c'est justement pourquoi le filet vaut mieux que la
+   * question : celle-ci se répond « oui » par réflexe après la troisième fois,
+   * le bandeau, lui, attend huit secondes sans rien demander.
+   *
+   * La reprise ramène aussi le coach dessus. Annuler, c'est revenir où l'on
+   * était, pas seulement récupérer ce qu'on avait perdu.
+   */
   const handleRemoveActiveSession = () => {
     if (!activeSession) return;
-    actions.removeSession(activeSession._id);
+    const index = currentIndex;
+    const supprimee = activeSession;
+    const combien = supprimee.blocks.length;
+
+    actions.removeSession(supprimee._id);
     navigate(COACH_ROUTES.clientSession(clientId!, 1));
+
+    annulable({
+      titre: `Séance ${supprimee.order} supprimée`,
+      description: compteRendu(combien, 'bloc'),
+      annuler: () => {
+        actions.insertSession(index, supprimee);
+        navigate(COACH_ROUTES.clientSession(clientId!, index + 1));
+      },
+    });
+  };
+
+  /**
+   * Supprimer un bloc, avec de quoi le reposer.
+   *
+   * Il avait une confirmation, et elle disparaît avec ce filet : garder les
+   * deux, ce serait poser une question ET offrir un rattrapage, soit deux
+   * gestes pour une seule erreur possible. Un bloc part entier, avec ses
+   * exercices — le bandeau le dit, et « Annuler » le repose à son rang.
+   */
+  const supprimerBloc = (blockId: string) => {
+    const index = activeSession?.blocks.findIndex((b) => b._id === blockId);
+    const bloc =
+      index !== undefined && index >= 0
+        ? activeSession?.blocks[index]
+        : undefined;
+    if (!activeSession || !bloc || index === undefined) return;
+
+    actions.removeBlock(activeSession._id, blockId);
+    annulable({
+      titre: `Bloc ${getBlockLabel(bloc.type)} supprimé`,
+      description: compteRendu(bloc.exercises.length, 'exercice'),
+      annuler: () => actions.insertBlock(activeSession._id, index, bloc),
+    });
+  };
+
+  /**
+   * Retirer un exercice, avec de quoi le reposer.
+   *
+   * C'est le geste le plus fréquent de l'atelier, et le seul qui ne demandait
+   * rien : un ✕ dans la gouttière, à côté de « changer l'unité ». Une
+   * confirmation à chaque retrait serait insupportable ; un bandeau qui reste
+   * huit secondes ne coûte rien à qui ne s'est pas trompé.
+   */
+  const retirerExercice = (blockId: string, index: number) => {
+    const bloc = activeSession?.blocks.find((b) => b._id === blockId);
+    const retire = bloc?.exercises[index];
+    if (!activeSession || !retire) return;
+
+    actions.removeExercise(activeSession._id, blockId, index);
+    annulable({
+      titre: `${retire.exercise.name} retiré`,
+      description: `De ${getBlockLabel(bloc.type)}.`,
+      annuler: () =>
+        actions.insertExercise(activeSession._id, blockId, index, retire),
+    });
   };
 
   const handleDuplicateActiveSession = () => {
@@ -329,9 +413,7 @@ const ClientDetails = () => {
                   onAddBlock={(type) =>
                     actions.addBlock(activeSession._id, type)
                   }
-                  onRemoveBlock={(blockId) =>
-                    actions.removeBlock(activeSession._id, blockId)
-                  }
+                  onRemoveBlock={(blockId) => supprimerBloc(blockId)}
                   onUpdateBlock={(blockId, updates) =>
                     actions.updateBlock(activeSession._id, blockId, updates)
                   }
@@ -342,7 +424,7 @@ const ClientDetails = () => {
                     actions.addExercise(activeSession._id, blockId, exercise)
                   }
                   onRemoveExercise={(blockId, index) =>
-                    actions.removeExercise(activeSession._id, blockId, index)
+                    retirerExercice(blockId, index)
                   }
                   onUpdateExercise={(blockId, index, updates) =>
                     actions.updateExercise(
