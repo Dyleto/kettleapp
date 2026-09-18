@@ -26,6 +26,7 @@ import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
 import { CLIENT_ROUTES } from '@/config/routes';
 import { EtatVide } from '@/components/EtatVide';
 import { hitArea } from '@/components/hitArea';
+import { sessionTitle } from '@/features/program/sessionTitle';
 
 // Le réalisé se saisit exercice par exercice pendant la séance, puis part en
 // une fois avec le bilan. La clé est « ordre du bloc : ordre de l'exercice »,
@@ -184,7 +185,7 @@ const SessionScreen = () => {
         </Box>
         <HStack justify="space-between" align="center">
           <Text as="h1" fontSize="xl" fontWeight="bold">
-            Séance {activeSession.order}
+            {sessionTitle(activeSession.order, activeSession.name)}
           </Text>
           <Box
             px={2}

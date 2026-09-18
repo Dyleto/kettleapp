@@ -19,6 +19,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
 import { useProgramAutoSave } from '@/features/program/hooks/useProgramAutoSave';
 import { annulable } from '@/components/annulable';
+import { InlineText } from '@/features/program/components/InlineValue';
 import { getBlockLabel } from '@/features/program/constants';
 import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
@@ -386,10 +387,31 @@ const ClientDetails = () => {
           <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
             {activeSession ? (
               <>
-                <HStack justify="space-between" align="baseline" mb={3}>
-                  <Heading as="h2" size="md">
+                {/* Le rang reste le titre, le nom s'y ajoute — et s'édite
+                    là où il se lit, exactement comme le nom libre d'un bloc :
+                    « + nom » quand il n'y en a pas, le nom lui-même sinon. */}
+                <HStack
+                  justify="flex-start"
+                  align="baseline"
+                  gap={2}
+                  rowGap={1}
+                  wrap="wrap"
+                  mb={3}
+                  className="group"
+                >
+                  <Heading as="h2" size="md" flexShrink={0}>
                     Séance {activeSession.order}
                   </Heading>
+                  <InlineText
+                    value={activeSession.name}
+                    onChange={(name) =>
+                      actions.updateSessionName(activeSession._id, name)
+                    }
+                    addLabel="+ nom"
+                    ariaLabel={`Nom de la séance ${activeSession.order}`}
+                    fontSize="sm"
+                    width="220px"
+                  />
                   {/* Le compte est passé dans le rail, où il se lit sur
                       toutes les séances à la fois. Le répéter ici ne dirait
                       rien de plus sur celle qui est ouverte. */}

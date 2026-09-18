@@ -42,6 +42,7 @@ import {
 } from '../performedFormat';
 import { useUpdateCompletedSession } from '../hooks/useCompleteSession';
 import { useAuth } from '@/contexts/useAuth';
+import { sessionTitle } from '@/features/program/sessionTitle';
 
 const toSessionBlock = (
   block: CompletedSession['blocks'][number],
@@ -209,7 +210,7 @@ export const CompletedSessionDrawer = ({
                 <HStack justify="space-between" align="center" flex="1">
                   <VStack align="start" gap={0}>
                     <Text fontWeight="bold" fontSize="lg">
-                      Séance {completed.sessionOrder}
+                      {sessionTitle(completed.sessionOrder, completed.sessionName)}
                     </Text>
                     <Text
                       fontSize="xs"

@@ -141,6 +141,26 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     });
   }, []);
 
+  /**
+   * Le nom libre de la séance.
+   *
+   * Sans rogner les blancs : le champ envoie au fil de la frappe, et couper
+   * l'espace final à chaque caractère rendait impossible d'en taper un.
+   * « Full body A » devenait « FullbodyA ». Le nettoyage appartient à la
+   * frontière — à l'envoi au serveur —, pas à la frappe.
+   */
+  const updateSessionName = useCallback((sessionId: string, name?: string) => {
+    setProgram((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        sessions: prev.sessions.map((s) =>
+          s._id === sessionId ? { ...s, name } : s
+        ),
+      };
+    });
+  }, []);
+
   const updateSessionNotes = useCallback((sessionId: string, notes: string) => {
     setProgram((prev) => {
       if (!prev) return null;
@@ -395,6 +415,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       insertSession,
       duplicateSession,
       reorderSessions,
+      updateSessionName,
       updateSessionNotes,
       updateSessionDays,
       addBlock,

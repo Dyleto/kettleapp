@@ -24,6 +24,7 @@ export const useUpdateProgramSessions = (
       const formattedSessions = sessions.map((session, si) => ({
         _id: session._id,
         order: si + 1,
+        name: session.name?.trim(),
         notes: session.notes?.trim(),
         suggestedDays: session.suggestedDays ?? [],
         blocks: session.blocks.map((block, bi) => ({

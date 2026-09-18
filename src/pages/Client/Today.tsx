@@ -25,6 +25,7 @@ import {
 import { LuArrowRight } from 'react-icons/lu';
 import { CLIENT_ROUTES } from '@/config/routes';
 import { EtatVide } from '@/components/EtatVide';
+import { sessionTitle } from '@/features/program/sessionTitle';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -142,7 +143,7 @@ const Today = () => {
                 <VStack align="stretch" gap={1.5}>
                   <HStack justify="space-between" align="center">
                     <Text fontWeight="bold" fontSize="sm">
-                      Séance {nextSession.order}
+                      {sessionTitle(nextSession.order, nextSession.name)}
                     </Text>
                     <Box
                       px={2}

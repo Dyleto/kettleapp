@@ -328,6 +328,17 @@ export const InlineText = ({
   const [isEditing, setIsEditing] = useState(startOpen);
   const hasValue = !!value?.trim();
 
+  /**
+   * Échap referme, il n'annule pas — et c'est voulu.
+   *
+   * J'avais aligné ce champ sur celui des nombres, où Échap rend la valeur
+   * d'avant. C'était confondre deux gestes : on remplace un nombre, et on
+   * peut vouloir abandonner le remplacement ; on écrit un texte, et il
+   * s'enregistre au fil de la frappe. Ici Échap veut dire « j'ai fini », au
+   * même titre que Ctrl+Entrée. Treize contrôles le disaient déjà.
+   */
+  const ouvrir = () => setIsEditing(true);
+
   if (!hasValue && !isEditing) {
     return (
       // Au doigt, le survol n'existe pas : l'invitation restait invisible ET
@@ -336,7 +347,7 @@ export const InlineText = ({
       <Box
         as="button"
         aria-label={ariaLabel}
-        onClick={() => setIsEditing(true)}
+        onClick={ouvrir}
         fontSize="xs"
         color="fg.muted"
         minH="32px"
@@ -409,7 +420,7 @@ export const InlineText = ({
     <Box
       as="button"
       aria-label={ariaLabel}
-      onClick={() => setIsEditing(true)}
+      onClick={ouvrir}
       textAlign="left"
       textDecoration="underline"
       textDecorationColor="transparent"

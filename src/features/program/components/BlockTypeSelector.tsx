@@ -88,7 +88,10 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
   })).filter((f) => f.types.length > 0);
 
   return (
-    <VStack align="stretch" gap={4}>
+    /* Ancrage stable pour les mesures, comme `data-block-type` sur un bloc :
+       une sonde qui reconnaissait les tuiles à leur taille attrapait aussi
+       les rangées du rail dès qu'elles grandissaient. */
+    <VStack align="stretch" gap={4} data-block-picker>
       <Box>
         <Text
           fontSize="xs"

@@ -20,6 +20,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { LuChevronRight } from 'react-icons/lu';
+import { sessionTitle } from '@/features/program/sessionTitle';
 
 interface Props {
   history: CompletedSession[];
@@ -60,7 +61,7 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
       <HStack justify="space-between" align="baseline">
         <HStack gap={2}>
           <Text fontWeight="bold" fontSize="sm">
-            Séance {completed.sessionOrder}
+            {sessionTitle(completed.sessionOrder, completed.sessionName)}
           </Text>
           {/* Doré : le rouge de cette ligne appartient au ressenti. */}
           {isUnseen && (

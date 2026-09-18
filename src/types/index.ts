@@ -149,6 +149,8 @@ export interface SessionBlock {
 export interface Session {
   _id: string;
   order: number;
+  /** Le nom libre du coach — « Full body A ». Absent : la séance dit son rang. */
+  name?: string;
   notes?: string;
   /**
    * Jours conseillés par le coach, lundi = 0. Indicatif : un jour manqué ne
@@ -204,6 +206,11 @@ export interface CompletedSession {
   completedAt: Date;
   originalSessionId: string;
   sessionOrder: number;
+  /**
+   * Le nom que la séance portait ce jour-là, figé comme son rang : renommer
+   * une séance ne réécrit pas les bilans déjà enregistrés.
+   */
+  sessionName?: string;
   blocks: BlockSnapshot[];
   coachNotes?: string;
   feedback?: SessionFeedback;

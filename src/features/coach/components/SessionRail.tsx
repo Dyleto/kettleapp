@@ -28,6 +28,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { sessionTitleParts } from '@/features/program/sessionTitle';
 
 interface SessionRailProps {
   sessions: Session[];
@@ -92,6 +93,8 @@ const RailRow = ({
     isDragging,
   } = useSortable({ id: session._id, disabled: !sortable });
 
+  const { rang, libre } = sessionTitleParts(session.order, session.name);
+
   return (
     <Box
       ref={setNodeRef}
@@ -117,13 +120,23 @@ const RailRow = ({
       touchAction="none"
     >
       <HStack justify="space-between" align="baseline" gap={2}>
-        <Text
-          fontSize="sm"
-          fontWeight="bold"
-          color={isActive ? 'fg' : 'fg.muted'}
-        >
-          Séance {session.order}
-        </Text>
+        {/* Le rang et le nom sur deux lignes, pas sur une : « Séance 1 —
+            Full body A » ne tient pas dans 220 px, et se cassait au milieu du
+            nom. Empilés, le rang garde sa place et le nom la sienne. */}
+        <VStack align="start" gap={0} minW={0} flex={1}>
+          <Text
+            fontSize="sm"
+            fontWeight="bold"
+            color={isActive ? 'fg' : 'fg.muted'}
+          >
+            {rang}
+          </Text>
+          {libre && (
+            <Text fontSize="xs" color="fg.muted" lineClamp={1} maxW="full">
+              {libre}
+            </Text>
+          )}
+        </VStack>
         {/* Un repère discret, pas une alerte : « jamais faite » est un fait,
             et « faite 4 fois » aussi. Ce qui compte, c'est de pouvoir
             comparer les séances entre elles — donc de les lire toutes. */}

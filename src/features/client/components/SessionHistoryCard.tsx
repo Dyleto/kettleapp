@@ -10,6 +10,7 @@ import { LuChevronRight } from 'react-icons/lu';
 import { useState } from 'react';
 import { CompletedSessionDrawer } from './CompletedSessionDrawer';
 import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
+import { sessionTitle } from '@/features/program/sessionTitle';
 
 interface SessionHistoryCardProps {
   completed: CompletedSession;
@@ -60,7 +61,7 @@ export const SessionHistoryCard = ({
         <HStack justify="space-between" align="center">
           <HStack gap={2}>
             <Text fontSize="sm" fontWeight="bold">
-              Séance {completed.sessionOrder}
+              {sessionTitle(completed.sessionOrder, completed.sessionName)}
             </Text>
             {showUnseenIndicator && (
               <Box
