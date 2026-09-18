@@ -1,6 +1,7 @@
 import {
   blockSupportsRepsOnly,
   blockSupportsSets,
+  blockDefinesOwnMetrics,
 } from '@/features/program/constants';
 import { BlockExercise, BlockType, SessionBlock } from '@/types';
 import { formatDuration } from './duration';
@@ -25,12 +26,30 @@ export { formatCountdown, formatDuration } from './duration';
 export const formatExerciseMetric = (
   ex: BlockExercise,
   blockType: BlockType,
-  block?: Pick<SessionBlock, 'workDuration'>
+  block?: Pick<SessionBlock, 'workDuration' | 'repsScheme'>
 ): string => {
-  const fallback =
-    blockSupportsRepsOnly(blockType) && block?.workDuration !== undefined
-      ? formatDuration(block.workDuration)
+  /*
+   * Ce que la ligne demande, quand c'est le bloc qui le dit.
+   *
+   * Audit UX : une pyramide affichait « PYRAMIDE 2-4-6-8-6-4-2 » puis
+   * « Goblet Squat » avec la colonne de droite VIDE — celle que le client
+   * parcourt justement pour savoir ce qu'on lui demande. Avec un exercice ça
+   * se devine ; avec trois, plus du tout.
+   *
+   * Ces blocs-là tiennent leurs paliers sur le bloc et non sur l'exercice
+   * (`blockDefinesOwnMetrics`), et la ligne n'avait donc rien à écrire. Elle
+   * écrit maintenant la série, là où les autres écrivent « 15 reps ».
+   */
+  const paliers =
+    blockDefinesOwnMetrics(blockType) && block?.repsScheme?.length
+      ? `${block.repsScheme.join('\u00B7')}\u00A0reps`
       : '';
+
+  const fallback =
+    paliers ||
+    (blockSupportsRepsOnly(blockType) && block?.workDuration !== undefined
+      ? formatDuration(block.workDuration)
+      : '');
 
   // Même règle que pour les durées : une espace insécable avant l'unité. Un
   // nombre séparé de sa lettre en fin de ligne se lit deux fois.

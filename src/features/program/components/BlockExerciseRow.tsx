@@ -15,7 +15,7 @@ interface BlockExerciseRowProps {
   exercise: BlockExercise;
   blockType: BlockType;
   /** Le bloc porteur : Tabata et On-Off y définissent l'effort, pas l'exercice. */
-  block?: Pick<SessionBlock, 'workDuration'>;
+  block?: Pick<SessionBlock, 'workDuration' | 'repsScheme'>;
   index: number;
   /** Glissé sous la ligne : le réalisé, ou le rappel de la dernière fois. */
   extra?: ReactNode;
