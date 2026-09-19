@@ -23,6 +23,7 @@ import {
 } from '@/features/client';
 import { PerformedEntry, PerformedValues } from '@/types';
 import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
+import { ecrireSeance, lireSeance } from '@/features/client/seanceEnCours';
 import { CLIENT_ROUTES } from '@/config/routes';
 import { EtatVide } from '@/components/EtatVide';
 import { hitArea } from '@/components/hitArea';
@@ -59,32 +60,47 @@ const SessionScreen = () => {
     lastPerformance,
   } = useOutletContext<ClientSessionsData>();
   const [isGuidedOpen, setIsGuidedOpen] = useState(false);
-  useDocumentTitle(
-    activeSession ? `Séance ${activeSession.order}` : undefined
-  );
+  useDocumentTitle(activeSession ? `Séance ${activeSession.order}` : undefined);
 
   // Terminer une séance se déroule en deux temps : « tu veux noter tes
   // charges ? », puis le bilan. `idle` couvre la lecture, où l'écran ne
   // demande rien.
   const [flow, setFlow] = useState<'idle' | 'record' | 'review'>('idle');
 
+  // Ce qui a été noté ne vit plus seulement en mémoire.
+  //
+  // C'était un `useState` nu : un rechargement, un appel entrant qui tue
+  // l'onglet, et quarante minutes de charges disparaissaient. L'application
+  // retenait pourtant scrupuleusement l'étape où l'on en était. Elle gardait
+  // ce qui se retrouve et perdait ce qui ne se retrouve pas.
   const [performed, setPerformed] = useState<Record<string, PerformedValues>>(
-    {}
+    () =>
+      activeSession ? (lireSeance(activeSession._id)?.performed ?? {}) : {}
   );
 
   // La saisie appartient à une séance précise : passer à une autre depuis le
   // programme ne doit pas traîner les poids de la précédente dans le bilan.
+  // Chacune retrouve les siennes, là où elle les avait laissées.
   const [performedFor, setPerformedFor] = useState(activeSession?._id);
   if (activeSession?._id !== performedFor) {
     setPerformedFor(activeSession?._id);
-    setPerformed({});
+    setPerformed(
+      activeSession ? (lireSeance(activeSession._id)?.performed ?? {}) : {}
+    );
     setFlow('idle');
   }
 
   const handlePerformedChange = useCallback(
     (key: string, next: PerformedValues) =>
-      setPerformed((prev) => ({ ...prev, [key]: next })),
-    []
+      setPerformed((prev) => {
+        const suivant = { ...prev, [key]: next };
+        // À la frappe plutôt qu'à la sortie du champ : ce qu'on veut couvrir,
+        // c'est l'application qui disparaît sans prévenir.
+        if (activeSession)
+          ecrireSeance(activeSession._id, { performed: suivant });
+        return suivant;
+      }),
+    [activeSession]
   );
 
   if (isLoading) {

@@ -21,6 +21,7 @@ import { formatDuration } from '@/utils/duration';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuInfo, LuTimer, LuX } from 'react-icons/lu';
+import { compterNotes, ecrireSeance, lireSeance } from '../seanceEnCours';
 
 interface GuidedSessionProps {
   session: Session;
@@ -58,34 +59,16 @@ interface CountdownProps {
 // permettre de perdre sa place : un appel entrant ou un écran verrouillé trop
 // longtemps ne doit pas renvoyer à l'étape 1 d'une séance qui en compte
 // quarante.
-const progressKey = (sessionId: string) => `kettle-guided-${sessionId}`;
+//
+// La position rejoint les charges dans un seul enregistrement durable — voir
+// `seanceEnCours`. Elles étaient séparées, et rangées dans deux mémoires de
+// durées différentes : l'application gardait ce qui se retrouve et perdait ce
+// qui ne se retrouve pas.
+const readSavedIndex = (sessionId: string): number =>
+  lireSeance(sessionId)?.etape ?? 0;
 
-const readSavedIndex = (sessionId: string): number => {
-  try {
-    const raw = sessionStorage.getItem(progressKey(sessionId));
-    if (raw === null) return 0;
-    const n = Number(raw);
-    return Number.isInteger(n) && n > 0 ? n : 0;
-  } catch {
-    return 0;
-  }
-};
-
-const writeSavedIndex = (sessionId: string, index: number) => {
-  try {
-    sessionStorage.setItem(progressKey(sessionId), String(index));
-  } catch {
-    // Stockage indisponible (navigation privée, quota) : on continue sans.
-  }
-};
-
-const clearSavedIndex = (sessionId: string) => {
-  try {
-    sessionStorage.removeItem(progressKey(sessionId));
-  } catch {
-    // idem
-  }
-};
+const writeSavedIndex = (sessionId: string, index: number) =>
+  ecrireSeance(sessionId, { etape: index });
 
 /**
  * L'anneau autour du chiffre.
@@ -513,6 +496,10 @@ export const GuidedSession = ({
   // Proposée, jamais imposée : un client qui veut vraiment recommencer ne doit
   // pas se retrouver piégé au milieu de la séance précédente.
   const [showResume, setShowResume] = useState(() => savedIndex > 0);
+  // Lu une seule fois, à l'ouverture : c'est l'état d'avant qu'on annonce.
+  const [notesGardees] = useState(() =>
+    compterNotes(lireSeance(session._id)?.performed ?? {})
+  );
 
   const step = steps[index];
   const isLast = index === steps.length - 1;
@@ -525,7 +512,8 @@ export const GuidedSession = ({
 
   const goNext = () => {
     if (isLast) {
-      clearSavedIndex(session._id);
+      // On n'efface pas ici : le bilan qui suit se nourrit de ce qui vient
+      // d'être noté. L'enregistrement part quand la séance part au serveur.
       onFinish();
       return;
     }
@@ -539,10 +527,11 @@ export const GuidedSession = ({
   // qui glisse, c'est la séance qu'on croit avoir lancée et qui n'est plus là.
   const handleExitClick = () => setShowExitConfirm(true);
 
-  const confirmExit = () => {
-    clearSavedIndex(session._id);
-    onExit();
-  };
+  // Quitter n'efface plus rien. Sortir pour répondre au téléphone, ou parce
+  // qu'un doigt a glissé, ne doit pas coûter la séance : on retrouve sa place
+  // et ses charges en revenant. Pour repartir de zéro, l'écran de reprise
+  // propose « Recommencer depuis le début ».
+  const confirmExit = () => onExit();
 
   // Le plein écran se superposait à la page sans la neutraliser : quatre
   // tabulations suffisaient pour en sortir, on se retrouvait dans la barre
@@ -651,6 +640,13 @@ export const GuidedSession = ({
         </Text>
         <Text fontSize="sm" color="fg.muted">
           Tu t'étais arrêté à l'étape {savedIndex + 1} sur {steps.length}.
+          {/* Le dire explicitement : quelqu'un qui a noté ses charges puis
+              fermé l'application n'a aucun moyen de savoir ce qui l'attend, et
+              « Recommencer » devient un pari. */}
+          {notesGardees > 0 &&
+            ` Tes charges sur ${notesGardees} exercice${
+              notesGardees > 1 ? 's' : ''
+            } sont gardées.`}
         </Text>
         <VStack gap={2} w="full" maxW="280px">
           <Button
@@ -670,7 +666,11 @@ export const GuidedSession = ({
             variant="ghost"
             color="fg.muted"
             onClick={() => {
-              clearSavedIndex(session._id);
+              // La position repart à zéro, pas les charges : effacer ce que
+              // quelqu'un a soulevé parce qu'il reprend la séance au début,
+              // ce serait exactement la perte qu'on vient de corriger. Elles
+              // se laissent réécrire au fil du passage.
+              ecrireSeance(session._id, { etape: 0 });
               setIndex(0);
               setShowResume(false);
             }}
@@ -701,8 +701,11 @@ export const GuidedSession = ({
           Quitter le mode guidé ?
         </Text>
         <Text fontSize="sm" color="fg.muted">
+          {/* Ce message annonçait une perte qui n'a plus lieu — et qui,
+              quand elle avait lieu, était pire que ce qu'il laissait
+              entendre : les charges partaient avec. */}
           {index > 0
-            ? 'Ta progression sur cette séance ne sera pas enregistrée.'
+            ? 'Tu retrouveras ta séance là où tu la laisses, charges comprises.'
             : "Tu n'as pas encore commencé — tu retrouveras la séance telle quelle."}
         </Text>
         <VStack gap={2} w="full" maxW="280px">

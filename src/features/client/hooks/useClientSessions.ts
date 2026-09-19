@@ -9,6 +9,7 @@ import { useCompleteSession } from './useCompleteSession';
 import { PerformedEntry, SessionFeedback } from '@/types';
 import { buildLastPerformanceIndex } from '../lastPerformance';
 import { getSessionForToday } from '../weekPlan';
+import { oublierSeance } from '../seanceEnCours';
 
 export const useClientSessions = () => {
   const { sessionId } = useParams<{ sessionId?: string }>();
@@ -109,6 +110,11 @@ export const useClientSessions = () => {
         },
         {
           onSuccess: () => {
+            // La séance est au serveur : l'enregistrement local n'a plus de
+            // raison d'exister. C'est le seul moment où l'on efface — quitter
+            // le mode guidé ne doit rien coûter, sortir pour répondre au
+            // téléphone non plus.
+            oublierSeance(activeSession._id);
             // Le seul endroit du parcours client où l'on envoie quelque chose
             // sans accusé de réception : on retombait sur l'accueil, et rien
             // ne disait que le bilan était parti.
