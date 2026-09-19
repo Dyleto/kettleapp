@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import {
   CLIENT_GRID_MAX_W,
+  cumulRealisations,
   ExerciseProgressions,
   SessionCalendarFilter,
   SessionHistoryCard,
@@ -68,7 +69,7 @@ const History = () => {
                 <Text fontSize="xs" color="fg.muted">
                   {selectedDay
                     ? formatDayLabel(selectedDay)
-                    : `${history.length} séance${history.length > 1 ? 's' : ''} complétée${history.length > 1 ? 's' : ''}`}
+                    : cumulRealisations(history.length)}
                 </Text>
                 {selectedDay && (
                   <Box

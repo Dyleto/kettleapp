@@ -5,6 +5,7 @@ import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { Card } from '@/components/Card';
 import { Session } from '@/types';
 import {
+  avancementProgramme,
   CLIENT_GRID_MAX_W,
   getSessionBlockTypes,
   getSessionSummary,
@@ -157,10 +158,11 @@ const Program = () => {
           />
         ) : (
           <>
+            {/* Une proportion, pas un total : « 3 complétées » ici et
+                « 12 séances complétées » au journal comptaient deux choses
+                différentes sous le même mot. Voir `comptes.ts`. */}
             <Text fontSize="xs" color="fg.muted">
-              {sessions.length} séance{sessions.length > 1 ? 's' : ''} ·{' '}
-              {completedSessionIds.size} complétée
-              {completedSessionIds.size > 1 ? 's' : ''}
+              {avancementProgramme(completedSessionIds.size, sessions.length)}
             </Text>
             <Grid
               templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}

@@ -46,8 +46,8 @@ const Today = () => {
     [sessions, history]
   );
 
-  // « À faire maintenant » devient « Aujourd'hui » quand c'est le jour que le
-  // coach a conseillé pour cette séance : la même carte, une raison en plus.
+  // « La prochaine » devient « Aujourd'hui » quand c'est le jour que le coach
+  // a conseillé pour cette séance : la même carte, une raison en plus.
   const isSuggestedToday =
     !!nextSession &&
     (nextSession.suggestedDays ?? []).includes(mondayIndex(new Date()));
@@ -119,7 +119,16 @@ const Today = () => {
                 textTransform="uppercase"
                 letterSpacing="wider"
               >
-                {isSuggestedToday ? "Aujourd'hui" : 'À faire maintenant'}
+                {/* « À FAIRE MAINTENANT » était un ordre, et un ordre que
+                    Kettle n'est pas en état de donner : le programme est un
+                    cycle, donc cette carte désigne toujours quelque chose — y
+                    compris un dimanche à 23 h, et y compris juste après une
+                    séance qu'on vient de finir. « La prochaine » dit où l'on
+                    en est dans le programme, ce qui est vrai à toute heure.
+
+                    Le jour conseillé, l'app sait quelque chose de plus, et
+                    c'est là seulement qu'elle se permet de parler du moment. */}
+                {isSuggestedToday ? "Aujourd'hui" : 'La prochaine'}
               </Text>
               {/* La carte est le bouton. On clique instinctivement sur la
                   séance elle-même ; garder à côté un bouton qui mène au même
@@ -145,19 +154,26 @@ const Today = () => {
                     <Text fontWeight="bold" fontSize="sm">
                       {sessionTitle(nextSession.order, nextSession.name)}
                     </Text>
-                    <Box
-                      px={2}
-                      py={0.5}
-                      borderRadius="full"
-                      bg="app.primary/16"
-                      fontSize="xs"
-                      fontWeight="bold"
-                      color="app.primary"
-                      textTransform="uppercase"
-                      letterSpacing="wider"
-                    >
-                      {isSuggestedToday ? 'Conseillée' : 'À faire'}
-                    </Box>
+                    {/* La pastille ne paraît que le jour conseillé. Le reste
+                        du temps elle disait « À faire » à quarante pixels
+                        d'une étiquette qui disait « À faire maintenant » :
+                        deux fois le même mot, dont aucun n'apprenait rien.
+                        « Conseillée » ajoute le coach à la lecture. */}
+                    {isSuggestedToday && (
+                      <Box
+                        px={2}
+                        py={0.5}
+                        borderRadius="full"
+                        bg="app.primary/16"
+                        fontSize="xs"
+                        fontWeight="bold"
+                        color="app.primary"
+                        textTransform="uppercase"
+                        letterSpacing="wider"
+                      >
+                        Conseillée
+                      </Box>
+                    )}
                   </HStack>
                   <Text fontSize="xs" color="fg.muted">
                     {getSessionSummary(nextSession)}
