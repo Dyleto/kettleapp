@@ -71,6 +71,15 @@ interface Props {
  * Le même écran sert au coach et au client — un compte peut tenir les deux
  * rôles. Chaque section n'apparaît que si le rôle correspondant existe, et
  * seul le client voit celle des données de santé : le coach n'en déclare pas.
+ *
+ * La règle d'adresse : Kettle tutoie le client et vouvoie le coach, et c'est
+ * l'espace où l'on se trouve qui décide — pas le sujet de la section. Un
+ * compte qui tient les deux rôles lisait ses sections « client » au tutoiement
+ * en plein espace coach, parce que trois titres avaient été écrits en dur.
+ * D'où la règle : aucune phrase de cette page ne s'adresse au lecteur sans
+ * passer par `tu`. Les textes qui ne peuvent pas le faire — ceux que la carte
+ * de consentement partage avec l'écran d'accueil du client — sont écrits à la
+ * première personne, qui est de toute façon la voix d'un consentement.
  */
 const Account = ({ space }: Props) => {
   useDocumentTitle('Mon compte');
@@ -85,7 +94,9 @@ const Account = ({ space }: Props) => {
   const consequences = useMemo(() => {
     if (!data) return [];
     const lignes: string[] = [
-      tu ? 'Ton compte et ton accès à Kettle' : 'Votre compte et votre accès à Kettle',
+      tu
+        ? 'Ton compte et ton accès à Kettle'
+        : 'Votre compte et votre accès à Kettle',
     ];
 
     if (data.asClient) {
@@ -181,7 +192,15 @@ const Account = ({ space }: Props) => {
         {/* ── Rattachement au coach ──────────────────────────────────── */}
         {data?.asClient && data.asClient.coaches.length > 0 && (
           <Section
-            title={data.asClient.coaches.length > 1 ? 'Tes coachs' : 'Ton coach'}
+            title={
+              data.asClient.coaches.length > 1
+                ? tu
+                  ? 'Tes coachs'
+                  : 'Vos coachs'
+                : tu
+                  ? 'Ton coach'
+                  : 'Votre coach'
+            }
           >
             <VStack align="stretch" gap={2}>
               {data.asClient.coaches.map((coach) => {
@@ -214,7 +233,7 @@ const Account = ({ space }: Props) => {
 
         {/* ── Données de santé — côté client seulement ───────────────── */}
         {data?.asClient && (
-          <Section title="Tes données de santé">
+          <Section title={tu ? 'Tes données de santé' : 'Vos données de santé'}>
             <HealthConsentCard
               consent={data.asClient.healthConsent}
               healthDataCount={data.asClient.healthDataCount}

@@ -5,7 +5,7 @@ interface Props {
   onClose: () => void;
   onConfirm: () => void;
   isPending: boolean;
-  /** « Refuser le partage ? » à l'entrée, « Retirer ton accord ? » après. */
+  /** « Refuser le partage ? » à l'entrée, « Retirer mon accord ? » après. */
   titre: string;
   /** Le libellé de l'action, qui doit dire ce qu'elle fait. */
   action: string;
@@ -56,7 +56,7 @@ export const ConfirmRefusSante = ({
               rattrape pas.
             </Text>
             <Text fontSize="sm" color="fg.muted" lineHeight="1.65">
-              Tes charges, tes séries et ton niveau d'effort restent, et ton
+              Mes charges, mes séries et mon niveau d'effort restent, et mon
               coach continue de les voir.
             </Text>
           </VStack>

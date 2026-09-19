@@ -22,6 +22,14 @@ const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
  * Retirer son accord doit être aussi simple que de le donner : c'est le même
  * geste, au même endroit, sans confirmation. Un accord qu'on ne peut pas
  * reprendre d'un doigt n'en est pas un.
+ *
+ * Tout y est écrit à la première personne, et pas par goût : cette carte
+ * paraît dans les deux espaces, où Kettle n'emploie pas la même adresse — il
+ * tutoie le client et vouvoie le coach. Un compte qui tient les deux rôles
+ * lisait donc « Ton coach voit ce que tu déclares » au milieu d'une page qui
+ * le vouvoyait partout ailleurs. La première personne échappe au problème
+ * sans traîner un booléen dans chaque phrase, et c'est de toute façon la voix
+ * d'un consentement : on déclare ce qu'on accepte, on ne se le fait pas dire.
  */
 export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   const { mutate, isPending } = useSetHealthConsent();
@@ -59,7 +67,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
             Partager mes ressentis
           </Text>
           <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-            Ton coach voit ce que tu déclares après une séance, y compris une
+            Mon coach voit ce que je déclare après une séance, y compris une
             douleur ou une maladie.
           </Text>
         </VStack>
@@ -104,9 +112,9 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           </Text>
         )}
         <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-          Si tu refuses, les étiquettes de ressenti et le commentaire libre
-          disparaissent de ton bilan, y compris ceux déjà enregistrés. Tes
-          charges et tes séances restent.
+          En cas de refus, les étiquettes de ressenti et le commentaire libre
+          disparaissent de mon bilan, y compris ceux déjà enregistrés. Mes
+          charges et mes séances restent.
         </Text>
       </VStack>
 
@@ -118,7 +126,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           setRetraitOuvert(false);
         }}
         isPending={isPending}
-        titre="Retirer ton accord ?"
+        titre="Retirer mon accord ?"
         action="Retirer mon accord"
         nombre={healthDataCount}
       />
