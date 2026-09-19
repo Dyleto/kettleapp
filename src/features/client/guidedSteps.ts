@@ -7,25 +7,42 @@ import { formatDuration } from '@/utils/formatters';
 
 export type GuidedStep =
   | {
-      type: 'exercise';
-      blockLabel: string;
-      exerciseName: string;
-      exerciseId: string;
-      /** La technique du mouvement, telle qu'elle vit dans la bibliothèque. */
-      description?: string;
-      /** Ce que le coach a écrit pour cet exercice, dans cette séance-là. */
-      coachNote?: string;
-      videoUrl?: string;
-      metric: string;
       /**
-       * Durée de l'effort en secondes quand il est chronométré. Le mode guidé
-       * décompte alors à l'écran, puis s'arrête et attend : c'est le client qui
-       * décide de passer à la suite, jamais l'horloge.
+       * Un tour, avec son horloge.
+       *
+       * Un EMOM est à la minute par définition : la minute part, on enchaîne
+       * les mouvements du tour, et ce qu'il reste de la minute est le repos.
+       * Le mode guidé en faisait tout autre chose — une page par mouvement,
+       * sans horloge, puis une page « REPOS 1:00 ». Le client ne voyait jamais
+       * la minute courir, donc ne pouvait pas savoir s'il était en avance ; et
+       * il prenait une minute pleine que le coach n'avait pas prescrite. Un
+       * EMOM de dix tours censé durer dix minutes en durait vingt.
+       *
+       * L'unité est donc le tour, pas le mouvement. Ça rend l'horloge au
+       * format, ça donne enfin un « Tour 3 / 10 » à afficher — dix écrans
+       * rigoureusement identiques devenaient indiscernables —, et ça ramène
+       * l'EMOM de test de trente étapes à dix.
+       */
+      type: 'round';
+      blockLabel: string;
+      block: SessionBlock;
+      /** 1-indexé, tel qu'on le dit : « Tour 3 / 10 ». */
+      round: number;
+      rounds: number;
+      /** Ce qu'il y a à faire dans ce tour, dans l'ordre. */
+      exercises: BlockExercise[];
+      /**
+       * Le temps du tour.
+       *
+       * EMOM : l'intervalle entier — le repos est ce qu'il en reste, et c'est
+       * au client de le gérer, comme dans la salle. Tabata / On-Off : le temps
+       * de travail seul, suivi de `restSeconds`, tous deux imposés.
        */
       workSeconds?: number;
-      /** Rang de la série (1-indexé) quand l'exercice en compte plusieurs. */
-      setIndex?: number;
-      setCount?: number;
+      /** Le repos imposé après le travail. Absent sur un EMOM : voir ci-dessus. */
+      restSeconds?: number;
+      /** Ce qui vient après le dernier tour. `null` tant qu'il en reste. */
+      nextLabel: string | null;
     }
   | {
       /**
@@ -37,14 +54,7 @@ export type GuidedStep =
        * carrément pas tous les mouvements, c'est bloquant si je ne l'ai pas
        * écrit sur un cahier. »
        *
-       * Il avait raison sur le fond : un AMRAP est une liste qu'on boucle,
-       * pas une file d'attente. Le déroulé page par page a du sens là où une
-       * minuterie impose le rythme — EMOM, Tabata, On/Off — et nulle part
-       * ailleurs.
-       *
-       * Le bloc voyage entier plutôt que recopié : sa liste se rend avec la
-       * carte de la fiche, celle que le client lit déjà avant de commencer.
-       * Une seule écriture pour les deux écrans.
+       * Un AMRAP est une liste qu'on boucle, pas une file d'attente.
        */
       type: 'block';
       blockLabel: string;
@@ -58,90 +68,45 @@ export type GuidedStep =
       nextExerciseName: string | null;
     };
 
-// Blocs dont les tours (rounds) sont chronométrés au niveau du bloc plutôt
-// que par exercice : EMOM/Every (intervalle) et Tabata/On-Off (travail/repos).
+/**
+ * Les blocs dont une minuterie mène le tour : l'intervalle pour l'EMOM, le
+ * couple travail/repos pour le Tabata et l'On-Off. Ce sont les seuls où la
+ * forme « une page par tour » a un sens — ailleurs, c'est le client qui mène.
+ */
 const ROUND_BASED_TYPES: BlockType[] = ['emom', 'every', 'tabata', 'onoff'];
 
 const sortByOrder = <T extends { order: number }>(items: T[]): T[] =>
   [...items].sort((a, b) => a.order - b.order);
 
-type Effort = { metric: string; workSeconds?: number };
-
-// L'effort d'*une* série, sans le « n × » : le mode guidé déroule les séries
-// une par une, le total est porté par « Série 2 / 4 » et non par la métrique.
-const singleEffort = (ex: BlockExercise): Effort => {
-  if (ex.reps) return { metric: `${ex.reps} reps` };
-  if (ex.duration)
-    return { metric: formatDuration(ex.duration), workSeconds: ex.duration };
-  if (ex.customMetric)
-    return { metric: `${ex.customMetric.value} ${ex.customMetric.unit}` };
-  return { metric: '' };
-};
-
-const pushExerciseSteps = (
-  steps: GuidedStep[],
-  exercises: BlockExercise[],
-  blockLabel: string,
-  effortOf: (ex: BlockExercise) => Effort
-) => {
-  exercises.forEach((ex) => {
-    steps.push({
-      type: 'exercise',
-      blockLabel,
-      exerciseName: ex.exercise.name,
-      exerciseId: ex.exercise._id,
-      description: ex.exercise.description,
-      coachNote: ex.note,
-      videoUrl: ex.exercise.videoUrl,
-      ...effortOf(ex),
-    });
-  });
-};
-
-// EMOM/Every (chronométré par intervalle) et Tabata/On-Off (travail/repos) :
-// on répète le passage sur les exercices du bloc `rounds` fois, avec un
-// repos réel entre chaque tour.
-const buildRoundBasedSteps = (
-  block: SessionBlock,
-  exercises: BlockExercise[],
-  blockLabel: string,
-  nextBlockFirstExerciseName: string | null
-): GuidedStep[] => {
-  const steps: GuidedStep[] = [];
-  const rounds = block.rounds ?? 1;
-  const isWorkRest = blockSupportsRepsOnly(block.type);
-  const intervalSeconds = (block.intervalMinutes ?? 1) * 60;
-
-  const effortOf = isWorkRest
-    ? (ex: BlockExercise): Effort =>
-        ex.reps
-          ? { metric: `${ex.reps} reps` }
-          : block.workDuration !== undefined
-            ? {
-                metric: formatDuration(block.workDuration),
-                workSeconds: block.workDuration,
-              }
-            : { metric: '' }
-    : singleEffort;
-
-  for (let round = 1; round <= rounds; round++) {
-    pushExerciseSteps(steps, exercises, blockLabel, effortOf);
-
-    const isLastRound = round === rounds;
-    const restDuration = isWorkRest ? block.restDuration : intervalSeconds;
-    if (restDuration) {
-      steps.push({
-        type: 'rest',
-        blockLabel,
-        duration: restDuration,
-        nextExerciseName: isLastRound
-          ? nextBlockFirstExerciseName
-          : (exercises[0]?.exercise.name ?? null),
-      });
-    }
+/** Le temps d'un tour, selon ce que le bloc impose. */
+const tempsDuTour = (
+  block: SessionBlock
+): { workSeconds?: number; restSeconds?: number } => {
+  // Tabata / On-Off : travail et repos sont tous deux prescrits, à la seconde.
+  if (blockSupportsRepsOnly(block.type)) {
+    return { workSeconds: block.workDuration, restSeconds: block.restDuration };
   }
+  // EMOM / Every : l'intervalle est le budget du tour entier. Il vaut une
+  // minute sauf mention contraire — c'est ce que « EMOM » veut dire.
+  return { workSeconds: (block.intervalMinutes ?? 1) * 60 };
+};
 
-  return steps;
+/**
+ * La dose d'un mouvement pour *un* tour — sans le « n × ».
+ *
+ * Le total est porté par « Tour 3 / 10 » : le répéter sur chaque ligne
+ * ferait lire « 10 × 15 reps » à quelqu'un qui n'a qu'un tour à faire.
+ */
+export const doseDuTour = (block: SessionBlock, ex: BlockExercise): string => {
+  if (ex.reps) return `${ex.reps} reps`;
+  if (ex.duration) return formatDuration(ex.duration);
+  if (ex.customMetric)
+    return `${ex.customMetric.value} ${ex.customMetric.unit}`;
+  // Tabata / On-Off : sans reps prescrites, la dose est le temps de travail
+  // du bloc — c'est lui qui dit combien on en fait.
+  if (blockSupportsRepsOnly(block.type) && block.workDuration !== undefined)
+    return formatDuration(block.workDuration);
+  return '';
 };
 
 export function buildGuidedSteps(session: Session): GuidedStep[] {
@@ -151,34 +116,54 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
   sortedBlocks.forEach((block, blockIndex) => {
     const blockLabel = getBlockLabel(block.type);
     const exercises = sortByOrder(block.exercises);
+    const blocSuivant = sortedBlocks[blockIndex + 1];
     const nextBlockFirstExerciseName =
-      sortedBlocks[blockIndex + 1]?.exercises[0]?.exercise.name ?? null;
+      blocSuivant?.exercises[0]?.exercise.name ?? null;
 
-    // La forme suit le bloc. Un rythme imposé par une minuterie se déroule
-    // page à page, un grand chiffre au milieu de l'écran et les mains
-    // occupées. Tout le reste est une liste, et se lit comme telle.
+    // La forme suit le bloc. Un rythme mené par une minuterie se déroule tour
+    // par tour, l'horloge au milieu de l'écran et les mains occupées. Tout le
+    // reste est une liste, et se lit comme telle.
     const cadence =
       ROUND_BASED_TYPES.includes(block.type) && (block.rounds ?? 1) > 1;
 
-    const blockSteps: GuidedStep[] = cadence
-      ? buildRoundBasedSteps(
-          block,
-          exercises,
-          blockLabel,
-          nextBlockFirstExerciseName
-        )
-      : [{ type: 'block', blockLabel, block }];
+    let blockSteps: GuidedStep[];
+
+    if (cadence) {
+      const rounds = block.rounds ?? 1;
+      const { workSeconds, restSeconds } = tempsDuTour(block);
+      blockSteps = Array.from({ length: rounds }, (_, i) => ({
+        type: 'round' as const,
+        blockLabel,
+        block,
+        round: i + 1,
+        rounds,
+        exercises,
+        workSeconds,
+        restSeconds,
+        // Tant qu'il reste des tours, le compteur suffit à dire ce qui suit.
+        nextLabel:
+          i === rounds - 1
+            ? blocSuivant
+              ? getBlockLabel(blocSuivant.type)
+              : null
+            : null,
+      }));
+    } else {
+      blockSteps = [{ type: 'block', blockLabel, block }];
+    }
 
     steps.push(...blockSteps);
 
     // Repos entre deux blocs : seulement si le coach a réellement défini une
-    // durée, jamais une valeur inventée — et jamais deux repos d'affilée si
-    // le bloc vient déjà de terminer sur un repos de tour.
+    // durée, jamais une valeur inventée. Un bloc à cadence porte déjà son
+    // repos dans ses tours — lui en ajouter un autre reviendrait à recréer la
+    // minute fantôme qu'on vient de retirer.
     const isLastBlock = blockIndex === sortedBlocks.length - 1;
-    const endsWithRest = blockSteps[blockSteps.length - 1]?.type === 'rest';
-    const interBlockRest = block.restDuration ?? block.restBetweenRounds;
+    const interBlockRest = cadence
+      ? undefined
+      : (block.restDuration ?? block.restBetweenRounds);
 
-    if (!isLastBlock && !endsWithRest && interBlockRest) {
+    if (!isLastBlock && interBlockRest) {
       // Ce repos est la queue du bloc qui vient de finir — c'est sa durée à
       // lui — donc il compte dans son avancement, pas dans celui du suivant.
       steps.push({

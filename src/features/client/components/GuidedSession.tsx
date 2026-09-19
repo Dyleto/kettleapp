@@ -1,5 +1,5 @@
-import { PerformedValues, Session } from '@/types';
-import { buildGuidedSteps, type GuidedStep } from '../guidedSteps';
+import { BlockExercise, PerformedValues, Session } from '@/types';
+import { buildGuidedSteps, doseDuTour, type GuidedStep } from '../guidedSteps';
 import { useCountdown } from '../useCountdown';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import {
@@ -337,6 +337,155 @@ const MinuteurALaDemande = ({
   );
 };
 
+/**
+ * Un tour, avec son horloge.
+ *
+ * Trois choses que le déroulé page-par-page ne pouvait pas dire, et qui sont
+ * tout ce dont on a besoin au milieu d'un EMOM :
+ *
+ *   — dans quel tour on est (dix écrans identiques ne le disaient pas),
+ *   — combien de temps il reste dans la minute (l'horloge était absente du
+ *     seul format qui se définit par elle),
+ *   — ce qu'il reste à faire dans ce tour (on ne voyait qu'un mouvement).
+ *
+ * Le Tabata et l'On-Off imposent en plus leur repos : l'horloge enchaîne
+ * alors d'elle-même le travail puis le repos. Sur un EMOM, le repos est ce
+ * qu'il reste de l'intervalle — il n'a pas de page, parce qu'il n'a pas de
+ * durée propre.
+ */
+const Tour = ({
+  step,
+  onDone,
+  lastPerformance,
+  onOuvrirDetail,
+}: {
+  step: Extract<GuidedStep, { type: 'round' }>;
+  /** Le tour est fini : on enchaîne. */
+  onDone: () => void;
+  lastPerformance?: Map<string, LastPerformance>;
+  onOuvrirDetail: (ex: BlockExercise) => void;
+}) => {
+  const [phase, setPhase] = useState<'travail' | 'repos'>('travail');
+  const enRepos = phase === 'repos';
+  const duree = enRepos ? step.restSeconds : step.workSeconds;
+
+  // Le travail fini, on passe au repos s'il en existe un d'imposé — sinon le
+  // tour est fini et le suivant part, ce qui est la définition du format.
+  const finDePhase = () => {
+    if (!enRepos && step.restSeconds) {
+      setPhase('repos');
+      return;
+    }
+    navigator.vibrate?.([120, 80, 120]);
+    onDone();
+  };
+
+  return (
+    <VStack flex={1} align="stretch" gap={4} px={5} py={2} overflowY="auto">
+      <VStack gap={0.5}>
+        <Text
+          fontSize="xs"
+          letterSpacing="2px"
+          textTransform="uppercase"
+          fontWeight="800"
+          color={enRepos ? 'session.rest' : 'session.work'}
+        >
+          {enRepos ? 'Repos' : step.blockLabel}
+        </Text>
+        {/* Le repère qui manquait. Sans lui, les dix tours d'un EMOM
+            s'affichaient à l'identique et rien ne disait lequel on vivait. */}
+        <Text fontSize="lg" fontWeight="800" fontFamily="mono">
+          Tour {step.round}&nbsp;/&nbsp;{step.rounds}
+        </Text>
+      </VStack>
+
+      {duree ? (
+        <Countdown
+          // La clé porte la phase autant que le tour : sans elle, le décompte
+          // du repos reprendrait là où celui du travail s'est arrêté.
+          key={`${step.round}-${phase}`}
+          duration={duree}
+          color={enRepos ? 'session.rest' : 'fg'}
+          onComplete={finDePhase}
+          // Pleine taille, et pas « compacte » comme au-dessus d'une liste
+          // d'AMRAP : ici l'horloge n'accompagne pas la liste, elle est ce
+          // qu'on est venu regarder. Il restait 350 px vides sous la liste.
+        />
+      ) : null}
+
+      {/* Ce qu'il y a à faire dans ce tour — tout, pas un mouvement à la
+          fois. En repos imposé, la liste reste : c'est ce qu'on relit pour
+          se préparer au tour suivant. */}
+      <VStack align="stretch" gap={0} opacity={enRepos ? 0.6 : 1}>
+        {step.exercises.map((ex, i) => {
+          const aDuDetail =
+            !!ex.note?.trim() ||
+            !!ex.exercise.description?.trim() ||
+            !!ex.exercise.videoUrl?.trim();
+          const derniere = formatLastPerformance(
+            lastPerformance?.get(ex.exercise._id)
+          );
+          return (
+            <Box
+              key={`${ex.order}-${ex.exercise._id}`}
+              borderTopWidth={i === 0 ? 0 : '1px'}
+              borderColor="whiteAlpha.100"
+              py={3}
+            >
+              <HStack justify="space-between" align="baseline" gap={3}>
+                {aDuDetail ? (
+                  <Box
+                    as="button"
+                    textAlign="left"
+                    minW={0}
+                    aria-label={`Voir la consigne — ${ex.exercise.name}`}
+                    onClick={() => onOuvrirDetail(ex)}
+                    css={hitArea(44)}
+                  >
+                    <HStack gap={1.5} align="center">
+                      <Text fontSize="lg" fontWeight="bold">
+                        {ex.exercise.name}
+                      </Text>
+                      <Box color="app.primary" flexShrink={0}>
+                        <LuInfo size={15} />
+                      </Box>
+                    </HStack>
+                  </Box>
+                ) : (
+                  <Text fontSize="lg" fontWeight="bold" minW={0}>
+                    {ex.exercise.name}
+                  </Text>
+                )}
+                <Text
+                  fontSize="xl"
+                  fontWeight="800"
+                  fontFamily="mono"
+                  flexShrink={0}
+                >
+                  {doseDuTour(step.block, ex) || '—'}
+                </Text>
+              </HStack>
+              {derniere && (
+                <Text fontSize="xs" color="fg.muted">
+                  la dernière fois&nbsp;: {derniere}
+                </Text>
+              )}
+            </Box>
+          );
+        })}
+      </VStack>
+
+      {/* Sur le dernier tour seulement : ailleurs, le compteur dit déjà qu'il
+          reste des tours, et annoncer « ensuite : tour 4 » n'apprend rien. */}
+      {step.nextLabel && (
+        <Text fontSize="xs" color="fg.muted" textAlign="center">
+          dernier tour — ensuite&nbsp;: {step.nextLabel}
+        </Text>
+      )}
+    </VStack>
+  );
+};
+
 export const GuidedSession = ({
   session,
   onExit,
@@ -357,7 +506,10 @@ export const GuidedSession = ({
   // l'effort, mains occupées. Elle était pourtant le seul contenu de la
   // séance inaccessible depuis le plein écran : il fallait en sortir, donc
   // perdre sa place, pour aller la lire.
-  const [showDetail, setShowDetail] = useState(false);
+  //
+  // Un tour porte plusieurs mouvements : ce n'est plus « la consigne de
+  // l'écran » qu'on ouvre, c'est celle d'un mouvement nommé.
+  const [detail, setDetail] = useState<BlockExercise | null>(null);
   // Proposée, jamais imposée : un client qui veut vraiment recommencer ne doit
   // pas se retrouver piégé au milieu de la séance précédente.
   const [showResume, setShowResume] = useState(() => savedIndex > 0);
@@ -367,7 +519,7 @@ export const GuidedSession = ({
 
   const goTo = (next: number) => {
     setIndex(next);
-    setShowDetail(false);
+    setDetail(null);
     writeSavedIndex(session._id, next);
   };
 
@@ -577,15 +729,6 @@ export const GuidedSession = ({
   }
 
   const isRest = step.type === 'rest';
-  const hasDetail =
-    step.type === 'exercise' &&
-    (!!step.coachNote?.trim() ||
-      !!step.description?.trim() ||
-      !!step.videoUrl?.trim());
-  const lastLabel =
-    step.type === 'exercise'
-      ? formatLastPerformance(lastPerformance?.get(step.exerciseId))
-      : null;
 
   return overlay(
     <Box
@@ -708,7 +851,14 @@ export const GuidedSession = ({
            * ligne par ligne, ce que le plein écran ne savait faire que pour
            * l'exercice affiché.
            */
-          <VStack flex={1} align="stretch" gap={5} px={5} py={2} overflowY="auto">
+          <VStack
+            flex={1}
+            align="stretch"
+            gap={5}
+            px={5}
+            py={2}
+            overflowY="auto"
+          >
             {/* La pendule d'un bloc à durée : dans un AMRAP, c'est elle qui
                 dit quand s'arrêter. Plus petite qu'en plein écran — on est
                 venu lire la liste, pas la pendule. */}
@@ -761,103 +911,46 @@ export const GuidedSession = ({
               }}
             />
           </VStack>
+        ) : step.type === 'round' ? (
+          <Tour
+            step={step}
+            onDone={goNext}
+            lastPerformance={lastPerformance}
+            onOuvrirDetail={setDetail}
+          />
         ) : (
-        <VStack
-          flex={1}
-          justify="center"
-          align="center"
-          gap={6}
-          px={8}
-          textAlign="center"
-        >
-          {step.type === 'exercise' ? (
-            <>
-              <Text
-                fontSize="xs"
-                letterSpacing="2px"
-                textTransform="uppercase"
-                fontWeight="800"
-                color="session.work"
-              >
-                {step.blockLabel}
+          <VStack
+            flex={1}
+            justify="center"
+            align="center"
+            gap={6}
+            px={8}
+            textAlign="center"
+          >
+            <Text
+              fontSize="xs"
+              letterSpacing="2px"
+              textTransform="uppercase"
+              fontWeight="800"
+              color="bg.canvas"
+            >
+              Repos
+            </Text>
+            <Countdown
+              key={index}
+              duration={step.duration}
+              color="bg.canvas"
+              onComplete={goNext}
+            />
+            {step.nextExerciseName && (
+              <Text fontSize="sm" color="bg.canvas" opacity={0.75}>
+                Ensuite : {step.nextExerciseName}
               </Text>
-              {hasDetail ? (
-                <Box
-                  as="button"
-                  aria-label={`Voir la consigne — ${step.exerciseName}`}
-                  onClick={() => setShowDetail(true)}
-                  css={hitArea(44)}
-                >
-                  <HStack gap={2} justify="center" maxW="22ch">
-                    <Text fontSize="28px" fontWeight="800">
-                      {step.exerciseName}
-                    </Text>
-                    <Box color="app.primary" flexShrink={0} pt={1}>
-                      <LuInfo size={18} />
-                    </Box>
-                  </HStack>
-                </Box>
-              ) : (
-                <Text fontSize="28px" fontWeight="800" maxW="22ch">
-                  {step.exerciseName}
-                </Text>
-              )}
-              {step.setCount && (
-                <Text fontSize="sm" fontFamily="mono" color="fg.muted" mt={-4}>
-                  Série {step.setIndex} / {step.setCount}
-                </Text>
-              )}
-              {step.workSeconds ? (
-                <Countdown
-                  key={index}
-                  duration={step.workSeconds}
-                  color="fg"
-                  holdLabel="Temps écoulé"
-                />
-              ) : (
-                <Text
-                  fontSize="72px"
-                  fontWeight="800"
-                  fontFamily="mono"
-                  lineHeight="1"
-                >
-                  {step.metric || '—'}
-                </Text>
-              )}
-              {lastLabel && (
-                <Text fontSize="sm" color="fg.muted">
-                  la dernière fois&nbsp;: {lastLabel}
-                </Text>
-              )}
-            </>
-          ) : (
-            <>
-              <Text
-                fontSize="xs"
-                letterSpacing="2px"
-                textTransform="uppercase"
-                fontWeight="800"
-                color="bg.canvas"
-              >
-                Repos
-              </Text>
-              <Countdown
-                key={index}
-                duration={step.duration}
-                color="bg.canvas"
-                onComplete={goNext}
-              />
-              {step.nextExerciseName && (
-                <Text fontSize="sm" color="bg.canvas" opacity={0.75}>
-                  Ensuite : {step.nextExerciseName}
-                </Text>
-              )}
-            </>
-          )}
-        </VStack>
+            )}
+          </VStack>
         )}
 
-        {showDetail && step.type === 'exercise' && (
+        {detail && (
           <Box
             position="absolute"
             inset={0}
@@ -868,12 +961,12 @@ export const GuidedSession = ({
           >
             <HStack justify="space-between" align="flex-start" mb={4}>
               <Text fontSize="xl" fontWeight="800" maxW="20ch">
-                {step.exerciseName}
+                {detail.exercise.name}
               </Text>
               <Box
                 as="button"
                 aria-label="Revenir à la séance"
-                onClick={() => setShowDetail(false)}
+                onClick={() => setDetail(null)}
                 color="fg.muted"
                 flexShrink={0}
                 css={hitArea(44)}
@@ -885,7 +978,7 @@ export const GuidedSession = ({
             {/* Ce que le coach a écrit pour cette séance passe devant, et se
                 reconnaît à la barre ambrée. La technique du mouvement, qui
                 vient de la bibliothèque, reste du texte nu en dessous. */}
-            {step.coachNote?.trim() && (
+            {detail.note?.trim() && (
               <Box
                 p={3}
                 bg="whiteAlpha.50"
@@ -905,13 +998,13 @@ export const GuidedSession = ({
                   Consigne du coach
                 </Text>
                 <Text fontSize="sm" color="fg" whiteSpace="pre-wrap">
-                  {step.coachNote}
+                  {detail.note}
                 </Text>
               </Box>
             )}
-            {step.description?.trim() && (
+            {detail.exercise.description?.trim() && (
               <>
-                {step.coachNote?.trim() && (
+                {detail.note?.trim() && (
                   <Text
                     fontSize="2xs"
                     color="fg.muted"
@@ -925,15 +1018,17 @@ export const GuidedSession = ({
                 )}
                 <Text
                   fontSize="sm"
-                  color={step.coachNote?.trim() ? 'fg.muted' : 'fg'}
+                  color={detail.note?.trim() ? 'fg.muted' : 'fg'}
                   whiteSpace="pre-wrap"
                   mb={4}
                 >
-                  {step.description}
+                  {detail.exercise.description}
                 </Text>
               </>
             )}
-            {step.videoUrl?.trim() && <VideoPlayer url={step.videoUrl} />}
+            {detail.exercise.videoUrl?.trim() && (
+              <VideoPlayer url={detail.exercise.videoUrl} />
+            )}
           </Box>
         )}
 
