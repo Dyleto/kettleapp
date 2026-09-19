@@ -43,6 +43,7 @@ import {
 import { useUpdateCompletedSession } from '../hooks/useCompleteSession';
 import { useAuth } from '@/contexts/useAuth';
 import { sessionTitle } from '@/features/program/sessionTitle';
+import { majusculeInitiale } from '@/components/typographie';
 
 const toSessionBlock = (
   block: CompletedSession['blocks'][number],
@@ -210,12 +211,15 @@ export const CompletedSessionDrawer = ({
                 <HStack justify="space-between" align="center" flex="1">
                   <VStack align="start" gap={0}>
                     <Text fontWeight="bold" fontSize="lg">
-                      {sessionTitle(completed.sessionOrder, completed.sessionName)}
+                      {sessionTitle(
+                        completed.sessionOrder,
+                        completed.sessionName
+                      )}
                     </Text>
                     <Text
                       fontSize="xs"
                       color="fg.muted"
-                      textTransform="capitalize"
+                      css={majusculeInitiale}
                     >
                       {completedDate}
                     </Text>
@@ -413,10 +417,7 @@ export const CompletedSessionDrawer = ({
                                     }
                                     setLabels={
                                       prescribed
-                                        ? prescribedSetLabels(
-                                            block,
-                                            prescribed
-                                          )
+                                        ? prescribedSetLabels(block, prescribed)
                                         : ['']
                                     }
                                     isTimed={prescribed?.duration !== undefined}

@@ -5,6 +5,7 @@ import { CompletedSession } from '@/types';
 import { EFFORT_ZONE_COLOR } from '../constants';
 import { getEffortSummary } from '../format';
 import { dayKey } from '../sessionDates';
+import { majusculeInitiale } from '@/components/typographie';
 
 const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
@@ -74,7 +75,7 @@ const MonthGrid = ({
           fontSize="xs"
           fontWeight="bold"
           color="fg.muted"
-          textTransform="capitalize"
+          css={majusculeInitiale}
           textAlign="center"
         >
           {monthLabel(cursor)}
@@ -305,7 +306,7 @@ export const SessionCalendar = ({
           <Text
             fontSize="sm"
             fontWeight="bold"
-            textTransform="capitalize"
+            css={majusculeInitiale}
             textAlign="center"
             aria-live="polite"
           >
