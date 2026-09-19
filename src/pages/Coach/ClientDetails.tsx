@@ -371,10 +371,14 @@ const ClientDetails = () => {
           </HStack>
         </VStack>
 
+        {/* Le rail passe en colonne à `lg`, pas à `md` : voir `SessionRail`.
+            La disposition doit suivre le même seuil, sinon la bande
+            horizontale se retrouverait à côté de l'atelier au lieu d'être
+            au-dessus. */}
         <Stack
-          direction={{ base: 'column', md: 'row' }}
-          align={{ base: 'stretch', md: 'flex-start' }}
-          gap={{ base: 4, md: 6 }}
+          direction={{ base: 'column', lg: 'row' }}
+          align={{ base: 'stretch', lg: 'flex-start' }}
+          gap={{ base: 4, lg: 6 }}
         >
           <SessionRail
             sessions={program.sessions}

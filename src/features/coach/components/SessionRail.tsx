@@ -188,7 +188,25 @@ export const SessionRail = ({
   onReorder,
   suivi,
 }: SessionRailProps) => {
-  const isDesktop = useBreakpointValue({ base: false, md: true });
+  /**
+   * À partir de quand le rail devient une colonne.
+   *
+   * Il naissait à 768 px, en même temps que la navigation : 420 px de décor
+   * sur 768, et 260 px laissés pour écrire un programme — moins qu'un
+   * téléphone, qui en offre 358. Toutes les lignes d'exercice se cassaient en
+   * deux, et la séance grandissait de 39 % en hauteur. Un coach sur tablette
+   * en portrait avait la pire des trois expériences.
+   *
+   * Mesuré : une ligne tient sur un seul niveau à partir de 428 px d'atelier.
+   * Le rail coûte 244 px avec sa gouttière, la navigation 200 — il faut donc
+   * au moins 926 px pour loger les trois. `lg`, qui vaut 1024 px dans Chakra
+   * v3 (et non 992 comme en v2), est le premier seuil qui passe : il laisse
+   * 516 px à l'atelier, et 991 px juste en dessous.
+   *
+   * En dessous, la bande horizontale S1…S5 fait le même travail sans prendre
+   * un pixel de large.
+   */
+  const isDesktop = useBreakpointValue({ base: false, lg: true });
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
