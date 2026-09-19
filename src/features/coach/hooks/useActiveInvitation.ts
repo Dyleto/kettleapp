@@ -10,9 +10,15 @@ interface ActiveInvitation {
 /**
  * Le lien d'invitation en cours, s'il en existe un.
  *
- * Le lien ne vivait que le temps d'un message de confirmation : passé le
- * toast, il n'était plus nulle part, et il fallait en régénérer un pour
- * recopier celui qu'on avait déjà.
+ * Ce n'est pas un confort d'affichage : c'est ce qui permet de partager ou de
+ * copier **sans aller-retour réseau**. Le partage et l'écriture dans le
+ * presse-papier exigent une « activation transitoire », que le navigateur
+ * retire quelques instants après le clic — une requête suffit à la perdre sur
+ * Safari, et le coach voyait alors « lien copié » sur un presse-papier vide.
+ *
+ * Chargé à l'ouverture de la liste, le lien est déjà là quand on clique.
+ * L'API recyclant le jeton tant qu'il est valide, c'est exactement celui que
+ * « Inviter » aurait fabriqué.
  */
 export const useActiveInvitation = () =>
   useQuery({

@@ -19,12 +19,27 @@ import {
 import { Client } from '@/types';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { useGenerateInvitation } from '@/features/coach/hooks/useGenerateInvitation';
+import { useActiveInvitation } from '@/features/coach/hooks/useActiveInvitation';
+import { LienInvitation } from '@/features/coach/components/LienInvitation';
+import {
+  echeanceLien,
+  lienInvitation,
+  sortirLien,
+} from '@/features/coach/invitation';
 import { toaster } from '@/components/ui/toasterInstance';
 
 const Clients = () => {
   const { data: clients = [] } = useClients();
   const { mutate: generateInvitation, isPending } = useGenerateInvitation();
+  // Chargé à l'ouverture de la liste : le lien doit être en main *avant* le
+  // clic, sans quoi l'aller-retour réseau coûte l'activation dont le partage
+  // et le presse-papier ont besoin.
+  const { data: enCours } = useActiveInvitation();
   const [isCopied, setIsCopied] = useState(false);
+  const [aMontrer, setAMontrer] = useState<{
+    lien: string;
+    expiresAt?: string;
+  } | null>(null);
 
   /**
    * L'aperçu n'existe que là où il y a la place pour lui.
@@ -37,64 +52,72 @@ const Clients = () => {
   const [apercu, setApercu] = useState<Client | null>(null);
   useDocumentTitle('Mes clients');
 
-  const copy = useCallback(async (link: string, expiresAt?: string) => {
-    // La date de validité se dit ici, au moment où le lien part — pas sur une
-    // rangée permanente de l'écran. Un lien d'invitation se crée une fois par
-    // client ; son échéance n'a d'intérêt qu'à cet instant-là.
-    const echeance = expiresAt
-      ? ` Valable jusqu'au ${new Intl.DateTimeFormat('fr-FR', {
-          day: 'numeric',
-          month: 'long',
-        }).format(new Date(expiresAt))}.`
-      : '';
-
-    try {
-      await navigator.clipboard.writeText(link);
+  /**
+   * Ce qui se passe une fois le lien en main.
+   *
+   * L'ordre suit ce que le coach veut réellement faire : envoyer le lien à
+   * quelqu'un. Là où le téléphone sait ouvrir sa feuille de partage, c'est
+   * elle qui s'ouvre ; sinon on copie ; et si le navigateur refuse les deux,
+   * on écrit le lien dans une fenêtre qui attend qu'on la ferme.
+   *
+   * C'est ce dernier cas qui manquait. Kettle affichait alors le lien dans un
+   * bandeau de vingt secondes, puis il n'était plus nulle part.
+   */
+  const faireSortir = useCallback(async (lien: string, expiresAt?: string) => {
+    const sortie = await sortirLien(lien);
+    if (sortie === 'annule') return;
+    if (sortie === 'echec') {
+      setAMontrer({ lien, expiresAt });
+      return;
+    }
+    if (sortie === 'copie') {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2500);
-      toaster.create({
-        title: "Lien d'invitation copié",
-        description: `Envoyez-le à votre client : il rejoindra votre suivi.${echeance}`,
-        type: 'success',
-      });
-    } catch {
-      // Presse-papier refusé (contexte non sécurisé, permission) : on
-      // montre le lien plutôt que de laisser croire qu'il est copié.
-      toaster.create({
-        title: "Lien d'invitation",
-        description: link,
-        type: 'info',
-        duration: 20000,
-      });
     }
+    const echeance = echeanceLien(expiresAt);
+    toaster.create({
+      type: 'success',
+      title:
+        sortie === 'partage'
+          ? "Lien d'invitation partagé"
+          : "Lien d'invitation copié",
+      description: [
+        sortie === 'partage'
+          ? 'Votre client rejoindra votre suivi.'
+          : 'Envoyez-le à votre client : il rejoindra votre suivi.',
+        echeance,
+      ]
+        .filter(Boolean)
+        .join(' '),
+    });
   }, []);
 
   /**
-   * Inviter, c'est une seule action : fabriquer un lien et le copier.
+   * Inviter, c'est une seule action : obtenir un lien et le faire sortir.
    *
    * Elle passait par un tiroir latéral dont le corps entier était un bouton
    * — deux clics et un panneau pour une opération qui n'a aucun réglage. Le
    * bouton fait maintenant ce qu'il annonce.
    *
-   * La copie est explicite plutôt que confiée à `useClipboard` : celui-ci
-   * passe par une machine à états, et rien ne garantit que le `copy()` voie
-   * la valeur posée juste avant. Un lien d'invitation copié vide ne se
-   * remarque qu'au moment où le client dit qu'il n'a rien reçu.
+   * Le chemin court — un lien déjà en cache — n'attend rien : le partage part
+   * dans la foulée du clic, avec son activation intacte. Le chemin long ne
+   * sert qu'au tout premier client, et c'est là que la fenêtre de repli
+   * gagne sa place.
    */
   const invite = () => {
+    if (enCours) {
+      void faireSortir(lienInvitation(enCours.token), enCours.expiresAt);
+      return;
+    }
     generateInvitation(undefined, {
       onSuccess: ({ link, expiresAt }) => {
-        copy(link, expiresAt);
+        void faireSortir(link, expiresAt);
       },
     });
   };
 
   return (
-    <Container
-      maxW={avecApercu ? '1400px' : COACH_CONTENT_MAX_W}
-      py={8}
-      px={4}
-    >
+    <Container maxW={avecApercu ? '1400px' : COACH_CONTENT_MAX_W} py={8} px={4}>
       <VStack align="stretch" gap={6}>
         <HStack justify="space-between" align="center" gap={3}>
           <VStack align="start" gap={0} minW={0}>
@@ -142,7 +165,11 @@ const Clients = () => {
             l'atelier — donc perdre la liste — pour savoir ce qui l'attendait
             chez un client, puis revenir pour passer au suivant. */}
         {avecApercu ? (
-          <Grid templateColumns="minmax(0, 1fr) 420px" gap={8} alignItems="start">
+          <Grid
+            templateColumns="minmax(0, 1fr) 420px"
+            gap={8}
+            alignItems="start"
+          >
             <ClientsList onPreview={setApercu} selectedId={apercu?._id} />
             <Box position="sticky" top="24px" minW={0}>
               <ClientPreview client={apercu} />
@@ -152,6 +179,12 @@ const Clients = () => {
           <ClientsList />
         )}
       </VStack>
+
+      <LienInvitation
+        lien={aMontrer?.lien ?? null}
+        expiresAt={aMontrer?.expiresAt}
+        onClose={() => setAMontrer(null)}
+      />
     </Container>
   );
 };
