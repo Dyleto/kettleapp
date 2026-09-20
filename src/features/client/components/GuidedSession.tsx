@@ -8,8 +8,10 @@ import {
 import { useCountdown } from '../useCountdown';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import {
+  BLOCK_ACCENT_COLOR,
   blockDefinesOwnMetrics,
   blockHasClock,
+  getBlockAccent,
   prescribedSetLabels,
   restBetweenSetsOf,
 } from '@/features/program/constants';
@@ -205,14 +207,30 @@ const Minuteur = ({
  * mentiraient sur ce qu'il reste à faire.
  */
 /**
- * Ce qu'une étape pèse dans la barre — pas toujours une page.
+ * Ce qu'une étape pèse dans la barre : le temps qu'elle demande.
  *
- * Un bloc lu d'un coup ne fait qu'une étape, mais un AMRAP de douze minutes
- * n'est pas un douzième de l'effort d'un EMOM de douze pages. Sa largeur suit
- * donc ce qu'il contient, et pas le nombre de fois qu'on tape « Suivant ».
+ * Elle pesait des pages, et elle mentait d'un facteur dix. Mesuré sur la
+ * séance d'essai : l'AMRAP de douze minutes recevait 24 px, l'EMOM 239 — la
+ * barre annonçait que la séance était à 85 % de l'EMOM, alors qu'en temps
+ * vécu les deux blocs font jeu égal. Un client qui la regardait après l'EMOM
+ * croyait avoir fini.
+ *
+ * Le coach donne la durée là où elle fait partie du format : l'intervalle
+ * d'un tour, la durée d'un AMRAP. On la prend telle quelle. Ailleurs — une
+ * série, un palier — il ne la donne pas, et on compte une minute par effort.
+ * C'est une approximation, et elle est assumée : l'intervalle d'un EMOM EST
+ * une minute, une série avec son repos en fait à peu près autant. Elle vaut
+ * infiniment mieux que compter les fois où l'on tape « Suivant ».
  */
-const poidsDe = (step: GuidedStep) =>
-  step.type === 'block' ? Math.max(1, step.block.exercises.length) : 1;
+const poidsDe = (step: GuidedStep): number => {
+  if (step.type === 'rest') return step.duration / 60;
+  if (step.type === 'round')
+    return (step.workSeconds ?? 60) / 60 + (step.restSeconds ?? 0) / 60;
+  // Une boucle porte sa durée ; une liste, ses efforts.
+  if (step.forme === 'boucle')
+    return Math.max(1, step.block.durationMinutes ?? step.efforts.length);
+  return Math.max(1, step.efforts.length);
+};
 
 const decouperEnBlocs = (steps: GuidedStep[]) => {
   const blocs: {
@@ -770,7 +788,66 @@ export const GuidedSession = ({
   const [detail, setDetail] = useState<BlockExercise | null>(null);
   // Proposée, jamais imposée : un client qui veut vraiment recommencer ne doit
   // pas se retrouver piégé au milieu de la séance précédente.
-  const [showResume, setShowResume] = useState(() => savedIndex > 0);
+  /**
+   * A-t-on déjà commencé cette séance ?
+   *
+   * La position ne suffit pas à le dire : sur un bloc-liste, cocher des
+   * efforts ne fait pas avancer l'étape. Quelqu'un qui coche quatre lignes
+   * d'échauffement puis ferme l'application a bel et bien commencé, et lui
+   * remontrer la consigne d'ouverture serait lui dire qu'il n'a rien fait.
+   */
+  const [dejaCommence] = useState(() => {
+    const garde = lireSeance(session._id);
+    return (garde?.etape ?? 0) > 0 || (garde?.faits.length ?? 0) > 0;
+  });
+  const [showResume, setShowResume] = useState(() => dejaCommence);
+  /**
+   * L'écran d'ouverture ne paraît qu'au début.
+   *
+   * Reprendre une séance entamée, c'est savoir ce qu'on fait : on ne
+   * rappelle pas la consigne à quelqu'un qui revient de sa douzième série.
+   */
+  const [showOuverture, setShowOuverture] = useState(() => !dejaCommence);
+
+  /** Ce qui attend le client : un aperçu des blocs, et le total à fournir. */
+  const apercuDesBlocs = useMemo(
+    () =>
+      steps.reduce<
+        { debut: number; label: string; couleur: string; detail: string }[]
+      >((acc, step, i) => {
+        if (step.type === 'rest') return acc;
+        const dernier = acc[acc.length - 1];
+        if (dernier?.label === step.blockLabel) return acc;
+        acc.push({
+          debut: i,
+          label: step.blockLabel,
+          couleur: BLOCK_ACCENT_COLOR[getBlockAccent(step.block.type)],
+          detail:
+            step.type === 'round'
+              ? `${step.rounds} tours`
+              : step.forme === 'boucle'
+                ? `${step.block.durationMinutes ?? '?'} min`
+                : `${step.efforts.length} efforts`,
+        });
+        return acc;
+      }, []),
+    [steps]
+  );
+
+  const totalEfforts = useMemo(
+    () =>
+      steps.reduce(
+        (n, step) =>
+          n +
+          (step.type === 'round'
+            ? 1
+            : step.type === 'block'
+              ? step.efforts.length
+              : 0),
+        0
+      ),
+    [steps]
+  );
   // Lu une seule fois, à l'ouverture : c'est l'état d'avant qu'on annonce.
   const [notesGardees] = useState(() =>
     compterNotes(lireSeance(session._id)?.performed ?? {})
@@ -932,6 +1009,9 @@ export const GuidedSession = ({
   if (steps.length === 0) {
     return overlay(
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-label="Aucun exercice à suivre"
         position="fixed"
         inset={0}
         zIndex={50}
@@ -962,9 +1042,134 @@ export const GuidedSession = ({
     );
   }
 
+  // L'écran d'ouverture.
+  //
+  // La note que le coach a écrite pour cette séance-là était inaccessible
+  // depuis le mode guidé : s'il écrivait « aujourd'hui on garde 2 reps en
+  // réserve sur tout », le client ne pouvait pas la relire pendant l'effort.
+  // Elle ouvre donc le parcours — on lit la consigne au moment où elle sert,
+  // avant de commencer.
+  //
+  // C'est aussi le seul endroit qui rappelle qu'un humain a écrit cette
+  // séance. Aucune application de fitness générique ne peut en dire autant,
+  // et le mode guidé ne s'en servait nulle part.
+  if (showOuverture) {
+    return overlay(
+      <Box
+        role="dialog"
+        aria-modal="true"
+        aria-label="Avant de commencer"
+        position="fixed"
+        inset={0}
+        zIndex={50}
+        bg="bg.canvas"
+        display="flex"
+        flexDirection="column"
+      >
+        <HStack justify="flex-end" p={4}>
+          <Button
+            variant="ghost"
+            size="sm"
+            minH="44px"
+            onClick={onExit}
+            color="fg.muted"
+          >
+            Quitter
+          </Button>
+        </HStack>
+
+        <VStack flex={1} justify="center" align="stretch" gap={7} px={7} pb={6}>
+          <VStack align="start" gap={1.5}>
+            <Text
+              fontSize="xs"
+              fontWeight="800"
+              letterSpacing="2px"
+              color="fg.muted"
+            >
+              SÉANCE {session.order}
+            </Text>
+            {session.name?.trim() && (
+              <Text fontSize="3xl" fontWeight="800" lineHeight="1.15">
+                {session.name.trim()}
+              </Text>
+            )}
+            {/* Ce qui attend le client, avant qu'il s'engage. Aucun écran ne
+                le disait : on démarrait sans savoir si c'était dix minutes ou
+                quarante. */}
+            <Text fontSize="sm" color="fg.muted">
+              {session.blocks.length} bloc
+              {session.blocks.length > 1 ? 's' : ''} · {totalEfforts} effort
+              {totalEfforts > 1 ? 's' : ''}
+            </Text>
+          </VStack>
+
+          {session.notes?.trim() && (
+            <Box
+              bg="bg.card"
+              borderLeftWidth="3px"
+              borderLeftColor="app.primary"
+              borderRadius="lg"
+              p={4}
+            >
+              <Text fontSize="xs" color="fg.muted" mb={2}>
+                Ton coach te dit&nbsp;:
+              </Text>
+              <Text fontSize="lg" lineHeight="1.5" whiteSpace="pre-wrap">
+                {session.notes}
+              </Text>
+            </Box>
+          )}
+
+          <VStack align="stretch" gap={2.5}>
+            {apercuDesBlocs.map((b) => (
+              <HStack key={b.debut} gap={3}>
+                <Box
+                  w="10px"
+                  h="10px"
+                  borderRadius="sm"
+                  bg={b.couleur}
+                  flexShrink={0}
+                />
+                <Text fontSize="sm" flex={1} minW={0} lineClamp={1}>
+                  {b.label}
+                </Text>
+                <Text
+                  fontSize="xs"
+                  color="fg.muted"
+                  fontFamily="mono"
+                  flexShrink={0}
+                >
+                  {b.detail}
+                </Text>
+              </HStack>
+            ))}
+          </VStack>
+        </VStack>
+
+        <Box p={4}>
+          <Button
+            w="full"
+            minH="56px"
+            bg="app.primary"
+            color="bg.canvas"
+            fontWeight="bold"
+            fontSize="lg"
+            _hover={{ bg: 'app.primary.hover' }}
+            onClick={() => setShowOuverture(false)}
+          >
+            Commencer
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
+
   if (showResume) {
     return overlay(
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-label="Reprendre où tu en étais ?"
         position="fixed"
         inset={0}
         zIndex={50}
@@ -1027,6 +1232,9 @@ export const GuidedSession = ({
   if (showExitConfirm) {
     return overlay(
       <Box
+        role="dialog"
+        aria-modal="true"
+        aria-label="Quitter le mode guidé ?"
         position="fixed"
         inset={0}
         zIndex={50}
@@ -1126,12 +1334,19 @@ export const GuidedSession = ({
             aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}
           >
             {blocs.map((bloc) => {
-              const fait = Math.max(
-                0,
-                Math.min(bloc.taille, index - bloc.debut)
-              );
               const encours =
                 index >= bloc.debut && index < bloc.debut + bloc.taille;
+              // Combien de ce bloc est derrière soi, entre 0 et 1.
+              //
+              // Le compte d'étapes ne suffit plus : un bloc-liste n'en fait
+              // qu'une, et le remplissage sautait donc de rien à tout alors
+              // qu'on y coche sept efforts. Quand le bloc en cours en a, c'est
+              // eux qui parlent.
+              const part =
+                encours && efforts.length > 0
+                  ? faitsDuBloc / efforts.length
+                  : Math.max(0, Math.min(bloc.taille, index - bloc.debut)) /
+                    bloc.taille;
               return (
                 <Box
                   key={`${bloc.label}-${bloc.debut}`}
@@ -1159,7 +1374,7 @@ export const GuidedSession = ({
                   <Box
                     h="100%"
                     borderRadius="full"
-                    w={`${(fait / bloc.taille) * 100}%`}
+                    w={`${part * 100}%`}
                     bg={
                       isRest
                         ? 'bg.canvas'
