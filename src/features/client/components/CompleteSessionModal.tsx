@@ -91,11 +91,13 @@ export const CompleteSessionModal = ({
           display="flex"
           flexDirection="column"
         >
-          {/* Le constat passe devant la question. L'en-tête n'annonce donc
-              plus la question quand il y a quelque chose à constater : c'est
-              le récap qui ouvre, et le ressenti suit dans le corps. */}
-          <Dialog.Header>
-            {recap ?? (
+          {/* Le constat passe devant la question — mais dans le corps, pas
+              dans l'en-tête. Un en-tête est du chrome : il ne rétrécit pas.
+              Le récap y tenait toute la place, et sur un téléphone couché le
+              corps tombait à 32 px pendant que « Valider » finissait 162 px
+              sous l'écran. Ce qui est long appartient à ce qui défile. */}
+          {!recap && (
+            <Dialog.Header>
               <VStack align="start" gap={1}>
                 <Dialog.Title>Cette séance, c'était&nbsp;?</Dialog.Title>
                 <Text fontSize="sm" color="fg.muted" fontWeight="normal">
@@ -103,8 +105,8 @@ export const CompleteSessionModal = ({
                   chose qu'on te demande.
                 </Text>
               </VStack>
-            )}
-          </Dialog.Header>
+            </Dialog.Header>
+          )}
           <Dialog.CloseTrigger
             aria-label="Fermer"
             display="flex"
@@ -116,10 +118,11 @@ export const CompleteSessionModal = ({
             <LuX size={16} />
           </Dialog.CloseTrigger>
 
-          <Dialog.Body overflowY="auto">
+          <Dialog.Body overflowY="auto" minH={0} pt={recap ? 6 : undefined}>
             <VStack gap={4} align="stretch">
               {recap && (
                 <>
+                  {recap}
                   <Separator borderColor="whiteAlpha.100" />
                   <Dialog.Title fontSize="lg" fontWeight="800">
                     Cette séance, c'était&nbsp;?
@@ -194,7 +197,7 @@ export const CompleteSessionModal = ({
             </VStack>
           </Dialog.Body>
 
-          <Dialog.Footer gap={3} flexWrap="wrap">
+          <Dialog.Footer gap={3} flexWrap="wrap" flexShrink={0}>
             {/* Un bouton grisé sans explication a l'air cassé. On dit ce qui
                 manque, à côté de ce qui ne part pas. */}
             {effort === undefined && (

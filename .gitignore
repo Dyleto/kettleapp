@@ -41,3 +41,6 @@ yarn.lock
 # Temporary files
 *.tmp
 *.swp
+
+# Le banc d'essai a ses propres dépendances.
+verif/node_modules

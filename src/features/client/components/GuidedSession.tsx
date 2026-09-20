@@ -98,6 +98,16 @@ const writeSavedIndex = (sessionId: string, index: number) =>
  * chronomètre. La jauge coule sur une seconde. À l'arrêt, plus de transition —
  * la pause doit se voir tout de suite, pas glisser encore une seconde.
  */
+/**
+ * Un téléphone couché.
+ *
+ * On ne vise pas « paysage » tout court : une tablette couchée a 800 px de
+ * haut et n'a besoin de rien. C'est la hauteur qui manque, pas la largeur —
+ * 390 px sur un iPhone, dont l'habillage du mode guidé prenait 186, soit
+ * presque la moitié de l'écran pour trois barres et deux boutons.
+ */
+const PAYSAGE = '@media (orientation: landscape) and (max-height: 520px)';
+
 const Minuteur = ({
   duration,
   onComplete,
@@ -366,7 +376,18 @@ const Tour = ({
   };
 
   return (
-    <VStack flex={1} align="stretch" gap={4} px={5} py={2} overflowY="auto">
+    <VStack
+      flex={1}
+      align="stretch"
+      gap={4}
+      px={5}
+      py={2}
+      overflowY="auto"
+      // Couché, ces gouttières valent 16 px chacune sur 360 px de haut. Les
+      // cibles gardent leurs 44 px — on ne rétrécit pas ce qu'on touche en
+      // sueur —, c'est le vide qui cède.
+      css={{ [PAYSAGE]: { gap: '10px', paddingTop: 0, paddingBottom: 0 } }}
+    >
       {duree ? (
         <Minuteur
           // La clé porte la phase autant que le tour : sans elle, le décompte
@@ -1027,7 +1048,9 @@ export const GuidedSession = ({
         display="flex"
         flexDirection="column"
         alignItems="center"
-        justifyContent="center"
+        justifyContent="safe center"
+        overflowY="auto"
+        py={6}
         px={8}
         gap={4}
         textAlign="center"
@@ -1086,7 +1109,22 @@ export const GuidedSession = ({
           </Button>
         </HStack>
 
-        <VStack flex={1} justify="center" align="stretch" gap={7} px={7} pb={6}>
+        {/* `flex: 1` sans `min-height: 0` ne rétrécit jamais en dessous de
+            son contenu : sur un écran couché, le corps poussait « Commencer »
+            hors de l'écran — le bouton existait, se voyait dans l'arbre, et
+            ne se touchait pas. `safe center` centre tant qu'il y a la place
+            et repart du haut quand il n'y en a plus, au lieu de couper des
+            deux côtés. */}
+        <VStack
+          flex={1}
+          minH={0}
+          overflowY="auto"
+          justifyContent="safe center"
+          align="stretch"
+          gap={7}
+          px={7}
+          pb={6}
+        >
           <VStack align="start" gap={1.5}>
             <Text
               fontSize="xs"
@@ -1185,7 +1223,9 @@ export const GuidedSession = ({
         display="flex"
         flexDirection="column"
         alignItems="center"
-        justifyContent="center"
+        justifyContent="safe center"
+        overflowY="auto"
+        py={6}
         px={8}
         gap={6}
         textAlign="center"
@@ -1250,7 +1290,9 @@ export const GuidedSession = ({
         display="flex"
         flexDirection="column"
         alignItems="center"
-        justifyContent="center"
+        justifyContent="safe center"
+        overflowY="auto"
+        py={6}
         px={8}
         gap={6}
         textAlign="center"
@@ -1291,6 +1333,21 @@ export const GuidedSession = ({
 
   const isRest = step.type === 'rest';
 
+  // Écrit une fois, monté à deux endroits selon l'orientation — jamais les
+  // deux en même temps. Deux boutons identiques dans l'arbre diraient au
+  // lecteur d'écran qu'il y a deux sorties.
+  const boutonQuitter = (
+    <Button
+      variant="ghost"
+      size="sm"
+      minH="44px"
+      onClick={handleExitClick}
+      color={isRest ? 'bg.canvas' : 'fg.muted'}
+    >
+      Quitter
+    </Button>
+  );
+
   return overlay(
     <Box
       role="dialog"
@@ -1304,12 +1361,28 @@ export const GuidedSession = ({
       flexDirection="column"
       alignItems="center"
       justifyContent={{ base: 'stretch', md: 'center' }}
+      // Un iPhone couché fait 844 px de large : il franchit le seuil `md` et
+      // recevait la mise en page de bureau — une carte flottante de 560 px
+      // sur fond assombri, haute de 90 % d'un écran qui n'en a déjà pas. Le
+      // seuil regarde la largeur ; ici c'est la hauteur qui décide.
+      css={{
+        [PAYSAGE]: { justifyContent: 'stretch', background: 'transparent' },
+      }}
     >
       <Box
         w="full"
         maxW={{ base: 'full', md: '560px' }}
         h={{ base: 'full', md: '90vh' }}
         maxH={{ base: 'full', md: '720px' }}
+        css={{
+          [PAYSAGE]: {
+            maxWidth: '100%',
+            height: '100%',
+            maxHeight: '100%',
+            borderRadius: 0,
+            boxShadow: 'none',
+          },
+        }}
         bg={isRest ? 'session.rest' : 'bg.canvas'}
         borderRadius={{ base: 0, md: '2xl' }}
         boxShadow={{ md: '0 24px 64px rgba(0,0,0,0.5)' }}
@@ -1318,16 +1391,18 @@ export const GuidedSession = ({
         overflow="hidden"
         position="relative"
       >
-        <HStack justify="flex-end" p={4}>
-          <Button
-            variant="ghost"
-            size="sm"
-            minH="44px"
-            onClick={handleExitClick}
-            color={isRest ? 'bg.canvas' : 'fg.muted'}
-          >
-            Quitter
-          </Button>
+        {/* En portrait, « Quitter » a sa ligne : c'est la maquette validée,
+            et elle ne change pas. Couché, cette ligne coûte 76 px sur 390 —
+            un cinquième de l'écran pour un mot — alors le bouton rejoint la
+            barre d'avancement, qui a de la place à revendre en largeur.
+            Un seul des deux est monté à la fois : l'autre est retiré de
+            l'arbre, pas seulement masqué. */}
+        <HStack
+          justify="flex-end"
+          p={4}
+          css={{ [PAYSAGE]: { display: 'none' } }}
+        >
+          {boutonQuitter}
         </HStack>
 
         <HStack gap={3} px={5} pt={2} align="center">
@@ -1406,6 +1481,14 @@ export const GuidedSession = ({
           >
             {index + 1} / {steps.length}
           </Text>
+          <Box
+            display="none"
+            flexShrink={0}
+            mt={-1}
+            css={{ [PAYSAGE]: { display: 'block' } }}
+          >
+            {boutonQuitter}
+          </Box>
         </HStack>
 
         {step.type === 'block' && step.forme === 'liste' ? (
@@ -1786,7 +1869,9 @@ export const GuidedSession = ({
           </Box>
         )}
 
-        <HStack p={4} gap={3}>
+        {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
+            touche en sueur. C'est la marge qui cède, pas le bouton. */}
+        <HStack p={4} gap={3} css={{ [PAYSAGE]: { padding: '8px 12px' } }}>
           {/* Un contour, comme en a « J'ai terminé cette séance ».
               Du texte gris sans cadre, face à un « Suivant » ambre plein deux
               fois plus large, se lit « indisponible » : le contraste était
