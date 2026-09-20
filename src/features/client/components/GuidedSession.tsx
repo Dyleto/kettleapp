@@ -38,15 +38,20 @@ interface GuidedSessionProps {
   onPerformedChange?: (key: string, next: PerformedValues) => void;
 }
 
-interface CountdownProps {
+interface MinuteurProps {
   duration: number;
   /**
-   * Fourni pour le repos, absent pour l'effort : un repos qui s'achève enchaîne
-   * tout seul, un effort qui s'achève s'arrête et attend. Personne n'a envie de
+   * Fourni quand l'horloge mène — un repos imposé, un tour à cadence : elle
+   * enchaîne d'elle-même, c'est le format. Absent quand elle accompagne : un
+   * effort chronométré s'arrête et attend, parce que personne n'a envie de
    * voir la page changer sous ses yeux alors qu'il finit sa dernière rep.
    */
   onComplete?: () => void;
-  color: string;
+  couleur: string;
+  /** La piste sous la jauge — plus sombre sur un fond clair. */
+  piste?: string;
+  /** Ce qui se lit à gauche du temps : le bloc et le tour, « Repos »… */
+  titre?: React.ReactNode;
   holdLabel?: string;
   /**
    * Plus petit quand il coiffe une liste : dans un AMRAP, la pendule compte,
@@ -71,59 +76,115 @@ const writeSavedIndex = (sessionId: string, index: number) =>
   ecrireSeance(sessionId, { etape: index });
 
 /**
- * L'anneau autour du chiffre.
+ * Le temps, et la jauge qui se vide.
  *
- * Entre deux secondes, le chiffre ne bouge pas : rien ne dit alors que le
- * décompte tourne encore, et un chronomètre dont on ignore s'il tourne est
- * pire que pas de chronomètre. L'anneau se vide, et la transition d'une
- * seconde le fait couler au lieu de sauter. À l'arrêt, plus de transition —
- * la pause doit se voir immédiatement, pas glisser encore une seconde.
+ * Le décompte vivait dans un anneau. Deux choses le condamnaient. Une
+ * longueur se lit plus vite qu'un angle du coin de l'œil — et c'est
+ * exactement l'usage : un regard entre deux répétitions, le téléphone posé
+ * par terre. Et l'anneau parlait une langue que l'écran n'employait nulle
+ * part ailleurs, alors que l'avancement de la séance est déjà une barre, en
+ * haut. L'écran n'a plus qu'un vocabulaire.
+ *
+ * Ce que l'anneau faisait bien est gardé : entre deux secondes, le chiffre ne
+ * bouge pas, et un chronomètre dont on ignore s'il tourne est pire que pas de
+ * chronomètre. La jauge coule sur une seconde. À l'arrêt, plus de transition —
+ * la pause doit se voir tout de suite, pas glisser encore une seconde.
  */
-const RAYON = 92;
-const CIRCONFERENCE = 2 * Math.PI * RAYON;
+const Minuteur = ({
+  duration,
+  onComplete,
+  couleur,
+  piste = 'whiteAlpha.200',
+  titre,
+  holdLabel,
+  compact = false,
+}: MinuteurProps) => {
+  const { remaining, isRunning, pause, resume } = useCountdown(duration, {
+    onComplete,
+  });
+  const isDone = remaining === 0;
 
-const Anneau = ({
-  part,
-  anime,
-}: {
-  /** Ce qu'il reste, de 1 à 0. */
-  part: number;
-  anime: boolean;
-}) => (
-  <Box
-    as="svg"
-    // @ts-expect-error — viewBox n'est pas typé sur le Box polymorphe.
-    viewBox="0 0 200 200"
-    position="absolute"
-    inset={0}
-    w="100%"
-    h="100%"
-    aria-hidden="true"
-    style={{ transform: 'rotate(-90deg)' }}
-  >
-    <circle
-      cx="100"
-      cy="100"
-      r={RAYON}
-      fill="none"
-      stroke="currentColor"
-      strokeOpacity={0.15}
-      strokeWidth="4"
-    />
-    <circle
-      cx="100"
-      cy="100"
-      r={RAYON}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="4"
-      strokeLinecap="round"
-      strokeDasharray={CIRCONFERENCE}
-      strokeDashoffset={CIRCONFERENCE * (1 - Math.max(0, Math.min(1, part)))}
-      style={{ transition: anime ? 'stroke-dashoffset 1s linear' : 'none' }}
-    />
-  </Box>
-);
+  useEffect(() => {
+    if (remaining > 0 && remaining <= 3) {
+      navigator.vibrate?.(150);
+    }
+  }, [remaining]);
+
+  // Le décompte qui ne rend pas la main tout seul se signale une fois,
+  // franchement : personne ne regarde l'écran à ce moment-là.
+  useEffect(() => {
+    if (isDone && !onComplete) {
+      navigator.vibrate?.([120, 80, 120]);
+    }
+  }, [isDone, onComplete]);
+
+  const lu = formatCountdown(remaining);
+  const part =
+    duration > 0 ? Math.max(0, Math.min(1, remaining / duration)) : 0;
+
+  return (
+    <Box
+      as="button"
+      w="full"
+      textAlign="left"
+      onClick={isDone ? undefined : () => (isRunning ? pause() : resume())}
+      cursor={isDone ? 'default' : 'pointer'}
+      // Le temps restant fait partie du nom : sans lui, qui n'a pas l'écran
+      // sous les yeux peut mettre en pause sans jamais savoir où il en est.
+      aria-label={
+        isDone
+          ? 'Temps écoulé'
+          : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${lu} restant`
+      }
+    >
+      <HStack justify="space-between" align="flex-end" gap={3}>
+        <Box minW={0}>{titre}</Box>
+        <Text
+          fontSize={compact ? '40px' : '72px'}
+          fontWeight="800"
+          lineHeight="0.85"
+          letterSpacing={compact ? '-1px' : '-3px'}
+          fontVariantNumeric="tabular-nums"
+          color={couleur}
+          opacity={isRunning || isDone ? 1 : 0.5}
+          flexShrink={0}
+        >
+          {lu}
+        </Text>
+      </HStack>
+
+      <Box
+        mt={compact ? 2 : 3}
+        h={compact ? '6px' : '10px'}
+        borderRadius="full"
+        bg={piste}
+        overflow="hidden"
+      >
+        <Box
+          h="100%"
+          borderRadius="full"
+          bg={couleur}
+          style={{
+            width: `${part * 100}%`,
+            transition: isRunning ? 'width 1s linear' : 'none',
+          }}
+        />
+      </Box>
+
+      {isDone && holdLabel ? (
+        <Text fontSize="sm" color={couleur} opacity={0.75} mt={2}>
+          {holdLabel}
+        </Text>
+      ) : (
+        !isRunning && (
+          <Text fontSize="xs" color={couleur} opacity={0.75} mt={2}>
+            En pause — toucher pour reprendre
+          </Text>
+        )
+      )}
+    </Box>
+  );
+};
 
 /**
  * Les étapes regroupées par bloc, dans l'ordre.
@@ -173,89 +234,6 @@ const decouperEnBlocs = (steps: GuidedStep[]) => {
   return blocs;
 };
 
-const Countdown = ({
-  duration,
-  onComplete,
-  color,
-  holdLabel,
-  compact = false,
-}: CountdownProps) => {
-  const { remaining, isRunning, pause, resume } = useCountdown(duration, {
-    onComplete,
-  });
-  const isDone = remaining === 0;
-
-  useEffect(() => {
-    if (remaining > 0 && remaining <= 3) {
-      navigator.vibrate?.(150);
-    }
-  }, [remaining]);
-
-  // Le décompte d'effort ne rend pas la main tout seul : on le signale une
-  // fois, franchement, parce que personne ne regarde l'écran à ce moment-là.
-  useEffect(() => {
-    if (isDone && !onComplete) {
-      navigator.vibrate?.([120, 80, 120]);
-    }
-  }, [isDone, onComplete]);
-
-  const lu = formatCountdown(remaining);
-
-  return (
-    <Box
-      as="button"
-      onClick={isDone ? undefined : () => (isRunning ? pause() : resume())}
-      cursor={isDone ? 'default' : 'pointer'}
-      // Le temps restant fait partie du nom : sans lui, qui n'a pas l'écran
-      // sous les yeux peut mettre en pause sans jamais savoir où il en est.
-      aria-label={
-        isDone
-          ? 'Temps écoulé'
-          : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${lu} restant`
-      }
-    >
-      <Box
-        position="relative"
-        w={compact ? '132px' : '200px'}
-        h={compact ? '132px' : '200px'}
-        maxW="100%"
-        mx="auto"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color={color}
-      >
-        <Anneau
-          part={duration > 0 ? remaining / duration : 0}
-          anime={isRunning}
-        />
-        <Text
-          fontSize={compact ? '40px' : '72px'}
-          fontWeight="800"
-          fontFamily="mono"
-          lineHeight="1"
-          color={color}
-          opacity={isRunning || isDone ? 1 : 0.5}
-          position="relative"
-        >
-          {lu}
-        </Text>
-      </Box>
-      {isDone && holdLabel ? (
-        <Text fontSize="sm" color={color} opacity={0.75} mt={2}>
-          {holdLabel}
-        </Text>
-      ) : (
-        !isRunning && (
-          <Text fontSize="xs" color={color} opacity={0.75} mt={1}>
-            En pause — toucher pour reprendre
-          </Text>
-        )
-      )}
-    </Box>
-  );
-};
-
 /**
  * Un décompte proposé plutôt qu'imposé.
  *
@@ -283,12 +261,12 @@ const MinuteurALaDemande = ({
   if (enCours)
     return (
       <Box pl={4} py={1}>
-        <Countdown
+        <Minuteur
           duration={duration}
-          color={couleur}
+          couleur={couleur}
           onComplete={() => {
             // Personne ne regarde l'écran à ce moment-là : on le dit au
-            // poignet. `Countdown` ne le fait lui-même que sans `onComplete`.
+            // poignet. `Minuteur` ne le fait lui-même que sans `onComplete`.
             navigator.vibrate?.([120, 80, 120]);
             setEnCours(false);
           }}
@@ -365,36 +343,51 @@ const Tour = ({
 
   return (
     <VStack flex={1} align="stretch" gap={4} px={5} py={2} overflowY="auto">
-      <VStack gap={0.5}>
-        <Text
-          fontSize="xs"
-          letterSpacing="2px"
-          textTransform="uppercase"
-          fontWeight="800"
-          color={enRepos ? 'session.rest' : 'session.work'}
-        >
-          {enRepos ? 'Repos' : step.blockLabel}
-        </Text>
-        {/* Le repère qui manquait. Sans lui, les dix tours d'un EMOM
-            s'affichaient à l'identique et rien ne disait lequel on vivait. */}
-        <Text fontSize="lg" fontWeight="800" fontFamily="mono">
-          Tour {step.round}&nbsp;/&nbsp;{step.rounds}
-        </Text>
-      </VStack>
-
       {duree ? (
-        <Countdown
+        <Minuteur
           // La clé porte la phase autant que le tour : sans elle, le décompte
           // du repos reprendrait là où celui du travail s'est arrêté.
           key={`${step.round}-${phase}`}
           duration={duree}
-          color={enRepos ? 'session.rest' : 'fg'}
+          couleur={enRepos ? 'session.rest' : 'fg'}
           onComplete={finDePhase}
-          // Pleine taille, et pas « compacte » comme au-dessus d'une liste
-          // d'AMRAP : ici l'horloge n'accompagne pas la liste, elle est ce
-          // qu'on est venu regarder. Il restait 350 px vides sous la liste.
+          titre={
+            <VStack align="start" gap={0.5}>
+              <Text
+                fontSize="xs"
+                letterSpacing="2px"
+                textTransform="uppercase"
+                fontWeight="800"
+                color={enRepos ? 'session.rest' : 'session.work'}
+              >
+                {enRepos ? 'Repos' : step.blockLabel}
+              </Text>
+              {/* Le repère qui manquait. Sans lui, les dix tours d'un EMOM
+              s'affichaient à l'identique et rien ne disait lequel on vivait. */}
+              <Text fontSize="lg" fontWeight="800" lineHeight="1.1">
+                Tour {step.round}&nbsp;/&nbsp;{step.rounds}
+              </Text>
+            </VStack>
+          }
         />
-      ) : null}
+      ) : (
+        <VStack align="start" gap={0.5}>
+          <Text
+            fontSize="xs"
+            letterSpacing="2px"
+            textTransform="uppercase"
+            fontWeight="800"
+            color={enRepos ? 'session.rest' : 'session.work'}
+          >
+            {enRepos ? 'Repos' : step.blockLabel}
+          </Text>
+          {/* Le repère qui manquait. Sans lui, les dix tours d'un EMOM
+              s'affichaient à l'identique et rien ne disait lequel on vivait. */}
+          <Text fontSize="lg" fontWeight="800" lineHeight="1.1">
+            Tour {step.round}&nbsp;/&nbsp;{step.rounds}
+          </Text>
+        </VStack>
+      )}
 
       {/* Ce qu'il y a à faire dans ce tour — tout, pas un mouvement à la
           fois. En repos imposé, la liste reste : c'est ce qu'on relit pour
@@ -866,11 +859,25 @@ export const GuidedSession = ({
                 dit quand s'arrêter. Plus petite qu'en plein écran — on est
                 venu lire la liste, pas la pendule. */}
             {blockHasClock(step.block.type) && step.block.durationMinutes ? (
-              <Countdown
+              <Minuteur
                 key={index}
                 duration={step.block.durationMinutes * 60}
-                color="fg"
+                couleur="fg"
                 holdLabel="Temps écoulé"
+                // Pas le nom du bloc : la carte juste dessous le porte déjà,
+                // et l'écran le disait deux fois. Ce qui manquait, c'est ce
+                // que l'horloge mesure — un AMRAP s'arrête à zéro.
+                titre={
+                  <Text
+                    fontSize="xs"
+                    letterSpacing="2px"
+                    textTransform="uppercase"
+                    fontWeight="800"
+                    color="fg.muted"
+                  >
+                    Temps restant
+                  </Text>
+                }
                 compact
               />
             ) : null}
@@ -930,20 +937,25 @@ export const GuidedSession = ({
             px={8}
             textAlign="center"
           >
-            <Text
-              fontSize="xs"
-              letterSpacing="2px"
-              textTransform="uppercase"
-              fontWeight="800"
-              color="bg.canvas"
-            >
-              Repos
-            </Text>
-            <Countdown
+            <Minuteur
               key={index}
               duration={step.duration}
-              color="bg.canvas"
+              couleur="bg.canvas"
+              // Le fond est ici la couleur du repos : une piste claire y
+              // disparaîtrait. C'est le seul écran où la jauge s'inverse.
+              piste="blackAlpha.400"
               onComplete={goNext}
+              titre={
+                <Text
+                  fontSize="xs"
+                  letterSpacing="2px"
+                  textTransform="uppercase"
+                  fontWeight="800"
+                  color="bg.canvas"
+                >
+                  Repos
+                </Text>
+              }
             />
             {step.nextExerciseName && (
               <Text fontSize="sm" color="bg.canvas" opacity={0.75}>
