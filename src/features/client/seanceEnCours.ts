@@ -21,6 +21,14 @@ interface SeanceEnCours {
   etape: number;
   /** Ce qui a été noté, par `performedKey(blockOrder, exerciseOrder)`. */
   performed: Record<string, PerformedValues>;
+  /**
+   * Les efforts déjà faits, par leur clé.
+   *
+   * Distinct de la position : on peut revenir sur un bloc sans défaire ce
+   * qu'on y a fait, et une série cochée le reste même si l'on remonte lire
+   * la consigne du mouvement d'avant.
+   */
+  faits: string[];
   /** Quand, en millisecondes. Sert à savoir si ça concerne encore aujourd'hui. */
   majLe: number;
 }
@@ -41,6 +49,7 @@ const vide = (): SeanceEnCours => ({
   version: 1,
   etape: 0,
   performed: {},
+  faits: [],
   majLe: Date.now(),
 });
 
@@ -59,6 +68,7 @@ export const lireSeance = (sessionId: string): SeanceEnCours | null => {
       version: 1,
       etape: Number.isInteger(lu.etape) && lu.etape! > 0 ? lu.etape! : 0,
       performed: lu.performed ?? {},
+      faits: Array.isArray(lu.faits) ? lu.faits : [],
       majLe: lu.majLe,
     };
   } catch {

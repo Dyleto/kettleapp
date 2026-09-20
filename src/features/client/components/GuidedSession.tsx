@@ -1,8 +1,14 @@
-import { BlockExercise, PerformedValues, Session } from '@/types';
-import { buildGuidedSteps, doseDuTour, type GuidedStep } from '../guidedSteps';
+import { BlockExercise, PerformedValues, Session, SessionBlock } from '@/types';
+import {
+  buildGuidedSteps,
+  doseDuTour,
+  type Effort,
+  type GuidedStep,
+} from '../guidedSteps';
 import { useCountdown } from '../useCountdown';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import {
+  blockDefinesOwnMetrics,
   blockHasClock,
   prescribedSetLabels,
   restBetweenSetsOf,
@@ -13,14 +19,14 @@ import {
   LastPerformance,
   performedKey,
 } from '../lastPerformance';
-import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
+import { Box, HStack, Button, Input, VStack, Text } from '@chakra-ui/react';
 import VideoPlayer from '@/components/VideoPlayer';
 import { hitArea } from '@/components/hitArea';
 import { formatCountdown } from '@/utils/formatters';
 import { formatDuration } from '@/utils/duration';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LuInfo, LuTimer, LuX } from 'react-icons/lu';
+import { LuCheck, LuInfo, LuTimer, LuX } from 'react-icons/lu';
 import { compterNotes, ecrireSeance, lireSeance } from '../seanceEnCours';
 
 interface GuidedSessionProps {
@@ -462,6 +468,282 @@ const Tour = ({
   );
 };
 
+/**
+ * Un bloc qu'on coche, effort par effort.
+ *
+ * C'était la moitié cassée du mode guidé : la carte de prescription, avec des
+ * champs de saisie collés dessus. Rien ne s'y cochait, rien n'y avançait.
+ * Mesuré sur une pyramide à sept paliers : une ligne de 14 px et 511 px de
+ * noir. Une feuille de papier faisait mieux — on pouvait y barrer.
+ *
+ * Un seul effort est « en cours ». C'est le seul écrit en grand, et le seul
+ * qui porte un champ : la hiérarchie naît de l'état, pas d'un choix
+ * typographique arbitraire, et la liste redevient lisible parce qu'un
+ * formulaire ne la coupe plus à chaque ligne.
+ */
+const BlocListe = ({
+  bloc,
+  efforts,
+  faits,
+  courant,
+  performed,
+  onPerformedChange,
+  lastPerformance,
+  onOuvrirDetail,
+}: {
+  bloc: SessionBlock;
+  efforts: Effort[];
+  faits: Set<string>;
+  courant: Effort | undefined;
+  performed?: Record<string, PerformedValues>;
+  onPerformedChange?: (key: string, next: PerformedValues) => void;
+  lastPerformance?: Map<string, LastPerformance>;
+  onOuvrirDetail: (ex: BlockExercise) => void;
+}) => {
+  /**
+   * Le rang de l'effort dans son exercice, quand il y en a plusieurs.
+   *
+   * Une pyramide ne fait pas des séries : elle monte et redescend des
+   * paliers, et c'est le mot que le coach emploie dans son atelier.
+   */
+  const rangDe = (e: Effort) =>
+    e.total > 1
+      ? `${blockDefinesOwnMetrics(bloc.type) ? 'palier' : 'série'} ${e.rang} / ${e.total}`
+      : '';
+
+  /** Ce qui a été noté sur cet effort précisément. */
+  const valeurDe = (e: Effort) =>
+    performed?.[performedKey(e.blockOrder, e.exerciseOrder)]?.sets?.[
+      e.rang - 1
+    ];
+
+  const ecrire = (e: Effort, champ: 'weight' | 'reps', brut: string) => {
+    if (!onPerformedChange) return;
+    const cle = performedKey(e.blockOrder, e.exerciseOrder);
+    const sets = [...(performed?.[cle]?.sets ?? [])];
+    while (sets.length < e.rang) sets.push({});
+    const nombre =
+      brut.trim() === '' ? undefined : Number(brut.replace(',', '.'));
+    sets[e.rang - 1] = {
+      ...sets[e.rang - 1],
+      [champ]: Number.isFinite(nombre) ? nombre : undefined,
+    };
+    onPerformedChange(cle, { sets });
+  };
+
+  return (
+    <VStack align="stretch" gap={1} flex={1} px={5} py={2} overflowY="auto">
+      {efforts.map((e) => {
+        const fait = faits.has(e.cle);
+        const enCours = courant?.cle === e.cle;
+        const valeur = valeurDe(e);
+        const rang = rangDe(e);
+
+        if (enCours) {
+          const derniere = formatLastPerformance(
+            lastPerformance?.get(e.exercice.exercise._id)
+          );
+          const aDuDetail =
+            !!e.exercice.note?.trim() ||
+            !!e.exercice.exercise.description?.trim() ||
+            !!e.exercice.exercise.videoUrl?.trim();
+          return (
+            <Box
+              key={e.cle}
+              bg="bg.card"
+              borderWidth="1px"
+              borderColor="app.primary"
+              borderRadius="xl"
+              p={4}
+              my={1}
+            >
+              <VStack align="stretch" gap={3}>
+                <HStack justify="space-between" align="baseline" gap={3}>
+                  {aDuDetail ? (
+                    <Box
+                      as="button"
+                      textAlign="left"
+                      minW={0}
+                      aria-label={`Voir la consigne — ${e.nom}`}
+                      onClick={() => onOuvrirDetail(e.exercice)}
+                      css={hitArea(44)}
+                    >
+                      <HStack gap={1.5} align="center">
+                        <Text fontSize="xl" fontWeight="800">
+                          {e.nom}
+                        </Text>
+                        <Box color="app.primary" flexShrink={0}>
+                          <LuInfo size={15} />
+                        </Box>
+                      </HStack>
+                    </Box>
+                  ) : (
+                    <Text fontSize="xl" fontWeight="800" minW={0}>
+                      {e.nom}
+                    </Text>
+                  )}
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="800"
+                    fontFamily="mono"
+                    flexShrink={0}
+                  >
+                    {e.dose || '\u2014'}
+                  </Text>
+                </HStack>
+
+                {(rang || onPerformedChange) && (
+                  <HStack justify="space-between" align="center" gap={3}>
+                    <Text fontSize="sm" color="fg.muted">
+                      {rang}
+                    </Text>
+                    {onPerformedChange && (
+                      <HStack gap={2}>
+                        <Text fontSize="sm" color="fg.muted">
+                          Fait à
+                        </Text>
+                        <Input
+                          aria-label={`Poids utilisé, en kilos — ${e.nom} ${rang}`}
+                          inputMode="decimal"
+                          value={valeur?.weight ?? ''}
+                          onChange={(ev) =>
+                            ecrire(e, 'weight', ev.target.value)
+                          }
+                          w="76px"
+                          minH="44px"
+                          textAlign="center"
+                          fontFamily="mono"
+                          fontWeight="bold"
+                          placeholder="—"
+                        />
+                        <Text fontSize="sm" color="fg.muted">
+                          kg
+                        </Text>
+                      </HStack>
+                    )}
+                  </HStack>
+                )}
+
+                {/* Un effort dont la dose est une durée a besoin d'être
+                    chronométré. Le repos automatique couvre le repos, pas le
+                    travail : en remplaçant la carte de prescription par les
+                    efforts, j'avais retiré le minuteur des « 2 min de corde
+                    à sauter » sans m'en apercevoir. Proposé, jamais imposé —
+                    on le lance quand on y est. */}
+                {e.exercice.duration ? (
+                  <Box ml={-4}>
+                    <MinuteurALaDemande
+                      duration={e.exercice.duration}
+                      libelle={formatDuration(e.exercice.duration)}
+                      couleur="app.primary"
+                    />
+                  </Box>
+                ) : null}
+
+                <HStack justify="space-between" align="center" gap={3}>
+                  {derniere ? (
+                    <Text fontSize="xs" color="fg.muted">
+                      la dernière fois&nbsp;: {derniere}
+                    </Text>
+                  ) : (
+                    <Box />
+                  )}
+                  {/* Ce que déclenche « Fait » : sans cette ligne, le repos
+                      plein écran arrive par surprise. */}
+                  {e.reposApres && (
+                    <HStack gap={1.5} color="session.rest" flexShrink={0}>
+                      <LuTimer size={13} />
+                      <Text fontSize="xs" fontWeight="bold">
+                        puis {formatDuration(e.reposApres)} de repos
+                      </Text>
+                    </HStack>
+                  )}
+                </HStack>
+              </VStack>
+            </Box>
+          );
+        }
+
+        return (
+          <HStack
+            key={e.cle}
+            gap={3}
+            minH="44px"
+            px={4}
+            py={2}
+            opacity={fait ? 1 : 0.75}
+          >
+            <Box
+              color={fait ? 'session.rest' : 'whiteAlpha.400'}
+              flexShrink={0}
+            >
+              {fait ? (
+                <LuCheck size={16} strokeWidth={3} />
+              ) : (
+                <Box
+                  w="16px"
+                  h="16px"
+                  borderRadius="full"
+                  borderWidth="1.5px"
+                  borderColor="whiteAlpha.400"
+                />
+              )}
+            </Box>
+            {/* Le nom peut se tronquer, le rang non : c'est lui qui dit où
+                l'on en est, et « Fentes marchées · série… » n'apprend rien. */}
+            <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1}>
+              {e.nom}
+            </Text>
+            {rang && (
+              <Text fontSize="sm" color="fg.muted" opacity={0.7} flexShrink={0}>
+                · {rang}
+              </Text>
+            )}
+            <Box flex={1} />
+            {/* Sur ce qui reste à faire, le repos donne le rythme du bloc :
+                on voit que les squats sont à 1 min et les fentes à 45 s sans
+                avoir à y arriver. Sur ce qui est fait, il n'apprend plus rien
+                — c'est la charge qui prend sa place. */}
+            {fait ? (
+              <Text
+                fontSize="sm"
+                color="fg.muted"
+                fontFamily="mono"
+                flexShrink={0}
+              >
+                {valeur?.weight != null ? `${valeur.weight} kg` : e.dose}
+              </Text>
+            ) : (
+              <>
+                {e.reposApres && (
+                  <Text
+                    fontSize="2xs"
+                    color="fg.muted"
+                    opacity={0.7}
+                    flexShrink={0}
+                  >
+                    {formatDuration(e.reposApres)}
+                  </Text>
+                )}
+                <Text
+                  fontSize="sm"
+                  color="fg.muted"
+                  fontFamily="mono"
+                  flexShrink={0}
+                  minW="62px"
+                  textAlign="right"
+                >
+                  {e.dose}
+                </Text>
+              </>
+            )}
+          </HStack>
+        );
+      })}
+    </VStack>
+  );
+};
+
 export const GuidedSession = ({
   session,
   onExit,
@@ -494,8 +776,48 @@ export const GuidedSession = ({
     compterNotes(lireSeance(session._id)?.performed ?? {})
   );
 
+  /**
+   * Les efforts déjà faits, indépendamment de la position.
+   *
+   * Remonter lire la consigne du mouvement précédent ne doit rien défaire :
+   * où l'on est et ce qu'on a fait sont deux choses, et c'est faute de les
+   * distinguer que rien ne se cochait.
+   */
+  const [faits, setFaits] = useState<string[]>(
+    () => lireSeance(session._id)?.faits ?? []
+  );
+  const faitsSet = useMemo(() => new Set(faits), [faits]);
+  // Le repos déclenché par « Fait » : il n'a pas d'étape à lui, il appartient
+  // à l'effort qui vient de finir.
+  const [repos, setRepos] = useState<{ duree: number; ensuite: string } | null>(
+    null
+  );
+
   const step = steps[index];
   const isLast = index === steps.length - 1;
+
+  // Le premier qui n'est pas fait : on ne force pas l'ordre, on le propose.
+  const efforts = step?.type === 'block' ? step.efforts : [];
+  const courant = efforts.find((e) => !faitsSet.has(e.cle));
+  const blocFini = efforts.length > 0 && !courant;
+  const faitsDuBloc = efforts.filter((e) => faitsSet.has(e.cle)).length;
+
+  const marquerFait = () => {
+    if (!courant) return;
+    const suivant = [...faits, courant.cle];
+    setFaits(suivant);
+    ecrireSeance(session._id, { faits: suivant });
+    navigator.vibrate?.(40);
+    // Le repos prescrit part tout seul : c'est le geste que le client ferait
+    // de toute façon, et l'oublier coûte la série suivante.
+    if (courant.reposApres) {
+      const apres = efforts[efforts.indexOf(courant) + 1];
+      setRepos({
+        duree: courant.reposApres,
+        ensuite: apres ? `${apres.nom} · ${apres.dose}` : '',
+      });
+    }
+  };
 
   const goTo = (next: number) => {
     setIndex(next);
@@ -836,7 +1158,61 @@ export const GuidedSession = ({
           </Text>
         </HStack>
 
-        {step.type === 'block' ? (
+        {step.type === 'block' && step.forme === 'liste' ? (
+          <>
+            <VStack align="stretch" gap={0.5} px={5} pt={4} pb={1}>
+              <Text
+                fontSize="xs"
+                letterSpacing="2px"
+                textTransform="uppercase"
+                fontWeight="800"
+                color="session.work"
+              >
+                {step.blockLabel}
+                {step.block.label ? ` · ${step.block.label}` : ''}
+              </Text>
+              <HStack justify="space-between" align="center" gap={3}>
+                <Text fontSize="sm" color="fg.muted">
+                  {faitsDuBloc} sur {step.efforts.length} faits dans ce bloc
+                </Text>
+                {/* Le passe-droit.
+                    « Suivant » le portait sans le dire, et le remplaçer par
+                    « Fait » l'a supprimé sans que je le voie : on se retrouvait
+                    coincé sur un échauffement tant qu'on n'avait pas coché ses
+                    deux lignes. Un client saute un mouvement, change d'avis,
+                    arrive en retard — il doit pouvoir avancer.
+
+                    Discret et à l'écart du geste principal : c'est une sortie
+                    de secours, pas une invitation. */}
+                <Box
+                  as="button"
+                  onClick={goNext}
+                  color="fg.muted"
+                  fontSize="sm"
+                  flexShrink={0}
+                  css={hitArea(44)}
+                  _hover={{ color: 'fg' }}
+                >
+                  {/* Sur le dernier bloc, « passer » ne veut rien dire : il n'y
+                      a rien après. Mais la sortie doit exister quand même — je
+                      l'avais cachée là, et il fallait cocher les sept paliers
+                      d'une pyramide pour avoir le droit de terminer. */}
+                  {isLast ? 'Terminer la séance' : 'Passer ce bloc'}
+                </Box>
+              </HStack>
+            </VStack>
+            <BlocListe
+              bloc={step.block}
+              efforts={step.efforts}
+              faits={faitsSet}
+              courant={courant}
+              performed={performed}
+              onPerformedChange={onPerformedChange}
+              lastPerformance={lastPerformance}
+              onOuvrirDetail={setDetail}
+            />
+          </>
+        ) : step.type === 'block' ? (
           /*
            * Un bloc entier, lu d'un coup.
            *
@@ -965,6 +1341,59 @@ export const GuidedSession = ({
           </VStack>
         )}
 
+        {/* Le repos que « Fait » vient de lancer.
+            Il se superpose au bloc plutôt que d'être une étape à lui : la
+            liste reste dessous, intacte, et on la retrouve telle quelle —
+            avec un effort coché de plus. */}
+        {repos && (
+          <Box
+            position="absolute"
+            inset={0}
+            bg="session.rest"
+            zIndex={2}
+            display="flex"
+            flexDirection="column"
+            alignItems="stretch"
+            justifyContent="center"
+            px={6}
+            gap={6}
+          >
+            <Minuteur
+              key={`repos-${faits.length}`}
+              duration={repos.duree}
+              couleur="bg.canvas"
+              piste="blackAlpha.400"
+              onComplete={() => setRepos(null)}
+              titre={
+                <Text
+                  fontSize="xs"
+                  letterSpacing="2px"
+                  textTransform="uppercase"
+                  fontWeight="800"
+                  color="bg.canvas"
+                >
+                  Repos
+                </Text>
+              }
+            />
+            {repos.ensuite && (
+              <Text fontSize="sm" color="bg.canvas" opacity={0.8}>
+                Ensuite&nbsp;: {repos.ensuite}
+              </Text>
+            )}
+            <Button
+              alignSelf="stretch"
+              minH="52px"
+              bg="bg.canvas"
+              color="fg"
+              _hover={{ bg: 'bg.canvas' }}
+              onClick={() => setRepos(null)}
+            >
+              Passer le repos
+            </Button>
+          </Box>
+        )}
+
         {detail && (
           <Box
             position="absolute"
@@ -1066,15 +1495,27 @@ export const GuidedSession = ({
           >
             Précédent
           </Button>
+          {/* Un seul bouton principal, toujours à la même place, et c'est la
+              forme du bloc qui dit ce qu'il fait : « Fait » tant qu'il reste
+              un effort à cocher, puis on passe. Le client n'a jamais à choisir
+              où appuyer. */}
           <Button
             flex={1}
             minH="52px"
             bg={isRest ? 'bg.canvas' : 'app.primary'}
             color={isRest ? 'fg' : 'bg.canvas'}
             _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
-            onClick={goNext}
+            onClick={courant ? marquerFait : goNext}
           >
-            {isLast ? 'Terminer' : step.type === 'rest' ? 'Passer' : 'Suivant'}
+            {courant
+              ? 'Fait'
+              : isLast
+                ? 'Terminer'
+                : blocFini
+                  ? 'Bloc suivant'
+                  : step.type === 'rest'
+                    ? 'Passer'
+                    : 'Suivant'}
           </Button>
         </HStack>
       </Box>

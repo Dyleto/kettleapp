@@ -2,8 +2,56 @@ import { Session, SessionBlock, BlockExercise, BlockType } from '@/types';
 import {
   getBlockLabel,
   blockSupportsRepsOnly,
+  blockDefinesOwnMetrics,
+  prescribedSetLabels,
+  restBetweenSetsOf,
 } from '@/features/program/constants';
 import { formatDuration } from '@/utils/formatters';
+
+/**
+ * Un effort : une chose qu'on fait, et qui peut être faite.
+ *
+ * Le mode guidé n'avait qu'un modèle de « où est le curseur » — un index
+ * qui avance dans une liste d'écrans. C'est le modèle d'un diaporama. Un
+ * diaporama avance ; un carnet d'entraînement enregistre. D'où tous les
+ * symptômes : rien ne se cochait, l'avancement comptait des pages, la reprise
+ * parlait en « étape 5 sur 12 », et le bilan s'ouvrait sur « renseigne ce
+ * dont tu te souviens » — l'aveu que l'application n'avait rien retenu.
+ *
+ * L'effort est l'unité qui manquait : une série, un palier, un mouvement d'un
+ * chipper. Le travail du client est de les faire passer de « à faire » à
+ * « fait », et c'est le même geste partout.
+ */
+export interface Effort {
+  /** Identité stable : c'est elle qui porte l'état, et qui survit au rechargement. */
+  cle: string;
+  blockOrder: number;
+  exerciseOrder: number;
+  /** 1-indexé, tel qu'on le dit : « série 2 / 4 », « palier 3 ». */
+  rang: number;
+  /** Combien cet exercice en porte — le « / 4 ». */
+  total: number;
+  nom: string;
+  /** Ce qu'il y a à faire : « 10 reps », ou « 8 reps » sur un palier. */
+  dose: string;
+  /** Le repos prescrit après cet effort, s'il y en a un. */
+  reposApres?: number;
+  /** L'exercice d'où il vient — pour sa consigne et sa vidéo. */
+  exercice: BlockExercise;
+}
+
+/**
+ * Trois formes, et le bloc décide laquelle.
+ *
+ *   cadence — EMOM, Tabata, On/Off : l'horloge mène le tour, elle enchaîne.
+ *   liste   — classique, pyramide, chipper, échauffement : on coche.
+ *   boucle  — AMRAP : on ne coche pas une boucle, on compte ses tours.
+ *
+ * La forme décide aussi du bouton principal, toujours à la même place :
+ * l'horloge le presse pour la cadence, « Fait » pour la liste, « +1 tour »
+ * pour la boucle.
+ */
+export type FormeDeBloc = 'cadence' | 'liste' | 'boucle';
 
 export type GuidedStep =
   | {
@@ -59,6 +107,10 @@ export type GuidedStep =
       type: 'block';
       blockLabel: string;
       block: SessionBlock;
+      /** `liste` on coche, `boucle` on compte. Jamais `cadence` ici. */
+      forme: Exclude<FormeDeBloc, 'cadence'>;
+      /** Vide sur une boucle : un AMRAP ne se coche pas, il se compte. */
+      efforts: Effort[];
     }
   | {
       type: 'rest';
@@ -109,6 +161,43 @@ export const doseDuTour = (block: SessionBlock, ex: BlockExercise): string => {
   return '';
 };
 
+/**
+ * Les efforts d'un bloc-liste, dans l'ordre où on les fait.
+ *
+ * La décomposition existait déjà — `prescribedSetLabels` la donne, et c'est
+ * elle qui découpe la saisie du bilan depuis toujours. Elle ne servait
+ * simplement pas à guider : on la montrait, on ne la parcourait pas.
+ */
+export const effortsDuBloc = (block: SessionBlock): Effort[] => {
+  const efforts: Effort[] = [];
+  sortByOrder(block.exercises).forEach((ex) => {
+    const paliers = prescribedSetLabels(block, ex);
+    const propre = doseDuTour(block, ex);
+    // Une pyramide prescrit un repos entre ses paliers, un bloc à séries entre
+    // ses séries : c'est le même moment, sous deux noms.
+    const repos = blockDefinesOwnMetrics(block.type)
+      ? block.restBetweenRounds
+      : restBetweenSetsOf(block, ex);
+    paliers.forEach((libelle, i) => {
+      efforts.push({
+        cle: `${block.order}:${ex.order}:${i + 1}`,
+        blockOrder: block.order,
+        exerciseOrder: ex.order,
+        rang: i + 1,
+        total: paliers.length,
+        nom: ex.exercise.name,
+        // Le palier porte sa propre dose ; ailleurs c'est celle de l'exercice.
+        dose: libelle || propre,
+        // Pas de repos après le dernier : c'est l'exercice suivant qui vient,
+        // et le coach n'a rien prescrit pour cet intervalle-là.
+        reposApres: i < paliers.length - 1 ? repos : undefined,
+        exercice: ex,
+      });
+    });
+  });
+  return efforts;
+};
+
 export function buildGuidedSteps(session: Session): GuidedStep[] {
   const steps: GuidedStep[] = [];
   const sortedBlocks = sortByOrder(session.blocks);
@@ -149,7 +238,20 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
             : null,
       }));
     } else {
-      blockSteps = [{ type: 'block', blockLabel, block }];
+      // Un AMRAP ne se coche pas : on boucle la liste jusqu'à la fin du
+      // temps, et ce qui compte est le nombre de tours. Tout le reste —
+      // classique, pyramide, chipper, échauffement — est une suite
+      // d'efforts qu'on fait un par un.
+      const forme = block.type === 'amrap' ? 'boucle' : 'liste';
+      blockSteps = [
+        {
+          type: 'block',
+          blockLabel,
+          block,
+          forme,
+          efforts: forme === 'liste' ? effortsDuBloc(block) : [],
+        },
+      ];
     }
 
     steps.push(...blockSteps);
