@@ -12,6 +12,20 @@ import { useAuth } from '@/contexts/useAuth';
 interface CompleteSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /**
+   * Le constat qui précède la question.
+   *
+   * Absent quand la séance n'a pas été menée en mode guidé — il n'y a alors
+   * rien à constater, et un récap vide vaudrait moins que pas de récap.
+   */
+  recap?: React.ReactNode;
+  /**
+   * Vrai quand le client a noté ses charges pendant la séance.
+   *
+   * On ne lui a alors pas reposé la question à la fin — et un écran qui
+   * saute sans rien dire laisse croire qu'on a perdu la saisie.
+   */
+  chargesDejaNotees?: boolean;
   onSubmit: (
     feedback: SessionFeedback,
     notes: string,
@@ -25,6 +39,8 @@ const toDateInputValue = (d: Date) => d.toISOString().slice(0, 10);
 export const CompleteSessionModal = ({
   isOpen,
   onClose,
+  recap,
+  chargesDejaNotees,
   onSubmit,
   isLoading,
 }: CompleteSessionModalProps) => {
@@ -64,19 +80,30 @@ export const CompleteSessionModal = ({
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && handleClose()}>
       <Dialog.Backdrop />
       <Dialog.Positioner>
+        {/* Le constat, l'échelle, les étiquettes et le commentaire dans une
+            même boîte : sur un petit écran elle dépasse, et c'est « Valider »
+            qu'on perd en bas. Le corps défile, l'en-tête et le pied tiennent. */}
         <Dialog.Content
           bg="bg.canvas"
           borderColor="whiteAlpha.100"
           borderWidth="1px"
+          maxH="90dvh"
+          display="flex"
+          flexDirection="column"
         >
+          {/* Le constat passe devant la question. L'en-tête n'annonce donc
+              plus la question quand il y a quelque chose à constater : c'est
+              le récap qui ouvre, et le ressenti suit dans le corps. */}
           <Dialog.Header>
-            <VStack align="start" gap={1}>
-              <Dialog.Title>Cette séance, c'était&nbsp;?</Dialog.Title>
-              <Text fontSize="sm" color="fg.muted" fontWeight="normal">
-                Ton ressenti aide ton coach à adapter la suite. C'est la seule
-                chose qu'on te demande.
-              </Text>
-            </VStack>
+            {recap ?? (
+              <VStack align="start" gap={1}>
+                <Dialog.Title>Cette séance, c'était&nbsp;?</Dialog.Title>
+                <Text fontSize="sm" color="fg.muted" fontWeight="normal">
+                  Ton ressenti aide ton coach à adapter la suite. C'est la seule
+                  chose qu'on te demande.
+                </Text>
+              </VStack>
+            )}
           </Dialog.Header>
           <Dialog.CloseTrigger
             aria-label="Fermer"
@@ -89,8 +116,16 @@ export const CompleteSessionModal = ({
             <LuX size={16} />
           </Dialog.CloseTrigger>
 
-          <Dialog.Body>
+          <Dialog.Body overflowY="auto">
             <VStack gap={4} align="stretch">
+              {recap && (
+                <>
+                  <Separator borderColor="whiteAlpha.100" />
+                  <Dialog.Title fontSize="lg" fontWeight="800">
+                    Cette séance, c'était&nbsp;?
+                  </Dialog.Title>
+                </>
+              )}
               <EffortScale value={effort} onChange={setEffort} />
 
               {partageSante && (
@@ -159,7 +194,7 @@ export const CompleteSessionModal = ({
             </VStack>
           </Dialog.Body>
 
-          <Dialog.Footer gap={3}>
+          <Dialog.Footer gap={3} flexWrap="wrap">
             {/* Un bouton grisé sans explication a l'air cassé. On dit ce qui
                 manque, à côté de ce qui ne part pas. */}
             {effort === undefined && (
@@ -183,6 +218,16 @@ export const CompleteSessionModal = ({
             >
               Valider
             </Button>
+            {chargesDejaNotees && (
+              <Text
+                flexBasis="100%"
+                textAlign="center"
+                fontSize="xs"
+                color="fg.muted"
+              >
+                Tes charges sont déjà enregistrées&nbsp;— rien à ressaisir.
+              </Text>
+            )}
           </Dialog.Footer>
         </Dialog.Content>
       </Dialog.Positioner>

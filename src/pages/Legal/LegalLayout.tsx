@@ -70,7 +70,7 @@ export const LegalLayout = ({
           </VStack>
 
           <Box
-            bg="bg.card"
+            bg="surface.card"
             borderWidth="1px"
             borderColor="whiteAlpha.100"
             borderRadius="xl"

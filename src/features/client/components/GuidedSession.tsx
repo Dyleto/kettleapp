@@ -568,7 +568,7 @@ const BlocListe = ({
           return (
             <Box
               key={e.cle}
-              bg="bg.card"
+              bg="surface.card"
               borderWidth="1px"
               borderColor="app.primary"
               borderRadius="xl"
@@ -796,6 +796,14 @@ export const GuidedSession = ({
    * d'échauffement puis ferme l'application a bel et bien commencé, et lui
    * remontrer la consigne d'ouverture serait lui dire qu'il n'a rien fait.
    */
+  // L'heure de début, posée une fois pour toutes : elle sert à dire, à la
+  // fin, combien de temps la séance a réellement pris.
+  useEffect(() => {
+    if (lireSeance(session._id)?.debutLe === undefined) {
+      ecrireSeance(session._id, { debutLe: Date.now() });
+    }
+  }, [session._id]);
+
   const [dejaCommence] = useState(() => {
     const garde = lireSeance(session._id);
     return (garde?.etape ?? 0) > 0 || (garde?.faits.length ?? 0) > 0;
@@ -1105,7 +1113,7 @@ export const GuidedSession = ({
 
           {session.notes?.trim() && (
             <Box
-              bg="bg.card"
+              bg="surface.card"
               borderLeftWidth="3px"
               borderLeftColor="app.primary"
               borderRadius="lg"

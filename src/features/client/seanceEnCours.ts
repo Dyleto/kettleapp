@@ -37,6 +37,13 @@ interface SeanceEnCours {
    * qu'il soit ici.
    */
   tours: Record<string, number>;
+  /**
+   * Quand la séance a commencé, en millisecondes.
+   *
+   * Posé à la première ouverture et jamais redéfini : c'est la durée vécue
+   * qu'on veut annoncer à la fin, pas celle du dernier retour dans l'app.
+   */
+  debutLe?: number;
   /** Quand, en millisecondes. Sert à savoir si ça concerne encore aujourd'hui. */
   majLe: number;
 }
@@ -79,6 +86,7 @@ export const lireSeance = (sessionId: string): SeanceEnCours | null => {
       performed: lu.performed ?? {},
       faits: Array.isArray(lu.faits) ? lu.faits : [],
       tours: lu.tours ?? {},
+      debutLe: typeof lu.debutLe === 'number' ? lu.debutLe : undefined,
       majLe: lu.majLe,
     };
   } catch {

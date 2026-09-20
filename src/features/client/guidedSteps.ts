@@ -34,6 +34,16 @@ export interface Effort {
   nom: string;
   /** Ce qu'il y a à faire : « 10 reps », ou « 8 reps » sur un palier. */
   dose: string;
+  /**
+   * Les répétitions prescrites, en nombre — quand il y en a.
+   *
+   * La dose est du texte, faite pour être lue. Le tonnage a besoin du
+   * nombre : le mode guidé ne demande qu'un poids par effort, jamais des
+   * reps, parce que cocher « Fait » dit déjà qu'on a fait ce qui était
+   * prescrit. Sans ce champ, « tant de kilos soulevés » ne pourrait jamais
+   * s'afficher sur une séance menée en guidé — c'est-à-dire presque jamais.
+   */
+  reps?: number;
   /** Le repos prescrit après cet effort, s'il y en a un. */
   reposApres?: number;
   /** L'exercice d'où il vient — pour sa consigne et sa vidéo. */
@@ -168,6 +178,22 @@ export const doseDuTour = (block: SessionBlock, ex: BlockExercise): string => {
  * elle qui découpe la saisie du bilan depuis toujours. Elle ne servait
  * simplement pas à guider : on la montrait, on ne la parcourait pas.
  */
+/**
+ * Les répétitions prescrites pour un effort, en nombre.
+ *
+ * Une pyramide les fait varier d'un palier à l'autre — c'est tout son
+ * principe ; partout ailleurs, chaque série porte la même dose.
+ */
+export const repsDeLEffort = (
+  block: Pick<SessionBlock, 'type' | 'repsScheme'>,
+  ex: Pick<BlockExercise, 'reps'>,
+  rang: number
+): number | undefined => {
+  if (blockDefinesOwnMetrics(block.type) && block.repsScheme?.length)
+    return block.repsScheme[rang - 1];
+  return ex.reps;
+};
+
 export const effortsDuBloc = (block: SessionBlock): Effort[] => {
   const efforts: Effort[] = [];
   sortByOrder(block.exercises).forEach((ex) => {
@@ -188,6 +214,7 @@ export const effortsDuBloc = (block: SessionBlock): Effort[] => {
         nom: ex.exercise.name,
         // Le palier porte sa propre dose ; ailleurs c'est celle de l'exercice.
         dose: libelle || propre,
+        reps: repsDeLEffort(block, ex, i + 1),
         // Pas de repos après le dernier : c'est l'exercice suivant qui vient,
         // et le coach n'a rien prescrit pour cet intervalle-là.
         reposApres: i < paliers.length - 1 ? repos : undefined,

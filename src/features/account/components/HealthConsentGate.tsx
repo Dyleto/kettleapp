@@ -76,7 +76,7 @@ export const HealthConsentGate = () => {
             et c'est avec elles qu'il adapte la suite.
           </Text>
           <Box
-            bg="bg.card"
+            bg="surface.card"
             borderWidth="1px"
             borderColor="whiteAlpha.100"
             borderRadius="xl"

@@ -55,7 +55,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
     <VStack
       align="stretch"
       gap={3.5}
-      bg="bg.card"
+      bg="surface.card"
       borderWidth="1px"
       borderColor="whiteAlpha.100"
       borderRadius="xl"

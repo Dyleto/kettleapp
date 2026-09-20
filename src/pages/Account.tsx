@@ -49,7 +49,7 @@ const Section = ({ title, children }: SectionProps) => (
 
 const Carte = ({ children }: { children: React.ReactNode }) => (
   <Box
-    bg="bg.card"
+    bg="surface.card"
     borderWidth="1px"
     borderColor="whiteAlpha.100"
     borderRadius="xl"
@@ -269,7 +269,7 @@ const Account = ({ space }: Props) => {
         {/* ── Informations légales ───────────────────────────────────── */}
         <Section title="Informations légales">
           <Box
-            bg="bg.card"
+            bg="surface.card"
             borderWidth="1px"
             borderColor="whiteAlpha.100"
             borderRadius="xl"

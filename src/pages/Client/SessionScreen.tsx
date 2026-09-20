@@ -1,6 +1,6 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -15,6 +15,7 @@ import {
   CLIENT_CONTENT_MAX_W,
   CompleteSessionModal,
   GuidedSession,
+  RecapSeance,
   RecordPerformed,
   SessionDetail,
   SuggestedDays,
@@ -23,7 +24,13 @@ import {
 } from '@/features/client';
 import { PerformedEntry, PerformedValues, RoundsDoneEntry } from '@/types';
 import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
-import { ecrireSeance, lireSeance } from '@/features/client/seanceEnCours';
+import {
+  compterNotes,
+  ecrireSeance,
+  lireSeance,
+} from '@/features/client/seanceEnCours';
+import { buildGuidedSteps } from '@/features/client/guidedSteps';
+import { construireRecap } from '@/features/client/recap';
 import { CLIENT_ROUTES } from '@/config/routes';
 import { EtatVide } from '@/components/EtatVide';
 import { hitArea } from '@/components/hitArea';
@@ -101,6 +108,30 @@ const SessionScreen = () => {
     );
     setFlow('idle');
   }
+
+  /**
+   * Le récap, calculé au moment où le bilan s'ouvre.
+   *
+   * Il n'existe que si la séance a été menée en mode guidé : sans état
+   * enregistré, il n'y a rien à constater, et un récap vide vaudrait moins
+   * que pas de récap.
+   */
+  const recap = useMemo(() => {
+    if (!activeSession || flow === 'idle') return undefined;
+    const garde = lireSeance(activeSession._id);
+    if (!garde || (garde.faits.length === 0 && garde.debutLe === undefined))
+      return undefined;
+    return construireRecap({
+      session: activeSession,
+      steps: buildGuidedSteps(activeSession),
+      etape: garde.etape,
+      performed,
+      faits: garde.faits,
+      tours: garde.tours,
+      lastPerformance,
+      debutLe: garde.debutLe,
+    });
+  }, [activeSession, flow, performed, lastPerformance]);
 
   const handlePerformedChange = useCallback(
     (key: string, next: PerformedValues) =>
@@ -305,7 +336,10 @@ const SessionScreen = () => {
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
-            setFlow('record');
+            // Qui a noté pendant la séance a déjà répondu à la question :
+            // la reposer à la fin, devant des champs qu'il vient de remplir,
+            // c'est demander deux fois la même chose. Le bilan le lui dit.
+            setFlow(compterNotes(performed) > 0 ? 'review' : 'record');
           }}
           lastPerformance={lastPerformance}
           performed={performed}
@@ -329,6 +363,15 @@ const SessionScreen = () => {
       <CompleteSessionModal
         isOpen={flow === 'review'}
         onClose={() => setFlow('idle')}
+        recap={
+          recap && (
+            <RecapSeance
+              recap={recap}
+              titre={sessionTitle(activeSession.order, activeSession.name)}
+            />
+          )
+        }
+        chargesDejaNotees={compterNotes(performed) > 0}
         onSubmit={(feedback, notes, completedAt) => {
           handleSubmitLog(
             feedback,
