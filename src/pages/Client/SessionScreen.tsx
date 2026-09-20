@@ -21,7 +21,7 @@ import {
   getSessionSummary,
   useClientSessions,
 } from '@/features/client';
-import { PerformedEntry, PerformedValues } from '@/types';
+import { PerformedEntry, PerformedValues, RoundsDoneEntry } from '@/types';
 import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
 import { ecrireSeance, lireSeance } from '@/features/client/seanceEnCours';
 import { CLIENT_ROUTES } from '@/config/routes';
@@ -33,6 +33,18 @@ import { sessionTitle } from '@/features/program/sessionTitle';
 // une fois avec le bilan. La clé est « ordre du bloc : ordre de l'exercice »,
 // exactement l'adressage attendu par l'API. Un exercice sans une seule série
 // renseignée n'est pas envoyé du tout : rien à dire n'est pas une valeur.
+/**
+ * Les tours bouclés, tels que l'API les attend.
+ *
+ * Zéro part avec les autres : un client qui n'a bouclé aucun tour l'a vécu,
+ * et ne rien envoyer reviendrait à dire qu'il n'a pas fait le bloc.
+ */
+const toRoundsDone = (tours?: Record<string, number>): RoundsDoneEntry[] =>
+  Object.entries(tours ?? {}).map(([blockOrder, rounds]) => ({
+    blockOrder: Number(blockOrder),
+    rounds,
+  }));
+
 const toPerformedEntries = (
   performed: Record<string, PerformedValues>
 ): PerformedEntry[] =>
@@ -322,7 +334,8 @@ const SessionScreen = () => {
             feedback,
             notes,
             completedAt,
-            toPerformedEntries(performed)
+            toPerformedEntries(performed),
+            toRoundsDone(lireSeance(activeSession._id)?.tours)
           );
           setFlow('idle');
         }}

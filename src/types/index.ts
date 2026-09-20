@@ -193,7 +193,10 @@ export interface BlockSnapshot {
   notes?: string;
   durationMinutes?: number;
   intervalMinutes?: number;
+  /** Les tours prescrits par le coach. */
   rounds?: number;
+  /** Les tours réellement bouclés — le score, quand le format en a un. */
+  performedRounds?: number;
   restBetweenRounds?: number;
   workDuration?: number;
   restDuration?: number;
@@ -272,4 +275,16 @@ export interface PerformedEntry {
   blockOrder: number;
   exerciseOrder: number;
   sets: PerformedSet[];
+}
+
+/**
+ * Les tours bouclés d'un bloc qui se compte en tours — le score d'un AMRAP.
+ *
+ * Adressé au bloc, pas à l'exercice : c'est la liste entière qu'on boucle.
+ * Distinct de `rounds` dans l'instantané, qui reste ce que le coach avait
+ * demandé ; comparer les deux est tout l'intérêt.
+ */
+export interface RoundsDoneEntry {
+  blockOrder: number;
+  rounds: number;
 }

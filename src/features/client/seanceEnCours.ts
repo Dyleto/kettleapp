@@ -29,6 +29,14 @@ interface SeanceEnCours {
    * la consigne du mouvement d'avant.
    */
   faits: string[];
+  /**
+   * Les tours bouclés, par ordre de bloc.
+   *
+   * Un AMRAP ne se coche pas : il se compte. Le compte vit donc à côté des
+   * efforts, et il se perd aussi facilement qu'eux — raison de plus pour
+   * qu'il soit ici.
+   */
+  tours: Record<string, number>;
   /** Quand, en millisecondes. Sert à savoir si ça concerne encore aujourd'hui. */
   majLe: number;
 }
@@ -50,6 +58,7 @@ const vide = (): SeanceEnCours => ({
   etape: 0,
   performed: {},
   faits: [],
+  tours: {},
   majLe: Date.now(),
 });
 
@@ -69,6 +78,7 @@ export const lireSeance = (sessionId: string): SeanceEnCours | null => {
       etape: Number.isInteger(lu.etape) && lu.etape! > 0 ? lu.etape! : 0,
       performed: lu.performed ?? {},
       faits: Array.isArray(lu.faits) ? lu.faits : [],
+      tours: lu.tours ?? {},
       majLe: lu.majLe,
     };
   } catch {

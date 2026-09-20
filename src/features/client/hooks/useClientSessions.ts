@@ -6,7 +6,7 @@ import { queryKeys } from '@/config/queryKeys';
 import { CLIENT_ROUTES } from '@/config/routes';
 import { toaster } from '@/components/ui/toasterInstance';
 import { useCompleteSession } from './useCompleteSession';
-import { PerformedEntry, SessionFeedback } from '@/types';
+import { PerformedEntry, RoundsDoneEntry, SessionFeedback } from '@/types';
 import { buildLastPerformanceIndex } from '../lastPerformance';
 import { getSessionForToday } from '../weekPlan';
 import { oublierSeance } from '../seanceEnCours';
@@ -97,7 +97,8 @@ export const useClientSessions = () => {
       feedback: SessionFeedback,
       clientNotes: string,
       completedAt?: string,
-      performed?: PerformedEntry[]
+      performed?: PerformedEntry[],
+      roundsDone?: RoundsDoneEntry[]
     ) => {
       if (!activeSession) return;
       completeSession.mutate(
@@ -107,6 +108,7 @@ export const useClientSessions = () => {
           clientNotes,
           completedAt,
           ...(performed && performed.length > 0 ? { performed } : {}),
+          ...(roundsDone && roundsDone.length > 0 ? { roundsDone } : {}),
         },
         {
           onSuccess: () => {

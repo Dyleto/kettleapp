@@ -793,6 +793,30 @@ export const GuidedSession = ({
     null
   );
 
+  /**
+   * Les tours bouclés, par bloc.
+   *
+   * Un AMRAP ne se coche pas, il se compte — et ce compte est le score de la
+   * séance. Le coach du jeu d'essai le réclame en prose, dans une note libre
+   * (« Rythme régulier, viser 5-6 tours »), faute de champ pour le recevoir.
+   */
+  const [tours, setTours] = useState<Record<string, number>>(
+    () => lireSeance(session._id)?.tours ?? {}
+  );
+
+  const compterUnTour = (blockOrder: number, delta: number) => {
+    const cle = String(blockOrder);
+    const suivant = {
+      ...tours,
+      // Jamais en dessous de zéro : on corrige une erreur de doigt, on ne
+      // descend pas dans les négatifs.
+      [cle]: Math.max(0, (tours[cle] ?? 0) + delta),
+    };
+    setTours(suivant);
+    ecrireSeance(session._id, { tours: suivant });
+    if (delta > 0) navigator.vibrate?.(40);
+  };
+
   const step = steps[index];
   const isLast = index === steps.length - 1;
 
@@ -801,6 +825,9 @@ export const GuidedSession = ({
   const courant = efforts.find((e) => !faitsSet.has(e.cle));
   const blocFini = efforts.length > 0 && !courant;
   const faitsDuBloc = efforts.filter((e) => faitsSet.has(e.cle)).length;
+  // Un AMRAP ne se termine pas en cochant : c'est le client qui décide
+  // d'arrêter, ou la pendule. Le bouton principal compte, le secondaire sort.
+  const estBoucle = step?.type === 'block' && step.forme === 'boucle';
 
   const marquerFait = () => {
     if (!courant) return;
@@ -1231,6 +1258,25 @@ export const GuidedSession = ({
             py={2}
             overflowY="auto"
           >
+            {/* La sortie, ici aussi.
+                Sur une boucle, le bouton principal compte les tours : plus
+                rien ne terminerait la séance sans ça. Troisième endroit où
+                j'avais oublié qu'un geste principal qui change de sens
+                emporte avec lui celui qu'il remplaçait. */}
+            {step.forme === 'boucle' && (
+              <HStack justify="flex-end">
+                <Box
+                  as="button"
+                  onClick={goNext}
+                  color="fg.muted"
+                  fontSize="sm"
+                  css={hitArea(44)}
+                  _hover={{ color: 'fg' }}
+                >
+                  {isLast ? 'Terminer la séance' : 'Passer ce bloc'}
+                </Box>
+              </HStack>
+            )}
             {/* La pendule d'un bloc à durée : dans un AMRAP, c'est elle qui
                 dit quand s'arrêter. Plus petite qu'en plein écran — on est
                 venu lire la liste, pas la pendule. */}
@@ -1257,6 +1303,47 @@ export const GuidedSession = ({
                 compact
               />
             ) : null}
+            {/* Le compteur de tours.
+                C'est le score de la séance, et il n'avait aucune place : ni à
+                l'écran, ni dans le modèle. Le client le tenait de tête ou sur
+                un cahier. Gros, sous la pendule, et à côté du bouton qui le
+                fait monter — on l'incrémente en s'essoufflant. */}
+            {step.forme === 'boucle' && (
+              <HStack justify="space-between" align="center" gap={4}>
+                <HStack align="baseline" gap={2}>
+                  <Text
+                    fontSize="54px"
+                    fontWeight="800"
+                    lineHeight="1"
+                    color="app.primary"
+                    fontVariantNumeric="tabular-nums"
+                  >
+                    {tours[String(step.block.order)] ?? 0}
+                  </Text>
+                  <Text fontSize="sm" color="fg.muted">
+                    tour{(tours[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
+                    &nbsp;bouclé
+                    {(tours[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
+                  </Text>
+                </HStack>
+                {/* Se décompter doit rester possible — un doigt glisse, et
+                    perdre un tour qu'on a fait est pire que d'en compter un
+                    de trop. Discret : ce n'est pas le geste qu'on répète. */}
+                {(tours[String(step.block.order)] ?? 0) > 0 && (
+                  <Box
+                    as="button"
+                    aria-label="Retirer un tour"
+                    onClick={() => compterUnTour(step.block.order, -1)}
+                    color="fg.muted"
+                    fontSize="sm"
+                    css={hitArea(44)}
+                    _hover={{ color: 'fg' }}
+                  >
+                    − 1
+                  </Box>
+                )}
+              </HStack>
+            )}
             <BlockCard
               block={step.block}
               renderExerciseExtra={({ blockOrder, exerciseOrder }) => {
@@ -1505,17 +1592,25 @@ export const GuidedSession = ({
             bg={isRest ? 'bg.canvas' : 'app.primary'}
             color={isRest ? 'fg' : 'bg.canvas'}
             _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
-            onClick={courant ? marquerFait : goNext}
+            onClick={
+              estBoucle && step.type === 'block'
+                ? () => compterUnTour(step.block.order, 1)
+                : courant
+                  ? marquerFait
+                  : goNext
+            }
           >
-            {courant
-              ? 'Fait'
-              : isLast
-                ? 'Terminer'
-                : blocFini
-                  ? 'Bloc suivant'
-                  : step.type === 'rest'
-                    ? 'Passer'
-                    : 'Suivant'}
+            {estBoucle
+              ? '+1 tour'
+              : courant
+                ? 'Fait'
+                : isLast
+                  ? 'Terminer'
+                  : blocFini
+                    ? 'Bloc suivant'
+                    : step.type === 'rest'
+                      ? 'Passer'
+                      : 'Suivant'}
           </Button>
         </HStack>
       </Box>

@@ -3,12 +3,15 @@ import {
   ClientProgram,
   CompletedSession,
   PerformedEntry,
+  RoundsDoneEntry,
   SessionFeedback,
 } from '@/types';
 
 export interface CompleteSessionPayload {
   feedback: SessionFeedback;
   performed?: PerformedEntry[];
+  /** Le score des blocs qui se comptent en tours — un AMRAP. */
+  roundsDone?: RoundsDoneEntry[];
   clientNotes?: string;
   completedAt?: string;
 }
@@ -16,6 +19,7 @@ export interface CompleteSessionPayload {
 export interface UpdateCompletedSessionPayload {
   feedback?: SessionFeedback;
   performed?: PerformedEntry[];
+  roundsDone?: RoundsDoneEntry[];
   clientNotes?: string;
   completedAt?: string;
 }
