@@ -66,6 +66,15 @@ interface TimerProps {
    * list of movements is what you came to read.
    */
   compact?: boolean;
+  /**
+   * `false` makes the clock wait for a tap.
+   *
+   * A rest starts on its own — it was triggered by the gesture that ended the
+   * set. A round does not: the client has to pick up the bell first.
+   */
+  autoStart?: boolean;
+  /** Called on the very first start, never on a resume. */
+  onStart?: () => void;
 }
 
 // This is the only screen used while training, the one where losing your
@@ -114,11 +123,18 @@ const Timer = ({
   title,
   holdLabel,
   compact = false,
+  autoStart = true,
+  onStart,
 }: TimerProps) => {
   const { remaining, isRunning, pause, resume } = useCountdown(duration, {
     onComplete,
+    autoStart,
   });
   const isDone = remaining === 0;
+  // Never started, as opposed to started and paused: the two look alike on a
+  // stopped clock but do not say the same thing, and what has to be said
+  // first is « this is waiting for you ».
+  const [started, setStarted] = useState(autoStart);
 
   useEffect(() => {
     if (remaining > 0 && remaining <= 3) {
@@ -143,18 +159,42 @@ const Timer = ({
       as="button"
       w="full"
       textAlign="left"
-      onClick={isDone ? undefined : () => (isRunning ? pause() : resume())}
+      onClick={
+        isDone
+          ? undefined
+          : () => {
+              if (isRunning) return pause();
+              if (!started) {
+                setStarted(true);
+                onStart?.();
+              }
+              resume();
+            }
+      }
       cursor={isDone ? 'default' : 'pointer'}
       // The remaining time is part of the name: without it, someone who
       // cannot see the screen may pause without ever knowing where they are.
       aria-label={
         isDone
           ? 'Temps écoulé'
-          : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${lu} restant`
+          : !started
+            ? `Lancer le décompte — ${lu}`
+            : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${lu} restant`
       }
     >
       <HStack justify="space-between" align="flex-end" gap={3}>
-        <Box minW={0}>{title}</Box>
+        {/* The hint sits under the title rather than under the gauge: the
+            left column is shorter than the figure on the right, so it costs
+            no height at all. Adding a line below cost 20 px, which is what a
+            phone lying flat does not have. */}
+        <Box minW={0}>
+          {title}
+          {!isDone && !isRunning && (
+            <Text fontSize="2xs" color={couleur} opacity={0.75} mt={1}>
+              {started ? 'Toucher pour reprendre' : 'Toucher pour lancer'}
+            </Text>
+          )}
+        </Box>
         <Text
           fontSize={compact ? '40px' : '72px'}
           fontWeight="800"
@@ -191,13 +231,7 @@ const Timer = ({
         <Text fontSize="sm" color={couleur} opacity={0.75} mt={2}>
           {holdLabel}
         </Text>
-      ) : (
-        !isRunning && (
-          <Text fontSize="xs" color={couleur} opacity={0.75} mt={2}>
-            En pause — toucher pour reprendre
-          </Text>
-        )
-      )}
+      ) : null}
     </Box>
   );
 };
@@ -348,12 +382,24 @@ const Round = ({
   onDone,
   lastPerformance,
   onOuvrirDetail,
+  armed,
+  onArm,
 }: {
   step: Extract<GuidedStep, { type: 'round' }>;
   /** The round is over: we move on. */
   onDone: () => void;
   lastPerformance?: Map<string, LastPerformance>;
   onOuvrirDetail: (ex: BlockExercise) => void;
+  /**
+   * Whether this block's clock has already been started.
+   *
+   * The first start is a decision, the chaining is the format. Asking for a
+   * tap on every round would destroy an EMOM — "every minute on the minute"
+   * means the minutes follow each other, not that you restart them. So the
+   * tap is asked once per block, and the rounds then run as written.
+   */
+  armed: boolean;
+  onArm: () => void;
 }) => {
   const [phase, setPhase] = useState<'travail' | 'rest'>('travail');
   const resting = phase === 'rest';
@@ -389,6 +435,8 @@ const Round = ({
           // rest countdown would resume where the work one stopped.
           key={`${step.round}-${phase}`}
           duration={duration}
+          autoStart={armed}
+          onStart={onArm}
           couleur={resting ? 'session.rest' : 'fg'}
           onComplete={finDePhase}
           title={
@@ -1001,6 +1049,16 @@ export const GuidedSession = ({
   } | null>(null);
 
   /**
+   * The block whose clock has been started, if any.
+   *
+   * It lives here and not in `Round` because a round is remounted at every
+   * phase change: the flag has to outlive it, or the second round would ask
+   * for a tap again. Leaving the block clears it — coming back to an EMOM
+   * ten minutes later, the clock waits for you again.
+   */
+  const [armedBlock, setArmedBlock] = useState<number | null>(null);
+
+  /**
    * Rounds completed, by block.
    *
    * An AMRAP is not ticked off, it is counted — and that count is the
@@ -1056,6 +1114,13 @@ export const GuidedSession = ({
   };
 
   const goTo = (next: number) => {
+    // Leaving the block disarms its clock: coming back to an EMOM after the
+    // next block, or ten minutes later, it waits for you again rather than
+    // running while you look for the bell.
+    const arrivee = steps[next];
+    const bloc =
+      arrivee && arrivee.type !== 'rest' ? arrivee.block.order : null;
+    if (bloc !== armedBlock) setArmedBlock(null);
     setIndex(next);
     setDetail(null);
     writeSavedIndex(session._id, next);
@@ -1808,6 +1873,8 @@ export const GuidedSession = ({
             onDone={goNext}
             lastPerformance={lastPerformance}
             onOuvrirDetail={setDetail}
+            armed={armedBlock === step.block.order}
+            onArm={() => setArmedBlock(step.block.order)}
           />
         ) : (
           <VStack
