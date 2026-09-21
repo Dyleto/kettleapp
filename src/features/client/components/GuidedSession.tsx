@@ -1261,11 +1261,23 @@ export const GuidedSession = ({
             variant="ghost"
             color="fg.muted"
             onClick={() => {
-              // La position repart à zéro, pas les charges : effacer ce que
-              // quelqu'un a soulevé parce qu'il reprend la séance au début,
-              // ce serait exactement la perte qu'on vient de corriger. Elles
-              // se laissent réécrire au fil du passage.
-              ecrireSeance(session._id, { etape: 0 });
+              // Tout ce qui dit « où j'en suis » repart à zéro : l'étape, les
+              // efforts cochés, les tours comptés.
+              //
+              // Remettre la seule étape ne suffisait pas — et sur un
+              // bloc-liste ça ne faisait rien du tout, puisqu'un tel bloc est
+              // une étape unique : on « recommençait » un chipper en gardant
+              // ses trois mouvements cochés. C'est le reste d'un temps où
+              // l'étape était la seule idée de position ; depuis, ce sont les
+              // efforts qui la portent.
+              //
+              // Les charges, elles, restent. Effacer ce que quelqu'un a
+              // soulevé parce qu'il reprend la séance au début, ce serait
+              // exactement la perte qu'on venait de corriger — et elles se
+              // laissent réécrire au fil du passage.
+              ecrireSeance(session._id, { etape: 0, faits: [], tours: {} });
+              setFaits([]);
+              setTours({});
               setIndex(0);
               setShowResume(false);
             }}
