@@ -86,8 +86,12 @@ export const boites = (p) =>
     )
     .then(net);
 
+/**
+ * Le repos entre deux séries se pose dans la liste, pas en plein écran :
+ * son bouton dit « Passer », et rien d'autre ne porte ce nom exact.
+ */
 export const passerRepos = async (p) => {
-  const r = p.getByRole('button', { name: /^Passer le repos$/ });
+  const r = p.getByRole('button', { name: 'Passer', exact: true });
   if (await r.count()) {
     await r.click();
     await p.waitForTimeout(250);

@@ -26,7 +26,7 @@ import VideoPlayer from '@/components/VideoPlayer';
 import { hitArea } from '@/components/hitArea';
 import { formatCountdown } from '@/utils/formatters';
 import { formatDuration } from '@/utils/duration';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuCheck, LuInfo, LuTimer, LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
@@ -505,6 +505,90 @@ const Round = ({
 };
 
 /**
+ * The rest between two sets, laid inside the list.
+ *
+ * It used to be a full-screen panel: tick "Fait", and the block you were
+ * reading vanished behind a wall of teal. From the field: "not pleasant to
+ * suddenly get a full-page REST". It is also the same mistake the page-by-
+ * page flow made everywhere else — staging a wait as an event.
+ *
+ * A rest is not an event. It is a gap between two sets, and it belongs where
+ * that gap is: between the set just ticked and the one coming. The list
+ * stays readable throughout — you can see what is left, reread the next
+ * movement's dose, correct a load — which is exactly what people do while
+ * they wait.
+ */
+const RestStrip = ({
+  duration,
+  nextUp,
+  onDone,
+}: {
+  duration: number;
+  nextUp: string;
+  onDone: () => void;
+}) => (
+  <HStack
+    gap={3}
+    px={4}
+    py={2.5}
+    my={1}
+    minH="56px"
+    borderRadius="lg"
+    bg="session.rest/15"
+    borderLeftWidth="3px"
+    borderLeftColor="session.rest"
+  >
+    <Box flex={1} minW={0}>
+      <Timer
+        duration={duration}
+        compact
+        couleur="session.rest"
+        track="blackAlpha.400"
+        onComplete={onDone}
+        title={
+          <Text
+            fontSize="2xs"
+            letterSpacing="2px"
+            textTransform="uppercase"
+            fontWeight="800"
+            color="session.rest"
+          >
+            Repos
+            {nextUp ? (
+              <Text
+                as="span"
+                color="fg.muted"
+                letterSpacing="normal"
+                textTransform="none"
+                fontWeight="normal"
+              >
+                {' '}
+                · ensuite {nextUp}
+              </Text>
+            ) : null}
+          </Text>
+        }
+      />
+    </Box>
+    {/* Skipping stays one tap away, and keeps its 44 px: it is the gesture of
+        someone already back on the bar. */}
+    <Box
+      as="button"
+      onClick={onDone}
+      flexShrink={0}
+      alignSelf="center"
+      color="session.rest"
+      fontSize="sm"
+      fontWeight="bold"
+      css={hitArea(44)}
+      _hover={{ color: 'fg' }}
+    >
+      Passer
+    </Box>
+  </HStack>
+);
+
+/**
  * A block you tick off, set by set.
  *
  * This was guided mode's broken half: the prescription card, with input
@@ -526,6 +610,8 @@ const BlockList = ({
   onPerformedChange,
   lastPerformance,
   onOuvrirDetail,
+  rest,
+  onRestDone,
 }: {
   block: SessionBlock;
   sets: GuidedSet[];
@@ -535,6 +621,9 @@ const BlockList = ({
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
   onOuvrirDetail: (ex: BlockExercise) => void;
+  /** The rest under way, and the set it follows. */
+  rest: { afterKey: string; duration: number; nextUp: string } | null;
+  onRestDone: () => void;
 }) => {
   /**
    * The set's rank within its exercise, when there is more than one.
@@ -574,6 +663,17 @@ const BlockList = ({
         const isCurrent = current?.key === e.key;
         const value = valueOfSet(e);
         const rank = rankOf(e);
+        // The rest belongs to the set it follows, so it is drawn right after
+        // it — the gap is where the gap is.
+        const restHere =
+          rest && rest.afterKey === e.key ? (
+            <RestStrip
+              key={`rest-${e.key}`}
+              duration={rest.duration}
+              nextUp={rest.nextUp}
+              onDone={onRestDone}
+            />
+          ) : null;
 
         if (isCurrent) {
           const last = formatLastPerformance(
@@ -584,193 +684,198 @@ const BlockList = ({
             !!e.exercise.exercise.description?.trim() ||
             !!e.exercise.exercise.videoUrl?.trim();
           return (
-            <Box
-              key={e.key}
-              bg="surface.card"
-              borderWidth="1px"
-              borderColor="app.primary"
-              borderRadius="xl"
-              p={4}
-              my={1}
-            >
-              <VStack align="stretch" gap={3}>
-                <HStack justify="space-between" align="baseline" gap={3}>
-                  {aDuDetail ? (
-                    <Box
-                      as="button"
-                      textAlign="left"
-                      minW={0}
-                      aria-label={`Voir la consigne — ${e.name}`}
-                      onClick={() => onOuvrirDetail(e.exercise)}
-                      css={hitArea(44)}
-                    >
-                      <HStack gap={1.5} align="center">
-                        <Text fontSize="xl" fontWeight="800">
-                          {e.name}
-                        </Text>
-                        <Box color="app.primary" flexShrink={0}>
-                          <LuInfo size={15} />
-                        </Box>
-                      </HStack>
-                    </Box>
-                  ) : (
-                    <Text fontSize="xl" fontWeight="800" minW={0}>
-                      {e.name}
-                    </Text>
-                  )}
-                  <Text
-                    fontSize="2xl"
-                    fontWeight="800"
-                    fontFamily="mono"
-                    flexShrink={0}
-                  >
-                    {e.dose || '\u2014'}
-                  </Text>
-                </HStack>
-
-                {(rank || onPerformedChange) && (
-                  <HStack justify="space-between" align="center" gap={3}>
-                    <Text fontSize="sm" color="fg.muted">
-                      {rank}
-                    </Text>
-                    {onPerformedChange && (
-                      <HStack gap={2}>
-                        <Text fontSize="sm" color="fg.muted">
-                          Fait à
-                        </Text>
-                        <Input
-                          aria-label={`Poids utilisé, en kilos — ${e.name} ${rank}`}
-                          inputMode="decimal"
-                          value={value?.weight ?? ''}
-                          onChange={(ev) => write(e, 'weight', ev.target.value)}
-                          w="76px"
-                          minH="44px"
-                          textAlign="center"
-                          fontFamily="mono"
-                          fontWeight="bold"
-                          placeholder="—"
-                        />
-                        <Text fontSize="sm" color="fg.muted">
-                          kg
-                        </Text>
-                      </HStack>
+            <Fragment key={e.key}>
+              <Box
+                bg="surface.card"
+                borderWidth="1px"
+                borderColor="app.primary"
+                borderRadius="xl"
+                p={4}
+                my={1}
+              >
+                <VStack align="stretch" gap={3}>
+                  <HStack justify="space-between" align="baseline" gap={3}>
+                    {aDuDetail ? (
+                      <Box
+                        as="button"
+                        textAlign="left"
+                        minW={0}
+                        aria-label={`Voir la consigne — ${e.name}`}
+                        onClick={() => onOuvrirDetail(e.exercise)}
+                        css={hitArea(44)}
+                      >
+                        <HStack gap={1.5} align="center">
+                          <Text fontSize="xl" fontWeight="800">
+                            {e.name}
+                          </Text>
+                          <Box color="app.primary" flexShrink={0}>
+                            <LuInfo size={15} />
+                          </Box>
+                        </HStack>
+                      </Box>
+                    ) : (
+                      <Text fontSize="xl" fontWeight="800" minW={0}>
+                        {e.name}
+                      </Text>
                     )}
+                    <Text
+                      fontSize="2xl"
+                      fontWeight="800"
+                      fontFamily="mono"
+                      flexShrink={0}
+                    >
+                      {e.dose || '\u2014'}
+                    </Text>
                   </HStack>
-                )}
 
-                {/* A set whose dose is a duration needs timing. The automatic
+                  {(rank || onPerformedChange) && (
+                    <HStack justify="space-between" align="center" gap={3}>
+                      <Text fontSize="sm" color="fg.muted">
+                        {rank}
+                      </Text>
+                      {onPerformedChange && (
+                        <HStack gap={2}>
+                          <Text fontSize="sm" color="fg.muted">
+                            Fait à
+                          </Text>
+                          <Input
+                            aria-label={`Poids utilisé, en kilos — ${e.name} ${rank}`}
+                            inputMode="decimal"
+                            value={value?.weight ?? ''}
+                            onChange={(ev) =>
+                              write(e, 'weight', ev.target.value)
+                            }
+                            w="76px"
+                            minH="44px"
+                            textAlign="center"
+                            fontFamily="mono"
+                            fontWeight="bold"
+                            placeholder="—"
+                          />
+                          <Text fontSize="sm" color="fg.muted">
+                            kg
+                          </Text>
+                        </HStack>
+                      )}
+                    </HStack>
+                  )}
+
+                  {/* A set whose dose is a duration needs timing. The automatic
                     rest covers the rest, not the work: replacing the
                     prescription card with the sets quietly removed the timer
                     from "2 min of skipping rope". Offered, never imposed —
                     you start it when you get there. */}
-                {e.exercise.duration ? (
-                  <Box ml={-4}>
-                    <OnDemandTimer
-                      duration={e.exercise.duration}
-                      label={formatDuration(e.exercise.duration)}
-                      couleur="app.primary"
-                    />
-                  </Box>
-                ) : null}
+                  {e.exercise.duration ? (
+                    <Box ml={-4}>
+                      <OnDemandTimer
+                        duration={e.exercise.duration}
+                        label={formatDuration(e.exercise.duration)}
+                        couleur="app.primary"
+                      />
+                    </Box>
+                  ) : null}
 
-                <HStack justify="space-between" align="center" gap={3}>
-                  {last ? (
-                    <Text fontSize="xs" color="fg.muted">
-                      la dernière fois&nbsp;: {last}
-                    </Text>
-                  ) : (
-                    <Box />
-                  )}
-                  {/* What "Fait" triggers: without this line, the full-screen
-                      rest arrives as a surprise. */}
-                  {e.restAfter && (
-                    <HStack gap={1.5} color="session.rest" flexShrink={0}>
-                      <LuTimer size={13} />
-                      <Text fontSize="xs" fontWeight="bold">
-                        puis {formatDuration(e.restAfter)} de repos
+                  <HStack justify="space-between" align="center" gap={3}>
+                    {last ? (
+                      <Text fontSize="xs" color="fg.muted">
+                        la dernière fois&nbsp;: {last}
                       </Text>
-                    </HStack>
-                  )}
-                </HStack>
-              </VStack>
-            </Box>
+                    ) : (
+                      <Box />
+                    )}
+                    {/* What "Fait" triggers: without this line, the full-screen
+                      rest arrives as a surprise. */}
+                    {e.restAfter && (
+                      <HStack gap={1.5} color="session.rest" flexShrink={0}>
+                        <LuTimer size={13} />
+                        <Text fontSize="xs" fontWeight="bold">
+                          puis {formatDuration(e.restAfter)} de repos
+                        </Text>
+                      </HStack>
+                    )}
+                  </HStack>
+                </VStack>
+              </Box>
+              {restHere}
+            </Fragment>
           );
         }
 
         return (
-          <HStack
-            key={e.key}
-            gap={3}
-            minH="44px"
-            px={4}
-            py={2}
-            opacity={fait ? 1 : 0.75}
-          >
-            <Box
-              color={fait ? 'session.rest' : 'whiteAlpha.400'}
-              flexShrink={0}
-            >
-              {fait ? (
-                <LuCheck size={16} strokeWidth={3} />
-              ) : (
-                <Box
-                  w="16px"
-                  h="16px"
-                  borderRadius="full"
-                  borderWidth="1.5px"
-                  borderColor="whiteAlpha.400"
-                />
-              )}
-            </Box>
-            {/* The name may be truncated, the rank may not: the rank is what
+          <Fragment key={e.key}>
+            <HStack gap={3} minH="44px" px={4} py={2} opacity={fait ? 1 : 0.75}>
+              <Box
+                color={fait ? 'session.rest' : 'whiteAlpha.400'}
+                flexShrink={0}
+              >
+                {fait ? (
+                  <LuCheck size={16} strokeWidth={3} />
+                ) : (
+                  <Box
+                    w="16px"
+                    h="16px"
+                    borderRadius="full"
+                    borderWidth="1.5px"
+                    borderColor="whiteAlpha.400"
+                  />
+                )}
+              </Box>
+              {/* The name may be truncated, the rank may not: the rank is what
                 says where you are, and "Fentes marchées · série…" teaches nothing. */}
-            <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1}>
-              {e.name}
-            </Text>
-            {rank && (
-              <Text fontSize="sm" color="fg.muted" opacity={0.7} flexShrink={0}>
-                · {rank}
+              <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1}>
+                {e.name}
               </Text>
-            )}
-            <Box flex={1} />
-            {/* On what remains, the rest gives the block's rhythm: you can see
+              {rank && (
+                <Text
+                  fontSize="sm"
+                  color="fg.muted"
+                  opacity={0.7}
+                  flexShrink={0}
+                >
+                  · {rank}
+                </Text>
+              )}
+              <Box flex={1} />
+              {/* On what remains, the rest gives the block's rhythm: you can see
                 the squats are on 1 min and the lunges on 45 s without having
                 to get there. On what is done it teaches nothing any more —
                 the load takes its place. */}
-            {fait ? (
-              <Text
-                fontSize="sm"
-                color="fg.muted"
-                fontFamily="mono"
-                flexShrink={0}
-              >
-                {value?.weight != null ? `${value.weight} kg` : e.dose}
-              </Text>
-            ) : (
-              <>
-                {e.restAfter && (
-                  <Text
-                    fontSize="2xs"
-                    color="fg.muted"
-                    opacity={0.7}
-                    flexShrink={0}
-                  >
-                    {formatDuration(e.restAfter)}
-                  </Text>
-                )}
+              {fait ? (
                 <Text
                   fontSize="sm"
                   color="fg.muted"
                   fontFamily="mono"
                   flexShrink={0}
-                  minW="62px"
-                  textAlign="right"
                 >
-                  {e.dose}
+                  {value?.weight != null ? `${value.weight} kg` : e.dose}
                 </Text>
-              </>
-            )}
-          </HStack>
+              ) : (
+                <>
+                  {e.restAfter && (
+                    <Text
+                      fontSize="2xs"
+                      color="fg.muted"
+                      opacity={0.7}
+                      flexShrink={0}
+                    >
+                      {formatDuration(e.restAfter)}
+                    </Text>
+                  )}
+                  <Text
+                    fontSize="sm"
+                    color="fg.muted"
+                    fontFamily="mono"
+                    flexShrink={0}
+                    minW="62px"
+                    textAlign="right"
+                  >
+                    {e.dose}
+                  </Text>
+                </>
+              )}
+            </HStack>
+            {restHere}
+          </Fragment>
         );
       })}
     </VStack>
@@ -889,9 +994,11 @@ export const GuidedSession = ({
   const doneKeys = useMemo(() => new Set(done), [done]);
   // The rest triggered by "Fait": it has no step of its own, it belongs to
   // the set that has just ended.
-  const [rest, setRest] = useState<{ duration: number; nextUp: string } | null>(
-    null
-  );
+  const [rest, setRest] = useState<{
+    afterKey: string;
+    duration: number;
+    nextUp: string;
+  } | null>(null);
 
   /**
    * Rounds completed, by block.
@@ -941,6 +1048,7 @@ export const GuidedSession = ({
     if (current.restAfter) {
       const after = sets[sets.indexOf(current) + 1];
       setRest({
+        afterKey: current.key,
         duration: current.restAfter,
         nextUp: after ? `${after.name} · ${after.dose}` : '',
       });
@@ -1546,6 +1654,8 @@ export const GuidedSession = ({
               onPerformedChange={onPerformedChange}
               lastPerformance={lastPerformance}
               onOuvrirDetail={setDetail}
+              rest={rest}
+              onRestDone={() => setRest(null)}
             />
           </>
         ) : step.type === 'block' ? (
@@ -1735,59 +1845,6 @@ export const GuidedSession = ({
               </Text>
             )}
           </VStack>
-        )}
-
-        {/* The rest that "Fait" has just started.
-            It sits on top of the block rather than being a step of its own:
-            the list stays underneath, intact, and you find it as it was —
-            with one more set ticked. */}
-        {rest && (
-          <Box
-            position="absolute"
-            inset={0}
-            bg="session.rest"
-            zIndex={2}
-            display="flex"
-            flexDirection="column"
-            alignItems="stretch"
-            justifyContent="center"
-            px={6}
-            gap={6}
-          >
-            <Timer
-              key={`rest-${done.length}`}
-              duration={rest.duration}
-              couleur="bg.canvas"
-              track="blackAlpha.400"
-              onComplete={() => setRest(null)}
-              title={
-                <Text
-                  fontSize="xs"
-                  letterSpacing="2px"
-                  textTransform="uppercase"
-                  fontWeight="800"
-                  color="bg.canvas"
-                >
-                  Repos
-                </Text>
-              }
-            />
-            {rest.nextUp && (
-              <Text fontSize="sm" color="bg.canvas" opacity={0.8}>
-                Ensuite&nbsp;: {rest.nextUp}
-              </Text>
-            )}
-            <Button
-              alignSelf="stretch"
-              minH="52px"
-              bg="bg.canvas"
-              color="fg"
-              _hover={{ bg: 'bg.canvas' }}
-              onClick={() => setRest(null)}
-            >
-              Passer le repos
-            </Button>
-          </Box>
         )}
 
         {detail && (
