@@ -660,6 +660,7 @@ const BlockList = ({
   onOuvrirDetail,
   rest,
   onRestDone,
+  onUndo,
 }: {
   block: SessionBlock;
   sets: GuidedSet[];
@@ -672,7 +673,23 @@ const BlockList = ({
   /** The rest under way, and the set it follows. */
   rest: { afterKey: string; duration: number; nextUp: string } | null;
   onRestDone: () => void;
+  /** Untick a set: it goes back to being something to do. */
+  onUndo: (key: string) => void;
 }) => {
+  /**
+   * The ticked set currently reopened, if any.
+   *
+   * One at a time: reopening two would put two editable loads on screen and
+   * bring back the very thing the list was rewritten to remove — a form at
+   * every line.
+   */
+  const [opened, setOpened] = useState<string | null>(null);
+
+  /** Whether this movement has anything to show beyond its dose. */
+  const aDuDetailDe = (e: GuidedSet) =>
+    !!e.exercise.note?.trim() ||
+    !!e.exercise.exercise.description?.trim() ||
+    !!e.exercise.exercise.videoUrl?.trim();
   /**
    * The set's rank within its exercise, when there is more than one.
    *
@@ -849,9 +866,139 @@ const BlockList = ({
           );
         }
 
+        // A ticked set reopens: you reread it, you fix its load, you do it
+        // again. It used to be a dead line — and the three things people
+        // actually want from it have nothing to do with the cursor, so they
+        // happen in place rather than by moving it.
+        if (fait && opened === e.key) {
+          return (
+            <Fragment key={e.key}>
+              <VStack
+                align="stretch"
+                gap={2.5}
+                bg="surface.card"
+                borderWidth="1px"
+                borderColor="session.rest"
+                borderRadius="xl"
+                px={4}
+                py={3}
+                my={1}
+              >
+                <HStack gap={3}>
+                  <Box color="session.rest" flexShrink={0}>
+                    <LuCheck size={16} strokeWidth={3} />
+                  </Box>
+                  <Text fontSize="md" fontWeight="bold" minW={0} lineClamp={1}>
+                    {e.name}
+                  </Text>
+                  {rank && (
+                    <Text fontSize="sm" color="fg.muted" flexShrink={0}>
+                      · {rank}
+                    </Text>
+                  )}
+                  <Box flex={1} />
+                  <Text
+                    fontSize="sm"
+                    color="fg.muted"
+                    fontFamily="mono"
+                    flexShrink={0}
+                  >
+                    {e.dose}
+                  </Text>
+                </HStack>
+
+                <HStack justify="space-between" align="center" gap={3}>
+                  {onPerformedChange ? (
+                    <HStack gap={2}>
+                      <Text fontSize="sm" color="fg.muted">
+                        Fait à
+                      </Text>
+                      <Input
+                        aria-label={`Corriger le poids, en kilos — ${e.name} ${rank}`}
+                        inputMode="decimal"
+                        value={value?.weight ?? ''}
+                        onChange={(ev) => write(e, 'weight', ev.target.value)}
+                        w="76px"
+                        minH="44px"
+                        textAlign="center"
+                        fontFamily="mono"
+                        fontWeight="bold"
+                        placeholder="—"
+                      />
+                      <Text fontSize="sm" color="fg.muted">
+                        kg
+                      </Text>
+                    </HStack>
+                  ) : (
+                    <Box />
+                  )}
+                  {/* Undoing is not correcting: someone who fixes a typo does
+                      not want the set back in front of them, and someone who
+                      redoes it does. Two gestures, two buttons. */}
+                  <Box
+                    as="button"
+                    onClick={() => onUndo(e.key)}
+                    color="app.primary"
+                    fontSize="sm"
+                    fontWeight="bold"
+                    flexShrink={0}
+                    css={hitArea(44)}
+                  >
+                    Refaire
+                  </Box>
+                </HStack>
+
+                <HStack justify="space-between" align="center" gap={3}>
+                  {aDuDetailDe(e) ? (
+                    <Box
+                      as="button"
+                      onClick={() => onOuvrirDetail(e.exercise)}
+                      color="app.primary"
+                      fontSize="sm"
+                      css={hitArea(32)}
+                    >
+                      Revoir le mouvement
+                    </Box>
+                  ) : (
+                    <Box />
+                  )}
+                  <Box
+                    as="button"
+                    onClick={() => setOpened(null)}
+                    color="fg.muted"
+                    fontSize="sm"
+                    css={hitArea(32)}
+                  >
+                    Fermer
+                  </Box>
+                </HStack>
+              </VStack>
+              {restHere}
+            </Fragment>
+          );
+        }
+
         return (
           <Fragment key={e.key}>
-            <HStack gap={3} minH="44px" px={4} py={2} opacity={fait ? 1 : 0.75}>
+            <HStack
+              gap={3}
+              minH="44px"
+              px={4}
+              py={2}
+              opacity={fait ? 1 : 0.75}
+              {...(fait
+                ? {
+                    as: 'button' as const,
+                    w: 'full',
+                    textAlign: 'left' as const,
+                    'aria-expanded': false,
+                    'aria-label': `Rouvrir ${e.name} ${rank}`,
+                    onClick: () => setOpened(e.key),
+                    _hover: { bg: 'whiteAlpha.50' },
+                    borderRadius: 'lg',
+                  }
+                : {})}
+            >
               <Box
                 color={fait ? 'session.rest' : 'whiteAlpha.400'}
                 flexShrink={0}
@@ -1111,6 +1258,24 @@ export const GuidedSession = ({
         nextUp: after ? `${after.name} · ${after.dose}` : '',
       });
     }
+  };
+
+  /**
+   * A set goes back to being something to do.
+   *
+   * The cursor follows on its own: it is the first set not done, so unticking
+   * one that comes before it brings it back to the front. Nothing else has to
+   * move — which is the whole benefit of a state that is not an index.
+   *
+   * The load stays. Redoing a set is not forgetting what you lifted on it,
+   * and it gets overwritten the moment something else is entered.
+   */
+  const undoSet = (key: string) => {
+    const next = done.filter((k) => k !== key);
+    setDone(next);
+    writeProgress(session._id, { done: next });
+    // A rest that belonged to the set just untaken no longer means anything.
+    if (rest?.afterKey === key) setRest(null);
   };
 
   const goTo = (next: number) => {
@@ -1721,6 +1886,7 @@ export const GuidedSession = ({
               onOuvrirDetail={setDetail}
               rest={rest}
               onRestDone={() => setRest(null)}
+              onUndo={undoSet}
             />
           </>
         ) : step.type === 'block' ? (
