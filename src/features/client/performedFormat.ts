@@ -9,16 +9,16 @@ export const sameSet = (a: PerformedSet, b: PerformedSet): boolean =>
   a.weight === b.weight && a.reps === b.reps && a.duration === b.duration;
 
 /**
- * Une série laissée vide veut dire que l'exercice s'est arrêté là : les
- * suivantes n'ont pas eu lieu. Une série vide tronque donc la liste, elle ne
- * se saute pas — c'est la règle que le serveur applique aussi.
+ * A set left empty means the exercise stopped there: the following ones did
+ * not happen. An empty set therefore truncates the list, it is not skipped —
+ * the same rule the server applies.
  */
 export const truncateAtFirstEmpty = (sets: PerformedSet[]): PerformedSet[] => {
   const stop = sets.findIndex(isEmptySet);
   return stop === -1 ? sets : sets.slice(0, stop);
 };
 
-/** La série commune à toutes, ou `null` si elles diffèrent. */
+/** The set common to all of them, or `null` if they differ. */
 export const uniformSet = (sets: PerformedSet[]): PerformedSet | null =>
   sets.length > 0 && sets.every((s) => sameSet(s, sets[0])) ? sets[0] : null;
 
@@ -31,16 +31,16 @@ const setParts = (set: PerformedSet): string[] => {
 };
 
 /**
- * Le réalisé en une ligne. `null` s'il n'y a rien à dire.
+ * What was performed, on one line. `null` when there is nothing to say.
  *
- * Trois formes, de la plus courante à la plus rare :
- *   une série                    « 26 kg · 12 reps »
- *   plusieurs séries identiques  « 26 kg · 3 × 12 reps »
- *   la même charge, moins de reps « 26 kg · 12 + 10 + 8 »
- *   tout le reste                « 26 kg × 12 · 24 kg × 10 »
+ * Four shapes, from the most common to the rarest:
+ *   one set                      « 26 kg · 12 reps »
+ *   several identical sets       « 26 kg · 3 × 12 reps »
+ *   same load, fewer reps        « 26 kg · 12 + 10 + 8 »
+ *   everything else              « 26 kg × 12 · 24 kg × 10 »
  *
- * Les trois premières couvrent ce qu'on écrit d'ordinaire ; la dernière ne
- * cherche pas à être courte, elle cherche à rester non ambiguë.
+ * The first three cover what people usually write; the last does not try to
+ * be short, it tries to stay unambiguous.
  */
 export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
   const kept = truncateAtFirstEmpty(sets);
@@ -51,12 +51,12 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
     const parts = setParts(uniform);
     if (parts.length === 0) return null;
     if (kept.length === 1) return parts.join(' · ');
-    // Le compte de séries se pose devant l'effort, jamais devant la charge :
-    // « 3 × 26 kg » se lirait comme un poids total.
+    // The set count goes before the work, never before the load:
+    // « 3 × 26 kg » would read as a total weight.
     const weight = uniform.weight !== undefined ? `${uniform.weight} kg` : null;
-    const effort = setParts({ reps: uniform.reps, duration: uniform.duration });
-    if (effort.length === 0) return `${kept.length} × ${weight}`;
-    return [weight, `${kept.length} × ${effort.join(' · ')}`]
+    const work = setParts({ reps: uniform.reps, duration: uniform.duration });
+    if (work.length === 0) return `${kept.length} × ${weight}`;
+    return [weight, `${kept.length} × ${work.join(' · ')}`]
       .filter(Boolean)
       .join(' · ');
   }
@@ -69,19 +69,19 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
     return `${weights[0]} kg · ${reps.join(' + ')}`;
   }
 
-  // Dans une liste de séries, le « × » dit déjà qu'il s'agit de répétitions :
-  // répéter le mot à chaque série n'ajoute rien et allonge tout.
+  // In a list of sets the « × » already says these are repetitions:
+  // repeating the word on every set adds nothing and lengthens everything.
   return kept
     .map((set) => {
-      const effort = [
+      const work = [
         set.reps !== undefined ? String(set.reps) : null,
         set.duration !== undefined ? `${set.duration}s` : null,
       ]
         .filter(Boolean)
         .join(' · ');
       const weight = set.weight !== undefined ? `${set.weight} kg` : null;
-      if (!weight) return effort || '—';
-      return effort ? `${weight} × ${effort}` : weight;
+      if (!weight) return work || '—';
+      return work ? `${weight} × ${work}` : weight;
     })
     .join(' · ');
 };

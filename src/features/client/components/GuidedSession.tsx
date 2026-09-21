@@ -1,8 +1,8 @@
 import { BlockExercise, PerformedValues, Session, SessionBlock } from '@/types';
 import {
   buildGuidedSteps,
-  doseDuTour,
-  type Effort,
+  roundDose,
+  type GuidedSet,
   type GuidedStep,
 } from '../guidedSteps';
 import { useCountdown } from '../useCountdown';
@@ -29,7 +29,7 @@ import { formatDuration } from '@/utils/duration';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuCheck, LuInfo, LuTimer, LuX } from 'react-icons/lu';
-import { compterNotes, ecrireSeance, lireSeance } from '../seanceEnCours';
+import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
 
 interface GuidedSessionProps {
   session: Session;
@@ -37,86 +37,84 @@ interface GuidedSessionProps {
   onFinish: () => void;
   lastPerformance?: Map<string, LastPerformance>;
   /**
-   * Ce qui a déjà été noté, et de quoi le compléter — le même état que celui
-   * du bilan de fin. Retour du terrain : « dommage de ne pas pouvoir noter
-   * les charges pendant. » On note donc là où on est, et le bilan retrouve la
-   * saisie déjà faite au lieu de la redemander.
+   * What has already been recorded, and the means to add to it — the same
+   * state as the wrap-up form. From the field: "a shame you cannot record
+   * loads while you go." So you record where you are, and the wrap-up finds
+   * what was entered instead of asking for it again.
    */
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
 }
 
-interface MinuteurProps {
+interface TimerProps {
   duration: number;
   /**
-   * Fourni quand l'horloge mène — un repos imposé, un tour à cadence : elle
-   * enchaîne d'elle-même, c'est le format. Absent quand elle accompagne : un
-   * effort chronométré s'arrête et attend, parce que personne n'a envie de
-   * voir la page changer sous ses yeux alors qu'il finit sa dernière rep.
+   * Provided when the clock leads — an imposed rest, a timed round: it moves
+   * on by itself, that is the format. Absent when it merely accompanies: a
+   * timed set stops and waits, because nobody wants to watch the page change
+   * under them while they finish their last rep.
    */
   onComplete?: () => void;
   couleur: string;
-  /** La piste sous la jauge — plus sombre sur un fond clair. */
-  piste?: string;
-  /** Ce qui se lit à gauche du temps : le bloc et le tour, « Repos »… */
-  titre?: React.ReactNode;
+  /** The track under the gauge — darker on a light background. */
+  track?: string;
+  /** What reads to the left of the time: the block and the round, "Repos"… */
+  title?: React.ReactNode;
   holdLabel?: string;
   /**
-   * Plus petit quand il coiffe une liste : dans un AMRAP, la pendule compte,
-   * mais c'est la liste des mouvements qu'on est venu lire.
+   * Smaller when it sits above a list: in an AMRAP the clock matters, but the
+   * list of movements is what you came to read.
    */
   compact?: boolean;
 }
 
-// C'est le seul écran utilisé pendant l'effort, celui où l'on peut le moins se
-// permettre de perdre sa place : un appel entrant ou un écran verrouillé trop
-// longtemps ne doit pas renvoyer à l'étape 1 d'une séance qui en compte
-// quarante.
+// This is the only screen used while training, the one where losing your
+// place is least affordable: an incoming call, or a screen locked too long,
+// must not send you back to step 1 of a session that has forty.
 //
-// La position rejoint les charges dans un seul enregistrement durable — voir
-// `seanceEnCours`. Elles étaient séparées, et rangées dans deux mémoires de
-// durées différentes : l'application gardait ce qui se retrouve et perdait ce
-// qui ne se retrouve pas.
+// The position joins the loads in a single durable record — see
+// `sessionProgress`. They used to be separate, filed in two memories with
+// different lifetimes: the app kept what can be found again and lost what
+// cannot.
 const readSavedIndex = (sessionId: string): number =>
-  lireSeance(sessionId)?.etape ?? 0;
+  readProgress(sessionId)?.step ?? 0;
 
 const writeSavedIndex = (sessionId: string, index: number) =>
-  ecrireSeance(sessionId, { etape: index });
+  writeProgress(sessionId, { step: index });
 
 /**
- * Le temps, et la jauge qui se vide.
+ * The time, and the gauge draining.
  *
- * Le décompte vivait dans un anneau. Deux choses le condamnaient. Une
- * longueur se lit plus vite qu'un angle du coin de l'œil — et c'est
- * exactement l'usage : un regard entre deux répétitions, le téléphone posé
- * par terre. Et l'anneau parlait une langue que l'écran n'employait nulle
- * part ailleurs, alors que l'avancement de la séance est déjà une barre, en
- * haut. L'écran n'a plus qu'un vocabulaire.
+ * The countdown used to live in a ring. Two things condemned it. A length
+ * reads faster than an angle out of the corner of your eye — and that is
+ * exactly the use: a glance between two reps, the phone on the floor. And the
+ * ring spoke a language the screen used nowhere else, while session progress
+ * is already a bar, at the top. The screen now has a single vocabulary.
  *
- * Ce que l'anneau faisait bien est gardé : entre deux secondes, le chiffre ne
- * bouge pas, et un chronomètre dont on ignore s'il tourne est pire que pas de
- * chronomètre. La jauge coule sur une seconde. À l'arrêt, plus de transition —
- * la pause doit se voir tout de suite, pas glisser encore une seconde.
+ * What the ring did well is kept: between two seconds the figure does not
+ * move, and a stopwatch you cannot tell is running is worse than no stopwatch
+ * at all. The gauge flows over one second. When paused, no transition — a
+ * pause must be visible at once, not slide on for another second.
  */
 /**
- * Un téléphone couché.
+ * A phone lying flat.
  *
- * On ne vise pas « paysage » tout court : une tablette couchée a 800 px de
- * haut et n'a besoin de rien. C'est la hauteur qui manque, pas la largeur —
- * 390 px sur un iPhone, dont l'habillage du mode guidé prenait 186, soit
- * presque la moitié de l'écran pour trois barres et deux boutons.
+ * We do not target "landscape" on its own: a tablet on its side has 800 px of
+ * height and needs nothing. Height is what is missing, not width — 390 px on
+ * an iPhone, of which guided mode's chrome took 186, nearly half the screen
+ * for three bars and two buttons.
  */
 const PAYSAGE = '@media (orientation: landscape) and (max-height: 520px)';
 
-const Minuteur = ({
+const Timer = ({
   duration,
   onComplete,
   couleur,
-  piste = 'whiteAlpha.200',
-  titre,
+  track = 'whiteAlpha.200',
+  title,
   holdLabel,
   compact = false,
-}: MinuteurProps) => {
+}: TimerProps) => {
   const { remaining, isRunning, pause, resume } = useCountdown(duration, {
     onComplete,
   });
@@ -128,8 +126,8 @@ const Minuteur = ({
     }
   }, [remaining]);
 
-  // Le décompte qui ne rend pas la main tout seul se signale une fois,
-  // franchement : personne ne regarde l'écran à ce moment-là.
+  // A countdown that does not hand over by itself announces once, plainly:
+  // nobody is looking at the screen at that moment.
   useEffect(() => {
     if (isDone && !onComplete) {
       navigator.vibrate?.([120, 80, 120]);
@@ -147,8 +145,8 @@ const Minuteur = ({
       textAlign="left"
       onClick={isDone ? undefined : () => (isRunning ? pause() : resume())}
       cursor={isDone ? 'default' : 'pointer'}
-      // Le temps restant fait partie du nom : sans lui, qui n'a pas l'écran
-      // sous les yeux peut mettre en pause sans jamais savoir où il en est.
+      // The remaining time is part of the name: without it, someone who
+      // cannot see the screen may pause without ever knowing where they are.
       aria-label={
         isDone
           ? 'Temps écoulé'
@@ -156,7 +154,7 @@ const Minuteur = ({
       }
     >
       <HStack justify="space-between" align="flex-end" gap={3}>
-        <Box minW={0}>{titre}</Box>
+        <Box minW={0}>{title}</Box>
         <Text
           fontSize={compact ? '40px' : '72px'}
           fontWeight="800"
@@ -175,7 +173,7 @@ const Minuteur = ({
         mt={compact ? 2 : 3}
         h={compact ? '6px' : '10px'}
         borderRadius="full"
-        bg={piste}
+        bg={track}
         overflow="hidden"
       >
         <Box
@@ -205,102 +203,100 @@ const Minuteur = ({
 };
 
 /**
- * Les étapes regroupées par bloc, dans l'ordre.
+ * The steps grouped by block, in order.
  *
- * Une trentaine de tirets de deux pixels ne se lisent pas : on ne sait ni où
- * l'on en est, ni combien il reste. Trois segments — Échauffement, EMOM,
- * AMRAP — se lisent d'un coup d'œil, et c'est en blocs que le client raisonne,
- * pas en pages.
+ * Thirty two-pixel dashes cannot be read: you know neither where you are nor
+ * how much is left. Three segments — warm-up, EMOM, AMRAP — read at a glance,
+ * and the client reasons in blocks, not in pages.
  *
- * La largeur de chaque segment suit son nombre d'étapes : un EMOM de douze
- * pages est plus large qu'un échauffement de deux. Des segments égaux
- * mentiraient sur ce qu'il reste à faire.
+ * Each segment's width follows its step count: a twelve-page EMOM is wider
+ * than a two-page warm-up. Equal segments would lie about what is left.
  */
 /**
- * Ce qu'une étape pèse dans la barre : le temps qu'elle demande.
+ * What a step weighs in the bar: the time it asks for.
  *
- * Elle pesait des pages, et elle mentait d'un facteur dix. Mesuré sur la
- * séance d'essai : l'AMRAP de douze minutes recevait 24 px, l'EMOM 239 — la
- * barre annonçait que la séance était à 85 % de l'EMOM, alors qu'en temps
- * vécu les deux blocs font jeu égal. Un client qui la regardait après l'EMOM
- * croyait avoir fini.
+ * It used to weigh pages, and it lied by a factor of ten. Measured on the
+ * test session: the twelve-minute AMRAP got 24 px, the EMOM 239 — the bar
+ * announced the session was 85 % done by the end of the EMOM, when in lived
+ * time the two blocks are even. A client looking at it after the EMOM thought
+ * they had finished.
  *
- * Le coach donne la durée là où elle fait partie du format : l'intervalle
- * d'un tour, la durée d'un AMRAP. On la prend telle quelle. Ailleurs — une
- * série, un palier — il ne la donne pas, et on compte une minute par effort.
- * C'est une approximation, et elle est assumée : l'intervalle d'un EMOM EST
- * une minute, une série avec son repos en fait à peu près autant. Elle vaut
- * infiniment mieux que compter les fois où l'on tape « Suivant ».
+ * The coach gives the duration where it is part of the format: a round's
+ * interval, an AMRAP's length. We take it as given. Elsewhere — a set, a rung
+ * — they do not give it, and we count one minute per set. That is an
+ * approximation, and a deliberate one: an EMOM interval IS a minute, and a
+ * set with its rest is worth about as much. It is infinitely better than
+ * counting how many times someone taps "Suivant".
  */
-const poidsDe = (step: GuidedStep): number => {
+const weightOf = (step: GuidedStep): number => {
   if (step.type === 'rest') return step.duration / 60;
   if (step.type === 'round')
     return (step.workSeconds ?? 60) / 60 + (step.restSeconds ?? 0) / 60;
-  // Une boucle porte sa durée ; une liste, ses efforts.
-  if (step.forme === 'boucle')
-    return Math.max(1, step.block.durationMinutes ?? step.efforts.length);
-  return Math.max(1, step.efforts.length);
+  // A loop carries its duration; a list, its sets.
+  if (step.shape === 'loop')
+    return Math.max(1, step.block.durationMinutes ?? step.sets.length);
+  return Math.max(1, step.sets.length);
 };
 
 const decouperEnBlocs = (steps: GuidedStep[]) => {
-  const blocs: {
+  const blockRuns: {
     label: string;
-    debut: number;
-    /** Nombre d'étapes — ce qui fait avancer le remplissage. */
-    taille: number;
-    /** Ce que le bloc représente — ce qui fait la largeur du segment. */
-    poids: number;
+    start: number;
+    /** Number of steps — what makes the fill advance. */
+    size: number;
+    /** What the block represents — what makes the segment's width. */
+    weight: number;
   }[] = [];
   steps.forEach((step, i) => {
-    const dernier = blocs[blocs.length - 1];
+    const dernier = blockRuns[blockRuns.length - 1];
     if (dernier && dernier.label === step.blockLabel) {
-      dernier.taille += 1;
-      dernier.poids += poidsDe(step);
+      dernier.size += 1;
+      dernier.weight += weightOf(step);
       return;
     }
-    blocs.push({
+    blockRuns.push({
       label: step.blockLabel,
-      debut: i,
-      taille: 1,
-      poids: poidsDe(step),
+      start: i,
+      size: 1,
+      weight: weightOf(step),
     });
   });
-  return blocs;
+  return blockRuns;
 };
 
 /**
- * Un décompte proposé plutôt qu'imposé.
+ * A countdown offered rather than imposed.
  *
- * Le déroulé page à page donnait un chronomètre plein écran à chaque effort
- * chronométré et à chaque repos. C'est cette mise en scène que le retour du
- * terrain refusait — « pas 7 reps back squat, puis 120 s repos, puis
- * 6 reps » —, pas le chronomètre lui-même, qui rendait service. Le supprimer
- * avec l'écran, ce serait jeter la chose utile avec sa mauvaise présentation.
+ * The page-by-page flow gave a full-screen stopwatch to every timed set and
+ * every rest. It is that staging the field feedback refused — "not 7 reps
+ * back squat, then 120 s rest, then 6 reps" — not the stopwatch itself, which
+ * was useful. Removing it along with the screen would throw out the useful
+ * thing with its bad presentation.
  *
- * Il vit donc sous la ligne qui le prescrit : « 2 min » pour l'effort,
- * « repos 45 s » pour ce qui suit. On le lance quand on y est, et il redevient
- * un bouton une fois fini — parce qu'il reste trois séries à faire.
+ * So it lives under the line that prescribes it: "2 min" for the work,
+ * "45 s rest" for what follows. You start it when you get there, and it turns
+ * back into a button once done — because three sets remain.
  */
-const MinuteurALaDemande = ({
+const OnDemandTimer = ({
   duration,
-  libelle,
+  label,
   couleur,
 }: {
   duration: number;
-  libelle: string;
+  label: string;
   couleur: string;
 }) => {
-  const [enCours, setEnCours] = useState(false);
+  const [isCurrent, setEnCours] = useState(false);
 
-  if (enCours)
+  if (isCurrent)
     return (
       <Box pl={4} py={1}>
-        <Minuteur
+        <Timer
           duration={duration}
           couleur={couleur}
           onComplete={() => {
-            // Personne ne regarde l'écran à ce moment-là : on le dit au
-            // poignet. `Minuteur` ne le fait lui-même que sans `onComplete`.
+            // Nobody is looking at the screen at that moment: we say it to
+            // the wrist. `Timer` only does so itself without `onComplete`.
             navigator.vibrate?.([120, 80, 120]);
             setEnCours(false);
           }}
@@ -314,7 +310,7 @@ const MinuteurALaDemande = ({
       <Box
         as="button"
         onClick={() => setEnCours(true)}
-        aria-label={`Lancer le décompte — ${libelle}`}
+        aria-label={`Lancer le décompte — ${label}`}
         minH="44px"
         display="flex"
         alignItems="center"
@@ -325,7 +321,7 @@ const MinuteurALaDemande = ({
       >
         <HStack gap={1.5}>
           <LuTimer size={13} />
-          <Text as="span">{libelle}</Text>
+          <Text as="span">{label}</Text>
         </HStack>
       </Box>
     </Box>
@@ -333,42 +329,41 @@ const MinuteurALaDemande = ({
 };
 
 /**
- * Un tour, avec son horloge.
+ * One round, with its clock.
  *
- * Trois choses que le déroulé page-par-page ne pouvait pas dire, et qui sont
- * tout ce dont on a besoin au milieu d'un EMOM :
+ * Three things the page-by-page flow could not say, and which are all you
+ * need in the middle of an EMOM:
  *
- *   — dans quel tour on est (dix écrans identiques ne le disaient pas),
- *   — combien de temps il reste dans la minute (l'horloge était absente du
- *     seul format qui se définit par elle),
- *   — ce qu'il reste à faire dans ce tour (on ne voyait qu'un mouvement).
+ *   — which round you are in (ten identical screens did not say),
+ *   — how much of the minute is left (the clock was missing from the one
+ *     format defined by it),
+ *   — what is left to do in this round (you only saw one movement).
  *
- * Le Tabata et l'On-Off imposent en plus leur repos : l'horloge enchaîne
- * alors d'elle-même le travail puis le repos. Sur un EMOM, le repos est ce
- * qu'il reste de l'intervalle — il n'a pas de page, parce qu'il n'a pas de
- * durée propre.
+ * Tabata and On-Off additionally impose their rest: the clock then chains
+ * work and rest by itself. On an EMOM the rest is whatever is left of the
+ * interval — it has no page, because it has no duration of its own.
  */
-const Tour = ({
+const Round = ({
   step,
   onDone,
   lastPerformance,
   onOuvrirDetail,
 }: {
   step: Extract<GuidedStep, { type: 'round' }>;
-  /** Le tour est fini : on enchaîne. */
+  /** The round is over: we move on. */
   onDone: () => void;
   lastPerformance?: Map<string, LastPerformance>;
   onOuvrirDetail: (ex: BlockExercise) => void;
 }) => {
-  const [phase, setPhase] = useState<'travail' | 'repos'>('travail');
-  const enRepos = phase === 'repos';
-  const duree = enRepos ? step.restSeconds : step.workSeconds;
+  const [phase, setPhase] = useState<'travail' | 'rest'>('travail');
+  const resting = phase === 'rest';
+  const duration = resting ? step.restSeconds : step.workSeconds;
 
-  // Le travail fini, on passe au repos s'il en existe un d'imposé — sinon le
-  // tour est fini et le suivant part, ce qui est la définition du format.
+  // Work done, we move to the rest if one is imposed — otherwise the round
+  // is over and the next starts, which is the definition of the format.
   const finDePhase = () => {
-    if (!enRepos && step.restSeconds) {
-      setPhase('repos');
+    if (!resting && step.restSeconds) {
+      setPhase('rest');
       return;
     }
     navigator.vibrate?.([120, 80, 120]);
@@ -383,32 +378,33 @@ const Tour = ({
       px={5}
       py={2}
       overflowY="auto"
-      // Couché, ces gouttières valent 16 px chacune sur 360 px de haut. Les
-      // cibles gardent leurs 44 px — on ne rétrécit pas ce qu'on touche en
-      // sueur —, c'est le vide qui cède.
+      // Lying flat, these gutters are worth 16 px each out of 360 px of
+      // height. The targets keep their 44 px — we do not shrink what gets
+      // touched with sweaty hands — it is the empty space that gives.
       css={{ [PAYSAGE]: { gap: '10px', paddingTop: 0, paddingBottom: 0 } }}
     >
-      {duree ? (
-        <Minuteur
-          // La clé porte la phase autant que le tour : sans elle, le décompte
-          // du repos reprendrait là où celui du travail s'est arrêté.
+      {duration ? (
+        <Timer
+          // The key carries the phase as well as the round: without it, the
+          // rest countdown would resume where the work one stopped.
           key={`${step.round}-${phase}`}
-          duration={duree}
-          couleur={enRepos ? 'session.rest' : 'fg'}
+          duration={duration}
+          couleur={resting ? 'session.rest' : 'fg'}
           onComplete={finDePhase}
-          titre={
+          title={
             <VStack align="start" gap={0.5}>
               <Text
                 fontSize="xs"
                 letterSpacing="2px"
                 textTransform="uppercase"
                 fontWeight="800"
-                color={enRepos ? 'session.rest' : 'session.work'}
+                color={resting ? 'session.rest' : 'session.work'}
               >
-                {enRepos ? 'Repos' : step.blockLabel}
+                {resting ? 'Repos' : step.blockLabel}
               </Text>
-              {/* Le repère qui manquait. Sans lui, les dix tours d'un EMOM
-              s'affichaient à l'identique et rien ne disait lequel on vivait. */}
+              {/* The landmark that was missing. Without it, an EMOM's ten rounds
+              displayed identically and nothing said which one you were
+              living. */}
               <Text fontSize="lg" fontWeight="800" lineHeight="1.1">
                 Tour {step.round}&nbsp;/&nbsp;{step.rounds}
               </Text>
@@ -422,28 +418,29 @@ const Tour = ({
             letterSpacing="2px"
             textTransform="uppercase"
             fontWeight="800"
-            color={enRepos ? 'session.rest' : 'session.work'}
+            color={resting ? 'session.rest' : 'session.work'}
           >
-            {enRepos ? 'Repos' : step.blockLabel}
+            {resting ? 'Repos' : step.blockLabel}
           </Text>
-          {/* Le repère qui manquait. Sans lui, les dix tours d'un EMOM
-              s'affichaient à l'identique et rien ne disait lequel on vivait. */}
+          {/* The landmark that was missing. Without it, an EMOM's ten rounds
+              displayed identically and nothing said which one you were
+              living. */}
           <Text fontSize="lg" fontWeight="800" lineHeight="1.1">
             Tour {step.round}&nbsp;/&nbsp;{step.rounds}
           </Text>
         </VStack>
       )}
 
-      {/* Ce qu'il y a à faire dans ce tour — tout, pas un mouvement à la
-          fois. En repos imposé, la liste reste : c'est ce qu'on relit pour
-          se préparer au tour suivant. */}
-      <VStack align="stretch" gap={0} opacity={enRepos ? 0.6 : 1}>
+      {/* What there is to do in this round — all of it, not one movement at
+          a time. During an imposed rest the list stays: it is what you
+          reread to get ready for the next round. */}
+      <VStack align="stretch" gap={0} opacity={resting ? 0.6 : 1}>
         {step.exercises.map((ex, i) => {
           const aDuDetail =
             !!ex.note?.trim() ||
             !!ex.exercise.description?.trim() ||
             !!ex.exercise.videoUrl?.trim();
-          const derniere = formatLastPerformance(
+          const last = formatLastPerformance(
             lastPerformance?.get(ex.exercise._id)
           );
           return (
@@ -483,12 +480,12 @@ const Tour = ({
                   fontFamily="mono"
                   flexShrink={0}
                 >
-                  {doseDuTour(step.block, ex) || '—'}
+                  {roundDose(step.block, ex) || '—'}
                 </Text>
               </HStack>
-              {derniere && (
+              {last && (
                 <Text fontSize="xs" color="fg.muted">
-                  la dernière fois&nbsp;: {derniere}
+                  la dernière fois&nbsp;: {last}
                 </Text>
               )}
             </Box>
@@ -496,11 +493,11 @@ const Tour = ({
         })}
       </VStack>
 
-      {/* Sur le dernier tour seulement : ailleurs, le compteur dit déjà qu'il
-          reste des tours, et annoncer « ensuite : tour 4 » n'apprend rien. */}
+      {/* On the last round only: elsewhere the counter already says rounds
+          remain, and announcing "next: round 4" teaches nothing. */}
       {step.nextLabel && (
         <Text fontSize="xs" color="fg.muted" textAlign="center">
-          dernier tour — ensuite&nbsp;: {step.nextLabel}
+          dernier tour — nextUp&nbsp;: {step.nextLabel}
         </Text>
       )}
     </VStack>
@@ -508,87 +505,87 @@ const Tour = ({
 };
 
 /**
- * Un bloc qu'on coche, effort par effort.
+ * A block you tick off, set by set.
  *
- * C'était la moitié cassée du mode guidé : la carte de prescription, avec des
- * champs de saisie collés dessus. Rien ne s'y cochait, rien n'y avançait.
- * Mesuré sur une pyramide à sept paliers : une ligne de 14 px et 511 px de
- * noir. Une feuille de papier faisait mieux — on pouvait y barrer.
+ * This was guided mode's broken half: the prescription card, with input
+ * fields stuck onto it. Nothing could be ticked, nothing advanced. Measured
+ * on a seven-rung pyramid: one 14 px line and 511 px of black. A sheet of
+ * paper did better — you could cross things out on it.
  *
- * Un seul effort est « en cours ». C'est le seul écrit en grand, et le seul
- * qui porte un champ : la hiérarchie naît de l'état, pas d'un choix
- * typographique arbitraire, et la liste redevient lisible parce qu'un
- * formulaire ne la coupe plus à chaque ligne.
+ * Exactly one set is "current". It is the only one written large, and the
+ * only one carrying a field: hierarchy comes from state, not from an
+ * arbitrary typographic choice, and the list becomes readable again because
+ * a form no longer cuts it at every line.
  */
-const BlocListe = ({
-  bloc,
-  efforts,
-  faits,
-  courant,
+const BlockList = ({
+  block,
+  sets,
+  done,
+  current,
   performed,
   onPerformedChange,
   lastPerformance,
   onOuvrirDetail,
 }: {
-  bloc: SessionBlock;
-  efforts: Effort[];
-  faits: Set<string>;
-  courant: Effort | undefined;
+  block: SessionBlock;
+  sets: GuidedSet[];
+  done: Set<string>;
+  current: GuidedSet | undefined;
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
   onOuvrirDetail: (ex: BlockExercise) => void;
 }) => {
   /**
-   * Le rang de l'effort dans son exercice, quand il y en a plusieurs.
+   * The set's rank within its exercise, when there is more than one.
    *
-   * Une pyramide ne fait pas des séries : elle monte et redescend des
-   * paliers, et c'est le mot que le coach emploie dans son atelier.
+   * A pyramid does not do series: it climbs and comes back down rungs, and
+   * that is the word the coach uses in the editor.
    */
-  const rangDe = (e: Effort) =>
+  const rankOf = (e: GuidedSet) =>
     e.total > 1
-      ? `${blockDefinesOwnMetrics(bloc.type) ? 'palier' : 'série'} ${e.rang} / ${e.total}`
+      ? `${blockDefinesOwnMetrics(block.type) ? 'palier' : 'série'} ${e.rank} / ${e.total}`
       : '';
 
-  /** Ce qui a été noté sur cet effort précisément. */
-  const valeurDe = (e: Effort) =>
+  /** What was recorded on this precise set. */
+  const valueOfSet = (e: GuidedSet) =>
     performed?.[performedKey(e.blockOrder, e.exerciseOrder)]?.sets?.[
-      e.rang - 1
+      e.rank - 1
     ];
 
-  const ecrire = (e: Effort, champ: 'weight' | 'reps', brut: string) => {
+  const write = (e: GuidedSet, champ: 'weight' | 'reps', brut: string) => {
     if (!onPerformedChange) return;
-    const cle = performedKey(e.blockOrder, e.exerciseOrder);
-    const sets = [...(performed?.[cle]?.sets ?? [])];
-    while (sets.length < e.rang) sets.push({});
-    const nombre =
+    const key = performedKey(e.blockOrder, e.exerciseOrder);
+    const sets = [...(performed?.[key]?.sets ?? [])];
+    while (sets.length < e.rank) sets.push({});
+    const count =
       brut.trim() === '' ? undefined : Number(brut.replace(',', '.'));
-    sets[e.rang - 1] = {
-      ...sets[e.rang - 1],
-      [champ]: Number.isFinite(nombre) ? nombre : undefined,
+    sets[e.rank - 1] = {
+      ...sets[e.rank - 1],
+      [champ]: Number.isFinite(count) ? count : undefined,
     };
-    onPerformedChange(cle, { sets });
+    onPerformedChange(key, { sets });
   };
 
   return (
     <VStack align="stretch" gap={1} flex={1} px={5} py={2} overflowY="auto">
-      {efforts.map((e) => {
-        const fait = faits.has(e.cle);
-        const enCours = courant?.cle === e.cle;
-        const valeur = valeurDe(e);
-        const rang = rangDe(e);
+      {sets.map((e) => {
+        const fait = done.has(e.key);
+        const isCurrent = current?.key === e.key;
+        const value = valueOfSet(e);
+        const rank = rankOf(e);
 
-        if (enCours) {
-          const derniere = formatLastPerformance(
-            lastPerformance?.get(e.exercice.exercise._id)
+        if (isCurrent) {
+          const last = formatLastPerformance(
+            lastPerformance?.get(e.exercise.exercise._id)
           );
           const aDuDetail =
-            !!e.exercice.note?.trim() ||
-            !!e.exercice.exercise.description?.trim() ||
-            !!e.exercice.exercise.videoUrl?.trim();
+            !!e.exercise.note?.trim() ||
+            !!e.exercise.exercise.description?.trim() ||
+            !!e.exercise.exercise.videoUrl?.trim();
           return (
             <Box
-              key={e.cle}
+              key={e.key}
               bg="surface.card"
               borderWidth="1px"
               borderColor="app.primary"
@@ -603,13 +600,13 @@ const BlocListe = ({
                       as="button"
                       textAlign="left"
                       minW={0}
-                      aria-label={`Voir la consigne — ${e.nom}`}
-                      onClick={() => onOuvrirDetail(e.exercice)}
+                      aria-label={`Voir la consigne — ${e.name}`}
+                      onClick={() => onOuvrirDetail(e.exercise)}
                       css={hitArea(44)}
                     >
                       <HStack gap={1.5} align="center">
                         <Text fontSize="xl" fontWeight="800">
-                          {e.nom}
+                          {e.name}
                         </Text>
                         <Box color="app.primary" flexShrink={0}>
                           <LuInfo size={15} />
@@ -618,7 +615,7 @@ const BlocListe = ({
                     </Box>
                   ) : (
                     <Text fontSize="xl" fontWeight="800" minW={0}>
-                      {e.nom}
+                      {e.name}
                     </Text>
                   )}
                   <Text
@@ -631,10 +628,10 @@ const BlocListe = ({
                   </Text>
                 </HStack>
 
-                {(rang || onPerformedChange) && (
+                {(rank || onPerformedChange) && (
                   <HStack justify="space-between" align="center" gap={3}>
                     <Text fontSize="sm" color="fg.muted">
-                      {rang}
+                      {rank}
                     </Text>
                     {onPerformedChange && (
                       <HStack gap={2}>
@@ -642,12 +639,10 @@ const BlocListe = ({
                           Fait à
                         </Text>
                         <Input
-                          aria-label={`Poids utilisé, en kilos — ${e.nom} ${rang}`}
+                          aria-label={`Poids utilisé, en kilos — ${e.name} ${rank}`}
                           inputMode="decimal"
-                          value={valeur?.weight ?? ''}
-                          onChange={(ev) =>
-                            ecrire(e, 'weight', ev.target.value)
-                          }
+                          value={value?.weight ?? ''}
+                          onChange={(ev) => write(e, 'weight', ev.target.value)}
                           w="76px"
                           minH="44px"
                           textAlign="center"
@@ -663,37 +658,36 @@ const BlocListe = ({
                   </HStack>
                 )}
 
-                {/* Un effort dont la dose est une durée a besoin d'être
-                    chronométré. Le repos automatique couvre le repos, pas le
-                    travail : en remplaçant la carte de prescription par les
-                    efforts, j'avais retiré le minuteur des « 2 min de corde
-                    à sauter » sans m'en apercevoir. Proposé, jamais imposé —
-                    on le lance quand on y est. */}
-                {e.exercice.duration ? (
+                {/* A set whose dose is a duration needs timing. The automatic
+                    rest covers the rest, not the work: replacing the
+                    prescription card with the sets quietly removed the timer
+                    from "2 min of skipping rope". Offered, never imposed —
+                    you start it when you get there. */}
+                {e.exercise.duration ? (
                   <Box ml={-4}>
-                    <MinuteurALaDemande
-                      duration={e.exercice.duration}
-                      libelle={formatDuration(e.exercice.duration)}
+                    <OnDemandTimer
+                      duration={e.exercise.duration}
+                      label={formatDuration(e.exercise.duration)}
                       couleur="app.primary"
                     />
                   </Box>
                 ) : null}
 
                 <HStack justify="space-between" align="center" gap={3}>
-                  {derniere ? (
+                  {last ? (
                     <Text fontSize="xs" color="fg.muted">
-                      la dernière fois&nbsp;: {derniere}
+                      la dernière fois&nbsp;: {last}
                     </Text>
                   ) : (
                     <Box />
                   )}
-                  {/* Ce que déclenche « Fait » : sans cette ligne, le repos
-                      plein écran arrive par surprise. */}
-                  {e.reposApres && (
+                  {/* What "Fait" triggers: without this line, the full-screen
+                      rest arrives as a surprise. */}
+                  {e.restAfter && (
                     <HStack gap={1.5} color="session.rest" flexShrink={0}>
                       <LuTimer size={13} />
                       <Text fontSize="xs" fontWeight="bold">
-                        puis {formatDuration(e.reposApres)} de repos
+                        puis {formatDuration(e.restAfter)} de repos
                       </Text>
                     </HStack>
                   )}
@@ -705,7 +699,7 @@ const BlocListe = ({
 
         return (
           <HStack
-            key={e.cle}
+            key={e.key}
             gap={3}
             minH="44px"
             px={4}
@@ -728,21 +722,21 @@ const BlocListe = ({
                 />
               )}
             </Box>
-            {/* Le nom peut se tronquer, le rang non : c'est lui qui dit où
-                l'on en est, et « Fentes marchées · série… » n'apprend rien. */}
+            {/* The name may be truncated, the rank may not: the rank is what
+                says where you are, and "Fentes marchées · série…" teaches nothing. */}
             <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1}>
-              {e.nom}
+              {e.name}
             </Text>
-            {rang && (
+            {rank && (
               <Text fontSize="sm" color="fg.muted" opacity={0.7} flexShrink={0}>
-                · {rang}
+                · {rank}
               </Text>
             )}
             <Box flex={1} />
-            {/* Sur ce qui reste à faire, le repos donne le rythme du bloc :
-                on voit que les squats sont à 1 min et les fentes à 45 s sans
-                avoir à y arriver. Sur ce qui est fait, il n'apprend plus rien
-                — c'est la charge qui prend sa place. */}
+            {/* On what remains, the rest gives the block's rhythm: you can see
+                the squats are on 1 min and the lunges on 45 s without having
+                to get there. On what is done it teaches nothing any more —
+                the load takes its place. */}
             {fait ? (
               <Text
                 fontSize="sm"
@@ -750,18 +744,18 @@ const BlocListe = ({
                 fontFamily="mono"
                 flexShrink={0}
               >
-                {valeur?.weight != null ? `${valeur.weight} kg` : e.dose}
+                {value?.weight != null ? `${value.weight} kg` : e.dose}
               </Text>
             ) : (
               <>
-                {e.reposApres && (
+                {e.restAfter && (
                   <Text
                     fontSize="2xs"
                     color="fg.muted"
                     opacity={0.7}
                     flexShrink={0}
                   >
-                    {formatDuration(e.reposApres)}
+                    {formatDuration(e.restAfter)}
                   </Text>
                 )}
                 <Text
@@ -792,78 +786,78 @@ export const GuidedSession = ({
   onPerformedChange,
 }: GuidedSessionProps) => {
   const [steps] = useState(() => buildGuidedSteps(session));
-  // Les blocs ne changent pas pendant la séance : on les découpe une fois.
-  const [blocs] = useState(() => decouperEnBlocs(steps));
+  // Blocks do not change during the session: we split them once.
+  const [blockRuns] = useState(() => decouperEnBlocs(steps));
   const [savedIndex] = useState(() =>
     Math.min(readSavedIndex(session._id), Math.max(0, steps.length - 1))
   );
   const [index, setIndex] = useState(0);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
-  // La consigne du coach est écrite pour ce moment précis — au milieu de
-  // l'effort, mains occupées. Elle était pourtant le seul contenu de la
-  // séance inaccessible depuis le plein écran : il fallait en sortir, donc
-  // perdre sa place, pour aller la lire.
+  // The coach's instruction is written for this precise moment — mid-effort,
+  // hands busy. It was nonetheless the session's only content unreachable
+  // from the full screen: you had to leave it, and so lose your place, to go
+  // and read it.
   //
-  // Un tour porte plusieurs mouvements : ce n'est plus « la consigne de
-  // l'écran » qu'on ouvre, c'est celle d'un mouvement nommé.
+  // A round carries several movements: what opens is no longer "the screen's
+  // instruction", it is that of a named movement.
   const [detail, setDetail] = useState<BlockExercise | null>(null);
-  // Proposée, jamais imposée : un client qui veut vraiment recommencer ne doit
-  // pas se retrouver piégé au milieu de la séance précédente.
+  // Offered, never imposed: a client who genuinely wants to start over must
+  // not find themselves trapped in the middle of the previous attempt.
   /**
-   * A-t-on déjà commencé cette séance ?
+   * Has this session already been started?
    *
-   * La position ne suffit pas à le dire : sur un bloc-liste, cocher des
-   * efforts ne fait pas avancer l'étape. Quelqu'un qui coche quatre lignes
-   * d'échauffement puis ferme l'application a bel et bien commencé, et lui
-   * remontrer la consigne d'ouverture serait lui dire qu'il n'a rien fait.
+   * The position is not enough to say: on a list block, ticking sets does not
+   * advance the step. Someone who ticks four warm-up lines then closes the
+   * app has very much started, and showing them the intro screen again would
+   * be telling them they did nothing.
    */
-  // L'heure de début, posée une fois pour toutes : elle sert à dire, à la
-  // fin, combien de temps la séance a réellement pris.
+  // The start time, set once and for all: it is what lets us say, at the
+  // end, how long the session actually took.
   useEffect(() => {
-    if (lireSeance(session._id)?.debutLe === undefined) {
-      ecrireSeance(session._id, { debutLe: Date.now() });
+    if (readProgress(session._id)?.startedAt === undefined) {
+      writeProgress(session._id, { startedAt: Date.now() });
     }
   }, [session._id]);
 
-  const [dejaCommence] = useState(() => {
-    const garde = lireSeance(session._id);
-    return (garde?.etape ?? 0) > 0 || (garde?.faits.length ?? 0) > 0;
+  const [alreadyStarted] = useState(() => {
+    const saved = readProgress(session._id);
+    return (saved?.step ?? 0) > 0 || (saved?.done.length ?? 0) > 0;
   });
-  const [showResume, setShowResume] = useState(() => dejaCommence);
+  const [showResume, setShowResume] = useState(() => alreadyStarted);
   /**
-   * L'écran d'ouverture ne paraît qu'au début.
+   * The intro screen only appears at the start.
    *
-   * Reprendre une séance entamée, c'est savoir ce qu'on fait : on ne
-   * rappelle pas la consigne à quelqu'un qui revient de sa douzième série.
+   * Resuming a session you began means you know what you are doing: we do not
+   * repeat the briefing to someone coming back from their twelfth set.
    */
-  const [showOuverture, setShowOuverture] = useState(() => !dejaCommence);
+  const [showIntro, setShowOuverture] = useState(() => !alreadyStarted);
 
-  /** Ce qui attend le client : un aperçu des blocs, et le total à fournir. */
-  const apercuDesBlocs = useMemo(
+  /** What awaits the client: a preview of the blocks, and the total to do. */
+  const blockPreview = useMemo(
     () =>
       steps.reduce<
-        { debut: number; label: string; couleur: string; detail: string }[]
+        { start: number; label: string; couleur: string; detail: string }[]
       >((acc, step, i) => {
         if (step.type === 'rest') return acc;
         const dernier = acc[acc.length - 1];
         if (dernier?.label === step.blockLabel) return acc;
         acc.push({
-          debut: i,
+          start: i,
           label: step.blockLabel,
           couleur: BLOCK_ACCENT_COLOR[getBlockAccent(step.block.type)],
           detail:
             step.type === 'round'
               ? `${step.rounds} tours`
-              : step.forme === 'boucle'
+              : step.shape === 'loop'
                 ? `${step.block.durationMinutes ?? '?'} min`
-                : `${step.efforts.length} efforts`,
+                : `${step.sets.length} exercices`,
         });
         return acc;
       }, []),
     [steps]
   );
 
-  const totalEfforts = useMemo(
+  const totalSets = useMemo(
     () =>
       steps.reduce(
         (n, step) =>
@@ -871,83 +865,84 @@ export const GuidedSession = ({
           (step.type === 'round'
             ? 1
             : step.type === 'block'
-              ? step.efforts.length
+              ? step.sets.length
               : 0),
         0
       ),
     [steps]
   );
-  // Lu une seule fois, à l'ouverture : c'est l'état d'avant qu'on annonce.
+  // Read once, on opening: it is the previous state we announce.
   const [notesGardees] = useState(() =>
-    compterNotes(lireSeance(session._id)?.performed ?? {})
+    countRecorded(readProgress(session._id)?.performed ?? {})
   );
 
   /**
-   * Les efforts déjà faits, indépendamment de la position.
+   * The sets already done, independent of the position.
    *
-   * Remonter lire la consigne du mouvement précédent ne doit rien défaire :
-   * où l'on est et ce qu'on a fait sont deux choses, et c'est faute de les
-   * distinguer que rien ne se cochait.
+   * Scrolling back to read the previous movement's instruction must undo
+   * nothing: where you are and what you have done are two things, and it is
+   * for failing to distinguish them that nothing could be ticked.
    */
-  const [faits, setFaits] = useState<string[]>(
-    () => lireSeance(session._id)?.faits ?? []
+  const [done, setDone] = useState<string[]>(
+    () => readProgress(session._id)?.done ?? []
   );
-  const faitsSet = useMemo(() => new Set(faits), [faits]);
-  // Le repos déclenché par « Fait » : il n'a pas d'étape à lui, il appartient
-  // à l'effort qui vient de finir.
-  const [repos, setRepos] = useState<{ duree: number; ensuite: string } | null>(
+  const doneKeys = useMemo(() => new Set(done), [done]);
+  // The rest triggered by "Fait": it has no step of its own, it belongs to
+  // the set that has just ended.
+  const [rest, setRest] = useState<{ duration: number; nextUp: string } | null>(
     null
   );
 
   /**
-   * Les tours bouclés, par bloc.
+   * Rounds completed, by block.
    *
-   * Un AMRAP ne se coche pas, il se compte — et ce compte est le score de la
-   * séance. Le coach du jeu d'essai le réclame en prose, dans une note libre
-   * (« Rythme régulier, viser 5-6 tours »), faute de champ pour le recevoir.
+   * An AMRAP is not ticked off, it is counted — and that count is the
+   * session's score. The coach in the test data asks for it in prose, in a
+   * free note ("Rythme régulier, viser 5-6 tours"), for want of a field to
+   * hold it.
    */
-  const [tours, setTours] = useState<Record<string, number>>(
-    () => lireSeance(session._id)?.tours ?? {}
+  const [rounds, setRounds] = useState<Record<string, number>>(
+    () => readProgress(session._id)?.rounds ?? {}
   );
 
-  const compterUnTour = (blockOrder: number, delta: number) => {
-    const cle = String(blockOrder);
-    const suivant = {
-      ...tours,
-      // Jamais en dessous de zéro : on corrige une erreur de doigt, on ne
-      // descend pas dans les négatifs.
-      [cle]: Math.max(0, (tours[cle] ?? 0) + delta),
+  const countOneRound = (blockOrder: number, delta: number) => {
+    const key = String(blockOrder);
+    const next = {
+      ...rounds,
+      // Never below zero: you correct a slip of the finger, you do not go
+      // negative.
+      [key]: Math.max(0, (rounds[key] ?? 0) + delta),
     };
-    setTours(suivant);
-    ecrireSeance(session._id, { tours: suivant });
+    setRounds(next);
+    writeProgress(session._id, { rounds: next });
     if (delta > 0) navigator.vibrate?.(40);
   };
 
   const step = steps[index];
   const isLast = index === steps.length - 1;
 
-  // Le premier qui n'est pas fait : on ne force pas l'ordre, on le propose.
-  const efforts = step?.type === 'block' ? step.efforts : [];
-  const courant = efforts.find((e) => !faitsSet.has(e.cle));
-  const blocFini = efforts.length > 0 && !courant;
-  const faitsDuBloc = efforts.filter((e) => faitsSet.has(e.cle)).length;
-  // Un AMRAP ne se termine pas en cochant : c'est le client qui décide
-  // d'arrêter, ou la pendule. Le bouton principal compte, le secondaire sort.
-  const estBoucle = step?.type === 'block' && step.forme === 'boucle';
+  // The first one not done: we do not force the order, we suggest it.
+  const sets = step?.type === 'block' ? step.sets : [];
+  const current = sets.find((e) => !doneKeys.has(e.key));
+  const blockFinished = sets.length > 0 && !current;
+  const doneInBlock = sets.filter((e) => doneKeys.has(e.key)).length;
+  // An AMRAP does not end by ticking: the client decides to stop, or the
+  // clock does. The primary button counts, the secondary one exits.
+  const isLoop = step?.type === 'block' && step.shape === 'loop';
 
-  const marquerFait = () => {
-    if (!courant) return;
-    const suivant = [...faits, courant.cle];
-    setFaits(suivant);
-    ecrireSeance(session._id, { faits: suivant });
+  const markDone = () => {
+    if (!current) return;
+    const next = [...done, current.key];
+    setDone(next);
+    writeProgress(session._id, { done: next });
     navigator.vibrate?.(40);
-    // Le repos prescrit part tout seul : c'est le geste que le client ferait
-    // de toute façon, et l'oublier coûte la série suivante.
-    if (courant.reposApres) {
-      const apres = efforts[efforts.indexOf(courant) + 1];
-      setRepos({
-        duree: courant.reposApres,
-        ensuite: apres ? `${apres.nom} · ${apres.dose}` : '',
+    // The prescribed rest starts by itself: it is the gesture the client
+    // would make anyway, and forgetting it costs the next set.
+    if (current.restAfter) {
+      const after = sets[sets.indexOf(current) + 1];
+      setRest({
+        duration: current.restAfter,
+        nextUp: after ? `${after.name} · ${after.dose}` : '',
       });
     }
   };
@@ -960,8 +955,9 @@ export const GuidedSession = ({
 
   const goNext = () => {
     if (isLast) {
-      // On n'efface pas ici : le bilan qui suit se nourrit de ce qui vient
-      // d'être noté. L'enregistrement part quand la séance part au serveur.
+      // We do not erase here: the wrap-up that follows feeds on what has
+      // just been recorded. The record goes when the session goes to the
+      // server.
       onFinish();
       return;
     }
@@ -970,23 +966,22 @@ export const GuidedSession = ({
 
   const goPrev = () => goTo(Math.max(0, index - 1));
 
-  // On demande toujours. À la première étape il n'y a rien à perdre, mais on
-  // vient d'entrer dans un plein écran : en sortir sans un mot sur un doigt
-  // qui glisse, c'est la séance qu'on croit avoir lancée et qui n'est plus là.
+  // We always ask. At the first step there is nothing to lose, but you have
+  // just entered a full screen: leaving it wordlessly on a slipped finger
+  // means the session you thought you had started is no longer there.
   const handleExitClick = () => setShowExitConfirm(true);
 
-  // Quitter n'efface plus rien. Sortir pour répondre au téléphone, ou parce
-  // qu'un doigt a glissé, ne doit pas coûter la séance : on retrouve sa place
-  // et ses charges en revenant. Pour repartir de zéro, l'écran de reprise
-  // propose « Recommencer depuis le début ».
+  // Leaving erases nothing any more. Stepping out to answer the phone, or
+  // because a finger slipped, must not cost the session: you find your place
+  // and your loads on coming back. To start from scratch, the resume screen
+  // offers "Recommencer depuis le début".
   const confirmExit = () => onExit();
 
-  // Le plein écran se superposait à la page sans la neutraliser : quatre
-  // tabulations suffisaient pour en sortir, on se retrouvait dans la barre
-  // d'onglets et sur les boutons de la séance en dessous, et un lecteur
-  // d'écran annonçait toujours toute la page. `inert` retire d'un coup le
-  // focus, le pointeur et l'arbre d'accessibilité de tout ce qui n'est pas
-  // la séance guidée.
+  // The full screen sat on top of the page without neutralising it: four tab
+  // presses were enough to leave it, you landed in the tab bar and on the
+  // session buttons underneath, and a screen reader still announced the whole
+  // page. `inert` removes focus, pointer and accessibility tree in one go
+  // from everything that is not the guided session.
   useEffect(() => {
     const root = document.getElementById('root');
     if (!root) return;
@@ -994,13 +989,13 @@ export const GuidedSession = ({
     return () => root.removeAttribute('inert');
   }, []);
 
-  // ... ce qui oblige la séance elle-même à sortir de `#root`, sans quoi
-  // elle se neutraliserait avec le reste.
+  // … which forces the session itself out of `#root`, without which it would
+  // neutralise itself along with the rest.
   const overlay = (node: React.ReactNode) => createPortal(node, document.body);
 
-  // Empêche l'écran de s'éteindre pendant toute la séance guidée : sans ça,
-  // l'écran s'éteint entre deux exercices et il faut le déverrouiller les
-  // mains moites.
+  // Keeps the screen awake for the whole guided session: without it the
+  // screen goes dark between two exercises and has to be unlocked with damp
+  // hands.
   useEffect(() => {
     if (!('wakeLock' in navigator)) return;
     let sentinel: WakeLockSentinel | null = null;
@@ -1015,7 +1010,7 @@ export const GuidedSession = ({
         }
         sentinel = lock;
       } catch {
-        // Refusé ou indisponible (hors écran actif, permissions...) : tant pis.
+        // Refused or unavailable (not the active screen, permissions…): so be it.
       }
     };
 
@@ -1073,18 +1068,16 @@ export const GuidedSession = ({
     );
   }
 
-  // L'écran d'ouverture.
+  // The intro screen.
   //
-  // La note que le coach a écrite pour cette séance-là était inaccessible
-  // depuis le mode guidé : s'il écrivait « aujourd'hui on garde 2 reps en
-  // réserve sur tout », le client ne pouvait pas la relire pendant l'effort.
-  // Elle ouvre donc le parcours — on lit la consigne au moment où elle sert,
-  // avant de commencer.
+  // The note the coach wrote for that particular session was unreachable from
+  // guided mode: if they wrote "today we keep 2 reps in reserve on
+  // everything", the client could not read it back mid-effort. So it opens
+  // the run — you read the briefing at the moment it serves, before starting.
   //
-  // C'est aussi le seul endroit qui rappelle qu'un humain a écrit cette
-  // séance. Aucune application de fitness générique ne peut en dire autant,
-  // et le mode guidé ne s'en servait nulle part.
-  if (showOuverture) {
+  // It is also the only place that reminds you a human wrote this session. No
+  // generic fitness app can say as much, and guided mode used it nowhere.
+  if (showIntro) {
     return overlay(
       <Box
         role="dialog"
@@ -1109,12 +1102,12 @@ export const GuidedSession = ({
           </Button>
         </HStack>
 
-        {/* `flex: 1` sans `min-height: 0` ne rétrécit jamais en dessous de
-            son contenu : sur un écran couché, le corps poussait « Commencer »
-            hors de l'écran — le bouton existait, se voyait dans l'arbre, et
-            ne se touchait pas. `safe center` centre tant qu'il y a la place
-            et repart du haut quand il n'y en a plus, au lieu de couper des
-            deux côtés. */}
+        {/* `flex: 1` without `min-height: 0` never shrinks below its
+            content: on a screen lying flat, the body pushed "Commencer" off
+            the screen — the button existed, showed in the tree, and could not
+            be touched. `safe center` centres while there is room and falls
+            back to the top when there is not, instead of cutting on both
+            sides. */}
         <VStack
           flex={1}
           minH={0}
@@ -1139,13 +1132,13 @@ export const GuidedSession = ({
                 {session.name.trim()}
               </Text>
             )}
-            {/* Ce qui attend le client, avant qu'il s'engage. Aucun écran ne
-                le disait : on démarrait sans savoir si c'était dix minutes ou
-                quarante. */}
+            {/* What awaits the client, before they commit. No screen said it:
+                you started without knowing whether it was ten minutes or
+                forty. */}
             <Text fontSize="sm" color="fg.muted">
               {session.blocks.length} bloc
-              {session.blocks.length > 1 ? 's' : ''} · {totalEfforts} effort
-              {totalEfforts > 1 ? 's' : ''}
+              {session.blocks.length > 1 ? 's' : ''} · {totalSets} exercice
+              {totalSets > 1 ? 's' : ''}
             </Text>
           </VStack>
 
@@ -1167,8 +1160,8 @@ export const GuidedSession = ({
           )}
 
           <VStack align="stretch" gap={2.5}>
-            {apercuDesBlocs.map((b) => (
-              <HStack key={b.debut} gap={3}>
+            {blockPreview.map((b) => (
+              <HStack key={b.start} gap={3}>
                 <Box
                   w="10px"
                   h="10px"
@@ -1235,9 +1228,9 @@ export const GuidedSession = ({
         </Text>
         <Text fontSize="sm" color="fg.muted">
           Tu t'étais arrêté à l'étape {savedIndex + 1} sur {steps.length}.
-          {/* Le dire explicitement : quelqu'un qui a noté ses charges puis
-              fermé l'application n'a aucun moyen de savoir ce qui l'attend, et
-              « Recommencer » devient un pari. */}
+          {/* Say it explicitly: someone who recorded their loads then closed
+              the app has no way of knowing what awaits, and "Recommencer"
+              becomes a gamble. */}
           {notesGardees > 0 &&
             ` Tes charges sur ${notesGardees} exercice${
               notesGardees > 1 ? 's' : ''
@@ -1261,23 +1254,21 @@ export const GuidedSession = ({
             variant="ghost"
             color="fg.muted"
             onClick={() => {
-              // Tout ce qui dit « où j'en suis » repart à zéro : l'étape, les
-              // efforts cochés, les tours comptés.
+              // Everything that says "where I am" goes back to zero: the
+              // step, the ticked sets, the counted rounds.
               //
-              // Remettre la seule étape ne suffisait pas — et sur un
-              // bloc-liste ça ne faisait rien du tout, puisqu'un tel bloc est
-              // une étape unique : on « recommençait » un chipper en gardant
-              // ses trois mouvements cochés. C'est le reste d'un temps où
-              // l'étape était la seule idée de position ; depuis, ce sont les
-              // efforts qui la portent.
+              // Resetting the step alone was not enough — and on a list block
+              // it did nothing at all, since such a block is a single step:
+              // you "restarted" a chipper while keeping its three movements
+              // ticked. It is a leftover from a time when the step was the
+              // only notion of position; since then, the sets carry it.
               //
-              // Les charges, elles, restent. Effacer ce que quelqu'un a
-              // soulevé parce qu'il reprend la séance au début, ce serait
-              // exactement la perte qu'on venait de corriger — et elles se
-              // laissent réécrire au fil du passage.
-              ecrireSeance(session._id, { etape: 0, faits: [], tours: {} });
-              setFaits([]);
-              setTours({});
+              // The loads, however, stay. Erasing what someone lifted because
+              // they are taking the session from the top would be exactly the
+              // loss we had just fixed — and they get overwritten as you go.
+              writeProgress(session._id, { step: 0, done: [], rounds: {} });
+              setDone([]);
+              setRounds({});
               setIndex(0);
               setShowResume(false);
             }}
@@ -1313,9 +1304,9 @@ export const GuidedSession = ({
           Quitter le mode guidé ?
         </Text>
         <Text fontSize="sm" color="fg.muted">
-          {/* Ce message annonçait une perte qui n'a plus lieu — et qui,
-              quand elle avait lieu, était pire que ce qu'il laissait
-              entendre : les charges partaient avec. */}
+          {/* This message announced a loss that no longer happens — and
+              which, when it did, was worse than it let on: the loads went
+              with it. */}
           {index > 0
             ? 'Tu retrouveras ta séance là où tu la laisses, charges comprises.'
             : "Tu n'as pas encore commencé — tu retrouveras la séance telle quelle."}
@@ -1345,9 +1336,9 @@ export const GuidedSession = ({
 
   const isRest = step.type === 'rest';
 
-  // Écrit une fois, monté à deux endroits selon l'orientation — jamais les
-  // deux en même temps. Deux boutons identiques dans l'arbre diraient au
-  // lecteur d'écran qu'il y a deux sorties.
+  // Written once, mounted in two places depending on orientation — never
+  // both at once. Two identical buttons in the tree would tell a screen
+  // reader there are two exits.
   const boutonQuitter = (
     <Button
       variant="ghost"
@@ -1373,10 +1364,10 @@ export const GuidedSession = ({
       flexDirection="column"
       alignItems="center"
       justifyContent={{ base: 'stretch', md: 'center' }}
-      // Un iPhone couché fait 844 px de large : il franchit le seuil `md` et
-      // recevait la mise en page de bureau — une carte flottante de 560 px
-      // sur fond assombri, haute de 90 % d'un écran qui n'en a déjà pas. Le
-      // seuil regarde la largeur ; ici c'est la hauteur qui décide.
+      // An iPhone lying flat is 844 px wide: it crosses the `md` threshold
+      // and used to get the desktop layout — a floating 560 px card on a
+      // dimmed background, 90 % as tall as a screen that has little height to
+      // begin with. The threshold looks at width; here height decides.
       css={{
         [PAYSAGE]: { justifyContent: 'stretch', background: 'transparent' },
       }}
@@ -1403,12 +1394,12 @@ export const GuidedSession = ({
         overflow="hidden"
         position="relative"
       >
-        {/* En portrait, « Quitter » a sa ligne : c'est la maquette validée,
-            et elle ne change pas. Couché, cette ligne coûte 76 px sur 390 —
-            un cinquième de l'écran pour un mot — alors le bouton rejoint la
-            barre d'avancement, qui a de la place à revendre en largeur.
-            Un seul des deux est monté à la fois : l'autre est retiré de
-            l'arbre, pas seulement masqué. */}
+        {/* In portrait, "Quitter" has its own line: that is the approved
+            mock-up, and it does not change. Lying flat, that line costs 76 px
+            out of 390 — a fifth of the screen for one word — so the button
+            joins the progress bar, which has width to spare. Only one of the
+            two is mounted at a time: the other is removed from the tree, not
+            merely hidden. */}
         <HStack
           justify="flex-end"
           p={4}
@@ -1428,39 +1419,39 @@ export const GuidedSession = ({
             aria-valuenow={index + 1}
             aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}
           >
-            {blocs.map((bloc) => {
-              const encours =
-                index >= bloc.debut && index < bloc.debut + bloc.taille;
-              // Combien de ce bloc est derrière soi, entre 0 et 1.
+            {blockRuns.map((block) => {
+              const isCurrent =
+                index >= block.start && index < block.start + block.size;
+              // How much of this block is behind you, between 0 and 1.
               //
-              // Le compte d'étapes ne suffit plus : un bloc-liste n'en fait
-              // qu'une, et le remplissage sautait donc de rien à tout alors
-              // qu'on y coche sept efforts. Quand le bloc en cours en a, c'est
-              // eux qui parlent.
+              // The step count is no longer enough: a list block makes only
+              // one, so the fill jumped from nothing to everything while you
+              // tick seven sets inside it. When the current block has sets,
+              // they are what speak.
               const part =
-                encours && efforts.length > 0
-                  ? faitsDuBloc / efforts.length
-                  : Math.max(0, Math.min(bloc.taille, index - bloc.debut)) /
-                    bloc.taille;
+                isCurrent && sets.length > 0
+                  ? doneInBlock / sets.length
+                  : Math.max(0, Math.min(block.size, index - block.start)) /
+                    block.size;
               return (
                 <Box
-                  key={`${bloc.label}-${bloc.debut}`}
-                  flex={bloc.poids}
-                  // Proportionnel, mais jamais au point de disparaître : un
-                  // échauffement de deux pages dans une séance de trente-cinq
-                  // se réduirait à un point.
+                  key={`${block.label}-${block.start}`}
+                  flex={block.weight}
+                  // Proportional, but never to the point of vanishing: a
+                  // two-page warm-up in a thirty-five-page session would
+                  // shrink to a dot.
                   minW="20px"
                   h="4px"
                   borderRadius="full"
-                  // La piste du bloc en cours est un peu plus claire : au
-                  // premier pas d'un bloc, le remplissage est nul et rien
-                  // d'autre ne dirait où l'on se trouve.
+                  // The current block's track is slightly lighter: at a
+                  // block's first step the fill is zero and nothing else
+                  // would say where you are.
                   bg={
                     isRest
-                      ? encours
+                      ? isCurrent
                         ? 'bg.canvas/40'
                         : 'bg.canvas/20'
-                      : encours
+                      : isCurrent
                         ? 'whiteAlpha.400'
                         : 'whiteAlpha.200'
                   }
@@ -1473,7 +1464,7 @@ export const GuidedSession = ({
                     bg={
                       isRest
                         ? 'bg.canvas'
-                        : encours
+                        : isCurrent
                           ? 'app.primary'
                           : 'session.rest'
                     }
@@ -1503,7 +1494,7 @@ export const GuidedSession = ({
           </Box>
         </HStack>
 
-        {step.type === 'block' && step.forme === 'liste' ? (
+        {step.type === 'block' && step.shape === 'list' ? (
           <>
             <VStack align="stretch" gap={0.5} px={5} pt={4} pb={1}>
               <Text
@@ -1518,17 +1509,17 @@ export const GuidedSession = ({
               </Text>
               <HStack justify="space-between" align="center" gap={3}>
                 <Text fontSize="sm" color="fg.muted">
-                  {faitsDuBloc} sur {step.efforts.length} faits dans ce bloc
+                  {doneInBlock} sur {step.sets.length} faits dans ce bloc
                 </Text>
-                {/* Le passe-droit.
-                    « Suivant » le portait sans le dire, et le remplaçer par
-                    « Fait » l'a supprimé sans que je le voie : on se retrouvait
-                    coincé sur un échauffement tant qu'on n'avait pas coché ses
-                    deux lignes. Un client saute un mouvement, change d'avis,
-                    arrive en retard — il doit pouvoir avancer.
+                {/* The way past.
+                    "Suivant" carried it without saying so, and replacing it
+                    with "Fait" removed it unnoticed: you were stuck on a
+                    warm-up until its two lines were ticked. A client skips a
+                    movement, changes their mind, arrives late — they must be
+                    able to move on.
 
-                    Discret et à l'écart du geste principal : c'est une sortie
-                    de secours, pas une invitation. */}
+                    Discreet and away from the primary gesture: it is an
+                    emergency exit, not an invitation. */}
                 <Box
                   as="button"
                   onClick={goNext}
@@ -1538,19 +1529,19 @@ export const GuidedSession = ({
                   css={hitArea(44)}
                   _hover={{ color: 'fg' }}
                 >
-                  {/* Sur le dernier bloc, « passer » ne veut rien dire : il n'y
-                      a rien après. Mais la sortie doit exister quand même — je
-                      l'avais cachée là, et il fallait cocher les sept paliers
-                      d'une pyramide pour avoir le droit de terminer. */}
+                  {/* On the last block, "skip" means nothing: there is nothing
+                      after. But the exit must exist all the same — it was
+                      hidden there, and you had to tick a pyramid's seven
+                      rungs to earn the right to finish. */}
                   {isLast ? 'Terminer la séance' : 'Passer ce bloc'}
                 </Box>
               </HStack>
             </VStack>
-            <BlocListe
-              bloc={step.block}
-              efforts={step.efforts}
-              faits={faitsSet}
-              courant={courant}
+            <BlockList
+              block={step.block}
+              sets={step.sets}
+              done={doneKeys}
+              current={current}
               performed={performed}
               onPerformedChange={onPerformedChange}
               lastPerformance={lastPerformance}
@@ -1559,14 +1550,14 @@ export const GuidedSession = ({
           </>
         ) : step.type === 'block' ? (
           /*
-           * Un bloc entier, lu d'un coup.
+           * A whole block, read at once.
            *
-           * C'est la carte de la fiche — celle que le client lit avant de
-           * commencer — reposée ici telle quelle. Une seule écriture pour les
-           * deux écrans : ce qu'il a mémorisé en préparant sa séance, il le
-           * retrouve pendant. Les consignes et les vidéos s'y déplient déjà,
-           * ligne par ligne, ce que le plein écran ne savait faire que pour
-           * l'exercice affiché.
+           * This is the card from the session sheet — the one the client
+           * reads before starting — laid down here unchanged. One rendering
+           * for both screens: what they memorised while preparing, they find
+           * again during. Instructions and videos already unfold there, line
+           * by line, which the full screen could only do for the one exercise
+           * on display.
            */
           <VStack
             flex={1}
@@ -1576,12 +1567,11 @@ export const GuidedSession = ({
             py={2}
             overflowY="auto"
           >
-            {/* La sortie, ici aussi.
-                Sur une boucle, le bouton principal compte les tours : plus
-                rien ne terminerait la séance sans ça. Troisième endroit où
-                j'avais oublié qu'un geste principal qui change de sens
-                emporte avec lui celui qu'il remplaçait. */}
-            {step.forme === 'boucle' && (
+            {/* The exit, here too.
+                On a loop the primary button counts rounds: nothing else would
+                end the session without this. The third place where a primary
+                gesture changing meaning took with it the one it replaced. */}
+            {step.shape === 'loop' && (
               <HStack justify="flex-end">
                 <Box
                   as="button"
@@ -1595,19 +1585,19 @@ export const GuidedSession = ({
                 </Box>
               </HStack>
             )}
-            {/* La pendule d'un bloc à durée : dans un AMRAP, c'est elle qui
-                dit quand s'arrêter. Plus petite qu'en plein écran — on est
-                venu lire la liste, pas la pendule. */}
+            {/* A timed block's clock: in an AMRAP it is what says when to
+                stop. Smaller than in full screen — you came to read the list,
+                not the clock. */}
             {blockHasClock(step.block.type) && step.block.durationMinutes ? (
-              <Minuteur
+              <Timer
                 key={index}
                 duration={step.block.durationMinutes * 60}
                 couleur="fg"
                 holdLabel="Temps écoulé"
-                // Pas le nom du bloc : la carte juste dessous le porte déjà,
-                // et l'écran le disait deux fois. Ce qui manquait, c'est ce
-                // que l'horloge mesure — un AMRAP s'arrête à zéro.
-                titre={
+                // Not the block's name: the card just below already carries
+                // it, and the screen said it twice. What was missing is what
+                // the clock measures — an AMRAP stops at zero.
+                title={
                   <Text
                     fontSize="xs"
                     letterSpacing="2px"
@@ -1621,12 +1611,12 @@ export const GuidedSession = ({
                 compact
               />
             ) : null}
-            {/* Le compteur de tours.
-                C'est le score de la séance, et il n'avait aucune place : ni à
-                l'écran, ni dans le modèle. Le client le tenait de tête ou sur
-                un cahier. Gros, sous la pendule, et à côté du bouton qui le
-                fait monter — on l'incrémente en s'essoufflant. */}
-            {step.forme === 'boucle' && (
+            {/* The round counter.
+                This is the session's score, and it had no place at all:
+                neither on screen nor in the model. The client kept it in
+                their head or on a notepad. Large, under the clock, and next
+                to the button that raises it — you tap it out of breath. */}
+            {step.shape === 'loop' && (
               <HStack justify="space-between" align="center" gap={4}>
                 <HStack align="baseline" gap={2}>
                   <Text
@@ -1636,22 +1626,22 @@ export const GuidedSession = ({
                     color="app.primary"
                     fontVariantNumeric="tabular-nums"
                   >
-                    {tours[String(step.block.order)] ?? 0}
+                    {rounds[String(step.block.order)] ?? 0}
                   </Text>
                   <Text fontSize="sm" color="fg.muted">
-                    tour{(tours[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
+                    tour{(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
                     &nbsp;bouclé
-                    {(tours[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
+                    {(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
                   </Text>
                 </HStack>
-                {/* Se décompter doit rester possible — un doigt glisse, et
-                    perdre un tour qu'on a fait est pire que d'en compter un
-                    de trop. Discret : ce n'est pas le geste qu'on répète. */}
-                {(tours[String(step.block.order)] ?? 0) > 0 && (
+                {/* Counting back down must stay possible — a finger slips, and
+                    losing a round you did is worse than counting one too
+                    many. Discreet: it is not the gesture you repeat. */}
+                {(rounds[String(step.block.order)] ?? 0) > 0 && (
                   <Box
                     as="button"
                     aria-label="Retirer un tour"
-                    onClick={() => compterUnTour(step.block.order, -1)}
+                    onClick={() => countOneRound(step.block.order, -1)}
                     color="fg.muted"
                     fontSize="sm"
                     css={hitArea(44)}
@@ -1665,35 +1655,35 @@ export const GuidedSession = ({
             <BlockCard
               block={step.block}
               renderExerciseExtra={({ blockOrder, exerciseOrder }) => {
-                const prescrit = step.block.exercises.find(
+                const prescribed = step.block.exercises.find(
                   (e) => e.order === exerciseOrder
                 );
-                if (!prescrit) return null;
-                const cle = performedKey(blockOrder, exerciseOrder);
-                const repos = restBetweenSetsOf(step.block, prescrit);
+                if (!prescribed) return null;
+                const key = performedKey(blockOrder, exerciseOrder);
+                const rest = restBetweenSetsOf(step.block, prescribed);
                 return (
                   <>
                     {performed && onPerformedChange && (
                       <PerformedFields
-                        value={performed[cle] ?? { sets: [] }}
-                        onChange={(next) => onPerformedChange(cle, next)}
-                        setLabels={prescribedSetLabels(step.block, prescrit)}
-                        isTimed={prescrit.duration !== undefined}
+                        value={performed[key] ?? { sets: [] }}
+                        onChange={(next) => onPerformedChange(key, next)}
+                        setLabels={prescribedSetLabels(step.block, prescribed)}
+                        isTimed={prescribed.duration !== undefined}
                       />
                     )}
-                    {/* L'effort chronométré d'abord, le repos ensuite :
-                        c'est l'ordre dans lequel on les vit. */}
-                    {prescrit.duration ? (
-                      <MinuteurALaDemande
-                        duration={prescrit.duration}
-                        libelle={formatDuration(prescrit.duration)}
+                    {/* The timed work first, the rest after: that is the order in
+                        which they are lived. */}
+                    {prescribed.duration ? (
+                      <OnDemandTimer
+                        duration={prescribed.duration}
+                        label={formatDuration(prescribed.duration)}
                         couleur="app.primary"
                       />
                     ) : null}
-                    {repos ? (
-                      <MinuteurALaDemande
-                        duration={repos}
-                        libelle={`repos ${formatDuration(repos)}`}
+                    {rest ? (
+                      <OnDemandTimer
+                        duration={rest}
+                        label={`rest ${formatDuration(rest)}`}
                         couleur="session.rest"
                       />
                     ) : null}
@@ -1703,7 +1693,7 @@ export const GuidedSession = ({
             />
           </VStack>
         ) : step.type === 'round' ? (
-          <Tour
+          <Round
             step={step}
             onDone={goNext}
             lastPerformance={lastPerformance}
@@ -1718,15 +1708,16 @@ export const GuidedSession = ({
             px={8}
             textAlign="center"
           >
-            <Minuteur
+            <Timer
               key={index}
               duration={step.duration}
               couleur="bg.canvas"
-              // Le fond est ici la couleur du repos : une piste claire y
-              // disparaîtrait. C'est le seul écran où la jauge s'inverse.
-              piste="blackAlpha.400"
+              // The background here is the rest colour: a light track would
+              // disappear on it. This is the only screen where the gauge
+              // inverts.
+              track="blackAlpha.400"
               onComplete={goNext}
-              titre={
+              title={
                 <Text
                   fontSize="xs"
                   letterSpacing="2px"
@@ -1746,11 +1737,11 @@ export const GuidedSession = ({
           </VStack>
         )}
 
-        {/* Le repos que « Fait » vient de lancer.
-            Il se superpose au bloc plutôt que d'être une étape à lui : la
-            liste reste dessous, intacte, et on la retrouve telle quelle —
-            avec un effort coché de plus. */}
-        {repos && (
+        {/* The rest that "Fait" has just started.
+            It sits on top of the block rather than being a step of its own:
+            the list stays underneath, intact, and you find it as it was —
+            with one more set ticked. */}
+        {rest && (
           <Box
             position="absolute"
             inset={0}
@@ -1763,13 +1754,13 @@ export const GuidedSession = ({
             px={6}
             gap={6}
           >
-            <Minuteur
-              key={`repos-${faits.length}`}
-              duration={repos.duree}
+            <Timer
+              key={`rest-${done.length}`}
+              duration={rest.duration}
               couleur="bg.canvas"
-              piste="blackAlpha.400"
-              onComplete={() => setRepos(null)}
-              titre={
+              track="blackAlpha.400"
+              onComplete={() => setRest(null)}
+              title={
                 <Text
                   fontSize="xs"
                   letterSpacing="2px"
@@ -1781,9 +1772,9 @@ export const GuidedSession = ({
                 </Text>
               }
             />
-            {repos.ensuite && (
+            {rest.nextUp && (
               <Text fontSize="sm" color="bg.canvas" opacity={0.8}>
-                Ensuite&nbsp;: {repos.ensuite}
+                Ensuite&nbsp;: {rest.nextUp}
               </Text>
             )}
             <Button
@@ -1792,7 +1783,7 @@ export const GuidedSession = ({
               bg="bg.canvas"
               color="fg"
               _hover={{ bg: 'bg.canvas' }}
-              onClick={() => setRepos(null)}
+              onClick={() => setRest(null)}
             >
               Passer le repos
             </Button>
@@ -1824,9 +1815,9 @@ export const GuidedSession = ({
               </Box>
             </HStack>
 
-            {/* Ce que le coach a écrit pour cette séance passe devant, et se
-                reconnaît à la barre ambrée. La technique du mouvement, qui
-                vient de la bibliothèque, reste du texte nu en dessous. */}
+            {/* What the coach wrote for this session comes first, recognisable
+                by the amber bar. The movement's technique, which comes from
+                the library, stays as plain text below. */}
             {detail.note?.trim() && (
               <Box
                 p={3}
@@ -1881,16 +1872,16 @@ export const GuidedSession = ({
           </Box>
         )}
 
-        {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
-            touche en sueur. C'est la marge qui cède, pas le bouton. */}
+        {/* The targets keep their 52 px — we do not shrink what gets
+            touched with sweaty hands. It is the margin that gives, not the
+            button. */}
         <HStack p={4} gap={3} css={{ [PAYSAGE]: { padding: '8px 12px' } }}>
-          {/* Un contour, comme en a « J'ai terminé cette séance ».
-              Du texte gris sans cadre, face à un « Suivant » ambre plein deux
-              fois plus large, se lit « indisponible » : le contraste était
-              conforme, la hiérarchie mentait. Secondaire et indisponible
-              doivent rester deux choses distinctes — le bouton porte donc son
-              cadre, et ne s'efface vraiment que sur la première étape, où il
-              est réellement désactivé. */}
+          {/* An outline, like the one on "J'ai terminé cette séance". Grey
+              text with no frame, next to a solid amber "Suivant" twice as
+              wide, reads as "unavailable": the contrast was compliant, the
+              hierarchy lied. Secondary and unavailable must stay two distinct
+              things — so the button carries its frame, and only truly fades
+              on the first step, where it really is disabled. */}
           <Button
             variant="outline"
             borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}
@@ -1902,10 +1893,10 @@ export const GuidedSession = ({
           >
             Précédent
           </Button>
-          {/* Un seul bouton principal, toujours à la même place, et c'est la
-              forme du bloc qui dit ce qu'il fait : « Fait » tant qu'il reste
-              un effort à cocher, puis on passe. Le client n'a jamais à choisir
-              où appuyer. */}
+          {/* A single primary button, always in the same place, and the
+              block's shape says what it does: "Fait" while a set remains to
+              tick, then move on. The client never has to choose where to
+              press. */}
           <Button
             flex={1}
             minH="52px"
@@ -1913,20 +1904,20 @@ export const GuidedSession = ({
             color={isRest ? 'fg' : 'bg.canvas'}
             _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
             onClick={
-              estBoucle && step.type === 'block'
-                ? () => compterUnTour(step.block.order, 1)
-                : courant
-                  ? marquerFait
+              isLoop && step.type === 'block'
+                ? () => countOneRound(step.block.order, 1)
+                : current
+                  ? markDone
                   : goNext
             }
           >
-            {estBoucle
+            {isLoop
               ? '+1 tour'
-              : courant
+              : current
                 ? 'Fait'
                 : isLast
                   ? 'Terminer'
-                  : blocFini
+                  : blockFinished
                     ? 'Bloc suivant'
                     : step.type === 'rest'
                       ? 'Passer'

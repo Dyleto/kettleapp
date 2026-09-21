@@ -6,9 +6,9 @@ export interface LastPerformance extends PerformedValues {
 }
 
 /**
- * Adresse d'un exercice dans l'instantané d'une séance — « ordre du bloc :
- * ordre de l'exercice ». C'est exactement la clé attendue par l'API pour le
- * réalisé, et la seule utilisée côté front.
+ * An exercise's address inside a session snapshot — "block order : exercise
+ * order". It is exactly the key the API expects for what was performed, and
+ * the only one used on the front end.
  */
 export const performedKey = (blockOrder: number, exerciseOrder: number) =>
   `${blockOrder}:${exerciseOrder}`;
@@ -22,21 +22,21 @@ const hasAnyValue = (p: PerformedValues) =>
   truncateAtFirstEmpty(p.sets ?? []).length > 0;
 
 /**
- * Le dernier `performed` connu pour chaque exercice, toutes séances confondues.
+ * The last known `performed` for each exercise, across all sessions.
  *
- * Indexé par identifiant d'exercice et non par position : « j'avais mis
- * combien ? » porte sur le mouvement, pas sur l'emplacement qu'il occupait
- * dans la séance ce jour-là.
+ * Indexed by exercise id and not by position: "how much did I use?" is about
+ * the movement, not about the slot it happened to occupy in that day's
+ * session.
  *
- * Se calcule entièrement depuis l'historique déjà chargé — aucune requête.
+ * Computed entirely from the history already loaded — no request.
  */
 export const buildLastPerformanceIndex = (
   history: CompletedSession[]
 ): Map<string, LastPerformance> => {
   const index = new Map<string, LastPerformance>();
 
-  // Du plus ancien au plus récent : la dernière écriture gagne, donc chaque
-  // exercice finit sur son passage le plus récent.
+  // Oldest to newest: the last write wins, so every exercise ends up on its
+  // most recent attempt.
   const chronological = [...history].sort(
     (a, b) =>
       new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
@@ -60,8 +60,8 @@ export const buildLastPerformanceIndex = (
 };
 
 /**
- * « 26 kg · 3 × 12 reps » — les seules séries réellement renseignées, jamais
- * un zéro de remplissage. `null` s'il n'y a rien à dire.
+ * « 26 kg · 3 × 12 reps » — only the sets actually filled in, never a padding
+ * zero. `null` when there is nothing to say.
  */
 export const formatLastPerformance = (
   last: LastPerformance | undefined

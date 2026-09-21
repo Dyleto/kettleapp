@@ -3,48 +3,47 @@ import { LuArrowUp, LuArrowDown, LuCheck } from 'react-icons/lu';
 import { Recap } from '../recap';
 
 /**
- * Le constat, avant la question.
+ * The statement of fact, before the question.
  *
- * Quarante minutes d'effort menaient à un formulaire, puis à un second, puis
- * à un toast. On demandait deux fois avant de rien donner. Ici on récompense
- * d'abord : ce qui suit — le ressenti — est la seule chose que l'application
- * ne sait pas calculer toute seule.
+ * Forty minutes of effort led to a form, then a second one, then a toast. We
+ * asked twice before giving anything. Here we reward first: what follows —
+ * how it felt — is the only thing the app cannot work out on its own.
  *
- * Quatre chiffres au plus, et seulement ceux que la séance a réellement
- * produits : le tonnage n'a aucun sens sur un AMRAP au poids du corps, les
- * tours n'en ont aucun sur du classique. Une grille fixe afficherait des
- * zéros, et un zéro affiché se lit comme un échec.
+ * Four figures at most, and only the ones the session actually produced:
+ * tonnage means nothing on a bodyweight AMRAP, rounds mean nothing on
+ * classic work. A fixed grid would show zeros, and a displayed zero reads as
+ * a failure.
  */
-export const RecapSeance = ({
+export const SessionRecap = ({
   recap,
-  titre,
+  title,
 }: {
   recap: Recap;
-  titre: string;
+  title: string;
 }) => {
-  const chiffres: { valeur: string; libelle: string; accent?: boolean }[] = [];
-  if (recap.dureeMinutes)
-    chiffres.push({
-      valeur: `${recap.dureeMinutes} min`,
-      libelle: 'de séance',
+  const figures: { value: string; label: string; accent?: boolean }[] = [];
+  if (recap.durationMinutes)
+    figures.push({
+      value: `${recap.durationMinutes} min`,
+      label: 'de séance',
     });
-  if (recap.effortsTotal > 0)
-    chiffres.push({
-      valeur: `${recap.effortsFaits}`,
-      libelle:
-        recap.effortsFaits === recap.effortsTotal
-          ? 'efforts, tous faits'
-          : `efforts sur ${recap.effortsTotal}`,
+  if (recap.setsTotal > 0)
+    figures.push({
+      value: `${recap.setsDone}`,
+      label:
+        recap.setsDone === recap.setsTotal
+          ? 'exercices, tous faits'
+          : `exercices sur ${recap.setsTotal}`,
     });
   if (recap.tonnage > 0)
-    chiffres.push({
-      valeur: `${Math.round(recap.tonnage).toLocaleString('fr-FR')} kg`,
-      libelle: 'soulevés en tout',
+    figures.push({
+      value: `${Math.round(recap.tonnage).toLocaleString('fr-FR')} kg`,
+      label: 'soulevés en tout',
     });
-  if (recap.tours > 0)
-    chiffres.push({
-      valeur: `${recap.tours} tour${recap.tours > 1 ? 's' : ''}`,
-      libelle: 'bouclés',
+  if (recap.rounds > 0)
+    figures.push({
+      value: `${recap.rounds} tour${recap.rounds > 1 ? 's' : ''}`,
+      label: 'bouclés',
       accent: true,
     });
 
@@ -70,15 +69,15 @@ export const RecapSeance = ({
           </Text>
         </HStack>
         <Text fontSize="sm" color="fg.muted">
-          {titre}
+          {title}
         </Text>
       </VStack>
 
-      {chiffres.length > 0 && (
+      {figures.length > 0 && (
         <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap={2.5}>
-          {chiffres.map((c) => (
+          {figures.map((f) => (
             <VStack
-              key={c.libelle}
+              key={f.label}
               align="start"
               gap={0.5}
               bg="surface.card"
@@ -90,24 +89,23 @@ export const RecapSeance = ({
                 fontSize="2xl"
                 fontWeight="800"
                 fontFamily="mono"
-                color={c.accent ? 'app.primary' : 'fg'}
+                color={f.accent ? 'app.primary' : 'fg'}
                 lineHeight="1.1"
               >
-                {c.valeur}
+                {f.value}
               </Text>
               <Text fontSize="xs" color="fg.muted">
-                {c.libelle}
+                {f.label}
               </Text>
             </VStack>
           ))}
         </Grid>
       )}
 
-      {/* Le moteur, et de loin. `lastPerformance` est déjà chargé côté client :
-          « ↑ +2 kg » ne coûte rien à calculer, et aucune application générique
-          ne peut le dire aussi bien — elle ne sait pas ce que le coach avait
-          prescrit. */}
-      {recap.comparaisons.length > 0 && (
+      {/* The engine, by far. `lastPerformance` is already loaded on the
+          client: "↑ +2 kg" costs nothing to compute, and no generic app can
+          say it as well — it does not know what the coach had prescribed. */}
+      {recap.comparisons.length > 0 && (
         <VStack align="stretch" gap={2.5}>
           <Text
             fontSize="2xs"
@@ -118,20 +116,20 @@ export const RecapSeance = ({
           >
             Par rapport à la dernière fois
           </Text>
-          {recap.comparaisons.map((c) => (
-            <HStack key={c.nom} gap={3}>
+          {recap.comparisons.map((c) => (
+            <HStack key={c.name} gap={3}>
               <Text fontSize="sm" flex={1} minW={0} lineClamp={1}>
-                {c.nom}
+                {c.name}
               </Text>
               <Text fontSize="sm" color="fg.muted" fontFamily="mono">
-                {c.charge} kg
+                {c.load} kg
               </Text>
               <Box w="62px" flexShrink={0} textAlign="right">
-                {c.ecart === undefined ? (
+                {c.delta === undefined ? (
                   <Text fontSize="xs" color="fg.muted">
                     1re fois
                   </Text>
-                ) : c.ecart === 0 ? (
+                ) : c.delta === 0 ? (
                   <Text fontSize="sm" color="fg.muted" fontFamily="mono">
                     =
                   </Text>
@@ -139,16 +137,16 @@ export const RecapSeance = ({
                   <HStack
                     gap={1}
                     justify="flex-end"
-                    color={c.ecart > 0 ? 'effort.target' : 'fg.muted'}
+                    color={c.delta > 0 ? 'effort.target' : 'fg.muted'}
                   >
-                    {c.ecart > 0 ? (
+                    {c.delta > 0 ? (
                       <LuArrowUp size={13} strokeWidth={3} />
                     ) : (
                       <LuArrowDown size={13} strokeWidth={3} />
                     )}
                     <Text fontSize="sm" fontWeight="bold" fontFamily="mono">
-                      {c.ecart > 0 ? '+' : ''}
-                      {c.ecart} kg
+                      {c.delta > 0 ? '+' : ''}
+                      {c.delta} kg
                     </Text>
                   </HStack>
                 )}

@@ -1,205 +1,206 @@
 import { PerformedSet, PerformedValues, Session } from '@/types';
 import { LastPerformance, performedKey } from './lastPerformance';
-import { GuidedStep, effortsDuBloc } from './guidedSteps';
+import { GuidedStep, setsOfBlock } from './guidedSteps';
 
 /**
- * Ce que le client vient de faire, dit en chiffres.
+ * What the client has just done, said in numbers.
  *
- * L'arc d'une séance était : quarante minutes d'effort, puis un formulaire,
- * puis un toast, puis l'écran d'accueil. On demandait deux fois avant de rien
- * donner. Le récap inverse l'ordre — un constat d'abord, la question ensuite.
+ * The arc of a session used to be: forty minutes of effort, then a form,
+ * then a toast, then the home screen. We asked twice before giving
+ * anything. The recap reverses the order — a statement of fact first, the
+ * question second.
  *
- * Il n'est possible que parce que la saisie se fait pendant la séance : les
- * deux pièces se tiennent, et c'est voulu. Noter au fil de l'eau cesse d'être
- * une corvée, ça devient ce qui achète le récap — et l'écran « renseigne ce
- * dont tu te souviens » disparaît pour qui a noté.
+ * It is only possible because recording happens during the session: the two
+ * pieces hold each other up, and that is deliberate. Noting as you go stops
+ * being a chore and becomes what buys the recap — and the "fill in what you
+ * remember" screen disappears for anyone who did.
  */
 export interface Recap {
-  /** Minutes écoulées depuis l'ouverture du mode guidé. Absent si inconnu. */
-  dureeMinutes?: number;
-  effortsFaits: number;
-  effortsTotal: number;
-  /** Somme des poids × répétitions réellement notés. Zéro s'il n'y en a pas. */
+  /** Minutes elapsed since guided mode opened. Absent when unknown. */
+  durationMinutes?: number;
+  setsDone: number;
+  setsTotal: number;
+  /** Sum of weight × reps actually recorded. Zero when there are none. */
   tonnage: number;
-  /** Tours bouclés, tous blocs confondus. */
-  tours: number;
-  comparaisons: Comparaison[];
+  /** Rounds completed, all blocks together. */
+  rounds: number;
+  comparisons: Comparison[];
 }
 
-/** Un mouvement, ce qu'on y a mis aujourd'hui, et ce que ça change. */
-export interface Comparaison {
-  nom: string;
-  /** La charge la plus lourde du jour sur ce mouvement. */
-  charge: number;
+/** A movement, what went into it today, and what that changes. */
+export interface Comparison {
+  name: string;
+  /** The heaviest load of the day on this movement. */
+  load: number;
   /**
-   * L'écart avec la dernière fois. `undefined` quand il n'y a pas de dernière
-   * fois : on ne compare pas à rien, et « +26 kg » sur un premier passage
-   * serait un mensonge flatteur.
+   * The gap with last time. `undefined` when there is no last time: we do not
+   * compare against nothing, and "+26 kg" on a first attempt would be a
+   * flattering lie.
    */
-  ecart?: number;
+  delta?: number;
 }
 
-const plusLourde = (sets: PerformedSet[] = []): number | undefined => {
-  const poids = sets
+const heaviest = (sets: PerformedSet[] = []): number | undefined => {
+  const loads = sets
     .map((s) => s.weight)
     .filter((w): w is number => typeof w === 'number' && w > 0);
-  return poids.length > 0 ? Math.max(...poids) : undefined;
+  return loads.length > 0 ? Math.max(...loads) : undefined;
 };
 
 /**
- * Ce qu'on peut légitimement compter comme des répétitions, effort par effort.
+ * What may legitimately count as repetitions, set by set.
  *
- * Clé « bloc:exercice:rang », c'est-à-dire l'adresse d'une série précise.
- * N'y figurent que les efforts que le client a cochés « Fait » : la dose
- * prescrite ne vaut que pour ce qui a réellement été fait.
+ * Keyed "block:exercise:rank", that is, the address of one precise set. Only
+ * the sets the client ticked off appear here: the prescribed dose only holds
+ * for what was actually done.
  */
-export const repsAdmises = (
+export const allowedReps = (
   session: Session,
-  faits: string[]
+  done: string[]
 ): Map<string, number> => {
-  const admises = new Map<string, number>();
-  const coches = new Set(faits);
+  const allowed = new Map<string, number>();
+  const ticked = new Set(done);
   session.blocks.forEach((block) =>
-    effortsDuBloc(block).forEach((e) => {
-      if (coches.has(e.cle) && typeof e.reps === 'number')
-        admises.set(e.cle, e.reps);
+    setsOfBlock(block).forEach((s) => {
+      if (ticked.has(s.key) && typeof s.reps === 'number')
+        allowed.set(s.key, s.reps);
     })
   );
-  return admises;
+  return allowed;
 };
 
 /**
- * Le tonnage : ce qu'on a réellement déplacé.
+ * Tonnage: what was actually moved.
  *
- * Une série ne compte que si l'on connaît son poids ET ses répétitions.
- * Les répétitions viennent d'abord de ce que le client a saisi ; à défaut,
- * de la dose prescrite — mais seulement pour un effort qu'il a coché
- * « Fait », car cocher, c'est précisément déclarer qu'on a fait ce qui était
- * écrit. Sans ce second cas le chiffre serait toujours nul en mode guidé, où
- * l'on ne saisit qu'un poids.
+ * A set only counts when we know both its weight AND its repetitions. The
+ * repetitions come first from what the client typed; failing that, from the
+ * prescribed dose — but only for a set they ticked as done, because ticking
+ * is precisely the claim that they did what was written. Without that second
+ * case the number would always be zero in guided mode, where only a weight
+ * is entered.
  *
- * Ce qui reste exclu : une série pesée mais jamais faite. L'inventer
- * gonflerait un chiffre que le client relit d'une séance à l'autre.
+ * What stays excluded: a set weighed but never done. Inventing it would
+ * inflate a number the client reads back from one session to the next.
  */
-export const tonnageDe = (
+export const tonnageOf = (
   performed: Record<string, PerformedValues>,
-  repsPrescrites?: Map<string, number>
+  prescribedReps?: Map<string, number>
 ): number =>
   Object.entries(performed).reduce(
-    (total, [cle, valeur]) =>
+    (total, [key, value]) =>
       total +
-      (valeur.sets ?? []).reduce((n, s, i) => {
+      (value.sets ?? []).reduce((n, s, i) => {
         if (typeof s.weight !== 'number') return n;
         const reps =
           typeof s.reps === 'number'
             ? s.reps
-            : repsPrescrites?.get(`${cle}:${i + 1}`);
+            : prescribedReps?.get(`${key}:${i + 1}`);
         return n + (typeof reps === 'number' ? s.weight * reps : 0);
       }, 0),
     0
   );
 
 /**
- * Ce qui a été fait, et ce qu'il y avait à faire.
+ * What was done, and what there was to do.
  *
- * Deux unités cohabitent dans une séance et il faut les compter ensemble :
- * les efforts d'un bloc-liste, qui se cochent un par un, et les tours d'un
- * bloc à cadence, qui ne se cochent pas — l'horloge les mène, et on les
- * franchit. Ne compter que les cochés ferait dire « 7 efforts sur 15 » à qui
- * vient de faire la séance entière, Tabata compris : un constat qui accuse.
+ * Two units live together in a session and have to be counted together: the
+ * sets of a list block, ticked one by one, and the rounds of a timed block,
+ * which are not ticked — the clock leads them, and you go through them.
+ * Counting only the ticked ones would tell someone who just did the whole
+ * session, Tabata included, "7 sets out of 15": a statement that accuses.
  *
- * Un tour est donc fait dès qu'on l'a dépassé. Une boucle n'entre pas dans
- * ce compte : son unité à elle est le tour bouclé, et il a sa propre case.
+ * A round is therefore done as soon as you have gone past it. A loop does not
+ * enter this count: its own unit is the completed round, and it has its own
+ * figure.
  */
-export const comptesDEfforts = (
+export const countSets = (
   steps: GuidedStep[],
-  etape: number,
-  faits: string[]
-): { total: number; faits: number } => {
+  step: number,
+  done: string[]
+): { total: number; done: number } => {
   let total = 0;
-  let accomplis = faits.length;
-  steps.forEach((step, i) => {
-    if (step.type === 'round') {
+  let achieved = done.length;
+  steps.forEach((s, i) => {
+    if (s.type === 'round') {
       total += 1;
-      if (i < etape) accomplis += 1;
-    } else if (step.type === 'block') {
-      total += step.efforts.length;
+      if (i < step) achieved += 1;
+    } else if (s.type === 'block') {
+      total += s.sets.length;
     }
   });
-  return { total, faits: Math.min(accomplis, total) };
+  return { total, done: Math.min(achieved, total) };
 };
 
 /**
- * Les mouvements où l'on peut dire quelque chose, du plus gros écart au plus
- * petit.
+ * The movements we can say something about, biggest gap first.
  *
- * Trois au plus : un récap qui liste douze lignes n'est plus un constat, c'est
- * un tableau. Ce qu'on veut montrer, c'est ce qui a bougé.
+ * Three at most: a recap listing twelve lines is no longer a statement, it is
+ * a table. What we want to show is what moved.
  */
-export const comparaisonsDe = (
+export const comparisonsOf = (
   session: Session,
   performed: Record<string, PerformedValues>,
   lastPerformance?: Map<string, LastPerformance>,
   maximum = 3
-): Comparaison[] => {
-  const lignes: Comparaison[] = [];
+): Comparison[] => {
+  const rows: Comparison[] = [];
 
   session.blocks.forEach((block) => {
     block.exercises.forEach((ex) => {
-      const charge = plusLourde(
+      const load = heaviest(
         performed[performedKey(block.order, ex.order)]?.sets
       );
-      if (charge === undefined) return;
-      const avant = plusLourde(lastPerformance?.get(ex.exercise._id)?.sets);
-      lignes.push({
-        nom: ex.exercise.name,
-        charge,
-        ecart: avant === undefined ? undefined : charge - avant,
+      if (load === undefined) return;
+      const before = heaviest(lastPerformance?.get(ex.exercise._id)?.sets);
+      rows.push({
+        name: ex.exercise.name,
+        load,
+        delta: before === undefined ? undefined : load - before,
       });
     });
   });
 
-  // Ce qui a progressé d'abord, puis ce qui a tenu, puis ce qui n'a pas de
-  // passé : un écart de zéro reste une information — « j'ai tenu ma charge ».
-  return lignes
-    .sort((a, b) => Math.abs(b.ecart ?? -1) - Math.abs(a.ecart ?? -1))
+  // What progressed first, then what held, then what has no past: a gap of
+  // zero is still information — "I held my load".
+  return rows
+    .sort((a, b) => Math.abs(b.delta ?? -1) - Math.abs(a.delta ?? -1))
     .slice(0, maximum);
 };
 
-export const construireRecap = ({
+export const buildRecap = ({
   session,
   steps,
-  etape,
+  step,
   performed,
-  faits,
-  tours,
+  done,
+  rounds,
   lastPerformance,
-  debutLe,
-  maintenant = Date.now(),
+  startedAt,
+  now = Date.now(),
 }: {
   session: Session;
   steps: GuidedStep[];
-  etape: number;
+  step: number;
   performed: Record<string, PerformedValues>;
-  faits: string[];
-  tours: Record<string, number>;
+  done: string[];
+  rounds: Record<string, number>;
   lastPerformance?: Map<string, LastPerformance>;
-  debutLe?: number;
-  maintenant?: number;
+  startedAt?: number;
+  now?: number;
 }): Recap => {
-  const comptes = comptesDEfforts(steps, etape, faits);
-  const ecoule = debutLe === undefined ? -1 : maintenant - debutLe;
+  const counts = countSets(steps, step, done);
+  const elapsed = startedAt === undefined ? -1 : now - startedAt;
   return {
-    // Une séance ouverte hier et finie aujourd'hui donnerait un chiffre
-    // absurde. Au-delà de six heures on préfère ne rien dire.
-    dureeMinutes:
-      ecoule > 0 && ecoule < 6 * 3600_000
-        ? Math.max(1, Math.round(ecoule / 60_000))
+    // A session opened yesterday and finished today would give an absurd
+    // number. Past six hours we would rather say nothing.
+    durationMinutes:
+      elapsed > 0 && elapsed < 6 * 3600_000
+        ? Math.max(1, Math.round(elapsed / 60_000))
         : undefined,
-    effortsFaits: comptes.faits,
-    effortsTotal: comptes.total,
-    tonnage: tonnageDe(performed, repsAdmises(session, faits)),
-    tours: Object.values(tours).reduce((n, t) => n + t, 0),
-    comparaisons: comparaisonsDe(session, performed, lastPerformance),
+    setsDone: counts.done,
+    setsTotal: counts.total,
+    tonnage: tonnageOf(performed, allowedReps(session, done)),
+    rounds: Object.values(rounds).reduce((n, r) => n + r, 0),
+    comparisons: comparisonsOf(session, performed, lastPerformance),
   };
 };

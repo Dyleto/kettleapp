@@ -92,9 +92,9 @@ const menerSess2 = async (p, goblet, fentes) => {
     (t.match(/[^\n]*de séance[^\n]*/) ?? ['(rien)'])[0]
   );
   ok(
-    'les efforts faits sont comptés',
-    /15[\s\S]{0,30}efforts, tous faits/.test(t),
-    (t.match(/[^\n]*efforts[^\n]*/) ?? ['(rien)'])[0]
+    'les exercices faits sont comptés',
+    /15[\s\S]{0,30}exercices, tous faits/.test(t),
+    (t.match(/[^\n]*exercices[^\n]*/) ?? ['(rien)'])[0]
   );
   // 26 kg × 10 reps × 4 séries + 16 kg × 12 reps × 3 séries.
   ok(

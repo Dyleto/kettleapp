@@ -15,7 +15,7 @@ import {
   CLIENT_CONTENT_MAX_W,
   CompleteSessionModal,
   GuidedSession,
-  RecapSeance,
+  SessionRecap,
   RecordPerformed,
   SessionDetail,
   SuggestedDays,
@@ -25,12 +25,12 @@ import {
 import { PerformedEntry, PerformedValues, RoundsDoneEntry } from '@/types';
 import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
 import {
-  compterNotes,
-  ecrireSeance,
-  lireSeance,
-} from '@/features/client/seanceEnCours';
+  countRecorded,
+  writeProgress,
+  readProgress,
+} from '@/features/client/sessionProgress';
 import { buildGuidedSteps } from '@/features/client/guidedSteps';
-import { construireRecap } from '@/features/client/recap';
+import { buildRecap } from '@/features/client/recap';
 import { CLIENT_ROUTES } from '@/config/routes';
 import { EtatVide } from '@/components/EtatVide';
 import { hitArea } from '@/components/hitArea';
@@ -94,7 +94,7 @@ const SessionScreen = () => {
   // ce qui se retrouve et perdait ce qui ne se retrouve pas.
   const [performed, setPerformed] = useState<Record<string, PerformedValues>>(
     () =>
-      activeSession ? (lireSeance(activeSession._id)?.performed ?? {}) : {}
+      activeSession ? (readProgress(activeSession._id)?.performed ?? {}) : {}
   );
 
   // La saisie appartient à une séance précise : passer à une autre depuis le
@@ -104,7 +104,7 @@ const SessionScreen = () => {
   if (activeSession?._id !== performedFor) {
     setPerformedFor(activeSession?._id);
     setPerformed(
-      activeSession ? (lireSeance(activeSession._id)?.performed ?? {}) : {}
+      activeSession ? (readProgress(activeSession._id)?.performed ?? {}) : {}
     );
     setFlow('idle');
   }
@@ -118,18 +118,18 @@ const SessionScreen = () => {
    */
   const recap = useMemo(() => {
     if (!activeSession || flow === 'idle') return undefined;
-    const garde = lireSeance(activeSession._id);
-    if (!garde || (garde.faits.length === 0 && garde.debutLe === undefined))
+    const saved = readProgress(activeSession._id);
+    if (!saved || (saved.done.length === 0 && saved.startedAt === undefined))
       return undefined;
-    return construireRecap({
+    return buildRecap({
       session: activeSession,
       steps: buildGuidedSteps(activeSession),
-      etape: garde.etape,
+      step: saved.step,
       performed,
-      faits: garde.faits,
-      tours: garde.tours,
+      done: saved.done,
+      rounds: saved.rounds,
       lastPerformance,
-      debutLe: garde.debutLe,
+      startedAt: saved.startedAt,
     });
   }, [activeSession, flow, performed, lastPerformance]);
 
@@ -140,7 +140,7 @@ const SessionScreen = () => {
         // À la frappe plutôt qu'à la sortie du champ : ce qu'on veut couvrir,
         // c'est l'application qui disparaît sans prévenir.
         if (activeSession)
-          ecrireSeance(activeSession._id, { performed: suivant });
+          writeProgress(activeSession._id, { performed: suivant });
         return suivant;
       }),
     [activeSession]
@@ -339,7 +339,7 @@ const SessionScreen = () => {
             // Qui a noté pendant la séance a déjà répondu à la question :
             // la reposer à la fin, devant des champs qu'il vient de remplir,
             // c'est demander deux fois la même chose. Le bilan le lui dit.
-            setFlow(compterNotes(performed) > 0 ? 'review' : 'record');
+            setFlow(countRecorded(performed) > 0 ? 'review' : 'record');
           }}
           lastPerformance={lastPerformance}
           performed={performed}
@@ -365,20 +365,20 @@ const SessionScreen = () => {
         onClose={() => setFlow('idle')}
         recap={
           recap && (
-            <RecapSeance
+            <SessionRecap
               recap={recap}
-              titre={sessionTitle(activeSession.order, activeSession.name)}
+              title={sessionTitle(activeSession.order, activeSession.name)}
             />
           )
         }
-        chargesDejaNotees={compterNotes(performed) > 0}
+        chargesDejaNotees={countRecorded(performed) > 0}
         onSubmit={(feedback, notes, completedAt) => {
           handleSubmitLog(
             feedback,
             notes,
             completedAt,
             toPerformedEntries(performed),
-            toRoundsDone(lireSeance(activeSession._id)?.tours)
+            toRoundsDone(readProgress(activeSession._id)?.rounds)
           );
           setFlow('idle');
         }}

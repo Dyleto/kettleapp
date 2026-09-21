@@ -117,11 +117,7 @@ export const SessionDetail = ({
                 opacity={0.8}
                 aria-hidden={!last}
               >
-                {last ? (
-                  <>la dernière fois&nbsp;: {last}</>
-                ) : (
-                  '\u00A0'
-                )}
+                {last ? <>la dernière fois&nbsp;: {last}</> : '\u00A0'}
               </Text>
             );
           }}

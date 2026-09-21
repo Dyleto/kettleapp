@@ -11,6 +11,7 @@
  */
 import {
   lancer,
+  BASE,
   MOBILE,
   ok,
   bilanDesEchecs,
@@ -67,16 +68,16 @@ const recommencer = async (p, sess) => {
   const avant = await garde(p, 'sess3');
   ok(
     'trois mouvements sont cochés avant de quitter',
-    avant.faits.length === 3,
-    JSON.stringify(avant.faits)
+    avant.done.length === 3,
+    JSON.stringify(avant.done)
   );
 
   await recommencer(p, 'sess3');
   const apres = await garde(p, 'sess3');
   ok(
     'après « recommencer », plus rien n’est coché',
-    apres.faits.length === 0,
-    JSON.stringify(apres.faits)
+    apres.done.length === 0,
+    JSON.stringify(apres.done)
   );
 
   const ecran = await ecranGuide(p);
@@ -133,18 +134,18 @@ const recommencer = async (p, sess) => {
   const avant = await garde(p, 'sess1');
   ok(
     'six tours sont comptés, et l’étape a avancé',
-    avant.tours['3'] === 6 && avant.etape > 0,
-    `étape ${avant.etape}, tours ${JSON.stringify(avant.tours)}`
+    avant.rounds['3'] === 6 && avant.step > 0,
+    `étape ${avant.step}, tours ${JSON.stringify(avant.rounds)}`
   );
 
   await recommencer(p, 'sess1');
   const apres = await garde(p, 'sess1');
   ok(
     'après « recommencer », tout est à zéro',
-    apres.etape === 0 &&
-      apres.faits.length === 0 &&
-      Object.keys(apres.tours).length === 0,
-    `étape ${apres.etape}, faits ${apres.faits.length}, tours ${JSON.stringify(apres.tours)}`
+    apres.step === 0 &&
+      apres.done.length === 0 &&
+      Object.keys(apres.rounds).length === 0,
+    `étape ${apres.step}, faits ${apres.done.length}, tours ${JSON.stringify(apres.rounds)}`
   );
   ok(
     '  → et la barre d’avancement le dit',
@@ -186,6 +187,89 @@ const recommencer = async (p, sess) => {
     'on ne propose plus de reprendre une séance remise à zéro',
     !/Reprendre où tu en étais/i.test(plein),
     plein.split('\n').filter(Boolean)[0] ?? '(rien)'
+  );
+  await ctx.close();
+}
+
+// ── Un enregistrement d'avant le passage à l'anglais se relit ───────────
+//
+// Les champs du stockage local portaient des noms français. Un client en
+// pleine séance au moment de la livraison aurait tout perdu : son
+// enregistrement est toujours là, mais aucun de ses champs ne répond à son
+// nouveau nom.
+{
+  console.log('\n── une séance commencée avant la livraison se retrouve');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await connecter(ctx);
+  await p.evaluate(() => {
+    localStorage.setItem(
+      'kettle-seance-sess3',
+      JSON.stringify({
+        version: 1,
+        etape: 0,
+        performed: { '1:1': { sets: [{ weight: 37 }] } },
+        faits: ['1:1:1', '1:2:1'],
+        tours: {},
+        debutLe: Date.now() - 20 * 60_000,
+        majLe: Date.now(),
+      })
+    );
+  });
+  await p.goto(`${BASE}/client/session/sess3`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await p.waitForTimeout(1700);
+  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.waitForTimeout(900);
+  const plein = await p.evaluate(() => {
+    const d = [...document.querySelectorAll('div')].filter(
+      (e) =>
+        getComputedStyle(e).position === 'fixed' &&
+        /Reprendre|Commencer/.test(e.innerText)
+    );
+    return (d[d.length - 1]?.innerText ?? '').replace(/\u00A0/g, ' ');
+  });
+  ok(
+    'on propose de reprendre une séance enregistrée à l’ancien format',
+    /Reprendre où tu en étais/i.test(plein),
+    plein.split('\n').filter(Boolean)[0] ?? '(rien)'
+  );
+  ok(
+    '  → et la charge notée avant la livraison est annoncée',
+    /charges sur 1 exercice/i.test(plein),
+    (plein.match(/[^\n]*charges[^\n]*/) ?? ['(rien)'])[0]
+  );
+
+  await p.getByRole('button', { name: /^Reprendre$/ }).click();
+  await p.waitForTimeout(800);
+  // On reprend au premier exercice non coché : le troisième. Les deux
+  // premiers sont derrière, cochés, avec la charge de l'ancien format.
+  const ecran = await ecranGuide(p);
+  ok(
+    '  → on reprend après les deux exercices déjà cochés',
+    /2 sur 4 faits/.test(ecran),
+    (ecran.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
+  );
+  ok(
+    '  → et la charge de l’ancien format est toujours affichée',
+    /37 kg/.test(ecran),
+    (ecran.match(/[^\n]*37 kg[^\n]*/) ?? ['(rien)'])[0]
+  );
+
+  // La première écriture réécrit l'enregistrement au nouveau format, sans
+  // rien perdre de ce qui y était.
+  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p.waitForTimeout(400);
+  const migre = await garde(p, 'sess3');
+  ok(
+    '  → à la première écriture, il passe au nouveau format',
+    migre.version === 2,
+    `version ${migre.version}`
+  );
+  ok(
+    '  → en gardant ce qu’il portait',
+    migre.done.length === 3 && migre.performed['1:1'].sets[0].weight === 37,
+    `${migre.done.length} faits, ${JSON.stringify(migre.performed['1:1'])}`
   );
   await ctx.close();
 }

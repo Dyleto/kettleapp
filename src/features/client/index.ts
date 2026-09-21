@@ -4,7 +4,7 @@ export { CompletedSessionDrawer } from './components/CompletedSessionDrawer';
 export { EffortScale } from './components/EffortScale';
 export { FeedbackTags } from './components/FeedbackTags';
 export { PerformedFields } from './components/PerformedFields';
-export { RecapSeance } from './components/RecapSeance';
+export { SessionRecap } from './components/SessionRecap';
 export { RecordPerformed } from './components/RecordPerformed';
 export { SessionCalendar } from './components/SessionCalendar';
 export { SessionCalendarFilter } from './components/SessionCalendarFilter';
