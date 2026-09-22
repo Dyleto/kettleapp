@@ -44,14 +44,16 @@ const horloge = (p) =>
 /** Franchit l'échauffement de la séance 1 pour arriver sur l'EMOM. */
 const allerALEmom = async (p) => {
   await demarrer(p, 'sess1');
-  for (let i = 0; i < 3; i++) {
+  // On s'arrête dès qu'on y est : compter les clics devient faux dès qu'un
+  // bloc fini enchaîne de lui-même sur le suivant.
+  for (let i = 0; i < 6; i++) {
+    if (/— EMOM$/.test(await ou(p))) return;
     const btn = p.getByRole('button', {
       name: /^(Fait|Suivant|Bloc suivant)$/,
     });
-    if (await btn.count()) {
-      await btn.first().click();
-      await p.waitForTimeout(250);
-    }
+    if (!(await btn.count())) return;
+    await btn.first().click();
+    await p.waitForTimeout(300);
     await passerRepos(p);
   }
 };

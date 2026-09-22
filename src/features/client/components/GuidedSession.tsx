@@ -1248,6 +1248,22 @@ export const GuidedSession = ({
     setDone(next);
     writeProgress(session._id, { done: next });
     navigator.vibrate?.(40);
+
+    // The last set of a list block leaves nothing to do.
+    //
+    // The block stayed there, every line ticked, waiting for a tap on « Bloc
+    // suivant » that said nothing the screen did not already say. A dead end
+    // between two blocks, and one more gesture in the middle of a session.
+    // Ticking the last set IS moving on.
+    //
+    // Only when there is somewhere to go. On the last block of the session,
+    // « Terminer » stays a deliberate act: finishing a session is a decision,
+    // not a side effect of a checkbox.
+    if (next.length === sets.length && !isLast) {
+      goNext();
+      return;
+    }
+
     // The prescribed rest starts by itself: it is the gesture the client
     // would make anyway, and forgetting it costs the next set.
     if (current.restAfter) {

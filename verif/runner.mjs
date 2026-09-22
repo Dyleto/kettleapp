@@ -5,7 +5,7 @@
  * échouerait silencieusement à s'y lier, et toutes les suites tourneraient
  * sur un état déjà muté. C'est exactement le faux échec qu'on veut éviter.
  */
-import { spawn } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { setTimeout as wait } from 'node:timers/promises';
 
 const suites = process.argv.slice(2);
@@ -22,12 +22,41 @@ const ping = async () => {
   }
 };
 
+/**
+ * Un serveur laissé par une exécution précédente garderait le port, le nôtre
+ * échouerait silencieusement à s'y lier, et toutes les suites tourneraient
+ * sur un état déjà muté. C'est le faux échec qu'on veut éviter.
+ *
+ * On le termine plutôt que d'abandonner : c'est notre propre serveur, il
+ * n'appartient à personne d'autre, et échouer là-dessus ne faisait que
+ * demander la même commande une seconde fois.
+ */
 const ensureFree = async () => {
-  for (let i = 0; i < 20; i++) {
-    if (!(await ping())) return;
-    await wait(300);
+  if (!(await ping())) return;
+  // Le motif est ancré sur la ligne de commande entière : un motif libre
+  // se reconnaît dans le shell qui l'invoque, et tue son propre appelant.
+  try {
+    const pids = execSync('pgrep -f "^node mock-server\\.mjs$" || true', {
+      encoding: 'utf8',
+    })
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => /^\d+$/.test(l) && Number(l) !== process.pid);
+    pids.forEach((pid) => {
+      try {
+        process.kill(Number(pid), 'SIGKILL');
+      } catch {
+        // Déjà parti entre le relevé et le signal.
+      }
+    });
+  } catch {
+    // Pas de pgrep : on retombe sur l'attente.
   }
-  throw new Error('le port 3001 reste occupé — un mock traîne');
+  for (let i = 0; i < 20; i++) {
+    await wait(300);
+    if (!(await ping())) return;
+  }
+  throw new Error('le port 3001 reste occupé et refuse de céder');
 };
 
 const startMock = async () => {
