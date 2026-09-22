@@ -86,7 +86,10 @@ const tickTwoSets = async (p) => {
   );
   const screen = await guidedScreen(p);
   ok('  → with the means to redo it', /Refaire/.test(screen));
-  ok('  → the means to review the movement', /Revoir le mouvement/.test(screen));
+  ok(
+    '  → the means to review the movement',
+    /Revoir le mouvement/.test(screen)
+  );
   ok('  → and the means to close it again', /Fermer/.test(screen));
 
   // One at a time: two editable loads on screen would bring the form back to

@@ -1,15 +1,15 @@
 /**
- * Le serveur d'essai : une API Kettle en mémoire, sans base de données.
+ * The test server: an in-memory Kettle API, with no database.
  *
- * Il sert à mener l'application pour de vrai dans un navigateur — cliquer,
- * saisir, terminer une séance — et à lire ce qu'elle affiche. Le jeu d'essai
- * couvre les cas qui cassent : un EMOM, un Tabata, un AMRAP, un chipper, une
- * pyramide, un bloc « Every » d'avant la fusion, et un historique qui donne
- * de quoi comparer.
+ * It exists to drive the application for real in a browser — clicking,
+ * typing, finishing a session — and to read what it shows. The test data
+ * covers the cases that break: an EMOM, a Tabata, an AMRAP, a chipper, a
+ * pyramid, an "Every" block from before the merge, and a history that gives
+ * something to compare against.
  *
- * Il vit dans le dépôt, et pas dans un répertoire temporaire : la première
- * version a été effacée avec son conteneur, et avec elle tout ce qui
- * permettait de vérifier quoi que ce soit.
+ * It lives in the repository, not in a temporary directory: the first version
+ * was erased along with its container, and with it everything that made it
+ * possible to verify anything at all.
  */
 import http from 'node:http';
 
@@ -29,9 +29,9 @@ const ex = (id, name, videoUrl, usageCount = 0, description = '') => ({
 });
 
 const EXERCISES = [
-  // Deux exercices portent une description de bibliothèque : c'est le seul
-  // moyen de vérifier que la consigne de séance et la technique générale du
-  // mouvement se distinguent à la lecture. « Pompes » n'en a pas.
+  // Two exercises carry a library description: it is the only way to check
+  // that a session's instruction and the movement's general technique read as
+  // distinct. "Pompes" has none.
   ex(
     'ex1',
     'Kettlebell Swing',
@@ -52,7 +52,7 @@ const EXERCISES = [
   ex('ex6', 'Pompes', '', 6),
   ex('ex7', 'Mountain Climbers', '', 1),
   ex('ex8', 'Corde à sauter', '', 0),
-  // Hors du programme de ce client : alimente « Vos plus utilisés ».
+  // Outside this client's program: feeds "Vos plus utilisés".
   ex('ex9', 'Turkish Get-Up', '', 5),
   ex('ex10', 'Planche', '', 0),
 ];
@@ -184,8 +184,8 @@ const SESSIONS = [
         restDuration: 20,
         exercises: [blockExercise(EXERCISES[0], 1, {})],
       },
-      // Un bloc « Every » d'avant la fusion avec l'EMOM : on ne peut plus en
-      // créer, mais ceux des programmes existants doivent s'afficher.
+      // An "Every" block from before the merge with EMOM: no new one can be
+      // created, but those in existing programs have to display.
       {
         _id: 'blk9',
         type: 'every',
@@ -227,8 +227,8 @@ const program = () => ({
   sessions: EMPTY_PROGRAM ? [] : SESSIONS,
 });
 
-// Clone profond des blocs pour pouvoir y poser du `performed` sans altérer
-// le programme lui-même.
+// Deep clone of the blocks so `performed` can be placed on them without
+// altering the program itself.
 const snapshot = (session) => JSON.parse(JSON.stringify(session.blocks));
 
 const isEmptySet = (set) =>
@@ -236,7 +236,7 @@ const isEmptySet = (set) =>
   set.reps === undefined &&
   set.duration === undefined;
 
-// Miroir de `normalize` côté API : une série vide arrête l'exercice là.
+// Mirrors `normalize` on the API side: an empty set stops the exercise there.
 const normalizeSets = (sets) => {
   const kept = [];
   for (const set of sets || []) {
@@ -258,7 +258,7 @@ const withPerformed = (blocks, entries) =>
     }),
   }));
 
-/** Le score des blocs qui se comptent en tours — un AMRAP. */
+/** The score of blocks counted in rounds — an AMRAP. */
 const withRounds = (blocks, entries) =>
   blocks.map((b) => {
     const hit = (entries || []).find((r) => r.blockOrder === b.order);
@@ -305,12 +305,12 @@ let HISTORY = EMPTY_PROGRAM
         sessionName: 'Full body A',
         blocks: snapshot(SESSIONS[0]),
         coachNotes: '',
-        // Bilan antérieur à la refonte : cinq axes, aucun effort.
+        // A report from before the rework: five axes, no effort rating.
         metrics: { stress: 1, mood: 5, energy: 4, sleep: 5, soreness: 1 },
         clientNotes: 'Très bonne séance, forme du jour excellente.',
         viewedByCoach: true,
       },
-      // Trois passages notés sur la séance 1, de plus en plus durs.
+      // Three recorded attempts at session 1, harder each time.
       {
         _id: 'cs4',
         completedAt: '2026-08-22T18:00:00.000Z',
@@ -499,8 +499,8 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { completed });
   }
 
-  // Le reste de l'API n'est pas couvert par cette reconstruction : on répond
-  // du vide plutôt que de faire croire à un jeu d'essai complet.
+  // The rest of the API is not covered by this reconstruction: we answer
+  // with nothing rather than pretend the test data is complete.
   return sendJson(res, 200, {});
 });
 

@@ -1,44 +1,51 @@
-# Le banc d'essai
+# The test bench
 
-Il mène l'application dans un vrai navigateur — cliquer, saisir, terminer une
-séance — et lit ce qu'elle affiche. Aucune base de données : `mock-server.mjs`
-sert une API Kettle en mémoire, avec un jeu d'essai qui couvre les formats qui
-cassent (EMOM, Tabata, AMRAP, chipper, pyramide, bloc « Every » d'avant la
-fusion) et un historique qui donne de quoi comparer.
+It drives the application in a real browser — clicking, typing, finishing a
+session — and reads what it shows. No database: `mock-server.mjs` serves an
+in-memory Kettle API, with test data covering the formats that break (EMOM,
+Tabata, AMRAP, chipper, pyramid, an "Every" block from before the merge) and
+a history that gives something to compare against.
 
-## Lancer
+## Running it
 
 ```sh
-npm install                       # dans verif/
-cd .. && npm install && npx vite  # le front, sur le port 5173
+npm install                       # inside verif/
+cd .. && npm install && npx vite  # the front end, on port 5173
 ```
 
-Le front doit trouver l'API d'essai : `VITE_API_URL=http://localhost:3001`
-dans un `.env` à la racine.
+The front end has to find the test API: `VITE_API_URL=http://localhost:3001`
+in a `.env` at the root.
 
 ```sh
 node runner.mjs verify_recap.mjs verify_paysage.mjs
 ```
 
-Le lanceur redémarre un serveur neuf avant chaque suite : une suite qui
-tournerait sur l'état laissé par la précédente ne prouverait rien.
+The runner restarts a fresh server before each suite: a suite running on the
+state left by the previous one would prove nothing.
 
-## Écrire une suite
+Name the suites explicitly. With no arguments the runner runs nothing at all,
+and says so rather than reporting a green that covers zero assertions.
 
-`commun.mjs` porte ce que toutes refont : se connecter, démarrer une séance
-guidée, lire l'écran. Deux pièges méritent d'être connus :
+## Writing a suite
 
-- **Ne jamais naviguer au texte de l'écran.** Le dernier tour d'un bloc
-  annonce déjà le bloc suivant — « dernier tour — ensuite : AMRAP » — et une
-  expression sur « AMRAP » s'arrête une étape trop tôt. `ou(page)` lit
-  `aria-valuetext` sur la barre d'avancement : c'est le seul repère fiable.
-- **Normaliser les espaces.** L'interface écrit « Tour 1 / 10 » avec des
-  espaces insécables ; `net()` les ramène à des espaces ordinaires.
+`common.mjs` carries what they all redo: signing in, starting a guided
+session, reading the screen. Two traps are worth knowing:
 
-## La discipline
+- **Never navigate by the screen's text.** A block's last round already
+  announces the next block — "dernier tour — ensuite : AMRAP" — and a pattern
+  on "AMRAP" stops one step too early. `where(page)` reads `aria-valuetext`
+  on the progress bar: it is the only reliable marker.
+- **Normalise the spaces.** The interface writes "Tour 1 / 10" with
+  non-breaking spaces; `clean()` brings them back to ordinary ones.
 
-Un vert ne vaut que si on l'a cassé. Pour chaque mécanisme vérifié, on le
-sabote dans le code et on s'assure que l'assertion qui le couvre tombe — et
-elle seule. Une assertion qui reste verte quand le mécanisme est cassé ne
-vérifie pas ce qu'elle prétend ; c'est arrivé, et ça ne se voit pas
-autrement.
+The selectors, the role names and the regexes stay in French: they match the
+interface, which addresses French speakers. Everything else — identifiers,
+comments, assertion labels — is in English.
+
+## The discipline
+
+A green is only worth something once it has been broken. For every mechanism
+checked, we sabotage it in the code and make sure the assertion covering it
+falls — and only that one. An assertion that stays green when the mechanism
+is broken does not check what it claims to; it has happened, and there is no
+other way to see it.

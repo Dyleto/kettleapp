@@ -1,37 +1,37 @@
 /**
- * Reprendre, ou recommencer.
+ * Resuming, or starting over.
  *
- * Quitter le mode guidé n'efface rien : on retrouve sa place et ses charges
- * en revenant. Pour repartir de zéro, l'écran de reprise le propose — et
- * « recommencer » doit alors vraiment tout remettre à zéro.
+ * Leaving guided mode erases nothing: you find your place and your loads on
+ * coming back. To start from scratch, the resume screen offers it — and
+ * "recommencer" then has to really put everything back to zero.
  *
- * La suite précédente vérifiait que les charges survivent à « recommencer »
- * — ce qui doit persister — sans jamais vérifier ce qui doit se remettre à
- * zéro. C'est exactement par là que le défaut est passé.
+ * The previous suite checked that the loads survive "recommencer" — which
+ * must persist — without ever checking what must go back to zero. That is
+ * exactly where the defect slipped through.
  */
 import {
-  lancer,
+  launch,
   BASE,
   MOBILE,
   ok,
-  bilanDesEchecs,
-  connecter,
-  demarrer,
-  ou,
-  ecranGuide,
-  passerRepos,
-} from './commun.mjs';
+  failureCount,
+  signIn,
+  start,
+  where,
+  guidedScreen,
+  skipRest,
+} from './common.mjs';
 
-const browser = await lancer();
+const browser = await launch();
 
-const garde = (p, sess) =>
+const record = (p, sess) =>
   p.evaluate(
     (s) => JSON.parse(localStorage.getItem(`kettle-seance-${s}`) || 'null'),
     sess
   );
 
-/** Quitte la séance, revient dessus, et clique « Recommencer ». */
-const recommencer = async (p, sess) => {
+/** Leaves the session, comes back to it, and clicks "Recommencer". */
+const startOver = async (p) => {
   await p.getByRole('button', { name: /^Quitter$/ }).click();
   await p.waitForTimeout(300);
   await p.getByRole('button', { name: /^Quitter$/ }).click();
@@ -42,15 +42,15 @@ const recommencer = async (p, sess) => {
   await p.waitForTimeout(800);
 };
 
-// ── Un bloc-liste : le cas où « recommencer » ne faisait rien ────────────
+// ── A list block: the case where "recommencer" did nothing ──────────────
 //
-// Un chipper est une étape unique. Remettre l'étape à zéro ne changeait donc
-// rien, et les mouvements cochés restaient cochés.
+// A chipper is a single step. Resetting the step therefore changed nothing,
+// and the ticked movements stayed ticked.
 {
-  console.log('\n── recommencer décoche ce qui avait été coché');
+  console.log('\n── starting over unticks what had been ticked');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await demarrer(p, 'sess3');
+  const p = await signIn(ctx);
+  await start(p, 'sess3');
   for (let i = 0; i < 3; i++) {
     const kg = p
       .locator(
@@ -63,59 +63,59 @@ const recommencer = async (p, sess) => {
     }
     await p.getByRole('button', { name: /^Fait$/ }).click();
     await p.waitForTimeout(280);
-    await passerRepos(p);
+    await skipRest(p);
   }
-  const avant = await garde(p, 'sess3');
+  const before = await record(p, 'sess3');
   ok(
-    'trois mouvements sont cochés avant de quitter',
-    avant.done.length === 3,
-    JSON.stringify(avant.done)
+    'three movements are ticked before leaving',
+    before.done.length === 3,
+    JSON.stringify(before.done)
   );
 
-  await recommencer(p, 'sess3');
-  const apres = await garde(p, 'sess3');
+  await startOver(p);
+  const after = await record(p, 'sess3');
   ok(
-    'après « recommencer », plus rien n’est coché',
-    apres.done.length === 0,
-    JSON.stringify(apres.done)
+    'after "recommencer", nothing is ticked any more',
+    after.done.length === 0,
+    JSON.stringify(after.done)
   );
 
-  const ecran = await ecranGuide(p);
+  const screen = await guidedScreen(p);
   ok(
-    '  → et le bloc le dit : zéro sur quatre',
-    /0 sur 4 faits/.test(ecran),
-    (ecran.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
+    '  → and the block says so: zero out of four',
+    /0 sur 4 faits/.test(screen),
+    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(nothing)'])[0]
   );
   ok(
-    '  → le curseur est revenu au premier mouvement',
-    /Burpee[\s\S]{0,40}21 reps/.test(ecran),
-    ecran.split('\n').filter(Boolean).slice(2, 5).join(' · ')
+    '  → the cursor is back on the first movement',
+    /Burpee[\s\S]{0,40}21 reps/.test(screen),
+    screen.split('\n').filter(Boolean).slice(2, 5).join(' · ')
   );
 
-  // Les charges, elles, restent : c'est la partie délibérée.
+  // The loads, on the other hand, stay: that is the deliberate part.
   ok(
-    '  → mais les charges notées sont toujours là',
-    Object.keys(apres.performed).length === 3,
-    JSON.stringify(Object.keys(apres.performed))
+    '  → but the recorded loads are still there',
+    Object.keys(after.performed).length === 3,
+    JSON.stringify(Object.keys(after.performed))
   );
-  const valeur = await p
+  const value = await p
     .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
     .first()
     .inputValue();
   ok(
-    '  → et la première se relit dans son champ',
-    valeur === '20',
-    valeur || '(vide)'
+    '  → and the first one reads back in its field',
+    value === '20',
+    value || '(empty)'
   );
   await ctx.close();
 }
 
-// ── Une boucle : le compteur de tours repart aussi ───────────────────────
+// ── A loop: the round counter restarts too ──────────────────────────────
 {
-  console.log('\n── recommencer remet le compteur de tours à zéro');
+  console.log('\n── starting over puts the round counter back to zero');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await demarrer(p, 'sess1');
+  const p = await signIn(ctx);
+  await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
     const btn = p.getByRole('button', {
       name: /^(Suivant|Fait|Bloc suivant)$/,
@@ -123,7 +123,7 @@ const recommencer = async (p, sess) => {
     if (!(await btn.count())) break;
     await btn.first().click();
     await p.waitForTimeout(160);
-    await passerRepos(p);
+    await skipRest(p);
     if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
   }
   const plus = p.getByRole('button', { name: /^\+1 tour$/ });
@@ -131,43 +131,43 @@ const recommencer = async (p, sess) => {
     await plus.click();
     await p.waitForTimeout(120);
   }
-  const avant = await garde(p, 'sess1');
+  const before = await record(p, 'sess1');
   ok(
-    'six tours sont comptés, et l’étape a avancé',
-    avant.rounds['3'] === 6 && avant.step > 0,
-    `étape ${avant.step}, tours ${JSON.stringify(avant.rounds)}`
+    'six rounds are counted, and the step has advanced',
+    before.rounds['3'] === 6 && before.step > 0,
+    `step ${before.step}, rounds ${JSON.stringify(before.rounds)}`
   );
 
-  await recommencer(p, 'sess1');
-  const apres = await garde(p, 'sess1');
+  await startOver(p);
+  const after = await record(p, 'sess1');
   ok(
-    'après « recommencer », tout est à zéro',
-    apres.step === 0 &&
-      apres.done.length === 0 &&
-      Object.keys(apres.rounds).length === 0,
-    `étape ${apres.step}, faits ${apres.done.length}, tours ${JSON.stringify(apres.rounds)}`
+    'after "recommencer", everything is at zero',
+    after.step === 0 &&
+      after.done.length === 0 &&
+      Object.keys(after.rounds).length === 0,
+    `step ${after.step}, done ${after.done.length}, rounds ${JSON.stringify(after.rounds)}`
   );
   ok(
-    '  → et la barre d’avancement le dit',
-    /Étape 1 sur/.test(await ou(p)),
-    await ou(p)
+    '  → and the progress bar says so',
+    /Étape 1 sur/.test(await where(p)),
+    await where(p)
   );
   await ctx.close();
 }
 
-// ── Et l'on repart vraiment propre ───────────────────────────────────────
+// ── And we really do start clean ────────────────────────────────────────
 //
-// « Recommencé » puis quitté, revenir proposait encore de reprendre : la
-// séance se croyait commencée parce qu'elle comptait des efforts cochés.
+// Started over then left, coming back still offered to resume: the session
+// believed itself started because it counted ticked sets.
 {
-  console.log('\n── après avoir recommencé, on repart d’une séance neuve');
+  console.log('\n── after starting over, we start from a fresh session');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await demarrer(p, 'sess3');
+  const p = await signIn(ctx);
+  await start(p, 'sess3');
   await p.getByRole('button', { name: /^Fait$/ }).click();
   await p.waitForTimeout(300);
-  await passerRepos(p);
-  await recommencer(p, 'sess3');
+  await skipRest(p);
+  await startOver(p);
 
   await p.getByRole('button', { name: /^Quitter$/ }).click();
   await p.waitForTimeout(300);
@@ -175,7 +175,7 @@ const recommencer = async (p, sess) => {
   await p.waitForTimeout(900);
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(900);
-  const plein = await p.evaluate(() => {
+  const panel = await p.evaluate(() => {
     const d = [...document.querySelectorAll('div')].filter(
       (e) =>
         getComputedStyle(e).position === 'fixed' &&
@@ -184,23 +184,22 @@ const recommencer = async (p, sess) => {
     return d[d.length - 1]?.innerText ?? '';
   });
   ok(
-    'on ne propose plus de reprendre une séance remise à zéro',
-    !/Reprendre où tu en étais/i.test(plein),
-    plein.split('\n').filter(Boolean)[0] ?? '(rien)'
+    'we no longer offer to resume a session that was reset',
+    !/Reprendre où tu en étais/i.test(panel),
+    panel.split('\n').filter(Boolean)[0] ?? '(nothing)'
   );
   await ctx.close();
 }
 
-// ── Un enregistrement d'avant le passage à l'anglais se relit ───────────
+// ── A record from before the move to English still reads ───────────────
 //
-// Les champs du stockage local portaient des noms français. Un client en
-// pleine séance au moment de la livraison aurait tout perdu : son
-// enregistrement est toujours là, mais aucun de ses champs ne répond à son
-// nouveau nom.
+// The local-storage fields carried French names. A client mid-session when
+// the build shipped would have lost everything: their record is still there,
+// but none of its fields answer to their new name.
 {
-  console.log('\n── une séance commencée avant la livraison se retrouve');
+  console.log('\n── a session started before the release is found again');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
+  const p = await signIn(ctx);
   await p.evaluate(() => {
     localStorage.setItem(
       'kettle-seance-sess3',
@@ -221,58 +220,59 @@ const recommencer = async (p, sess) => {
   await p.waitForTimeout(1700);
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(900);
-  const plein = await p.evaluate(() => {
+  const panel = await p.evaluate(() => {
     const d = [...document.querySelectorAll('div')].filter(
       (e) =>
         getComputedStyle(e).position === 'fixed' &&
         /Reprendre|Commencer/.test(e.innerText)
     );
-    return (d[d.length - 1]?.innerText ?? '').replace(/\u00A0/g, ' ');
+    return (d[d.length - 1]?.innerText ?? '').replace(/ /g, ' ');
   });
   ok(
-    'on propose de reprendre une séance enregistrée à l’ancien format',
-    /Reprendre où tu en étais/i.test(plein),
-    plein.split('\n').filter(Boolean)[0] ?? '(rien)'
+    'we offer to resume a session stored in the old format',
+    /Reprendre où tu en étais/i.test(panel),
+    panel.split('\n').filter(Boolean)[0] ?? '(nothing)'
   );
   ok(
-    '  → et la charge notée avant la livraison est annoncée',
-    /charges sur 1 exercice/i.test(plein),
-    (plein.match(/[^\n]*charges[^\n]*/) ?? ['(rien)'])[0]
+    '  → and the load recorded before the release is announced',
+    /charges sur 1 exercice/i.test(panel),
+    (panel.match(/[^\n]*charges[^\n]*/) ?? ['(nothing)'])[0]
   );
 
   await p.getByRole('button', { name: /^Reprendre$/ }).click();
   await p.waitForTimeout(800);
-  // On reprend au premier exercice non coché : le troisième. Les deux
-  // premiers sont derrière, cochés, avec la charge de l'ancien format.
-  const ecran = await ecranGuide(p);
+  // We resume at the first unticked exercise: the third. The first two are
+  // behind, ticked, with the load from the old format.
+  const screen = await guidedScreen(p);
   ok(
-    '  → on reprend après les deux exercices déjà cochés',
-    /2 sur 4 faits/.test(ecran),
-    (ecran.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
+    '  → we resume after the two exercises already ticked',
+    /2 sur 4 faits/.test(screen),
+    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(nothing)'])[0]
   );
   ok(
-    '  → et la charge de l’ancien format est toujours affichée',
-    /37 kg/.test(ecran),
-    (ecran.match(/[^\n]*37 kg[^\n]*/) ?? ['(rien)'])[0]
+    '  → and the load from the old format is still displayed',
+    /37 kg/.test(screen),
+    (screen.match(/[^\n]*37 kg[^\n]*/) ?? ['(nothing)'])[0]
   );
 
-  // La première écriture réécrit l'enregistrement au nouveau format, sans
-  // rien perdre de ce qui y était.
+  // The first write rewrites the record in the new format, without losing
+  // anything it carried.
   await p.getByRole('button', { name: /^Fait$/ }).click();
   await p.waitForTimeout(400);
-  const migre = await garde(p, 'sess3');
+  const migrated = await record(p, 'sess3');
   ok(
-    '  → à la première écriture, il passe au nouveau format',
-    migre.version === 2,
-    `version ${migre.version}`
+    '  → on the first write, it moves to the new format',
+    migrated.version === 2,
+    `version ${migrated.version}`
   );
   ok(
-    '  → en gardant ce qu’il portait',
-    migre.done.length === 3 && migre.performed['1:1'].sets[0].weight === 37,
-    `${migre.done.length} faits, ${JSON.stringify(migre.performed['1:1'])}`
+    '  → keeping what it carried',
+    migrated.done.length === 3 &&
+      migrated.performed['1:1'].sets[0].weight === 37,
+    `${migrated.done.length} done, ${JSON.stringify(migrated.performed['1:1'])}`
   );
   await ctx.close();
 }
 
 await browser.close();
-process.exit(bilanDesEchecs() ? 1 : 0);
+process.exit(failureCount() ? 1 : 0);

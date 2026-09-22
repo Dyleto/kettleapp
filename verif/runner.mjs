@@ -1,9 +1,10 @@
 /**
- * Lance chaque suite avec un serveur d'essai neuf.
+ * Runs each suite with a fresh test server.
  *
- * Un serveur laissé par une exécution précédente garderait le port, le nôtre
- * échouerait silencieusement à s'y lier, et toutes les suites tourneraient
- * sur un état déjà muté. C'est exactement le faux échec qu'on veut éviter.
+ * A server left behind by an earlier run would hold the port, ours would
+ * silently fail to bind to it, and every suite would run against state that
+ * has already been mutated. That is exactly the false failure we want to
+ * avoid.
  */
 import { execSync, spawn } from 'node:child_process';
 import { setTimeout as wait } from 'node:timers/promises';
@@ -23,18 +24,18 @@ const ping = async () => {
 };
 
 /**
- * Un serveur laissé par une exécution précédente garderait le port, le nôtre
- * échouerait silencieusement à s'y lier, et toutes les suites tourneraient
- * sur un état déjà muté. C'est le faux échec qu'on veut éviter.
+ * A server left behind by an earlier run would hold the port, ours would
+ * silently fail to bind to it, and every suite would run against state that
+ * has already been mutated. That is the false failure we want to avoid.
  *
- * On le termine plutôt que d'abandonner : c'est notre propre serveur, il
- * n'appartient à personne d'autre, et échouer là-dessus ne faisait que
- * demander la même commande une seconde fois.
+ * We end it rather than give up: it is our own server, it belongs to nobody
+ * else, and failing on it only meant asking for the same command a second
+ * time.
  */
 const ensureFree = async () => {
   if (!(await ping())) return;
-  // Le motif est ancré sur la ligne de commande entière : un motif libre
-  // se reconnaît dans le shell qui l'invoque, et tue son propre appelant.
+  // The pattern is anchored on the whole command line: a loose pattern
+  // recognises itself in the shell that invokes it, and kills its own caller.
   try {
     const pids = execSync('pgrep -f "^node mock-server\\.mjs$" || true', {
       encoding: 'utf8',
@@ -46,17 +47,17 @@ const ensureFree = async () => {
       try {
         process.kill(Number(pid), 'SIGKILL');
       } catch {
-        // Déjà parti entre le relevé et le signal.
+        // Already gone between the listing and the signal.
       }
     });
   } catch {
-    // Pas de pgrep : on retombe sur l'attente.
+    // No pgrep: we fall back on waiting.
   }
   for (let i = 0; i < 20; i++) {
     await wait(300);
     if (!(await ping())) return;
   }
-  throw new Error('le port 3001 reste occupé et refuse de céder');
+  throw new Error('port 3001 stays busy and refuses to give way');
 };
 
 const startMock = async () => {
@@ -69,7 +70,7 @@ const startMock = async () => {
     await wait(150);
     if (await ping()) return p;
   }
-  throw new Error('le mock ne répond pas');
+  throw new Error('the mock does not answer');
 };
 
 for (const suite of suites) {
@@ -92,19 +93,28 @@ for (const suite of suites) {
     `${failLines.length === 0 && out.code === 0 ? '✓' : '✗'} ${suite.padEnd(22)} ${summary}`
   );
   failLines.forEach((l) => console.log('    ' + l));
-  // Un code non nul sans une seule ligne FAIL, c'est un plantage : la suite
-  // s'est arrêtée en route et le résumé ne dit pas pourquoi. On la montre.
+  // A non-zero code with not a single FAIL line is a crash: the suite stopped
+  // on the way and the summary does not say why. We show it.
   if (out.code !== 0 && failLines.length === 0) {
-    const lignes = out.buf.trimEnd().split('\n');
-    console.log(`    ─ planté (code ${out.code}), fin de sortie :`);
-    lignes.slice(-12).forEach((l) => console.log('    │ ' + l));
+    const lines = out.buf.trimEnd().split('\n');
+    console.log(`    ─ crashed (code ${out.code}), end of output:`);
+    lines.slice(-12).forEach((l) => console.log('    │ ' + l));
   }
+}
+
+// Running the runner with no suite names runs nothing at all, and printing
+// "all green" for zero suites is the one result that must never be trusted.
+if (suites.length === 0) {
+  console.log(
+    '\nNo suite named. Usage: node runner.mjs verify_recap.mjs [...]'
+  );
+  process.exit(2);
 }
 
 const bad = results.filter((r) => r.failLines.length > 0 || r.code !== 0);
 console.log(
   bad.length === 0
-    ? '\nToutes les suites sont vertes.'
-    : `\n${bad.length} suite(s) en échec.`
+    ? `\nAll ${results.length} suite(s) green.`
+    : `\n${bad.length} suite(s) failing.`
 );
 process.exit(bad.length ? 1 : 0);

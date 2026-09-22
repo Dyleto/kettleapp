@@ -17,12 +17,14 @@ export const launch = () => chromium.launch({ executablePath: CHROME });
 let failures = 0;
 export const ok = (label, cond, extra = '') => {
   if (!cond) failures++;
-  console.log(`${cond ? 'OK  ' : 'FAIL'}  ${label}${extra ? ' — ' + extra : ''}`);
+  console.log(
+    `${cond ? 'OK  ' : 'FAIL'}  ${label}${extra ? ' — ' + extra : ''}`
+  );
 };
 export const failureCount = () => failures;
 
 /** Non-breaking spaces break hand-written expressions. */
-export const clean = (t) => (t ?? '').replace(/[   ]/g, ' ');
+export const clean = (t) => (t ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
 
 export const signIn = async (ctx) => {
   const p = await ctx.newPage();

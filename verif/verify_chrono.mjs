@@ -60,11 +60,15 @@ const goToEmom = async (p) => {
 
 // ── It does not leave without us ────────────────────────────────────────
 {
-  console.log('\n── a round\'s countdown waits for a tap');
+  console.log("\n── a round's countdown waits for a tap");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await goToEmom(p);
-  ok('we are indeed on the EMOM', /— EMOM$/.test(await where(p)), await where(p));
+  ok(
+    'we are indeed on the EMOM',
+    /— EMOM$/.test(await where(p)),
+    await where(p)
+  );
 
   const before = await clock(p);
   ok('the clock shows the whole time', before.time === '1:00', before.time);
@@ -91,8 +95,16 @@ const goToEmom = async (p) => {
   await p.getByRole('button', { name: /Lancer le décompte/ }).click();
   await p.waitForTimeout(2500);
   const started = await clock(p);
-  ok('a tap starts it', /^Mettre en pause/.test(started.name ?? ''), started.name);
-  ok('  → and it runs', /5[0-9] s restant/.test(started.name ?? ''), started.name);
+  ok(
+    'a tap starts it',
+    /^Mettre en pause/.test(started.name ?? ''),
+    started.name
+  );
+  ok(
+    '  → and it runs',
+    /5[0-9] s restant/.test(started.name ?? ''),
+    started.name
+  );
   await ctx.close();
 }
 
@@ -141,7 +153,11 @@ const goToEmom = async (p) => {
     await p.waitForTimeout(220);
     if (/— Every/i.test(await where(p))) break;
   }
-  ok('we reach the next block', /— Every/i.test(await where(p)), await where(p));
+  ok(
+    'we reach the next block',
+    /— Every/i.test(await where(p)),
+    await where(p)
+  );
   const fresh = await clock(p);
   ok(
     '  → its clock waits in turn',
@@ -172,7 +188,11 @@ const goToEmom = async (p) => {
     /^Mettre en pause/.test(r.name ?? ''),
     r.name
   );
-  ok('  → and it has indeed started', /5[0-9] s restant/.test(r.name ?? ''), r.name);
+  ok(
+    '  → and it has indeed started',
+    /5[0-9] s restant/.test(r.name ?? ''),
+    r.name
+  );
   await ctx.close();
 }
 

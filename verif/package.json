@@ -2,7 +2,7 @@
   "name": "kettle-verif",
   "private": true,
   "type": "module",
-  "description": "Banc d'essai : mène l'application dans un vrai navigateur et lit ce qu'elle affiche.",
+  "description": "Test bench: drives the application in a real browser and reads what it shows.",
   "dependencies": {
     "playwright-core": "^1.49.0"
   }
