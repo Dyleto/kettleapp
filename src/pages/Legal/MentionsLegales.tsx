@@ -55,8 +55,8 @@ const MentionsLegales = () => (
   >
     <Article n={1} title="Éditeur">
       <P>
-        Kettle est édité par <AComplete valeur={LEGAL.editeur.nom} />,
-        personne physique agissant à titre non professionnel.
+        Kettle est édité par <AComplete valeur={LEGAL.editeur.nom} />, personne
+        physique agissant à titre non professionnel.
       </P>
       <P>
         Contact : <Mail />
@@ -66,10 +66,9 @@ const MentionsLegales = () => (
         du 21 juin 2004 pour la confiance dans l'économie numérique, l'éditeur
         non professionnel qui souhaite préserver son anonymat peut ne
         communiquer publiquement que les éléments d'identification de son
-        hébergeur, sous réserve de lui avoir transmis les siens. Les
-        coordonnées complètes de l'éditeur sont détenues par les hébergeurs
-        mentionnés ci-dessous et sont communiquées à l'autorité judiciaire sur
-        réquisition.
+        hébergeur, sous réserve de lui avoir transmis les siens. Les coordonnées
+        complètes de l'éditeur sont détenues par les hébergeurs mentionnés
+        ci-dessous et sont communiquées à l'autorité judiciaire sur réquisition.
       </P>
     </Article>
 
@@ -109,8 +108,8 @@ const MentionsLegales = () => (
 
     <Article n={5} title="Propriété intellectuelle">
       <P>
-        La structure de l'application, son interface, ses textes et son
-        identité visuelle sont la propriété de l'éditeur. Toute reproduction ou
+        La structure de l'application, son interface, ses textes et son identité
+        visuelle sont la propriété de l'éditeur. Toute reproduction ou
         adaptation, totale ou partielle, sans autorisation écrite préalable est
         interdite.
       </P>
@@ -132,9 +131,9 @@ const MentionsLegales = () => (
       >
         <Text fontSize="sm" color="fg" lineHeight="1.75">
           Kettle est un outil d'organisation de l'entraînement. Ce n'est pas un
-          dispositif médical, et il ne délivre aucun avis médical,
-          diagnostic ni traitement. Les programmes qui y figurent sont écrits
-          par votre coach, sous sa seule responsabilité.
+          dispositif médical, et il ne délivre aucun avis médical, diagnostic ni
+          traitement. Les programmes qui y figurent sont écrits par votre coach,
+          sous sa seule responsabilité.
         </Text>
       </Box>
       <Liste
@@ -155,20 +154,20 @@ const MentionsLegales = () => (
       <P>
         Kettle est fourni en l'état, sans garantie de disponibilité
         ininterrompue. L'éditeur peut suspendre le service pour maintenance ou
-        pour raison technique, et ne garantit pas l'absence d'erreur ou de
-        perte de données. Il est recommandé aux coachs de ne pas faire de
-        Kettle leur unique archive de travail.
+        pour raison technique, et ne garantit pas l'absence d'erreur ou de perte
+        de données. Il est recommandé aux coachs de ne pas faire de Kettle leur
+        unique archive de travail.
       </P>
       <P>
-        L'éditeur ne peut être tenu responsable des dommages indirects
-        résultant de l'accès au service ou de son indisponibilité.
+        L'éditeur ne peut être tenu responsable des dommages indirects résultant
+        de l'accès au service ou de son indisponibilité.
       </P>
     </Article>
 
     <Article n={8} title="Contenus des utilisateurs">
       <P>
-        Les coachs sont responsables des contenus qu'ils publient, y compris
-        des liens vidéo qu'ils ajoutent à leur bibliothèque. L'éditeur n'exerce
+        Les coachs sont responsables des contenus qu'ils publient, y compris des
+        liens vidéo qu'ils ajoutent à leur bibliothèque. L'éditeur n'exerce
         aucun contrôle a priori sur ces contenus. Tout contenu manifestement
         illicite peut être signalé à <Mail /> et sera retiré promptement.
       </P>
@@ -182,8 +181,8 @@ const MentionsLegales = () => (
     <Article n={9} title="Accès au service">
       <P>
         L'accès à Kettle se fait sur invitation d'un coach. Le service est
-        réservé aux personnes majeures. L'éditeur peut suspendre ou supprimer
-        un compte en cas d'usage manifestement abusif ou contraire à la loi.
+        réservé aux personnes majeures. L'éditeur peut suspendre ou supprimer un
+        compte en cas d'usage manifestement abusif ou contraire à la loi.
       </P>
     </Article>
 

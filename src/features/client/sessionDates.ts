@@ -1,14 +1,14 @@
 /**
- * Clé de jour locale, « 2026-03-07 ».
+ * A local day key, "2026-03-07".
  *
- * `toISOString()` bascule en UTC : une séance enregistrée à 22 h à Paris
- * tomberait la veille dans la grille. On lit donc la date telle que
- * l'affiche le navigateur du coach.
+ * `toISOString()` shifts to UTC: a session recorded at 10 pm in Paris would
+ * land on the previous day in the grid. So we read the date as the coach's
+ * browser displays it.
  */
 export const dayKey = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-/** « lundi 7 mars » — l'en-tête du jour sélectionné. */
+/** "lundi 7 mars" — the selected day's header. */
 export const formatDayLabel = (key: string): string => {
   const [year, month, day] = key.split('-').map(Number);
   return new Intl.DateTimeFormat('fr-FR', {
@@ -18,14 +18,14 @@ export const formatDayLabel = (key: string): string => {
   }).format(new Date(year, month - 1, day));
 };
 
-// ─── Vocabulaire de la semaine ──────────────────────────────────────────────
-// Lundi = 0 partout dans l'app : la semaine française ne commence pas le
-// dimanche, et `Date.getDay()` si.
+// ─── The week's vocabulary ─────────────────────────────────────────────────
+// Monday = 0 everywhere in the app: the French week does not start on Sunday,
+// and `Date.getDay()` does.
 
-/** Les sept lettres du calendrier — compactes, mais L/M/M et S/D se confondent. */
+/** The calendar's seven letters — compact, but L/M/M and S/D blur together. */
 export const WEEKDAY_LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'] as const;
 
-/** Trois lettres : ce qu'il faut dès qu'un jour doit être choisi, pas seulement lu. */
+/** Three letters: what is needed once a day must be chosen, not merely read. */
 export const WEEKDAY_SHORT = [
   'Lun',
   'Mar',
@@ -46,10 +46,10 @@ export const WEEKDAY_FULL = [
   'dimanche',
 ] as const;
 
-/** Lundi = 0 : la semaine française ne commence pas le dimanche. */
+/** Monday = 0: the French week does not start on Sunday. */
 export const mondayIndex = (date: Date): number => (date.getDay() + 6) % 7;
 
-/** Le lundi de la semaine qui contient `from`, à minuit local. */
+/** The Monday of the week containing `from`, at local midnight. */
 export const startOfWeek = (from: Date): Date => {
   const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
   d.setDate(d.getDate() - mondayIndex(d));
@@ -57,9 +57,9 @@ export const startOfWeek = (from: Date): Date => {
 };
 
 /**
- * « le lundi », « le lundi et le jeudi », « le lundi, le mercredi et le
- * vendredi ». Rien du tout quand aucun jour n'est conseillé — l'absence de
- * conseil ne se signale pas, elle se tait.
+ * "le lundi", "le lundi et le jeudi", "le lundi, le mercredi et le vendredi".
+ * Nothing at all when no day is suggested — the absence of a suggestion does
+ * not announce itself, it stays silent.
  */
 export const formatSuggestedDays = (days?: number[]): string => {
   const valid = [...new Set(days ?? [])]

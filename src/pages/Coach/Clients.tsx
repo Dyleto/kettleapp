@@ -20,72 +20,72 @@ import { Client } from '@/types';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { useGenerateInvitation } from '@/features/coach/hooks/useGenerateInvitation';
 import { useActiveInvitation } from '@/features/coach/hooks/useActiveInvitation';
-import { LienInvitation } from '@/features/coach/components/LienInvitation';
+import { InvitationLinkDialog } from '@/features/coach/components/InvitationLinkDialog';
 import {
-  echeanceLien,
-  lienInvitation,
-  sortirLien,
+  linkExpiry,
+  invitationLink,
+  deliverLink,
 } from '@/features/coach/invitation';
 import { toaster } from '@/components/ui/toasterInstance';
 
 const Clients = () => {
   const { data: clients = [] } = useClients();
   const { mutate: generateInvitation, isPending } = useGenerateInvitation();
-  // Chargé à l'ouverture de la liste : le lien doit être en main *avant* le
-  // clic, sans quoi l'aller-retour réseau coûte l'activation dont le partage
-  // et le presse-papier ont besoin.
-  const { data: enCours } = useActiveInvitation();
+  // Loaded when the list opens: the link has to be in hand *before* the
+  // click, otherwise the network round-trip costs the user activation that
+  // sharing and the clipboard both need.
+  const { data: pending } = useActiveInvitation();
   const [isCopied, setIsCopied] = useState(false);
-  const [aMontrer, setAMontrer] = useState<{
-    lien: string;
+  const [toShow, setToShow] = useState<{
+    link: string;
     expiresAt?: string;
   } | null>(null);
 
   /**
-   * L'aperçu n'existe que là où il y a la place pour lui.
+   * The preview only exists where there is room for it.
    *
-   * En dessous de 1280 px, la liste occupe déjà toute la largeur : y ajouter
-   * une colonne la réduirait à un filet. Le clic ouvre alors l'atelier
-   * directement, comme avant.
+   * Below 1280 px the list already takes the whole width: adding a column
+   * would reduce it to a sliver. A click then opens the workshop directly,
+   * as before.
    */
-  const avecApercu = useBreakpointValue({ base: false, xl: true }) ?? false;
-  const [apercu, setApercu] = useState<Client | null>(null);
+  const withPreview = useBreakpointValue({ base: false, xl: true }) ?? false;
+  const [preview, setPreview] = useState<Client | null>(null);
   useDocumentTitle('Mes clients');
 
   /**
-   * Ce qui se passe une fois le lien en main.
+   * What happens once the link is in hand.
    *
-   * L'ordre suit ce que le coach veut réellement faire : envoyer le lien à
-   * quelqu'un. Là où le téléphone sait ouvrir sa feuille de partage, c'est
-   * elle qui s'ouvre ; sinon on copie ; et si le navigateur refuse les deux,
-   * on écrit le lien dans une fenêtre qui attend qu'on la ferme.
+   * The order follows what the coach actually wants to do: send the link to
+   * someone. Where the phone knows how to open its share sheet, that is what
+   * opens; otherwise we copy; and if the browser refuses both, we write the
+   * link into a window that waits to be closed.
    *
-   * C'est ce dernier cas qui manquait. Kettle affichait alors le lien dans un
-   * bandeau de vingt secondes, puis il n'était plus nulle part.
+   * That last case was the one missing. Kettle used to show the link in a
+   * twenty-second banner, after which it was nowhere at all.
    */
-  const faireSortir = useCallback(async (lien: string, expiresAt?: string) => {
-    const sortie = await sortirLien(lien);
-    if (sortie === 'annule') return;
-    if (sortie === 'echec') {
-      setAMontrer({ lien, expiresAt });
+  const sendOut = useCallback(async (link: string, expiresAt?: string) => {
+    const outcome = await deliverLink(link);
+    if (outcome === 'cancelled') return;
+    if (outcome === 'failed') {
+      setToShow({ link, expiresAt });
       return;
     }
-    if (sortie === 'copie') {
+    if (outcome === 'copied') {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2500);
     }
-    const echeance = echeanceLien(expiresAt);
+    const expiry = linkExpiry(expiresAt);
     toaster.create({
       type: 'success',
       title:
-        sortie === 'partage'
+        outcome === 'shared'
           ? "Lien d'invitation partagé"
           : "Lien d'invitation copié",
       description: [
-        sortie === 'partage'
+        outcome === 'shared'
           ? 'Votre client rejoindra votre suivi.'
           : 'Envoyez-le à votre client : il rejoindra votre suivi.',
-        echeance,
+        expiry,
       ]
         .filter(Boolean)
         .join(' '),
@@ -93,31 +93,35 @@ const Clients = () => {
   }, []);
 
   /**
-   * Inviter, c'est une seule action : obtenir un lien et le faire sortir.
+   * Inviting is a single action: get a link and send it out.
    *
-   * Elle passait par un tiroir latéral dont le corps entier était un bouton
-   * — deux clics et un panneau pour une opération qui n'a aucun réglage. Le
-   * bouton fait maintenant ce qu'il annonce.
+   * It used to go through a side drawer whose entire body was one button —
+   * two clicks and a panel for an operation that has no settings at all. The
+   * button now does what it says.
    *
-   * Le chemin court — un lien déjà en cache — n'attend rien : le partage part
-   * dans la foulée du clic, avec son activation intacte. Le chemin long ne
-   * sert qu'au tout premier client, et c'est là que la fenêtre de repli
-   * gagne sa place.
+   * The short path — a link already cached — waits for nothing: the share
+   * fires straight off the click, its activation intact. The long path only
+   * serves the very first client, and that is where the fallback window
+   * earns its place.
    */
   const invite = () => {
-    if (enCours) {
-      void faireSortir(lienInvitation(enCours.token), enCours.expiresAt);
+    if (pending) {
+      void sendOut(invitationLink(pending.token), pending.expiresAt);
       return;
     }
     generateInvitation(undefined, {
       onSuccess: ({ link, expiresAt }) => {
-        void faireSortir(link, expiresAt);
+        void sendOut(link, expiresAt);
       },
     });
   };
 
   return (
-    <Container maxW={avecApercu ? '1400px' : COACH_CONTENT_MAX_W} py={8} px={4}>
+    <Container
+      maxW={withPreview ? '1400px' : COACH_CONTENT_MAX_W}
+      py={8}
+      px={4}
+    >
       <VStack align="stretch" gap={6}>
         <HStack justify="space-between" align="center" gap={3}>
           <VStack align="start" gap={0} minW={0}>
@@ -154,25 +158,25 @@ const Clients = () => {
           </Button>
         </HStack>
 
-        {/* Pas de rangée de statut. Elle occupait en permanence deux lignes
-            avant le premier client, pour une information — la date de validité
-            — et une action — « Recopier » — que le bouton « Inviter » rend
-            toutes deux : l'API recycle le lien encore valide, donc cliquer à
-            nouveau recopie le même. */}
+        {/* No status row. It permanently took two lines before the first
+            client, for one piece of information — the expiry date — and one
+            action — "Recopier" — that the "Inviter" button already covers:
+            the API recycles a link that is still valid, so clicking again
+            copies the same one. */}
 
-        {/* Entre 30 et 55 % de la fenêtre restait vide : la liste s'arrêtait à
-            720 px et le reste ne servait à rien. Le coach devait ouvrir
-            l'atelier — donc perdre la liste — pour savoir ce qui l'attendait
-            chez un client, puis revenir pour passer au suivant. */}
-        {avecApercu ? (
+        {/* Between 30 and 55% of the window stayed empty: the list stopped at
+            720 px and the rest served no purpose. The coach had to open the
+            workshop — and so lose the list — to find out what was waiting at
+            one client, then come back to move on to the next. */}
+        {withPreview ? (
           <Grid
             templateColumns="minmax(0, 1fr) 420px"
             gap={8}
             alignItems="start"
           >
-            <ClientsList onPreview={setApercu} selectedId={apercu?._id} />
+            <ClientsList onPreview={setPreview} selectedId={preview?._id} />
             <Box position="sticky" top="24px" minW={0}>
-              <ClientPreview client={apercu} />
+              <ClientPreview client={preview} />
             </Box>
           </Grid>
         ) : (
@@ -180,10 +184,10 @@ const Clients = () => {
         )}
       </VStack>
 
-      <LienInvitation
-        lien={aMontrer?.lien ?? null}
-        expiresAt={aMontrer?.expiresAt}
-        onClose={() => setAMontrer(null)}
+      <InvitationLinkDialog
+        link={toShow?.link ?? null}
+        expiresAt={toShow?.expiresAt}
+        onClose={() => setToShow(null)}
       />
     </Container>
   );

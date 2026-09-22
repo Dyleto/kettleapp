@@ -1,15 +1,15 @@
 /**
- * Le lien d'invitation : une seule définition de son adresse, et un seul
- * chemin pour le faire sortir de l'application.
+ * The invitation link: a single definition of its address, and a single path
+ * for getting it out of the application.
  *
- * Deux endroits le fabriquaient à partir d'un jeton, ce qui n'a tenu que tant
- * qu'un seul des deux servait.
+ * Two places used to build it from a token, which only held up as long as
+ * one of the two was in use.
  */
-export const lienInvitation = (token: string) =>
+export const invitationLink = (token: string) =>
   `${window.location.origin}/join?token=${token}`;
 
-/** « Valable jusqu'au 24 septembre ». Vide si l'échéance est inconnue. */
-export const echeanceLien = (expiresAt?: string) =>
+/** "Valable jusqu'au 24 septembre". Empty when the expiry is unknown. */
+export const linkExpiry = (expiresAt?: string) =>
   expiresAt
     ? `Valable jusqu'au ${new Intl.DateTimeFormat('fr-FR', {
         day: 'numeric',
@@ -17,45 +17,46 @@ export const echeanceLien = (expiresAt?: string) =>
       }).format(new Date(expiresAt))}.`
     : '';
 
-/** Ce qu'a donné une tentative de sortie du lien. */
-export type SortieLien = 'partage' | 'copie' | 'annule' | 'echec';
+/** What an attempt at sending the link out came to. */
+export type LinkDelivery = 'shared' | 'copied' | 'cancelled' | 'failed';
 
 /**
- * Faire sortir le lien de l'application, par le meilleur chemin disponible.
+ * Get the link out of the application, by the best path available.
  *
- * Un coach n'a jamais besoin d'un lien dans son presse-papier : il a besoin
- * de l'envoyer à quelqu'un. Là où le téléphone sait le faire — la feuille de
- * partage d'Android et d'iOS —, c'est elle qui doit s'ouvrir, et le coach
- * finit dans WhatsApp au lieu de chercher où coller.
+ * A coach never needs a link in their clipboard: they need to send it to
+ * someone. Where the phone knows how to do that — the Android and iOS share
+ * sheet — that is what should open, and the coach ends up in WhatsApp
+ * instead of hunting for somewhere to paste.
  *
- * Les deux chemins demandent une « activation transitoire » : le navigateur
- * n'autorise ni le partage ni l'écriture dans le presse-papier si trop de
- * temps s'est écoulé depuis le clic. Un aller-retour réseau suffit à la
- * perdre sur Safari. D'où la règle d'appel : n'appeler ceci qu'avec un lien
- * déjà en main, jamais après un `await` sur le réseau — et traiter `'echec'`
- * comme un cas normal, pas comme une erreur.
+ * Both paths require "transient activation": the browser allows neither
+ * sharing nor writing to the clipboard once too much time has passed since
+ * the click. One network round-trip is enough to lose it on Safari. Hence
+ * the calling rule: only call this with a link already in hand, never after
+ * an `await` on the network — and treat `'failed'` as a normal case, not as
+ * an error.
  *
- * `'annule'` n'est pas un échec : c'est le coach qui a refermé la feuille de
- * partage, et rien ne doit le lui reprocher.
+ * `'cancelled'` is not a failure: it is the coach closing the share sheet
+ * again, and nothing should hold it against them.
  */
-export const sortirLien = async (lien: string): Promise<SortieLien> => {
+export const deliverLink = async (link: string): Promise<LinkDelivery> => {
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
       await navigator.share({
         title: 'Rejoindre mon suivi sur Kettle',
-        url: lien,
+        url: link,
       });
-      return 'partage';
+      return 'shared';
     } catch (e) {
-      if ((e as DOMException)?.name === 'AbortError') return 'annule';
-      // Partage refusé (activation perdue, plateforme qui l'annonce sans le
-      // servir) : on retombe sur le presse-papier plutôt que d'abandonner.
+      if ((e as DOMException)?.name === 'AbortError') return 'cancelled';
+      // Share refused (activation lost, or a platform that advertises it
+      // without serving it): we fall back to the clipboard rather than
+      // giving up.
     }
   }
   try {
-    await navigator.clipboard.writeText(lien);
-    return 'copie';
+    await navigator.clipboard.writeText(link);
+    return 'copied';
   } catch {
-    return 'echec';
+    return 'failed';
   }
 };

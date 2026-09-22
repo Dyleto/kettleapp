@@ -10,43 +10,42 @@ interface Props {
   onRetry: () => void;
 }
 
-/** Combien de temps « Enregistré » reste à l'écran avant de s'effacer. */
-const DUREE_CONFIRMATION = 2500;
+/** How long "Enregistré" stays on screen before fading out. */
+const CONFIRMATION_DURATION = 2500;
 
 /**
- * L'état de l'enregistrement automatique, en une ligne.
+ * The state of the autosave, in one line.
  *
- * Le parti pris : ne rien afficher quand tout va bien depuis un moment. Le
- * coach n'a pas à surveiller une barre pour être tranquille — c'est
- * précisément ce dont l'enregistrement automatique le dispense. La ligne
- * n'apparaît que pendant un envoi, un court instant après pour confirmer, et
- * elle s'installe pour de bon si quelque chose échoue.
+ * The stance: show nothing when all has been well for a while. The coach
+ * should not have to watch a bar to feel safe — that is precisely what
+ * autosave spares them. The line only appears during a save, briefly after
+ * it to confirm, and it settles in for good if something fails.
  */
 export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
-  // On retient le dernier enregistrement *périmé* plutôt qu'un booléen :
-  // l'état ne s'écrit ainsi que depuis le minuteur, jamais pendant le rendu
-  // ni au montage de l'effet.
-  const [efface, setEfface] = useState<Date | null>(null);
+  // We hold on to the last *expired* save rather than a boolean: the state
+  // is then only written from the timer, never during a render nor when the
+  // effect mounts.
+  const [cleared, setCleared] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!savedAt) return;
-    const minuteur = setTimeout(() => setEfface(savedAt), DUREE_CONFIRMATION);
-    return () => clearTimeout(minuteur);
+    const timer = setTimeout(() => setCleared(savedAt), CONFIRMATION_DURATION);
+    return () => clearTimeout(timer);
   }, [savedAt]);
 
-  const confirme = savedAt !== null && efface !== savedAt;
+  const confirmed = savedAt !== null && cleared !== savedAt;
 
-  // « En attente » et « en cours » sont un seul état pour qui regarde : les
-  // distinguer ferait clignoter la ligne à chaque frappe.
-  const enCours = state === 'pending' || state === 'saving';
-  const enEchec = state === 'error';
-  const visible = enCours || enEchec || confirme;
+  // "Pending" and "in flight" are a single state to whoever is looking:
+  // distinguishing them would make the line flicker on every keystroke.
+  const inFlight = state === 'pending' || state === 'saving';
+  const failed = state === 'error';
+  const visible = inFlight || failed || confirmed;
 
-  // Seul l'échec réclame le bas de l'écran. Un enregistrement qui se déroule
-  // bien ne retire rien au coach : ce qu'il vient d'écrire part, et partir
-  // ailleurs ne lui coûte rien. C'est l'échec, lui, qui dure et qui n'a pas
-  // d'ailleurs à proposer.
-  useClaimBottomBar(enEchec);
+  // Only a failure claims the bottom of the screen. A save that goes well
+  // takes nothing from the coach: what they just wrote is on its way, and
+  // navigating elsewhere costs them nothing. A failure is the one that
+  // lasts, and that has no elsewhere to offer.
+  useClaimBottomBar(failed);
 
   if (!visible) return null;
 
@@ -60,14 +59,14 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
       borderTop="1px solid"
       borderColor="whiteAlpha.100"
     >
-      {/* En échec, la ligne a pris la place de la barre d'onglets : elle se
-          pose donc à même le bas de l'écran. Pendant un envoi qui se passe
-          bien, les onglets sont toujours là et il faut passer au-dessus. */}
+      {/* On failure the line has taken the tab bar's place, so it sits
+          flush with the bottom of the screen. During a save that is going
+          well the tabs are still there and it has to sit above them. */}
       <HStack
         gap={2}
         pt={2.5}
         pb={
-          enEchec
+          failed
             ? 'calc(env(safe-area-inset-bottom, 0px) + 10px)'
             : { base: 'calc(env(safe-area-inset-bottom, 0px) + 72px)', md: 2.5 }
         }
@@ -96,7 +95,7 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
               Réessayer
             </Box>
           </>
-        ) : enCours ? (
+        ) : inFlight ? (
           <>
             <Spinner size="xs" color="fg.muted" />
             <Text fontSize="sm" color="fg.muted">

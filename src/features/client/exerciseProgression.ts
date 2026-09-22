@@ -13,20 +13,20 @@ export interface ExerciseProgression {
   name: string;
   metric: ProgressionMetric;
   points: ProgressionPoint[];
-  /** Date du dernier point : sert à mettre les exercices récents en premier. */
+  /** The last point's date: used to put recent exercises first. */
   lastAt: Date;
 }
 
-// Les répétitions et les secondes sont cumulées sur la séance : le mot le dit,
-// pour qu'on ne lise pas un total comme la valeur d'une série.
+// Repetitions and seconds are totalled across the session: the wording says
+// so, so a total is not read as one set's value.
 export const METRIC_UNIT: Record<ProgressionMetric, string> = {
   weight: 'kg',
   reps: 'reps au total',
   duration: 's au total',
 };
 
-// Une valeur isolée n'est pas une progression, et au-delà de cinq points la
-// ligne ne se lit plus : on garde les cinq derniers, les plus parlants.
+// A single value is not a progression, and beyond five points the line
+// stops being readable: we keep the last five, the most telling.
 const MIN_POINTS = 2;
 const MAX_POINTS = 5;
 
@@ -43,10 +43,9 @@ const nameOf = (exercise: Record<string, unknown>): string => {
 type SessionTotals = { weight?: number; reps?: number; duration?: number };
 
 /**
- * Un exercice fait en plusieurs séries donne un point par séance, pas un par
- * série : la charge la plus lourde tenue ce jour-là, et le volume — les reps
- * ou les secondes cumulées. C'est ce qui répond à « je mets combien la
- * prochaine fois ? ».
+ * An exercise done over several sets gives one point per session, not one per
+ * set: the heaviest load held that day, and the volume — the total reps or
+ * seconds. That is what answers "how much do I use next time?".
  */
 export const sessionTotals = (sets: PerformedSet[]): SessionTotals | null => {
   const kept = truncateAtFirstEmpty(sets);
@@ -72,14 +71,14 @@ export const sessionTotals = (sets: PerformedSet[]): SessionTotals | null => {
 };
 
 /**
- * « Goblet Squat : 20 → 24 → 26 kg », par exercice, sur tout l'historique.
+ * "Goblet Squat: 20 → 24 → 26 kg", per exercise, across the whole history.
  *
- * Le client voyait ses séances une par une : pour savoir s'il montait en
- * charge il fallait ouvrir trois bilans et se souvenir. La donnée est déjà
- * là, dans les instantanés — il n'y manquait qu'une lecture verticale.
+ * The client saw their sessions one by one: to know whether they were adding
+ * load you had to open three wrap-ups and remember. The data is already
+ * there, in the snapshots — all that was missing was a vertical reading.
  *
- * Une seule grandeur par exercice, celle du passage le plus récent : mélanger
- * des kilos et des répétitions sur la même flèche ne voudrait rien dire.
+ * One quantity per exercise, the most recent attempt's: mixing kilos and
+ * repetitions on the same arrow would mean nothing.
  */
 export const buildExerciseProgressions = (
   history: CompletedSession[]
@@ -143,12 +142,12 @@ export const buildExerciseProgressions = (
     });
   });
 
-  // Le plus récemment travaillé en premier : c'est celui sur lequel la
-  // question « je mets combien la prochaine fois ? » se pose.
+  // Most recently worked first: that is the one the question "how much do I
+  // use next time?" is being asked about.
   return progressions.sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime());
 };
 
-/** `true` si le dernier point est strictement au-dessus du précédent. */
+/** `true` when the last point is strictly above the previous one. */
 export const isRising = (progression: ExerciseProgression): boolean => {
   const { points } = progression;
   return points[points.length - 1].value > points[points.length - 2].value;

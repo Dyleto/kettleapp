@@ -16,9 +16,9 @@ const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
   warmup: {},
   classic: {},
   chipper: {},
-  // Un EMOM se règle en tours et en intervalle — jamais en durée totale, que
-  // ni son réglage ni son résumé ne lisaient. Un bloc neuf affichait donc
-  // « sans limite » alors qu'on venait de lui poser un défaut.
+  // An EMOM is set in rounds and interval — never in total duration, which
+  // neither its settings nor its summary read. A new block therefore showed
+  // "sans limite" although a default had just been set on it.
   emom: { rounds: 10, intervalMinutes: 1 },
   amrap: { durationMinutes: 8 },
   timecap: { durationMinutes: 15 },
@@ -30,10 +30,10 @@ const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
 };
 
 const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
-  // L'échauffement accepte les séries mais n'en pose pas : le cas courant
-  // reste un passage unique. Poser trois séries par défaut ferait aussi
-  // passer le mode guidé de une à trois pages sur chaque échauffement neuf.
-  // Ce test passe donc avant celui des blocs à séries.
+  // The warm-up accepts sets but sets none: the common case is still a
+  // single pass. Defaulting to three sets would also take guided mode from
+  // one page to three on every new warm-up. So this test comes before the
+  // set-based blocks test.
   if (blockType === 'warmup') return { reps: 10 };
   if (blockSupportsSets(blockType))
     return { sets: 3, reps: 10, restBetweenSets: 60 };
@@ -78,7 +78,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * Repose une séance à son rang — le retour du filet d'annulation.
+   * Puts a session back at its rank — the undo safety net's return path.
    */
   const insertSession = useCallback((index: number, session: Session) => {
     setProgram((prev) => {
@@ -93,10 +93,9 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * « La séance 4, c'est la 2 en plus lourd » est le geste central de la
-   * construction d'un programme. Coût serveur nul : le programme entier est
-   * déjà en mémoire et l'enregistrement groupé s'en charge, exactement comme
-   * pour une séance vide.
+   * "Session 4 is session 2, heavier" is the central gesture of building a
+   * programme. Zero server cost: the whole programme is already in memory and
+   * the batched save handles it, exactly as for an empty session.
    */
   const duplicateSession = useCallback((sessionId: string) => {
     setProgram((prev) => {
@@ -108,8 +107,8 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       const copy: Session = {
         ...source,
         _id: newObjectId(),
-        // Identifiants neufs jusqu'aux blocs : deux séances ne peuvent pas
-        // partager la clé d'un même bloc, le glisser-déposer s'y perdrait.
+        // Fresh identifiers down to the blocks: two sessions cannot share
+        // one block's key, drag and drop would lose its way.
         blocks: source.blocks.map((block) => ({
           ...block,
           _id: newObjectId(),
@@ -142,12 +141,12 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * Le nom libre de la séance.
+   * The session's free name.
    *
-   * Sans rogner les blancs : le champ envoie au fil de la frappe, et couper
-   * l'espace final à chaque caractère rendait impossible d'en taper un.
-   * « Full body A » devenait « FullbodyA ». Le nettoyage appartient à la
-   * frontière — à l'envoi au serveur —, pas à la frappe.
+   * Without trimming whitespace: the field sends as you type, and cutting the
+   * trailing space on every character made it impossible to type one. "Full
+   * body A" became "FullbodyA". Cleaning belongs at the boundary — at the
+   * send to the server — not at the keystroke.
    */
   const updateSessionName = useCallback((sessionId: string, name?: string) => {
     setProgram((prev) => {
@@ -181,7 +180,12 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
           ...prev,
           sessions: prev.sessions.map((s) =>
             s._id === sessionId
-              ? { ...s, suggestedDays: [...new Set(suggestedDays)].sort((a, b) => a - b) }
+              ? {
+                  ...s,
+                  suggestedDays: [...new Set(suggestedDays)].sort(
+                    (a, b) => a - b
+                  ),
+                }
               : s
           ),
         };
@@ -231,11 +235,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * Repose un bloc à sa place — le retour du filet d'annulation.
+   * Puts a block back in its place — the undo safety net's return path.
    *
-   * Un bloc emporte ses exercices en partant : il repart donc entier, tel
-   * qu'il était, et à son rang. Le reposer en dernier ferait passer
-   * l'échauffement après l'AMRAP.
+   * A block takes its exercises with it when it goes: so it comes back whole,
+   * as it was, and at its rank. Putting it back last would move the warm-up
+   * after the AMRAP.
    */
   const insertBlock = useCallback(
     (sessionId: string, index: number, block: SessionBlock) => {
@@ -346,11 +350,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   );
 
   /**
-   * Repose un exercice à sa place — le retour du filet d'annulation.
+   * Puts an exercise back in its place — the undo safety net's return path.
    *
-   * À sa place, pas à la fin : un exercice retiré par erreur au milieu d'un
-   * bloc n'a pas changé d'avis sur son rang, et le voir réapparaître en
-   * dernier obligerait à le redéplacer.
+   * In its place, not at the end: an exercise removed by mistake from the
+   * middle of a block has not changed its mind about its rank, and seeing it
+   * reappear last would force another move.
    */
   const insertExercise = useCallback(
     (

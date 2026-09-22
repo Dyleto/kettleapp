@@ -18,38 +18,38 @@ import { useEffect, useSyncExternalStore } from 'react';
  * Making them talk through a provider would mean crossing the whole tree for
  * one boolean.
  */
-let reclamee = false;
-const abonnes = new Set<() => void>();
+let claimed = false;
+const subscribers = new Set<() => void>();
 
-const publier = (valeur: boolean) => {
-  if (valeur === reclamee) return;
-  reclamee = valeur;
-  abonnes.forEach((notifier) => notifier());
+const publish = (value: boolean) => {
+  if (value === claimed) return;
+  claimed = value;
+  subscribers.forEach((notify) => notify());
 };
 
-const abonner = (notifier: () => void) => {
-  abonnes.add(notifier);
+const subscribe = (notify: () => void) => {
+  subscribers.add(notify);
   return () => {
-    abonnes.delete(notifier);
+    subscribers.delete(notify);
   };
 };
 
-/** Pour la mise en page : quelqu'un occupe-t-il le bas de l'écran ? */
+/** For layout: is anyone occupying the bottom of the screen? */
 export const useBottomBarClaimed = () =>
   useSyncExternalStore(
-    abonner,
-    () => reclamee,
+    subscribe,
+    () => claimed,
     () => false
   );
 
 /**
- * Pour l'occupant : réclame la place tant que `actif`, et la rend en partant.
- * Le démontage libère aussi — sinon quitter l'atelier en échec laisserait le
- * coach sans navigation.
+ * For the occupant: claims the slot while `active`, and gives it back on the
+ * way out. Unmounting releases it too — otherwise leaving the workshop while
+ * a save has failed would leave the coach with no navigation.
  */
-export const useClaimBottomBar = (actif: boolean) => {
+export const useClaimBottomBar = (active: boolean) => {
   useEffect(() => {
-    publier(actif);
-    return () => publier(false);
-  }, [actif]);
+    publish(active);
+    return () => publish(false);
+  }, [active]);
 };

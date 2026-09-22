@@ -10,10 +10,10 @@ import {
 import { useRef, useState } from 'react';
 import { LuCheck, LuCopy } from 'react-icons/lu';
 import { useBackDismiss } from '@/hooks/useBackDismiss';
-import { echeanceLien } from '../invitation';
+import { linkExpiry } from '../invitation';
 
 interface Props {
-  lien: string | null;
+  link: string | null;
   expiresAt?: string;
   onClose: () => void;
 }
@@ -31,39 +31,39 @@ interface Props {
  * selected in one gesture: on a phone, "select all" is safer than aiming at
  * the start of a sixty-character address.
  */
-export const LienInvitation = ({ lien, expiresAt, onClose }: Props) => {
-  const champ = useRef<HTMLParagraphElement>(null);
-  const [copie, setCopie] = useState(false);
-  const ouvert = lien !== null;
+export const InvitationLinkDialog = ({ link, expiresAt, onClose }: Props) => {
+  const field = useRef<HTMLParagraphElement>(null);
+  const [copied, setCopied] = useState(false);
+  const isOpen = link !== null;
 
-  useBackDismiss(ouvert, onClose);
+  useBackDismiss(isOpen, onClose);
 
-  const selectionner = () => {
-    const n = champ.current;
+  const selectAll = () => {
+    const n = field.current;
     if (!n) return;
-    const plage = document.createRange();
-    plage.selectNodeContents(n);
+    const range = document.createRange();
+    range.selectNodeContents(n);
     const sel = window.getSelection();
     sel?.removeAllRanges();
-    sel?.addRange(plage);
+    sel?.addRange(range);
   };
 
   // Here the click is brand new: this is the attempt most likely to succeed,
   // and it costs nothing if it fails again.
-  const recopier = async () => {
-    if (!lien) return;
+  const copyAgain = async () => {
+    if (!link) return;
     try {
-      await navigator.clipboard.writeText(lien);
-      setCopie(true);
-      setTimeout(() => setCopie(false), 2500);
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
-      selectionner();
+      selectAll();
     }
   };
 
   return (
     <Dialog.Root
-      open={ouvert}
+      open={isOpen}
       onOpenChange={(e) => !e.open && onClose()}
       placement="center"
     >
@@ -78,7 +78,7 @@ export const LienInvitation = ({ lien, expiresAt, onClose }: Props) => {
           >
             <Dialog.Header>
               <VStack align="start" gap={1}>
-                <Dialog.Title>Le lien d&rsquo;invitation</Dialog.Title>
+                <Dialog.Title>Le link d&rsquo;invitation</Dialog.Title>
                 <Text fontSize="sm" color="fg.muted" fontWeight="normal">
                   Votre navigateur n&rsquo;a pas voulu le copier. Le voici —
                   envoyez-le à votre client, il rejoindra votre suivi.
@@ -90,7 +90,7 @@ export const LienInvitation = ({ lien, expiresAt, onClose }: Props) => {
               <VStack align="stretch" gap={3}>
                 <Box
                   as="button"
-                  onClick={selectionner}
+                  onClick={selectAll}
                   textAlign="left"
                   bg="whiteAlpha.100"
                   borderRadius="md"
@@ -99,31 +99,31 @@ export const LienInvitation = ({ lien, expiresAt, onClose }: Props) => {
                   minH="44px"
                 >
                   <Text
-                    ref={champ}
+                    ref={field}
                     fontSize="xs"
                     fontFamily="mono"
                     wordBreak="break-all"
                     userSelect="all"
                   >
-                    {lien}
+                    {link}
                   </Text>
                 </Box>
                 {expiresAt && (
                   <Text fontSize="xs" color="fg.muted">
-                    {echeanceLien(expiresAt)}
+                    {linkExpiry(expiresAt)}
                   </Text>
                 )}
                 <HStack gap={2}>
                   <Button
                     flex={1}
                     minH="44px"
-                    bg={copie ? 'app.success' : 'app.primary'}
+                    bg={copied ? 'app.success' : 'app.primary'}
                     color="bg.canvas"
                     fontWeight="bold"
-                    onClick={recopier}
+                    onClick={copyAgain}
                   >
-                    {copie ? <LuCheck /> : <LuCopy />}
-                    {copie ? 'Copié' : 'Copier'}
+                    {copied ? <LuCheck /> : <LuCopy />}
+                    {copied ? 'Copié' : 'Copier'}
                   </Button>
                   <Button
                     variant="ghost"

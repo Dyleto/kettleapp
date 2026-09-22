@@ -2,7 +2,7 @@ import { toaster } from '@/components/ui/toasterInstance';
 import api from '@/config/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/config/queryKeys';
-import { lienInvitation } from '../invitation';
+import { invitationLink } from '../invitation';
 
 interface InvitationResponse {
   token: string;
@@ -22,7 +22,7 @@ export const useGenerateInvitation = () => {
       );
       return {
         token: response.data.token,
-        link: lienInvitation(response.data.token),
+        link: invitationLink(response.data.token),
         expiresAt: response.data.expiresAt,
       };
     },

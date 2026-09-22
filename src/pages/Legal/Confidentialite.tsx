@@ -30,23 +30,23 @@ const Confidentialite = () => (
         des programmes, ses clients les réalisent et notent ce qu'ils ont fait.
         Cela suppose de traiter des données personnelles, dont certaines
         relèvent de la santé. Ce document dit lesquelles, pourquoi, qui les
-        voit, combien de temps elles sont gardées et ce que vous pouvez
-        exiger. Il est écrit pour être lu.
+        voit, combien de temps elles sont gardées et ce que vous pouvez exiger.
+        Il est écrit pour être lu.
       </>
     }
   >
     <Article n={1} title="Qui est responsable">
       <P>
         Le responsable du traitement est{' '}
-        <AComplete valeur={LEGAL.editeur.nom} />, éditeur de Kettle, joignable
-        à <Mail />. C'est lui qui décide de ce qui est collecté et de l'usage
-        qui en est fait.
+        <AComplete valeur={LEGAL.editeur.nom} />, éditeur de Kettle, joignable à{' '}
+        <Mail />. C'est lui qui décide de ce qui est collecté et de l'usage qui
+        en est fait.
       </P>
       <P>
-        Les coachs qui utilisent Kettle n'ont pas ce pouvoir. Ils consultent
-        les données de leurs clients pour les entraîner, mais ils n'en
-        déterminent ni la nature, ni les finalités, ni les moyens : ils ne sont
-        donc pas responsables de traitement au sens du RGPD.
+        Les coachs qui utilisent Kettle n'ont pas ce pouvoir. Ils consultent les
+        données de leurs clients pour les entraîner, mais ils n'en déterminent
+        ni la nature, ni les finalités, ni les moyens : ils ne sont donc pas
+        responsables de traitement au sens du RGPD.
       </P>
     </Article>
 
@@ -98,16 +98,19 @@ const Confidentialite = () => (
       <P>
         Nous conservons la trace de votre réponse elle-même : accordée ou
         refusée, la date, et la version du texte auquel vous avez répondu. Sans
-        cela, nous ne pourrions pas prouver sur quoi porte votre accord, ni
-        vous reposer la question si ce texte change.
+        cela, nous ne pourrions pas prouver sur quoi porte votre accord, ni vous
+        reposer la question si ce texte change.
       </P>
 
       <SousTitre>Techniques</SousTitre>
       <Liste
         items={[
           <>
-            Un cookie de session nommé <Text as="span" fontFamily="mono">connect.sid</Text>,
-            qui vous maintient connecté d'une page à l'autre
+            Un cookie de session nommé{' '}
+            <Text as="span" fontFamily="mono">
+              connect.sid
+            </Text>
+            , qui vous maintient connecté d'une page à l'autre
           </>,
           'Les journaux du serveur : date, méthode et adresse de la requête, code de réponse, temps de traitement, identifiant du compte et adresse IP',
         ]}
@@ -185,28 +188,31 @@ const Confidentialite = () => (
       <P>
         Les vidéos d'exercices sont hébergées par YouTube. Le lecteur ne se
         charge qu'au moment où vous demandez la lecture, et il utilise le
-        domaine <Text as="span" fontFamily="mono">youtube-nocookie.com</Text> :
-        tant que vous ne cliquez pas, aucun cookie YouTube n'est déposé sur
+        domaine{' '}
+        <Text as="span" fontFamily="mono">
+          youtube-nocookie.com
+        </Text>{' '}
+        : tant que vous ne cliquez pas, aucun cookie YouTube n'est déposé sur
         votre appareil.
       </P>
       <P>
         Une réserve, dite honnêtement : l'image fixe qui annonce la vidéo est
         servie par un domaine de Google, ce qui lui révèle votre adresse IP dès
-        l'affichage de la fiche. Cette image ne dépose aucun cookie et ne
-        permet pas de vous suivre d'un site à l'autre.
+        l'affichage de la fiche. Cette image ne dépose aucun cookie et ne permet
+        pas de vous suivre d'un site à l'autre.
       </P>
       <P>
         Vos données restent dans l'Union européenne. Le cluster de base de
-        données tourne sur l'infrastructure d'Amazon Web Services à Paris, et
-        le serveur qui les lit et les écrit est hébergé à Francfort. Rien
-        n'est répliqué hors de l'Union.
+        données tourne sur l'infrastructure d'Amazon Web Services à Paris, et le
+        serveur qui les lit et les écrit est hébergé à Francfort. Rien n'est
+        répliqué hors de l'Union.
       </P>
       <P>
         Vercel, Render et MongoDB sont en revanche des sociétés de droit
-        américain, susceptibles d'accéder aux données depuis les États-Unis
-        pour exploiter et maintenir leurs services. Ces accès sont encadrés par
-        les clauses contractuelles types de la Commission européenne et, pour
-        les prestataires qui y ont adhéré, par le Data Privacy Framework.
+        américain, susceptibles d'accéder aux données depuis les États-Unis pour
+        exploiter et maintenir leurs services. Ces accès sont encadrés par les
+        clauses contractuelles types de la Commission européenne et, pour les
+        prestataires qui y ont adhéré, par le Data Privacy Framework.
       </P>
     </Article>
 
@@ -236,10 +242,16 @@ const Confidentialite = () => (
       <Liste
         items={[
           <>
-            <Text as="span" fontFamily="mono">connect.sid</Text> — le cookie de
-            session, qui vous maintient connecté pendant 7 jours. Il est
-            <Text as="span" fontFamily="mono"> httpOnly</Text>, donc illisible
-            par un script.
+            <Text as="span" fontFamily="mono">
+              connect.sid
+            </Text>{' '}
+            — le cookie de session, qui vous maintient connecté pendant 7 jours.
+            Il est
+            <Text as="span" fontFamily="mono">
+              {' '}
+              httpOnly
+            </Text>
+            , donc illisible par un script.
           </>,
           'Un jeton anti-rejeu et, le cas échéant, votre lien d’invitation, le temps de la connexion Google.',
           'Votre progression dans une séance guidée, le temps de cette séance, pour que fermer l’onglet ne la fasse pas perdre.',
@@ -262,13 +274,13 @@ const Confidentialite = () => (
       <Liste
         items={[
           <>
-            <b>Retirer votre consentement</b> aux données de santé, depuis
-            « Mon compte ». Le retrait est aussi simple que l'accord, et efface
-            ce qui avait été collecté.
+            <b>Retirer votre consentement</b> aux données de santé, depuis « Mon
+            compte ». Le retrait est aussi simple que l'accord, et efface ce qui
+            avait été collecté.
           </>,
           <>
-            <b>Supprimer votre compte</b>, depuis « Mon compte » également.
-            Tout part : compte, programme, séances, rattachements.
+            <b>Supprimer votre compte</b>, depuis « Mon compte » également. Tout
+            part : compte, programme, séances, rattachements.
           </>,
         ]}
       />
@@ -314,18 +326,18 @@ const Confidentialite = () => (
 
     <Article n={11} title="Modifications">
       <P>
-        Ce document peut évoluer. La date de dernière mise à jour figure en
-        haut de la page. Si une modification touche aux données de santé, la
-        question du consentement vous est reposée : un accord donné à un texte
-        ne vaut pas pour un autre.
+        Ce document peut évoluer. La date de dernière mise à jour figure en haut
+        de la page. Si une modification touche aux données de santé, la question
+        du consentement vous est reposée : un accord donné à un texte ne vaut
+        pas pour un autre.
       </P>
     </Article>
 
     <Article n={12} title="Réclamation">
       <P>
         Si une réponse ne vous satisfait pas, vous pouvez saisir la Commission
-        nationale de l'informatique et des libertés — CNIL, 3 place de
-        Fontenoy, TSA 80715, 75334 Paris Cedex 07, ou{' '}
+        nationale de l'informatique et des libertés — CNIL, 3 place de Fontenoy,
+        TSA 80715, 75334 Paris Cedex 07, ou{' '}
         <Link
           href="https://www.cnil.fr/fr/plaintes"
           target="_blank"

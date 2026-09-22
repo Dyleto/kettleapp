@@ -13,20 +13,19 @@ interface PerformedFieldsProps {
   value: PerformedValues;
   onChange: (next: PerformedValues) => void;
   /**
-   * Ce que chaque passage demande, une entrée par passage — « 21 reps »,
-   * « 15 reps »… Une entrée vide se numérote. La longueur fait le nombre de
-   * lignes de saisie.
+   * What each pass asks for, one entry per pass — "21 reps", "15 reps"… An
+   * empty entry gets numbered. The length sets how many input rows there are.
    */
   setLabels?: string[];
-  /** « la dernière fois : 26 kg · 3 × 12 reps », ou `null`. */
+  /** "la dernière fois : 26 kg · 3 × 12 reps", or `null`. */
   lastLabel?: string | null;
-  /** L'exercice se mesure en temps : demander des répétitions n'a pas de
-   *  sens, on ne montre alors que la charge. */
+  /** The exercise is measured in time: asking for repetitions makes no
+   *  sense, so we only show the load. */
   isTimed?: boolean;
 }
 
-// Une chaîne vide efface la clé plutôt que d'écrire 0 : « non renseigné » ne
-// doit jamais ressembler à « zéro », ni ici ni dans ce qu'on envoie à l'API.
+// An empty string clears the key rather than writing 0: "not filled in" must
+// never look like "zero", neither here nor in what we send to the API.
 const parse = (raw: string): number | undefined => {
   const trimmed = raw.trim().replace(',', '.');
   if (trimmed === '') return undefined;
@@ -96,16 +95,16 @@ const SetInputs = ({
 );
 
 /**
- * Noter ce qu'on a fait — un couple poids/reps, ou le détail série par série.
+ * Recording what you did — a weight/reps pair, or the detail set by set.
  *
- * Le cas courant est une charge tenue du début à la fin : on la saisit une
- * fois. Mais une série ratée, une charge qu'on baisse au troisième passage,
- * c'est précisément ce qu'un coach a besoin de lire, et un couple unique ne
- * pouvait pas le dire. Le détail est donc là, replié, à un geste.
+ * The common case is a load held from start to finish: you enter it once. But
+ * a failed set, a load dropped on the third pass, is precisely what a coach
+ * needs to read, and a single pair could not say it. So the detail is there,
+ * folded away, one gesture off.
  *
- * Une série laissée vide veut dire que l'exercice s'est arrêté là. Les lignes
- * restent affichées pour qu'on puisse revenir dessus ; ce qui part à l'API
- * s'arrête au premier vide.
+ * A set left empty means the exercise stopped there. The rows stay on screen
+ * so they can be revisited; what goes to the API stops at the first empty
+ * one.
  */
 export const PerformedFields = ({
   value,
@@ -116,15 +115,15 @@ export const PerformedFields = ({
 }: PerformedFieldsProps) => {
   const rowCount = Math.max(1, setLabels.length);
 
-  // Les lignes vivent ici, à leur longueur pleine : sinon une série qu'on
-  // vide au milieu de la saisie ferait disparaître les suivantes sous les
-  // doigts. La troncature n'a lieu qu'à la sortie.
+  // The rows live here at their full length: otherwise a set cleared
+  // mid-entry would make the following ones vanish under your fingers.
+  // Truncation only happens on the way out.
   const [rows, setRows] = useState<PerformedSet[]>(() =>
     Array.from({ length: rowCount }, (_, i) => value.sets?.[i] ?? {})
   );
-  // Ouvert d'emblée seulement s'il y a déjà des séries qui diffèrent : c'est
-  // une correction qu'on vient faire, la replier cacherait ce qu'on corrige.
-  // Une saisie neuve, elle, commence simple.
+  // Open from the start only when sets already differ: that is a correction
+  // being made, and folding it away would hide what is being corrected. A
+  // fresh entry starts simple.
   const [isDetailed, setIsDetailed] = useState(() => {
     const kept = truncateAtFirstEmpty(value.sets ?? []);
     return rowCount > 1 && kept.length > 0 && uniformSet(kept) === null;
@@ -135,9 +134,9 @@ export const PerformedFields = ({
     onChange({ sets: truncateAtFirstEmpty(next) });
   };
 
-  // Replié, on décrit toutes les séries d'un coup : « j'ai tenu 26 kg × 12 du
-  // début à la fin ». Vider le champ efface l'exercice entier, ce qui est
-  // bien ce qu'on veut dire en effaçant la seule valeur affichée.
+  // Folded, you describe every set at once: "I held 26 kg × 12 from start to
+  // finish". Clearing the field erases the whole exercise, which is indeed
+  // what clearing the only displayed value means.
   const collapsedSet = uniformSet(rows) ?? rows[0] ?? {};
   const setAll = (next: PerformedSet) =>
     emit(
@@ -187,9 +186,9 @@ export const PerformedFields = ({
         <VStack align="stretch" gap={1.5} mt={2}>
           {rows.map((row, index) => (
             <HStack key={index} gap={2} align="center">
-              {/* Le palier plutôt que le rang quand il existe : sur une
-                  pyramide, « 1 2 3 » ne dit pas laquelle des trois on
-                  renseigne, « 21 15 9 » si. */}
+              {/* The rung rather than the rank when there is one: on a
+                  pyramid, "1 2 3" does not say which of the three you are
+                  filling in, "21 15 9" does. */}
               <Text
                 fontSize="xs"
                 fontFamily="mono"

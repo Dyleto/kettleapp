@@ -19,24 +19,23 @@ interface RecordPerformedProps {
   performed: Record<string, PerformedValues>;
   onPerformedChange: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
-  /** Fermé sans aller plus loin : on revient à la séance. */
+  /** Closed without going further: back to the session. */
   onCancel: () => void;
-  /** On passe au ressenti, que les charges aient été notées ou non. */
+  /** On to how it felt, whether or not the loads were recorded. */
   onContinue: () => void;
 }
 
 /**
- * Noter ses charges, une fois la séance finie — et seulement si on le veut.
+ * Recording your loads once the session is over — and only if you want to.
  *
- * Les champs « poids / reps » vivaient auparavant sous chaque exercice de
- * l'écran de séance, visibles avant même d'avoir commencé : on lisait un
- * programme couvert de cases vides, et on ne savait pas trop ce qu'elles
- * attendaient. Ils arrivent maintenant à la fin, derrière une question à
- * laquelle on peut répondre non.
+ * The "weight / reps" fields used to live under every exercise on the
+ * session screen, visible before you had even started: you read a program
+ * covered in empty boxes, without quite knowing what they were waiting for.
+ * They now come at the end, behind a question you can answer no to.
  *
- * Deux surfaces, à la mesure de ce qu'on y fait : une petite boîte pour la
- * question, le plein écran pour la saisie. Ouvrir un panneau plein écran
- * pour deux boutons, c'est déjà trop de cérémonie.
+ * Two surfaces, sized to what you do on them: a small box for the question,
+ * the full screen for the entry. Opening a full-screen panel for two buttons
+ * is already too much ceremony.
  */
 export const RecordPerformed = ({
   session,
@@ -51,8 +50,8 @@ export const RecordPerformed = ({
 
   return (
     <>
-      {/* Centrée : sur mobile la boîte se collait en haut de l'écran, loin du
-          pouce et loin du geste qu'on vient de finir. */}
+      {/* Centred: on mobile the box used to stick to the top of the screen,
+          far from the thumb and far from the gesture just finished. */}
       <Dialog.Root
         open={isOpen && !isRecording}
         onOpenChange={(e) => !e.open && onCancel()}
@@ -78,10 +77,10 @@ export const RecordPerformed = ({
                 </VStack>
               </Dialog.Header>
 
-              {/* Deux réponses ordinaires, de même forme et de même taille.
-                  Un bouton fantôme à côté d'un bouton plein ne se compare
-                  pas : il se lit comme une sortie de secours, alors que « non
-                  merci » mène exactement au même endroit. */}
+              {/* Two ordinary answers, of the same shape and the same size.
+                  A ghost button next to a solid one does not compare: it
+                  reads as an emergency exit, whereas "non merci" leads to
+                  exactly the same place. */}
               <Dialog.Footer gap={2} flexWrap="wrap">
                 <Button
                   flex="1 1 140px"

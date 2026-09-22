@@ -17,11 +17,11 @@ interface Option {
 interface InlineExercisePickerProps {
   onSelect: (exercise: Exercise) => void;
   onClose: () => void;
-  /** Exercices déjà posés ailleurs dans ce programme — gratuit, il est en
-   *  mémoire, et c'est de très loin le groupe le plus utile. */
+  /** Exercises already placed elsewhere in this program — free, it is in
+   *  memory, and it is by far the most useful group. */
   inProgram: Exercise[];
-  /** Ouvre la fiche de l'exercice par-dessus l'atelier. On ne navigue pas :
-   *  quitter la page perdrait les modifications non enregistrées. */
+  /** Opens the exercise sheet over the workshop. We do not navigate: leaving
+   *  the page would lose the unsaved changes. */
   onOpenSheet?: (exercise: Exercise) => void;
 }
 
@@ -48,8 +48,8 @@ export const InlineExercisePicker = ({
     const q = normalize(query);
 
     if (q.length > 0) {
-      // Les correspondances par début de nom d'abord, puis le compteur
-      // d'usage départage. Le compteur ordonne, il ne s'affiche jamais.
+      // Matches on the start of the name first, then the usage counter
+      // breaks the tie. The counter orders, it is never displayed.
       const matches = exercises.filter((e) => normalize(e.name).includes(q));
       matches.sort((a, b) => {
         const aStarts = normalize(a.name).startsWith(q);
@@ -84,8 +84,8 @@ export const InlineExercisePicker = ({
     ];
   }, [exercises, inProgram, query]);
 
-  // La liste change à chaque frappe : l'index actif doit rester dans ses
-  // bornes sans passer par un effet.
+  // The list changes on every keystroke: the active index has to stay in
+  // bounds without going through an effect.
   const [prevLength, setPrevLength] = useState(options.length);
   if (options.length !== prevLength) {
     setPrevLength(options.length);
@@ -229,9 +229,9 @@ export const InlineExercisePicker = ({
                   >
                     {option.exercise.name}
                   </Box>
-                  {/* La fiche s'ouvre par-dessus l'atelier : on peut corriger
-                      une consigne ou coller une vidéo sans perdre le
-                      programme en cours d'édition. */}
+                  {/* The sheet opens over the workshop: you can fix an
+                      instruction or paste a video without losing the
+                      program being edited. */}
                   {onOpenSheet && (
                     <Box
                       as="button"

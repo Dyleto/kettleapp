@@ -13,17 +13,17 @@ interface CompleteSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   /**
-   * Le constat qui précède la question.
+   * The statement of fact that precedes the question.
    *
-   * Absent quand la séance n'a pas été menée en mode guidé — il n'y a alors
-   * rien à constater, et un récap vide vaudrait moins que pas de récap.
+   * Absent when the session was not run in guided mode — there is then
+   * nothing to state, and an empty recap would be worth less than no recap.
    */
   recap?: React.ReactNode;
   /**
-   * Vrai quand le client a noté ses charges pendant la séance.
+   * True when the client recorded their loads during the session.
    *
-   * On ne lui a alors pas reposé la question à la fin — et un écran qui
-   * saute sans rien dire laisse croire qu'on a perdu la saisie.
+   * We then did not put the question again at the end — and a screen that is
+   * skipped without a word suggests the entry has been lost.
    */
   chargesDejaNotees?: boolean;
   onSubmit: (
@@ -44,9 +44,9 @@ export const CompleteSessionModal = ({
   onSubmit,
   isLoading,
 }: CompleteSessionModalProps) => {
-  // Qui a refusé le partage de ses données de santé ne se voit pas proposer
-  // les étiquettes ni le commentaire : on ne demande pas ce qu'on n'a pas le
-  // droit d'enregistrer. L'effort reste — c'est une mesure d'entraînement.
+  // Anyone who refused to share their health data is not offered the tags or
+  // the comment: we do not ask for what we have no right to record. The
+  // effort rating stays — it is a training measure.
   const { user } = useAuth();
   const partageSante = user?.healthConsent?.granted === true;
 
@@ -80,9 +80,9 @@ export const CompleteSessionModal = ({
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && handleClose()}>
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        {/* Le constat, l'échelle, les étiquettes et le commentaire dans une
-            même boîte : sur un petit écran elle dépasse, et c'est « Valider »
-            qu'on perd en bas. Le corps défile, l'en-tête et le pied tiennent. */}
+        {/* The statement, the scale, the tags and the comment in one box:
+            on a small screen it overflows, and it is "Valider" you lose at
+            the bottom. The body scrolls, the header and footer hold. */}
         <Dialog.Content
           bg="bg.canvas"
           borderColor="whiteAlpha.100"
@@ -91,11 +91,11 @@ export const CompleteSessionModal = ({
           display="flex"
           flexDirection="column"
         >
-          {/* Le constat passe devant la question — mais dans le corps, pas
-              dans l'en-tête. Un en-tête est du chrome : il ne rétrécit pas.
-              Le récap y tenait toute la place, et sur un téléphone couché le
-              corps tombait à 32 px pendant que « Valider » finissait 162 px
-              sous l'écran. Ce qui est long appartient à ce qui défile. */}
+          {/* The statement comes before the question — but in the body, not
+              in the header. A header is chrome: it does not shrink. The recap
+              took all its room, and on a phone lying flat the body fell to
+              32 px while "Valider" ended 162 px below the screen. What is
+              long belongs to what scrolls. */}
           {!recap && (
             <Dialog.Header>
               <VStack align="start" gap={1}>
@@ -162,9 +162,9 @@ export const CompleteSessionModal = ({
 
               <Separator borderColor="whiteAlpha.100" />
 
-              {/* Repliée : neuf fois sur dix la séance a eu lieu aujourd'hui,
-                  et le champ s'intercalait entre le commentaire et le bouton
-                  de validation pour un cas rare. */}
+              {/* Folded away: nine times out of ten the session happened
+                  today, and the field sat between the comment and the confirm
+                  button for a rare case. */}
               <VStack align="center" gap={2}>
                 {isDateOpen ? (
                   <>
@@ -198,8 +198,8 @@ export const CompleteSessionModal = ({
           </Dialog.Body>
 
           <Dialog.Footer gap={3} flexWrap="wrap" flexShrink={0}>
-            {/* Un bouton grisé sans explication a l'air cassé. On dit ce qui
-                manque, à côté de ce qui ne part pas. */}
+            {/* A greyed-out button with no explanation looks broken. We say
+                what is missing, next to what will not go. */}
             {effort === undefined && (
               <Text fontSize="xs" color="fg.muted" mr="auto">
                 Choisis un cran pour valider.
@@ -208,9 +208,9 @@ export const CompleteSessionModal = ({
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
               Annuler
             </Button>
-            {/* Seul champ obligatoire du formulaire, et il le reste vraiment :
-                pré-cocher « 3 » enregistrerait une valeur que le client n'a
-                jamais choisie, et elle nourrirait la tendance lue par le coach. */}
+            {/* The form's only required field, and genuinely so:
+                preselecting "3" would record a value the client never chose,
+                and it would feed the trend the coach reads. */}
             <Button
               bg="app.primary"
               color="bg.canvas"

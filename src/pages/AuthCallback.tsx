@@ -18,16 +18,17 @@ import { LEGAL } from '@/config/legal';
 import storage from '@/utils/storage';
 import { toaster } from '@/components/ui/toasterInstance';
 
-/** Temps mini avant redirection, pour ne pas faire clignoter l'écran. */
+/** Minimum wait before redirecting, so the screen does not flash. */
 const MINIMUM_DISPLAY_TIME_MS = 800;
 
 /**
- * Pourquoi la connexion n'a pas abouti.
+ * Why signing in did not go through.
  *
- * La distinction n'est pas cosmétique : elle décide de ce que la personne
- * peut faire. Un réseau muet se retente, un refus de Google ne se retente pas
- * à l'identique, une panne de notre côté ne dépend pas d'elle du tout. Les
- * trois disaient « Impossible de vous connecter. Veuillez réessayer. »
+ * The distinction is not cosmetic: it decides what the person can do. A
+ * silent network is worth retrying, a refusal from Google is not worth
+ * retrying identically, an outage on our side does not depend on them at
+ * all. All three used to say "Impossible de vous connecter. Veuillez
+ * réessayer."
  */
 type Cause = 'reseau' | 'refus' | 'serveur' | 'lien';
 
@@ -55,9 +56,9 @@ const MESSAGES: Record<Cause, { titre: string; texte: string }> = {
 };
 
 /**
- * Le serveur renvoie 401 quand Google a refusé le code, et 5xx quand c'est
- * lui qui a échoué. Une absence de réponse ne porte aucun statut : c'est le
- * réseau. On ne montre un échec que sur une réponse, jamais sur une attente.
+ * The server returns 401 when Google refused the code, and 5xx when the
+ * server itself failed. No response carries no status at all: that is the
+ * network. We only report a failure on a response, never on a wait.
  */
 const causeDe = (err: unknown): Cause => {
   const axiosErr = err as AxiosError;
@@ -74,13 +75,13 @@ const AuthCallback = () => {
   const [echec, setEchec] = useState<Cause | null>(null);
 
   const recommencer = useCallback(() => {
-    // Le jeton d'invitation n'est effacé qu'en cas de succès : recommencer
-    // garde donc le rattachement au coach.
+    // The invitation token is only cleared on success, so starting over
+    // keeps the link to the coach.
     navigate('/login', { replace: true });
   }, [navigate]);
 
   useEffect(() => {
-    // Garde contre le double appel du mode strict en développement.
+    // Guards against strict mode's double call in development.
     let monte = true;
 
     const traiter = async () => {
@@ -107,7 +108,10 @@ const AuthCallback = () => {
         setUser(data.user);
         toaster.create({ title: 'Connexion réussie !', type: 'success' });
 
-        const reste = Math.max(0, MINIMUM_DISPLAY_TIME_MS - (Date.now() - debut));
+        const reste = Math.max(
+          0,
+          MINIMUM_DISPLAY_TIME_MS - (Date.now() - debut)
+        );
         setTimeout(() => {
           navigate(getDefaultRoleRoute(data.user), { replace: true });
         }, reste);

@@ -63,7 +63,7 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
           <Text fontWeight="bold" fontSize="sm">
             {sessionTitle(completed.sessionOrder, completed.sessionName)}
           </Text>
-          {/* Doré : le rouge de cette ligne appartient au ressenti. */}
+          {/* Gold: the red on this row belongs to how it felt. */}
           {isUnseen && (
             <Box w="6px" h="6px" borderRadius="full" bg="app.primary" />
           )}
@@ -110,8 +110,8 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
   );
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
-  // À partir de 2xl (1536 px), la colonne de gauche a la place de deux mois.
-  // Une régularité se lit sur huit semaines, pas sur quatre.
+  // From 2xl (1536 px) up, the left column has room for two months. A
+  // pattern of regularity reads over eight weeks, not four.
   const months = useBreakpointValue<1 | 2>({ base: 1, '2xl': 2 }) ?? 1;
 
   const [initialUnseenIds] = useState<Set<string>>(
@@ -132,8 +132,8 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
     );
   }
 
-  // Le calendrier filtre, il ne remplace pas : sans jour choisi, on lit tout
-  // l'historique comme avant.
+  // The calendar filters, it does not replace: with no day selected, the
+  // whole history reads as before.
   const visible = selectedDay
     ? history.filter((c) => dayKey(new Date(c.completedAt)) === selectedDay)
     : history;
@@ -143,8 +143,8 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
       <Grid
         templateColumns={{
           base: '1fr',
-          // Une colonne plus étroite sur tablette : le mois y tient, et la
-          // liste garde de quoi se lire.
+          // A narrower column on tablet: the month fits, and the list keeps
+          // enough width to be read.
           md: '264px 1fr',
           lg: '300px 1fr',
           '2xl': '620px 1fr',
@@ -157,9 +157,9 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
           position={{ base: 'static', md: 'sticky' }}
           top={{ md: '80px' }}
         >
-          {/* Le même composant que l'historique du client : deux calendriers
-              dans la même application doivent se comporter pareil, et c'est
-              la version repliée qui est la bonne sur téléphone. */}
+          {/* The same component as the client's history: two calendars in
+              the same application have to behave alike, and the collapsed
+              version is the right one on a phone. */}
           <SessionCalendarFilter
             history={history}
             selectedDay={selectedDay}

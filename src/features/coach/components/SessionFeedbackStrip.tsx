@@ -6,10 +6,10 @@ import { formatPerformed } from '@/features/client/performedFormat';
 import { EffortTrend } from './EffortTrend';
 
 interface SessionFeedbackStripProps {
-  // Déjà filtré par la page appelante sur originalSessionId === session._id
+  // Already filtered by the calling page on originalSessionId === session._id.
   history: CompletedSession[];
-  // 'strip' : bandeau au-dessus de la séance (écrans étroits)
-  // 'panel' : colonne de contexte à droite (à partir de 2xl)
+  // 'strip': a banner above the session (narrow screens)
+  // 'panel': a context column on the right (from 2xl up)
   variant?: 'strip' | 'panel';
 }
 
@@ -18,17 +18,16 @@ interface PerformedLine {
   value: string;
 }
 
-// Au-delà, ce n'est plus un retour qu'on lit : c'est un tableau qu'on ouvre
-// dans le journal complet.
+// Beyond this it is no longer feedback you read: it is a table you open in
+// the full journal.
 const MAX_LINES = 4;
 
 /**
- * Ce que le client a réellement noté ce jour-là, exercice par exercice.
+ * What the client actually recorded that day, exercise by exercise.
  *
- * Le coach écrivait « 4 × 10 » et n'apprenait jamais ce qui avait été fait :
- * seul le client, dans son propre historique, voyait ses 26 kg. La donnée
- * existait déjà dans l'instantané de la séance, elle n'était affichée nulle
- * part de ce côté-ci.
+ * The coach wrote "4 × 10" and never learned what had been done: only the
+ * client, in their own history, saw their 26 kg. The data already existed in
+ * the session's snapshot, it was simply displayed nowhere on this side.
  */
 const performedLines = (completed: CompletedSession): PerformedLine[] => {
   const lines: PerformedLine[] = [];
@@ -61,10 +60,10 @@ const PerformedList = ({ completed }: { completed: CompletedSession }) => {
 
   return (
     <VStack align="stretch" gap={1.5} mt={1.5}>
-      {/* Le nom au-dessus, la valeur en dessous : une saisie détaillée fait
-          « 26 kg × 12 · 26 kg × 10 · 24 kg × 8 », qui ne tient sur aucune
-          ligne partagée. Sur la même ligne, c'est le nom qui cédait — et un
-          exercice réduit à « G. » ne se lit plus. */}
+      {/* The name above, the value below: a detailed entry reads "26 kg ×
+          12 · 26 kg × 10 · 24 kg × 8", which fits on no shared line. On the
+          same line it was the name that gave — and an exercise reduced to
+          "G." can no longer be read. */}
       {shown.map((line, i) => (
         <Box key={`${line.name}-${i}`}>
           <Text fontSize="xs" color="fg.muted" lineClamp={1}>
@@ -118,9 +117,9 @@ export const SessionFeedbackStrip = ({
           </Text>
         ) : (
           <VStack align="stretch" gap={4}>
-            {/* L'axe reste : il répond d'un coup d'œil à « est-ce que ça
-                dérive ? ». Le tableau qui l'accompagnait un temps est parti —
-                trop dense pour ce que le coach y cherchait. */}
+            {/* The axis stays: it answers "is this drifting?" at a glance.
+                The table that accompanied it for a while has gone — too dense
+                for what the coach was looking for there. */}
             <EffortTrend history={recent} />
 
             <VStack align="stretch" gap={3}>
@@ -169,11 +168,11 @@ export const SessionFeedbackStrip = ({
   const level = getEffortLevel(last.feedback?.effort);
 
   return (
-    // Neutre, et non turquoise. C'était la seule occurrence de cette teinte
-    // dans un atelier gris et rouge — et le turquoise sert par ailleurs à
-    // qualifier un ressenti facile, ce que ce panneau ne dit pas. Il se
-    // distingue déjà par sa position et son fond ; il n'a pas besoin
-    // d'emprunter une couleur qui veut dire autre chose.
+    // Neutral, not turquoise. It was the only occurrence of that hue in a
+    // grey and red editor — and turquoise is otherwise used to qualify an
+    // easy effort rating, which this panel does not say. It already stands
+    // out by its position and its background; it does not need to borrow a
+    // colour that means something else.
     <Box
       bg="whiteAlpha.50"
       borderLeftWidth="2px"

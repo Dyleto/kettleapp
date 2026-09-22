@@ -6,9 +6,9 @@ import { A_COMPLETER, LEGAL } from '@/config/legal';
 import { hitArea } from '@/components/hitArea';
 
 /**
- * Un document légal se lit d'un bout à l'autre, souvent sur un téléphone, et
- * parfois par quelqu'un qui n'a pas encore de compte. D'où une colonne
- * étroite, un interlignage large, et aucune dépendance à l'état de connexion.
+ * A legal document is read end to end, often on a phone, and sometimes by
+ * someone who does not have an account yet. Hence a narrow column, generous
+ * line height, and no dependency on the signed-in state.
  */
 export const LegalLayout = ({
   title,
@@ -90,7 +90,7 @@ export const LegalLayout = ({
   );
 };
 
-/** Une section numérotée du document. */
+/** A numbered section of the document. */
 export const Article = ({
   n,
   title,
@@ -125,7 +125,7 @@ export const P = ({ children }: { children: ReactNode }) => (
   </Text>
 );
 
-/** Une liste à puces, lisible sur téléphone. */
+/** A bulleted list, readable on a phone. */
 export const Liste = ({ items }: { items: ReactNode[] }) => (
   <VStack as="ul" align="stretch" gap={2} listStyleType="none" pl={0}>
     {items.map((item, i) => (
@@ -141,7 +141,7 @@ export const Liste = ({ items }: { items: ReactNode[] }) => (
   </VStack>
 );
 
-/** Un bloc « ce qu'on fait / pourquoi / sur quelle base ». */
+/** A "what we do / why / on what legal basis" block. */
 export const Base = ({
   quoi,
   pourquoi,
@@ -172,8 +172,8 @@ export const Base = ({
 );
 
 /**
- * Une donnée qui manque encore. Elle s'affiche en rouge plutôt que de se
- * fondre dans le texte : un document légal incomplet doit se voir.
+ * A value that is still missing. It shows in red rather than blending into
+ * the text: an incomplete legal document has to be visible as such.
  */
 export const AComplete = ({ valeur }: { valeur: string }) =>
   valeur === A_COMPLETER ? (

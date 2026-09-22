@@ -38,17 +38,17 @@ export const useClientSessions = () => {
     [historyQuery.data]
   );
 
-  // Le programme est un cycle : une fois la dernière séance faite, on
-  // reprend à la première. Il n'y a pas de « fin » de programme.
+  // The programme is a cycle: once the last session is done, we go back to
+  // the first. There is no "end" of programme.
   const nextSession = useMemo(() => {
     const sortedSessions = [...sessions].sort((a, b) => a.order - b.order);
     if (sortedSessions.length === 0) return undefined;
 
-    // Une séance conseillée aujourd'hui passe devant le cycle — c'est tout ce
-    // que le jour conseillé change. Un seul « à faire » pour toute l'app :
-    // l'accueil, le badge du programme et la redirection /client/session
-    // désignent la même séance. Sans jour conseillé nulle part, rien ne
-    // change : `getSessionForToday` ne rend rien et le cycle reprend la main.
+    // A session suggested today comes ahead of the cycle — that is all the
+    // suggested day changes. One "to do" for the whole app: home, the
+    // programme badge and the /client/session redirect point at the same
+    // session. With no suggested day anywhere, nothing changes:
+    // `getSessionForToday` returns nothing and the cycle takes over again.
     const suggestedToday = getSessionForToday(sortedSessions, history);
     if (suggestedToday) return suggestedToday;
 
@@ -63,8 +63,8 @@ export const useClientSessions = () => {
     return sortedSessions[(lastIndex + 1) % sortedSessions.length];
   }, [sessions, history]);
 
-  // « J'avais mis combien la dernière fois ? » se répond depuis l'historique
-  // déjà chargé : aucune requête, aucune route supplémentaire.
+  // "How much did I use last time?" is answered from the history already
+  // loaded: no request, no extra route.
   const lastPerformance = useMemo(
     () => buildLastPerformanceIndex(history),
     [history]
@@ -72,15 +72,15 @@ export const useClientSessions = () => {
 
   const isLoading = programQuery.isLoading || historyQuery.isLoading;
 
-  // `/client/session` redirige désormais vers l'identifiant de la séance
-  // suivante : l'écran n'a plus qu'une seule source, l'URL.
+  // `/client/session` now redirects to the next session's id: the screen has
+  // a single source, the URL.
   const activeSession = sessionId
     ? sessions.find((s) => s._id === sessionId)
     : undefined;
   const isManualSelection = !!sessionId && sessionId !== nextSession?._id;
 
-  // Un identifiant qui ne correspond à aucune séance (lien périmé, séance
-  // supprimée par le coach) ramène au programme plutôt que de rester bloqué.
+  // An id matching no session (a stale link, a session the coach deleted)
+  // leads back to the programme rather than getting stuck.
   useEffect(() => {
     if (!isLoading && sessionId && !activeSession) {
       toaster.create({
@@ -112,21 +112,21 @@ export const useClientSessions = () => {
         },
         {
           onSuccess: () => {
-            // La séance est au serveur : l'enregistrement local n'a plus de
-            // raison d'exister. C'est le seul moment où l'on efface — quitter
-            // le mode guidé ne doit rien coûter, sortir pour répondre au
-            // téléphone non plus.
+            // The session is on the server: the local record has no reason
+            // to exist any more. This is the only moment we erase — leaving
+            // guided mode must cost nothing, and nor must stepping out to
+            // answer the phone.
             forgetProgress(activeSession._id);
-            // Le seul endroit du parcours client où l'on envoie quelque chose
-            // sans accusé de réception : on retombait sur l'accueil, et rien
-            // ne disait que le bilan était parti.
+            // The only place in the client's journey where something is
+            // sent with no acknowledgement: you landed back on home, and
+            // nothing said the wrap-up had left.
             toaster.create({
               title: 'Séance enregistrée',
               description: 'Ton coach la verra.',
               type: 'success',
-              // La durée par défaut tombe sous les deux secondes et demie :
-              // c'est trop court pour un accusé de réception qui arrive en
-              // même temps qu'un changement d'écran.
+              // The default duration falls under two and a half seconds:
+              // too short for an acknowledgement that arrives at the same
+              // time as a change of screen.
               duration: 4500,
             });
             navigate(CLIENT_ROUTES.today);

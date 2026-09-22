@@ -1,35 +1,35 @@
 import type { SystemStyleObject } from '@chakra-ui/react';
 
 /**
- * La question posée n'est pas « l'écran est-il petit », c'est « qu'est-ce qui
- * pointe ». Une tablette de 900 px se pilote au doigt, et un portable de
- * 1280 px à tactile aussi ; la largeur ne le dit pas. `(hover: none)` le dit.
+ * The question asked is not "is the screen small", it is "what is pointing".
+ * A 900 px tablet is driven by a finger, and so is a 1280 px laptop with a
+ * touchscreen; width does not say so. `(hover: none)` does.
  */
 export const TACTILE = '@media (hover: none)';
 
 /**
- * Étend la zone touchable d'un contrôle à 44 px sans toucher à sa taille
- * visible.
+ * Extends a control's touchable area to 44 px without touching its visible
+ * size.
  *
- * L'édition en place rend l'application dense et lisible, mais elle produit
- * mécaniquement des cibles de la taille de leur texte : 96 % des commandes de
- * l'atelier passaient sous 44 px sur mobile, certaines à 24 × 16. Plutôt que
- * de grossir la typographie — ce qui détruirait la densité — on superpose au
- * contrôle un rectangle transparent centré, qui reçoit le doigt.
+ * In-place editing makes the app dense and readable, but it mechanically
+ * produces targets the size of their text: 96 % of the editor's controls fell
+ * under 44 px on mobile, some at 24 × 16. Rather than enlarging the
+ * typography — which would destroy the density — we lay a centred transparent
+ * rectangle over the control, and it receives the finger.
  *
- * Deux contrôles voisins ne peuvent pas revendiquer 44 px chacun s'ils sont
- * espacés de moins : leurs zones se recouvrent, et c'est le dernier dans le
- * DOM qui gagne. D'où deux tailles dans l'application :
+ * Two neighbouring controls cannot each claim 44 px when they are spaced less
+ * than that apart: their zones overlap, and the last one in the DOM wins.
+ * Hence two sizes in the app:
  *
- *   44 px — contrôles isolés : cellules de calendrier, lignes de liste,
- *           boutons de bas d'écran, crans du ressenti.
- *   32 px — gouttières et valeurs en ligne de l'atelier à la souris, où les
- *           commandes se suivent à 8 px. C'est au-dessus du plancher
- *           WCAG 2.5.8 (24 px), et c'est le maximum atteignable à cet
- *           écartement-là.
+ *   44 px — isolated controls: calendar cells, list rows, bottom-of-screen
+ *           buttons, effort scale steps.
+ *   32 px — the editor's gutters and inline values under a mouse, where
+ *           controls follow each other 8 px apart. That is above the WCAG
+ *           2.5.8 floor (24 px), and it is the maximum reachable at that
+ *           spacing.
  *
- * Cet écartement n'est pas une fatalité : `hitAreaTactile`, plus bas, rend
- * les 44 px partout où la mise en page écarte d'abord les voisines au doigt.
+ * That spacing is not a fatality: `hitAreaTactile`, below, gives back the
+ * 44 px everywhere the layout first pushes the neighbours apart for touch.
  */
 export const hitArea = (size = 44): SystemStyleObject => ({
   position: 'relative',
@@ -43,22 +43,22 @@ export const hitArea = (size = 44): SystemStyleObject => ({
     minHeight: `${size}px`,
     width: '100%',
     height: '100%',
-    // Ne capte que le pointeur : invisible, et jamais dans le flux.
+    // Captures the pointer only: invisible, and never in the flow.
     pointerEvents: 'auto',
   },
 });
 
 /**
- * La même zone, mais qui tient compte du doigt.
+ * The same zone, but accounting for a finger.
  *
- * Les 32 px de l'atelier sont un compromis de souris : à la précision d'un
- * curseur, ils suffisent. Au doigt, ils ne suffisent pas — et la raison qui
- * les plafonnait à 32 (les commandes voisines à 8 px) n'est pas une fatalité,
- * c'est une mise en page. Là où on écarte les commandes au tactile, la zone
- * peut reprendre ses 44 px sans recouvrir la voisine.
+ * The editor's 32 px is a mouse compromise: at a cursor's precision it is
+ * enough. Under a finger it is not — and the reason capping it at 32
+ * (neighbouring controls 8 px apart) is not a fatality, it is a layout. Where
+ * controls are pushed apart for touch, the zone can take its 44 px back
+ * without covering its neighbour.
  *
- * D'où cette variante plutôt qu'un changement de `hitArea` : elle ne
- * s'applique qu'aux endroits dont on a d'abord écarté les voisins.
+ * Hence this variant rather than a change to `hitArea`: it only applies where
+ * the neighbours have first been pushed apart.
  */
 export const hitAreaTactile = (souris = 32): SystemStyleObject => ({
   ...hitArea(souris),
@@ -71,27 +71,27 @@ export const hitAreaTactile = (souris = 32): SystemStyleObject => ({
 });
 
 /**
- * L'écart à mettre entre deux commandes dont les zones font 44 px.
+ * The gap to put between two controls whose zones are 44 px.
  *
- * Trois pictogrammes de 24 px espacés de 8 ne peuvent pas porter trois zones
- * de 44 : elles se recouvrent, et c'est le dernier du DOM qui reçoit le doigt
- * — donc « Supprimer » à la place de « Changer l'unité ». 24 + 20 met 44 px
- * entre deux centres : les zones se touchent sans jamais se croiser.
+ * Three 24 px pictograms spaced 8 apart cannot carry three 44 px zones: they
+ * overlap, and the last one in the DOM receives the finger — so "Supprimer"
+ * instead of "Changer l'unité". 24 + 20 puts 44 px between two centres: the
+ * zones touch without ever crossing.
  *
- * On écarte plutôt qu'on ne grossit, et c'est un choix mesuré : avec des
- * boîtes de 40 px la gouttière passait de 103 à 136 px de large, la ligne de
- * l'atelier se cassait en deux niveaux et doublait de hauteur — 36 px à 77.
- * L'écartement coûte 9 px de large et garde l'atelier lisible.
+ * We push apart rather than enlarge, and that is a measured choice: with
+ * 40 px boxes the gutter went from 103 to 136 px wide, the editor's row broke
+ * into two levels and doubled in height — 36 px to 77. The spacing costs 9 px
+ * of width and keeps the editor readable.
  */
 export const ecartTactile: SystemStyleObject = {
   [TACTILE]: { gap: '20px' },
 };
 
 /**
- * Le pas vertical minimal d'une liste de commandes au doigt.
+ * The minimum vertical spacing of a list of controls under a finger.
  *
- * Même règle dans l'autre sens : deux lignes qui se suivent à 36 px ne
- * peuvent pas porter chacune une zone de 44.
+ * The same rule the other way: two rows following each other 36 px apart
+ * cannot each carry a 44 px zone.
  */
 export const pasTactile: SystemStyleObject = {
   [TACTILE]: { minHeight: '44px' },

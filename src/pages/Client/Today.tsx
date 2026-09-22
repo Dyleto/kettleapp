@@ -39,15 +39,15 @@ const Today = () => {
   const totalCount = sessions.length;
   const recentSessions = history.slice(0, 3);
 
-  // La semaine ne vit nulle part en base : on la recompose à chaque rendu à
-  // partir du programme et de l'historique déjà chargés.
+  // The week lives nowhere in the database: we recompose it on every render
+  // from the programme and the history already loaded.
   const weekDays = useMemo(
     () => buildWeekPlan(sessions, history),
     [sessions, history]
   );
 
-  // « La prochaine » devient « Aujourd'hui » quand c'est le jour que le coach
-  // a conseillé pour cette séance : la même carte, une raison en plus.
+  // "La prochaine" becomes "Aujourd'hui" when this is the day the coach
+  // suggested for that session: the same card, one more reason.
   const isSuggestedToday =
     !!nextSession &&
     (nextSession.suggestedDays ?? []).includes(mondayIndex(new Date()));
@@ -79,11 +79,11 @@ const Today = () => {
   return (
     <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
       <VStack gap={6} align="stretch">
-        {/* Le titre nomme l'écran, pas celui qui le regarde.
-            « Bonjour Corentin » en `h1` faisait que la navigation par titres
-            — le premier outil d'exploration d'un lecteur d'écran — annonçait
-            une salutation là où elle devait annoncer un endroit. La
-            salutation reste, en texte simple, au-dessus. */}
+        {/* The heading names the screen, not whoever is looking at it.
+            "Bonjour Corentin" as an `h1` meant that heading navigation — a
+            screen reader's first exploration tool — announced a greeting
+            where it should announce a place. The greeting stays, as plain
+            text, above. */}
         <VStack align="start" gap={0}>
           <Text fontSize="sm" color="fg.muted">
             Bonjour {user?.firstName},
@@ -93,8 +93,8 @@ const Today = () => {
           </Text>
         </VStack>
 
-        {/* Où en est la semaine, avant ce qu'il reste à faire : c'est le
-            contexte dans lequel se lit la séance du jour. */}
+        {/* Where the week stands, before what is left to do: it is the
+            context in which the day's session reads. */}
         {(history.length > 0 ||
           weekDays.some((d) => d.suggested.length > 0)) && (
           <WeekStrip
@@ -119,20 +119,20 @@ const Today = () => {
                 textTransform="uppercase"
                 letterSpacing="wider"
               >
-                {/* « À FAIRE MAINTENANT » était un ordre, et un ordre que
-                    Kettle n'est pas en état de donner : le programme est un
-                    cycle, donc cette carte désigne toujours quelque chose — y
-                    compris un dimanche à 23 h, et y compris juste après une
-                    séance qu'on vient de finir. « La prochaine » dit où l'on
-                    en est dans le programme, ce qui est vrai à toute heure.
+                {/* "À FAIRE MAINTENANT" was an order, and an order Kettle is
+                    in no position to give: the programme is a cycle, so this
+                    card always points at something — including a Sunday at
+                    11 pm, and including right after a session just finished.
+                    "La prochaine" says where you are in the programme, which
+                    is true at any hour.
 
-                    Le jour conseillé, l'app sait quelque chose de plus, et
-                    c'est là seulement qu'elle se permet de parler du moment. */}
+                    On the suggested day the app knows something more, and
+                    only there does it allow itself to speak of timing. */}
                 {isSuggestedToday ? "Aujourd'hui" : 'La prochaine'}
               </Text>
-              {/* La carte est le bouton. On clique instinctivement sur la
-                  séance elle-même ; garder à côté un bouton qui mène au même
-                  endroit ajoutait une cible sans ajouter un choix. */}
+              {/* The card is the button. People instinctively click the
+                  session itself; keeping a button beside it that leads to the
+                  same place added a target without adding a choice. */}
               <Box
                 as="button"
                 w="full"
@@ -154,11 +154,11 @@ const Today = () => {
                     <Text fontWeight="bold" fontSize="sm">
                       {sessionTitle(nextSession.order, nextSession.name)}
                     </Text>
-                    {/* La pastille ne paraît que le jour conseillé. Le reste
-                        du temps elle disait « À faire » à quarante pixels
-                        d'une étiquette qui disait « À faire maintenant » :
-                        deux fois le même mot, dont aucun n'apprenait rien.
-                        « Conseillée » ajoute le coach à la lecture. */}
+                    {/* The chip only appears on the suggested day. The rest of
+                        the time it said "À faire" forty pixels from a label
+                        that said "À faire maintenant": the same word twice,
+                        neither of which taught anything. "Conseillée" adds
+                        the coach to the reading. */}
                     {isSuggestedToday && (
                       <Box
                         px={2}
@@ -205,8 +205,8 @@ const Today = () => {
               Séances récentes
             </Text>
             <VStack align="stretch" gap={2}>
-              {/* La même carte que le journal, dans sa variante d'accueil :
-                  une seule définition, donc une seule convention. */}
+              {/* The same card as the journal, in its home variant: one
+                  definition, and so one convention. */}
               {recentSessions.map((completed) => (
                 <SessionHistoryCard
                   key={completed._id}

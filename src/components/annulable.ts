@@ -1,52 +1,51 @@
 import { toaster } from '@/components/ui/toasterInstance';
 
 /**
- * Le filet d'annulation : l'action part, et on peut la reprendre.
+ * The undo safety net: the action goes through, and can be taken back.
  *
- * Kettle protégeait ses suppressions en demandant avant — « Supprimer la
- * séance 3 ? ». C'est une question posée cent fois pour les deux fois où l'on
- * s'était trompé, et elle ne couvre que ce à quoi on a pensé : retirer un
- * exercice, le geste le plus fréquent de l'atelier, ne demandait rien du tout.
+ * Kettle protected its deletions by asking first — "Supprimer la séance 3 ?".
+ * That is a question asked a hundred times for the two occasions someone got
+ * it wrong, and it only covers what was thought of: removing an exercise, the
+ * editor's most frequent gesture, asked nothing at all.
  *
- * Le filet inverse la logique. L'action a lieu tout de suite, et un bandeau
- * reste quelques secondes avec de quoi la reprendre. Gratuit quand on avait
- * raison, rattrapable quand on avait tort.
+ * The net reverses the logic. The action happens at once, and a banner stays
+ * a few seconds with the means to take it back. Free when you were right,
+ * recoverable when you were wrong.
  *
- * Ce n'est pas une suppression en attente, et la différence compte : dans
- * l'atelier, une suppression est un changement de structure, donc partie au
- * serveur dans la seconde. Fermer l'application ne laisse rien en suspens — la
- * suppression tient, ce que le geste disait. « Annuler » n'attend pas, il
- * repose l'état d'avant, et l'enregistrement automatique le renvoie comme
- * n'importe quelle autre modification.
+ * This is not a pending deletion, and the difference matters: in the editor a
+ * deletion is a structural change, so it goes to the server within the
+ * second. Closing the app leaves nothing hanging — the deletion holds, which
+ * is what the gesture said. "Annuler" does not wait, it puts the previous
+ * state back, and autosave sends it like any other change.
  *
- * D'où la seule règle à respecter pour s'en servir : faire l'action d'abord,
- * appeler ceci ensuite, et donner de quoi reconstruire — jamais de quoi
- * « confirmer ».
+ * Hence the only rule to respect when using it: do the action first, call
+ * this second, and provide the means to rebuild — never the means to
+ * "confirm".
  */
 export const annulable = ({
   titre,
   description,
   annuler,
 }: {
-  /** Ce qui vient d'arriver, au passé : « Corde à sauter retiré ». */
+  /** What has just happened, in the past tense: "Corde à sauter retiré". */
   titre: string;
   description?: string;
-  /** Repose l'état d'avant. Appelé au plus une fois. */
+  /** Puts the previous state back. Called at most once. */
   annuler: () => void;
 }) => {
   let repris = false;
   toaster.create({
     title: titre,
     description,
-    // Plus long qu'un message ordinaire : on ne lit pas un bandeau au moment
-    // où on l'affiche, on le lit à la seconde où l'on réalise son erreur.
+    // Longer than an ordinary message: you do not read a banner at the
+    // moment it appears, you read it the second you realise your mistake.
     duration: 8000,
     action: {
       label: 'Annuler',
       onClick: () => {
-        // Chakra referme le bandeau au clic, et le clic sur le fond le referme
-        // aussi : sans ce verrou, un doigt malheureux pourrait rejouer la
-        // reprise et reposer deux fois l'exercice retiré.
+        // Chakra closes the banner on click, and a click on the background
+        // closes it too: without this lock, an unlucky finger could replay
+        // the undo and put the removed exercise back twice.
         if (repris) return;
         repris = true;
         annuler();

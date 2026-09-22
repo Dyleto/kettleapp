@@ -16,17 +16,17 @@ const CoachLayout = () => {
   const pageOwnsTopBar = useMatches().some((m) => ownsMobileTopBar(m.handle));
   // The bottom of the screen has only one slot: the editor's failure line
   // takes it rather than stacking on top.
-  const basOccupe = useBottomBarClaimed();
+  const bottomTaken = useBottomBarClaimed();
 
   return (
     <Flex minH="100vh">
       <CoachNavRail />
-      <Box flex={1} minW={0} pb={{ base: basOccupe ? 0 : '70px', md: 0 }}>
+      <Box flex={1} minW={0} pb={{ base: bottomTaken ? 0 : '70px', md: 0 }}>
         {!pageOwnsTopBar && <MobileTopBar />}
         <Box as="main" id="contenu" minW={0}>
           <Outlet />
         </Box>
-        {!basOccupe && <CoachTabBar />}
+        {!bottomTaken && <CoachTabBar />}
       </Box>
     </Flex>
   );

@@ -21,26 +21,26 @@ import { hitArea } from '@/components/hitArea';
 interface CopySessionToClientProps {
   sourceClientId: string;
   sourceSessionId: string;
-  /** Le numéro affiché de la séance — « Séance 3 ». */
+  /** The session's displayed number — "Séance 3". */
   sessionOrder: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 /**
- * Poser une séance chez un autre client.
+ * Placing a session with another client.
  *
- * Retour du terrain : « dommage de ne pas pouvoir copier la séance et la
- * coller chez un autre client. Ce serait plus utile que le dupliquer. »
+ * From the field: "a shame not to be able to copy the session and paste it
+ * to another client. That would be more useful than duplicating it."
  *
- * Une liste de noms, un par ligne, et c'est tout : il n'y a rien à régler.
- * Le client courant n'y figure pas — pour une copie chez soi, « Dupliquer la
- * séance » existe déjà à deux boutons de là, et proposer les deux chemins
- * pour la même chose obligerait à choisir entre eux.
+ * A list of names, one per line, and that is all: there is nothing to set.
+ * The current client is not on it — for a copy onto oneself, "Dupliquer la
+ * séance" already exists two buttons away, and offering both paths for the
+ * same thing would force a choice between them.
  *
- * La copie part à la fin du programme de destination plutôt qu'à une place
- * choisie : au moment de copier, on sait chez qui on pose, rarement où. Le
- * rail de séances sert ensuite à la déplacer, et il sait déjà le faire.
+ * The copy lands at the end of the destination program rather than at a
+ * chosen place: when copying, you know who you are placing it with, rarely
+ * where. The session rail then serves to move it, and already knows how.
  */
 export const CopySessionToClient = ({
   sourceClientId,
@@ -63,17 +63,17 @@ export const CopySessionToClient = ({
       const destinataire = clients.find(
         (c) => c._id === variables.targetClientId
       );
-      // Le programme de destination a changé sous le cache : le prochain
-      // passage chez ce client doit le relire, sinon la séance copiée n'y
-      // apparaît qu'après un rechargement complet.
+      // The destination program changed underneath the cache: the next
+      // visit to that client has to re-read it, otherwise the copied session
+      // only appears after a full reload.
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.clients.detail(variables.targetClientId),
       });
       toaster.create({
         type: 'success',
-        // Le nom entier, pas le prénom : deux clients peuvent le partager, et
-        // un message qui laisse un doute sur le destinataire d'une copie ne
-        // sert à rien.
+        // The whole name, not the first name: two clients can share it, and
+        // a message that leaves the recipient of a copy in doubt is of no
+        // use.
         title: `Séance copiée chez ${
           destinataire
             ? `${destinataire.firstName} ${destinataire.lastName}`
@@ -143,13 +143,15 @@ export const CopySessionToClient = ({
                         minH="52px"
                         px={2}
                         borderRadius="md"
-                        // Une copie en vol verrouille la liste : deux clics
-                        // rapides poseraient deux séances.
+                        // A copy in flight locks the list: two quick clicks
+                        // would place two sessions.
                         aria-disabled={copier.isPending}
                         opacity={copier.isPending && !occupe ? 0.5 : 1}
                         cursor={copier.isPending ? 'default' : 'pointer'}
                         _hover={
-                          copier.isPending ? undefined : { bg: 'whiteAlpha.100' }
+                          copier.isPending
+                            ? undefined
+                            : { bg: 'whiteAlpha.100' }
                         }
                         css={hitArea(44)}
                         onClick={() => {
