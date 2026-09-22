@@ -9,20 +9,19 @@ import {
 } from '@/features/client/constants';
 
 interface EffortTrendProps {
-  /** Déjà filtré sur une seule séance : comparer l'effort d'un Tabata à celui
-   *  d'un échauffement ne veut rien dire. */
+  /** Already filtered to a single session: comparing a Tabata's effort to a
+   *  warm-up's means nothing. */
   history: CompletedSession[];
-  /** Nombre de passages retenus pour la lecture. */
+  /** How many attempts are kept for the reading. */
   limit?: number;
 }
 
 type Drift = 'harder' | 'easier' | null;
 
 /**
- * Une dérive n'est signalée que si elle est nette : au moins trois passages
- * notés, aucune inversion de sens, et une amplitude d'au moins deux niveaux.
- * Le reste, c'est du bruit — et un coach qui voit une alerte pour du bruit
- * cesse de les lire.
+ * A drift is only flagged when it is clear: at least three rated attempts, no
+ * reversal of direction, and an amplitude of at least two levels. The rest is
+ * noise — and a coach who sees an alert for noise stops reading them.
  */
 const detectDrift = (efforts: number[]): Drift => {
   if (efforts.length < 3) return null;
@@ -52,7 +51,7 @@ const countTags = (sessions: CompletedSession[]) => {
 };
 
 export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
-  // Du plus ancien au plus récent : une tendance se lit dans le sens du temps.
+  // Oldest to newest: a trend reads in the direction of time.
   const chronological = [...history]
     .sort(
       (a, b) =>
@@ -67,8 +66,8 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
     getEffortLevel(rated[rated.length - 1]?.feedback?.effort)?.label ?? '—';
   const tags = countTags(rated);
 
-  // Aucun passage noté : les bilans d'avant la refonte n'ont jamais porté la
-  // question. On le dit, on ne dessine pas une courbe vide.
+  // No rated attempt: wrap-ups from before the rework never carried the
+  // question. We say so, we do not draw an empty curve.
   if (rated.length === 0) {
     return (
       <Text fontSize="xs" color="fg.muted">
@@ -81,11 +80,11 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
 
   return (
     <VStack align="stretch" gap={2}>
-      {/* L'axe, avec ses propres étiquettes et la cible nommée au milieu.
-          Les barres qu'il remplace encodaient le ressenti deux fois — par la
-          hauteur et par la couleur — sans jamais dire que la hauteur voulait
-          dire quelque chose. Ici la position EST l'échelle, et elle est
-          écrite en dessous : rien à retenir. */}
+      {/* The axis, with its own labels and the target named in the
+          middle. The bars it replaces encoded the rating twice — by height
+          and by colour — without ever saying that the height meant anything.
+          Here the position IS the scale, and it is written underneath:
+          nothing to memorise. */}
       <Box position="relative" h="26px" mx="6px">
         <Box
           position="absolute"
@@ -95,10 +94,10 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
           h="1px"
           bg="whiteAlpha.200"
         />
-        {/* Le repère du milieu porte la couleur du milieu de l'échelle, et
-            non l'ambre de l'action : c'est une graduation, on ne clique pas
-            dessus. Cette colonne n'apparaissait qu'au-delà de 1536 px, ce qui
-            l'avait soustraite au désengorgement de l'ambre. */}
+        {/* The middle marker carries the scale's middle colour, not the
+            amber of action: it is a graduation, you do not click it. This
+            column only appeared beyond 1536 px, which had kept it out of the
+            amber decluttering. */}
         <Box
           position="absolute"
           top="6px"
@@ -111,8 +110,8 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
         {rated.map((completed, i) => {
           const level = getEffortLevel(completed.feedback!.effort)!;
           const isLast = i === rated.length - 1;
-          // 1 → 0 %, 5 → 100 %. Le point le plus récent est plein, les
-          // précédents en retrait : on lit le sens de la marche.
+          // 1 → 0 %, 5 → 100 %. The most recent point is solid, the earlier
+          // ones set back: you read the direction of travel.
           const left = ((level.value - 1) / 4) * 100;
           return (
             <Box
@@ -132,12 +131,12 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
         })}
       </Box>
 
-      {/* Les étiquettes viennent de EFFORT_LEVELS — l'ordre des valeurs
-          stockées — et non de EFFORT_SCALE, qui est l'échelle *d'affichage*
-          du client, renversée pour que « 1 » soit « Trop dure ». Les prendre
-          là plaçait le point rouge sous « Trop facile ». Ici, la position et
-          le mot viennent de la même source, et le plus dur est à droite :
-          c'est le sens qu'annonce déjà la flèche de dérive. */}
+      {/* The labels come from EFFORT_LEVELS — the order of the stored
+          values — and not from EFFORT_SCALE, which is the client's *display*
+          scale, reversed so that "1" is "Trop dure". Taking them from there
+          put the red dot under "Trop facile". Here the position and the word
+          come from the same source, and the hardest is on the right: that is
+          the direction the drift arrow already announces. */}
       <HStack justify="space-between" fontSize="10px" color="fg.muted">
         <Text>{EFFORT_LEVELS[0].label}</Text>
         <Text color={EFFORT_ZONE_COLOR.target}>
@@ -147,10 +146,10 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
       </HStack>
 
       <HStack gap={2} justify="space-between" align="baseline">
-        {/* Le mot, pas le chiffre. La suite « 3 → 4 » se lisait comme un code :
-            rien à l'écran ne disait sur quelle échelle, ni dans quel sens. */}
-        {/* L'axe ne porte que les passages notés ; le tableau en dessous
-            montre les autres avec un tiret. On ne les compte donc plus ici. */}
+        {/* The word, not the number. The sequence "3 → 4" read like a code:
+            nothing on screen said on what scale, nor in which direction. */}
+        {/* The axis only carries rated attempts; the table below shows the
+            others with a dash. So we no longer count them here. */}
         <Text fontSize="xs" color="fg.muted">
           {rated.length === 1
             ? `Dernier ressenti : ${lastLabel}`

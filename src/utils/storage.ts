@@ -1,13 +1,13 @@
 /**
- * Wrapper sécurisé pour localStorage
- * Gère les erreurs (mode privé, quota dépassé, etc.)
+ * A safe wrapper around localStorage.
+ * Handles the errors (private mode, quota exceeded, and so on).
  */
 
 /**
- * Sauvegarder une valeur dans localStorage
- * @param key - Clé de stockage
- * @param value - Valeur à stocker
- * @returns true si succès, false si erreur
+ * Save a value to localStorage.
+ * @param key - the storage key
+ * @param value - the value to store
+ * @returns true on success, false on error
  */
 export const setItem = (key: string, value: string): boolean => {
   try {
@@ -20,9 +20,9 @@ export const setItem = (key: string, value: string): boolean => {
 };
 
 /**
- * Récupérer une valeur depuis localStorage
- * @param key - Clé de stockage
- * @returns La valeur ou null si erreur/non trouvée
+ * Read a value back from localStorage.
+ * @param key - the storage key
+ * @returns the value, or null on error or when not found
  */
 export const getItem = (key: string): string | null => {
   try {
@@ -34,9 +34,9 @@ export const getItem = (key: string): string | null => {
 };
 
 /**
- * Supprimer une valeur de localStorage
- * @param key - Clé de stockage
- * @returns true si succès, false si erreur
+ * Remove a value from localStorage.
+ * @param key - the storage key
+ * @returns true on success, false on error
  */
 export const removeItem = (key: string): boolean => {
   try {
@@ -49,8 +49,8 @@ export const removeItem = (key: string): boolean => {
 };
 
 /**
- * Vérifier si localStorage est disponible
- * @returns true si disponible, false sinon
+ * Check whether localStorage is available.
+ * @returns true when available, false otherwise
  */
 export const isAvailable = (): boolean => {
   try {
@@ -64,10 +64,10 @@ export const isAvailable = (): boolean => {
 };
 
 /**
- * Sauvegarder un objet JSON dans localStorage
- * @param key - Clé de stockage
- * @param value - Objet à stocker
- * @returns true si succès, false si erreur
+ * Save a JSON object to localStorage.
+ * @param key - the storage key
+ * @param value - the object to store
+ * @returns true on success, false on error
  */
 export const setJSON = <T>(key: string, value: T): boolean => {
   try {
@@ -80,9 +80,9 @@ export const setJSON = <T>(key: string, value: T): boolean => {
 };
 
 /**
- * Récupérer un objet JSON depuis localStorage
- * @param key - Clé de stockage
- * @returns L'objet parsé ou null si erreur
+ * Read a JSON object back from localStorage.
+ * @param key - the storage key
+ * @returns the parsed object, or null on error
  */
 export const getJSON = <T>(key: string): T | null => {
   try {
@@ -96,8 +96,8 @@ export const getJSON = <T>(key: string): T | null => {
 };
 
 /**
- * Vider tout le localStorage
- * @returns true si succès, false si erreur
+ * Clear localStorage entirely.
+ * @returns true on success, false on error
  */
 export const clear = (): boolean => {
   try {
@@ -109,7 +109,7 @@ export const clear = (): boolean => {
   }
 };
 
-// Export par défaut d'un objet avec toutes les méthodes
+// Default export: one object carrying every method.
 export default {
   setItem,
   getItem,

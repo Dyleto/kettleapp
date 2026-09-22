@@ -44,26 +44,27 @@ export const BLOCK_FAMILIES: {
   {
     key: 'timed',
     label: 'Chronométré',
-    // « Every » n'y figure plus : c'est un EMOM sous un autre nom, depuis
-    // que l'EMOM porte son intervalle. Deux noms pour un format, c'est ce
-    // qui a piégé un coach cherchant un E2MOM. Le type reste connu — les
-    // blocs déjà créés s'affichent — mais on n'en crée plus.
+    // "Every" no longer appears here: it is an EMOM under another name,
+    // now that the EMOM carries its interval. Two names for one format is
+    // what caught out a coach looking for an E2MOM. The type stays known —
+    // blocks already created still display — but no new ones are made.
     types: ['emom', 'amrap', 'timecap', 'tabata', 'onoff'],
   },
   { key: 'progressive', label: 'Progressif', types: ['pyramid', 'ladder'] },
 ];
 
 /**
- * Les formats proposés d'emblée, avant que le coach ait posé un exercice.
+ * The formats offered up front, before the coach has placed an exercise.
  *
- * Onze types d'un coup, c'est un catalogue à lire là où il faut un choix à
- * faire. Quatre suffisent à couvrir l'essentiel d'une programmation : un
- * échauffement, des séries, un format à la minute, un format à durée fixe.
+ * Eleven types at once is a catalogue to read where a choice has to be made.
+ * Four cover the essentials of programming: a warm-up, sets, a format on the
+ * minute, a format of fixed duration.
  *
- * Cette sélection est une hypothèse, pas une mesure. Elle sera remplacée par
- * ce que les données diront des types réellement utilisés — c'est le seul
- * argument qui vaudra. En attendant, replier les sept autres coûte un clic à
- * qui les cherche, là où les afficher coûte une lecture à tout le monde.
+ * This selection is a hypothesis, not a measurement. It will be replaced by
+ * what the data says about the types actually used — that is the only
+ * argument that will count. Until then, folding the other seven away costs
+ * one click to whoever looks for them, where showing them costs everyone a
+ * read.
  */
 export const BLOCK_TYPES_COURANTS: BlockType[] = [
   'warmup',
@@ -73,24 +74,24 @@ export const BLOCK_TYPES_COURANTS: BlockType[] = [
 ];
 
 /**
- * Blocs où un exercice peut porter un nombre de séries — et donc un repos
- * entre elles.
+ * Blocks where an exercise can carry a number of sets — and therefore a rest
+ * between them.
  *
- * L'échauffement en fait partie : « 3 × 10 rotations d'épaules » est un
- * échauffement parfaitement ordinaire, et le coach ne pouvait écrire que
- * « 10 ». Il n'y a pas de série par défaut pour autant : sans nombre écrit,
- * un exercice d'échauffement se fait une fois, comme aujourd'hui.
+ * The warm-up is one of them: "3 × 10 shoulder rotations" is a perfectly
+ * ordinary warm-up, and the coach could only write "10". There is no default
+ * set count for all that: with no number written, a warm-up exercise happens
+ * once, as it does today.
  */
 export const blockSupportsSets = (type: BlockType): boolean =>
   type === 'classic' || type === 'warmup';
 
 /**
- * Le repos qu'un exercice prescrit entre ses séries, en secondes.
+ * The rest an exercise prescribes between its sets, in seconds.
  *
- * Trois conditions, et il fallait les trois : un bloc qui compte des séries,
- * plus d'une série, et un repos écrit. La règle vivait dans la ligne de
- * lecture ; le mode guidé en a besoin aussi, pour proposer le décompte au
- * moment où on souffle.
+ * Three conditions, and all three were needed: a block that counts sets, more
+ * than one set, and a rest written down. The rule lived in the reading row;
+ * guided mode needs it too, to offer the countdown at the moment you catch
+ * your breath.
  */
 export const restBetweenSetsOf = (
   block: Pick<SessionBlock, 'type'>,
@@ -103,23 +104,21 @@ export const restBetweenSetsOf = (
     : undefined;
 
 /**
- * Ce que chaque passage d'un exercice demande — une entrée par passage.
+ * What each pass of an exercise asks for — one entry per pass.
  *
- * Retour du terrain : « pour noter les charges, dommage de ne pas pouvoir le
- * faire sur toutes les séries — le pyramidal, je ne peux pas noter chaque
- * charge que j'ai faite. » C'était exact, et la cause tenait à une seule
- * ligne : le nombre de lignes de saisie se lisait sur `exercise.sets`, un
- * champ que seuls le classique et l'échauffement portent. Une pyramide tient
- * ses paliers sur le bloc, pas sur l'exercice — elle n'avait donc qu'une
- * ligne, quand elle en demande autant que de paliers.
+ * From the field: "for recording loads, a shame you cannot do it on every set
+ * — on the pyramid, I cannot record each load I did." That was accurate, and
+ * the cause came down to one line: the number of input rows was read from
+ * `exercise.sets`, a field only classic and warm-up blocks carry. A pyramid
+ * holds its rungs on the block, not on the exercise — so it had a single row,
+ * when it asks for as many as it has rungs.
  *
- * Les blocs à tours (EMOM, Tabata, On/Off) restent à une ligne : leurs tours
- * sont identiques, et dix lignes vides pour un EMOM de dix tours seraient un
- * formulaire, pas une aide. Ce qui distingue la pyramide, c'est que la
- * prescription change d'un passage à l'autre — d'où le libellé, qui dit quel
- * palier on est en train de renseigner.
+ * Round-based blocks (EMOM, Tabata, On/Off) stay on one row: their rounds are
+ * identical, and ten empty rows for a ten-round EMOM would be a form, not
+ * help. What sets the pyramid apart is that the prescription changes from
+ * pass to pass — hence the label, which says which rung is being filled in.
  *
- * Une entrée vide veut dire « ce passage n'a pas de nom » : on le numérote.
+ * An empty entry means "this pass has no name": we number it.
  */
 export const prescribedSetLabels = (
   block: Pick<SessionBlock, 'type' | 'repsScheme'>,
@@ -132,23 +131,23 @@ export const prescribedSetLabels = (
   return [''];
 };
 
-// Blocs où le timing est entièrement défini par le schéma du bloc (aucune métrique par exercice)
+// Blocks whose timing is entirely defined by the block's scheme (no per-exercise metric).
 export const blockDefinesOwnMetrics = (type: BlockType): boolean =>
   ['pyramid', 'ladder'].includes(type);
 
 /**
- * Blocs dont la durée fait partie du format — et qui méritent donc une
- * pendule en mode guidé.
+ * Blocks whose duration is part of the format — and which therefore deserve a
+ * clock in guided mode.
  *
- * `durationMinutes` traîne sur des blocs qui n'en font rien : l'échauffement
- * du jeu d'essai en porte huit, que ni son réglage ni son résumé ne lisent.
- * Se fier au champ seul faisait apparaître un décompte sur un échauffement,
- * qui n'a pas de fin à décompter. Le type décide, pas la présence du champ.
+ * `durationMinutes` lingers on blocks that do nothing with it: the test
+ * data's warm-up carries eight, which neither its settings nor its summary
+ * read. Trusting the field alone made a countdown appear on a warm-up, which
+ * has no end to count down to. The type decides, not the field's presence.
  */
 export const blockHasClock = (type: BlockType): boolean =>
   ['amrap', 'timecap', 'chipper'].includes(type);
 
-// Blocs où seul un nombre de reps cible par exercice a du sens (pas de durée ni mesure)
+// Blocks where only a target rep count per exercise makes sense (no duration, no measure).
 export const blockSupportsRepsOnly = (type: BlockType): boolean =>
   ['tabata', 'onoff'].includes(type);
 
@@ -157,17 +156,17 @@ export const getBlockLabel = (type: BlockType): string =>
 
 export type BlockAccent = 'work' | 'rest' | 'neutral';
 
-// Le repos y est une donnée nommée du schéma (Tabata, On/Off) : accent repos.
-// L'échauffement n'est ni l'effort principal ni du repos : neutre. Tout le
-// reste est de l'effort continu ou enchaîné, où un repos éventuel n'est
-// qu'un détail de réglage, pas ce que le bloc représente.
+// Rest is a named part of the scheme there (Tabata, On/Off): rest accent.
+// A warm-up is neither the main work nor rest: neutral. Everything else is
+// continuous or chained work, where any rest is a setting detail, not what
+// the block represents.
 /**
- * La couleur d'une famille de bloc, à une seule adresse.
+ * A block family's colour, at a single address.
  *
- * Elle vivait en trois exemplaires — la fiche, le rail du coach, le choix du
- * type — et les trois avaient déjà divergé : le neutre valait `whiteAlpha.300`
- * chez deux, `fg.muted` chez le troisième. Ce n'était pas trois réglages à
- * réaccorder, c'était trois sources à réduire à une.
+ * It lived in three copies — the card, the coach's rail, the type picker —
+ * and all three had already drifted: neutral was `whiteAlpha.300` in two,
+ * `fg.muted` in the third. That was not three settings to retune, it was
+ * three sources to reduce to one.
  */
 export const BLOCK_ACCENT_COLOR: Record<BlockAccent, string> = {
   work: 'block.work',
@@ -182,16 +181,16 @@ export const getBlockAccent = (type: BlockType): BlockAccent => {
 };
 
 /**
- * Le nom libre d'un bloc, une fois retiré ce que l'étiquette dit déjà.
+ * A block's free name, once what the label already says is removed.
  *
- * Nommer son bloc d'après son type est le réflexe naturel du coach : il tape
- * « AMRAP 12 » dans un bloc AMRAP de douze minutes, et le client lit
- * « AMRAP AMRAP 12 12 min ». C'est à l'affichage d'absorber la redite, pas au
- * coach de deviner qu'il ne doit pas la produire.
+ * Naming a block after its type is the coach's natural reflex: they type
+ * "AMRAP 12" into a twelve-minute AMRAP block, and the client reads "AMRAP
+ * AMRAP 12 12 min". It is for the display to absorb the repetition, not for
+ * the coach to guess they must not produce it.
  *
- * Quand le nom commence par le type, il ne reste rien à dire : la durée est
- * déjà dans les réglages, et le type dans l'étiquette. La comparaison ignore
- * la casse — « amrap 12 » est le même réflexe.
+ * When the name starts with the type, there is nothing left to say: the
+ * duration is already in the settings, and the type in the label. The
+ * comparison ignores case — "amrap 12" is the same reflex.
  */
 export const getBlockFreeName = (block: SessionBlock): string | undefined => {
   const nom = block.label?.trim();
@@ -201,23 +200,23 @@ export const getBlockFreeName = (block: SessionBlock): string | undefined => {
 };
 
 /**
- * Blocs dont les exercices se numérotent — « 1) 2) 3) ».
+ * Blocks whose exercises are numbered — "1) 2) 3)".
  *
- * Dans un bloc à la minute, le numéro n'est pas décoratif : c'est la minute
- * où l'exercice tombe. « Every » suit exactement la même rotation avec un
- * autre intervalle, et ne numérotait pas — d'où le retour « il n'a pas le
- * petit 1) 2) » sur les E2MOM.
+ * In a block on the minute, the number is not decorative: it is the minute
+ * the exercise falls on. "Every" follows exactly the same rotation with a
+ * different interval, and was not numbered — hence the feedback "it does not
+ * have the little 1) 2)" on E2MOMs.
  */
 export const blockIndexPrefix = (type: BlockType): boolean =>
   ['emom', 'every'].includes(type);
 
 /**
- * Le réglage d'un bloc, en une ligne — dans l'écriture du produit.
+ * A block's settings, in one line — in the product's own spelling.
  *
- * Cette seule fonction en comptait cinq : « 12 min », « 12min », « 20s »,
- * « / 10s », « 90s repos ». C'est le gros du constat B14, et c'est aussi ce
- * qui mettait deux conventions sur un même écran : la fiche du client tirait
- * son résumé d'ici, l'atelier du coach le composait autrement.
+ * This one function held five of them: "12 min", "12min", "20s", "/ 10s",
+ * "90s repos". That is the bulk of finding B14, and it is also what put two
+ * conventions on the same screen: the client's card drew its summary from
+ * here, the coach's editor composed it another way.
  */
 export const getBlockConfigSummary = (block: SessionBlock): string => {
   const minutes = (m?: number) => (m ? formatDuration(m * 60) : '');
@@ -225,16 +224,17 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
     sec === undefined ? '' : formatDuration(sec);
 
   switch (block.type) {
-    // Un bloc « Every » d'avant la fusion se lit exactement comme un EMOM :
-    // mêmes champs, même rotation, même mode guidé.
+    // An "Every" block from before the merge reads exactly like an EMOM:
+    // same fields, same rotation, same guided mode.
     case 'every':
     case 'emom': {
-      // Un EMOM est à la minute par définition : on ne le dit que quand ce
-      // n'en est pas un — « 12 tours, toutes les 2 min », le E2MOM.
+      // An EMOM is on the minute by definition: we only say so when it is
+      // not — "12 tours, toutes les 2 min", the E2MOM.
       const tours = block.rounds ? `${block.rounds}\u00A0tours` : '';
-      const intervalle = (block.intervalMinutes ?? 1) > 1
-        ? `toutes les ${minutes(block.intervalMinutes)}`
-        : '';
+      const intervalle =
+        (block.intervalMinutes ?? 1) > 1
+          ? `toutes les ${minutes(block.intervalMinutes)}`
+          : '';
       return [tours, intervalle].filter(Boolean).join(' · ');
     }
     case 'amrap':
@@ -265,4 +265,3 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
       return '';
   }
 };
-

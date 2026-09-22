@@ -1,37 +1,37 @@
 /**
- * Les données d'identification qui figurent dans les documents légaux.
+ * The identifying details that appear in the legal documents.
  *
- * Elles vivent ici plutôt que dans le corps des pages : une adresse
- * d'hébergeur change, une raison sociale évolue, et il ne faut pas avoir à
- * relire une politique de confidentialité pour corriger une ligne.
+ * They live here rather than in the body of the pages: a host's address
+ * changes, a company name evolves, and nobody should have to reread a privacy
+ * policy to correct one line.
  *
- * `À COMPLÉTER` s'affiche en évidence sur la page. C'est volontaire : un
- * document légal incomplet doit se voir, pas se deviner.
+ * `À COMPLÉTER` shows prominently on the page. That is deliberate: an
+ * incomplete legal document must be visible, not guessed at.
  */
 export const A_COMPLETER = 'À COMPLÉTER';
 
 export const LEGAL = {
-  /** Date de la dernière révision des deux documents. */
+  /** When both documents were last revised. */
   majLe: '14 septembre 2026',
 
   editeur: {
     /**
-     * Prénom et nom de l'éditeur — personne physique, activité non
-     * professionnelle.
+     * The publisher's first and last name — a natural person, non-commercial
+     * activity.
      *
-     * La LCEN permet à un éditeur non professionnel de ne pas publier son
-     * identité. Le RGPD, lui, exige que le responsable du traitement soit
-     * identifiable (art. 13.1.a) : c'est à ce titre que le nom figure ici.
+     * French law (LCEN) lets a non-commercial publisher withhold their
+     * identity. The GDPR, on the other hand, requires the data controller to
+     * be identifiable (art. 13.1.a): that is why the name appears here.
      */
     nom: 'Corentin Le Moullec',
     contactEmail: 'contact@kettleapp.fr',
   },
 
   /**
-   * Chaque hébergeur doit être nommé avec son adresse (LCEN, art. 6 III).
-   * Les raisons sociales sont sûres — elles viennent du code et des
-   * dépendances. Les adresses sont à recopier depuis les pages légales de
-   * chaque prestataire, pour ne pas en inventer une.
+   * Every host must be named with its address (LCEN, art. 6 III). The company
+   * names are certain — they come from the code and the dependencies. The
+   * addresses are to be copied from each provider's own legal pages, so that
+   * none is invented.
    */
   hebergeurs: {
     site: {
@@ -44,31 +44,31 @@ export const LEGAL = {
       nom: 'Render Services, Inc.',
       adresse:
         '525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis',
-      /** Le service tourne à Francfort : le traitement reste dans l'Union. */
+      /** The service runs in Frankfurt: processing stays within the EU. */
       region: 'Francfort (Allemagne)',
     },
     base: {
       role: 'Hébergement de la base de données',
       nom: 'MongoDB, Inc. — MongoDB Atlas',
       adresse: '1633 Broadway, 38th Floor, New York, NY 10019, États-Unis',
-      /** Le cluster tourne sur AWS à Paris : les données reposent en France. */
+      /** The cluster runs on AWS in Paris: the data rests in France. */
       region: 'Amazon Web Services, région Paris (France)',
     },
   },
 
-  /** Durées de conservation, à tenir en cohérence avec ce que fait le code. */
+  /** Retention periods, to be kept consistent with what the code does. */
   conservation: {
     compteInactif: '3 ans sans connexion',
     /**
-     * Ce que l'hébergeur garde réellement des journaux du serveur. Annoncer
-     * une durée plus longue que la sienne serait une promesse qu'on ne tient
-     * pas ; plus courte, une affirmation fausse. À revoir si le plan change.
+     * What the host actually keeps of the server logs. Announcing a longer
+     * period than theirs would be a promise we do not keep; a shorter one, a
+     * false statement. To be revisited if the plan changes.
      */
     journaux: '7 jours, la durée de rétention de notre hébergeur',
   },
 } as const;
 
-/** Les deux documents, servis par l'application elle-même. */
+/** Both documents, served by the app itself. */
 export const LEGAL_ROUTES = {
   confidentialite: '/confidentialite',
   mentions: '/mentions-legales',

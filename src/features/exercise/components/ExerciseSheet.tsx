@@ -22,7 +22,7 @@ interface SheetFieldProps {
   value?: string;
   onCommit: (value: string) => void;
   ariaLabel: string;
-  /** Ce qu'on lit quand c'est vide — c'est aussi l'invitation à remplir. */
+  /** What reads when empty — it is also the invitation to fill it in. */
   emptyLabel: string;
   multiline?: boolean;
   fontSize?: string;
@@ -33,8 +33,8 @@ interface SheetFieldProps {
 }
 
 /**
- * Un champ qui se lit comme du texte et s'édite au clic, comme dans
- * l'atelier. On enregistre à la sortie du champ, pas avec un bouton.
+ * A field that reads as text and is edited on click, as in the editor. We
+ * save on blur, not with a button.
  */
 const SheetField = ({
   value,
@@ -53,8 +53,8 @@ const SheetField = ({
 
   const commit = () => {
     const next = draft.trim();
-    // Un refus garde le champ ouvert : sortir en effaçant la saisie ferait
-    // disparaître à la fois la valeur et la raison du refus.
+    // A rejection keeps the field open: leaving while clearing the input
+    // would make both the value and the reason for the rejection vanish.
     const refusal = validate?.(next) ?? null;
     setError(refusal);
     if (refusal) return;
@@ -151,15 +151,15 @@ const SheetField = ({
 interface ExerciseSheetProps {
   exercise: Exercise;
   onClose?: () => void;
-  /** Absent quand la fiche s'ouvre depuis un contexte où la suppression
-   *  n'a pas de sens — l'atelier, par exemple. */
+  /** Absent when the card opens from a context where deletion makes no
+   *  sense — the editor, for instance. */
   onDelete?: () => void;
 }
 
 /**
- * Un lien qu'on ne sait pas lire n'affichait rien : ni lecteur, ni erreur.
- * On le refuse en disant ce qui est accepté, plutôt que de l'enregistrer et
- * de laisser le coach découvrir plus tard que sa vidéo ne s'ouvre pas.
+ * A link we cannot read used to show nothing: no player, no error. We refuse
+ * it while saying what is accepted, rather than saving it and letting the
+ * coach discover later that their video does not open.
  */
 const validateVideoUrl = (value: string): string | null => {
   if (value === '') return null;
@@ -167,21 +167,21 @@ const validateVideoUrl = (value: string): string | null => {
   return 'Lien non reconnu — seul YouTube est lu : watch, youtu.be ou Shorts.';
 };
 
-/** `blocksDeletion` : une corbeille est offerte, et cet usage l'empêche. */
+/** `blocksDeletion`: a delete button is offered, and this usage blocks it. */
 const usageSentence = (usage: number, blocksDeletion: boolean): string => {
   const base = `Utilisé dans ${usage} séance${usage > 1 ? 's' : ''}`;
-  // On dit pourquoi le bouton ne répond pas, au lieu de le laisser muet.
+  // We say why the button does not respond, instead of leaving it mute.
   return blocksDeletion
     ? `${base} — retirez-le de ces séances avant de pouvoir le supprimer.`
     : base;
 };
 
 /**
- * La fiche d'un exercice : son nom, sa consigne, sa vidéo.
+ * An exercise's card: its name, its instruction, its video.
  *
- * Elle ne mène plus à un formulaire séparé. « Modifier » demandait un aller
- * simple vers un écran de saisie pour changer trois mots ; ici chaque valeur
- * s'édite là où elle se lit, et l'enregistrement suit la sortie du champ.
+ * It no longer leads to a separate form. "Modifier" asked for a one-way trip
+ * to an input screen to change three words; here every value is edited where
+ * it is read, and saving follows the blur.
  */
 export const ExerciseSheet = ({
   exercise,
@@ -250,12 +250,12 @@ export const ExerciseSheet = ({
         multiline
       />
 
-      {/* ── Vidéo ── */}
+      {/* ── Video ── */}
       {video ? (
         <VStack gap={2} align="stretch">
-          {/* Vignette d'abord, lecteur au clic : la fiche n'appelle plus
-              YouTube tant que personne n'a demandé à voir la vidéo, et ne
-              peut plus afficher une dalle blanche dans une app sombre. */}
+          {/* Thumbnail first, player on click: the card no longer calls
+              YouTube until someone has asked to see the video, and can no
+              longer show a white slab inside a dark app. */}
           <VideoPlayer url={exercise.videoUrl ?? ''} />
           <HStack gap={2} align="center">
             <Box flex={1} minW={0}>
@@ -299,10 +299,10 @@ export const ExerciseSheet = ({
         </HStack>
       )}
 
-      {/* En pied de fiche, pas en chapeau : c'est une note sur l'exercice,
-          pas la première chose à savoir de lui. Elle explique aussi pourquoi
-          la corbeille ne répond pas — un `title` seul serait invisible au
-          doigt. */}
+      {/* At the foot of the card, not the head: it is a note about the
+          exercise, not the first thing to know about it. It also explains why
+          the delete button does not respond — a `title` alone would be
+          invisible under a finger. */}
       {usage > 0 && (
         <Text
           fontSize="xs"

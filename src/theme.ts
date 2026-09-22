@@ -13,7 +13,7 @@ const customConfig = defineConfig({
             bg: { value: '#CF9F3F1A' },
             border: { value: '#CF9F3F4D' },
           },
-          // États
+          // States
           success: {
             DEFAULT: { value: '#3FA8A0' },
             hover: { value: '#55BBB3' },
@@ -23,12 +23,12 @@ const customConfig = defineConfig({
         },
 
         /**
-         * L'anneau de ses propres composants.
+         * The ring on Chakra's own components.
          *
-         * Chakra pose `--focus-ring-color` sur l'élément, depuis ce jeton :
-         * une règle globale ne peut pas la battre en spécificité. Sans cette
-         * reprise, la moitié des cibles gardait le gris par défaut — mesuré
-         * `rgb(161, 161, 170)` — à côté de l'ambre du reste de l'application.
+         * Chakra sets `--focus-ring-color` on the element, from this token: a
+         * global rule cannot beat it on specificity. Without this override,
+         * half the targets kept the default grey — measured
+         * `rgb(161, 161, 170)` — next to the amber of the rest of the app.
          */
         gray: {
           focusRing: { value: '{colors.amber}' },
@@ -52,26 +52,24 @@ const customConfig = defineConfig({
         },
 
         /**
-         * Le ressenti a sa propre échelle, et elle ne croise aucune couleur
-         * d'action.
+         * Effort has its own scale, and it crosses no action colour.
          *
-         * L'ambre portait six sens à lui seul : la marque, l'action
-         * principale, le tri actif, le non-lu, les lettres d'index et le
-         * ressenti « Juste ». Une teinte qui veut dire six choses ne veut plus
-         * dire grand-chose, et c'est celle qui doit attirer l'œil.
+         * Amber carried six meanings on its own: the brand, the primary
+         * action, the active sort, the unread badge, the index letters and a
+         * "Juste" rating. A hue that means six things no longer means much,
+         * and it is the one that has to draw the eye.
          *
-         * La règle tenue désormais : l'ambre ne dit que deux choses — « c'est
-         * une action » et « c'est là que tu es ». Le ressenti, lui, est une
-         * donnée : on ne clique pas dessus, il n'a rien à faire dans la
-         * palette de marque.
+         * The rule now held: amber says only two things — "this is an action"
+         * and "this is where you are". Effort is data: you do not click it,
+         * it has no business in the brand palette.
          *
-         * L'échelle est divergente, froid → chaud, parce que la grandeur l'est
-         * aussi : trop facile et trop dure sont deux écarts de part et d'autre
-         * du juste. Le vert médian n'est pas un « bien » moral, c'est le
-         * milieu de l'échelle — et ici le milieu est effectivement la cible.
+         * The scale is diverging, cold → warm, because the quantity is too:
+         * too easy and too hard are two departures either side of just right.
+         * The median green is not a moral "good", it is the middle of the
+         * scale — and here the middle really is the target.
          *
-         * Ces valeurs habillent du texte de 12 px : toutes dépassent 5,5:1 sur
-         * le fond le plus clair de l'application.
+         * These values dress 12 px text: all of them exceed 5.5:1 on the
+         * app's lightest background.
          */
         effort: {
           easy: { value: '#7FA9E0' },
@@ -80,17 +78,16 @@ const customConfig = defineConfig({
         },
 
         /**
-         * L'accent d'un type de bloc : une famille, pas une gravité.
+         * A block type's accent: a family, not a severity.
          *
-         * Les blocs d'effort portaient le rouge saturé de l'alerte — la même
-         * teinte que « Supprimer » et qu'un ressenti « trop dure ». Un liseré
-         * de bloc ne prévient de rien : il dit de quelle espèce est ce qui
-         * suit, travail, repos ou échauffement.
+         * Work blocks used to carry the saturated red of an alert — the same
+         * hue as "Supprimer" and as a "too hard" rating. A block's edge warns
+         * of nothing: it says what species follows, work, rest or warm-up.
          *
-         * La gamme est donc la même en teinte et moitié moins saturée : on
-         * distingue toujours les trois familles d'un coup d'œil, mais aucune
-         * ne réclame plus l'attention qu'une alerte mérite. Le rouge saturé
-         * reste au ressenti difficile et aux gestes qui détruisent.
+         * The range is therefore the same in hue and half as saturated: the
+         * three families are still told apart at a glance, but none of them
+         * claims more attention than an alert deserves. Saturated red stays
+         * with hard effort and with gestures that destroy.
          */
         block: {
           work: { value: '#B06A61' },
@@ -103,11 +100,11 @@ const customConfig = defineConfig({
             DEFAULT: { value: '#E2574C' },
             fg: { value: '#EC8079' },
           },
-          // Le teal d'origine (#4F8F8A) avait une chroma de 0,067 : sous le
-          // plancher en deçà duquel une couleur se lit comme un gris. La
-          // distinction effort / repos ne reposait donc que sur le rouge.
-          // 0,096 est le maximum atteignable pour un teal à cette clarté —
-          // au-delà on bascule dans le cyan, ce que la DA ne veut pas.
+          // The original teal (#4F8F8A) had a chroma of 0.067: below the
+          // floor under which a colour reads as grey. The work / rest
+          // distinction therefore rested on the red alone. 0.096 is the
+          // maximum reachable for a teal at this lightness — beyond that it
+          // tips into cyan, which the art direction does not want.
           rest: {
             DEFAULT: { value: '#3FA8A0' },
             fg: { value: '#8FCFC8' },
@@ -117,7 +114,7 @@ const customConfig = defineConfig({
     },
     tokens: {
       colors: {
-        /** L'ambre de la marque, à une seule adresse. */
+        /** The brand's amber, at a single address. */
         amber: { value: '#CF9F3F' },
         brand: {
           50: { value: '#fffbeb' },
@@ -137,20 +134,19 @@ const customConfig = defineConfig({
   },
   globalCss: {
     /**
-     * L'anneau de focus, à une seule adresse.
+     * The focus ring, at a single address.
      *
-     * Il était réécrit trente-cinq fois, et pas toujours pareil : l'offset
-     * valait 1, 2 ou 4 px selon l'endroit, et le rail de navigation n'en
-     * avait aucun — il gardait le contour par défaut du navigateur, qui sur
-     * fond sombre ne se voit pas.
+     * It was rewritten thirty-five times, and not always the same: the offset
+     * was 1, 2 or 4 px depending on the place, and the navigation rail had
+     * none at all — it kept the browser's default outline, which on a dark
+     * background cannot be seen.
      *
-     * Posé ici, il couvre tout ce qui prend le focus, y compris ce qu'on
-     * n'aurait pas pensé à habiller.
+     * Set here, it covers everything that takes focus, including what nobody
+     * would have thought to dress.
      */
     ':root': {
-      // Valeur de repli pour ce qui n'est pas un composant Chakra : sans
-      // elle, l'anneau tombait sur `currentColor` et prenait la couleur du
-      // texte.
+      // A fallback for anything that is not a Chakra component: without it
+      // the ring fell back to `currentColor` and took the text's colour.
       '--focus-ring-color': 'var(--chakra-colors-amber)',
       '--focus-ring-width': '2px',
       '--focus-ring-offset': '2px',

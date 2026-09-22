@@ -38,11 +38,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  TACTILE,
-  ecartTactile,
-  hitAreaTactile,
-} from '@/components/hitArea';
+import { TACTILE, ecartTactile, hitAreaTactile } from '@/components/hitArea';
 import {
   closestCenter,
   DndContext,
@@ -59,9 +55,9 @@ import { useBackDismiss } from '@/hooks/useBackDismiss';
 
 interface Props {
   session: Session;
-  /** Le client dont on édite le programme — la source d'une copie. */
+  /** The client whose programme is being edited — the source of a copy. */
   clientId: string;
-  /** Exercices déjà posés ailleurs dans le programme, pour le sélecteur. */
+  /** Exercises already placed elsewhere in the programme, for the selector. */
   inProgram: Exercise[];
   onRemoveSession: () => void;
   onDuplicateSession: () => void;
@@ -129,7 +125,6 @@ export const ClientProgramTab = ({
   const [showBlockSelector, setShowBlockSelector] = useState(false);
   const [selectorBlockId, setSelectorBlockId] = useState<string | null>(null);
 
-
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
   const [isCopyOpen, setIsCopyOpen] = useState(false);
   const [noteDemandee, setNoteDemandee] = useState(false);
@@ -142,9 +137,9 @@ export const ClientProgramTab = ({
 
   const isMobile = useBreakpointValue({ base: true, md: false });
 
-  // Le retour du téléphone referme ce qui est ouvert par-dessus l'atelier,
-  // au lieu de quitter la séance. Quatre couches, quatre repères — la plus
-  // haute ferme la première, puisque chacune a posé le sien à son ouverture.
+  // The phone's back button closes whatever is open over the editor, instead
+  // of leaving the session. Four layers, four landmarks — the topmost closes
+  // first, since each pushed its own on opening.
   useBackDismiss(showBlockSelector, closeBlockSelector);
   useBackDismiss(!!selectorBlockId, () => setSelectorBlockId(null));
   useBackDismiss(!!sheetExercise, () => setSheetExercise(null));
@@ -170,10 +165,10 @@ export const ClientProgramTab = ({
     <>
       <VStack align="stretch" gap={4}>
         <VStack align="stretch" gap={1}>
-          {/* La note ne s'affiche que si elle existe, ou si on vient de la
-              demander. « + note de séance » posé en permanence était la
-              septième invitation de l'écran, et la seule dont la plupart des
-              séances se passent. */}
+          {/* The note only shows when it exists, or when it has just been
+              asked for. A permanently placed "+ note de séance" was the
+              screen's seventh invitation, and the only one most sessions do
+              without. */}
           {noteVisible && (
             <Box className="group" w="fit-content" maxW="full">
               <InlineText
@@ -187,14 +182,14 @@ export const ClientProgramTab = ({
               />
             </Box>
           )}
-          {/* Les pastilles de jour font 44 px au doigt, le bouton de note en
-              porte 44 d'invisibles autour de ses 24 : sans cet écart, sa zone
-              mordrait sur la pastille de dimanche. */}
+          {/* The day chips are 44 px under a finger, the note button carries
+              44 invisible ones around its 24: without this gap its zone would
+              bite into Sunday's chip. */}
           <HStack gap={2} css={ecartTactile} align="center">
-            {/* Le jour conseillé est un attribut de la séance, au même rang
-                que sa note : c'est le coach qui le pose, une seule fois, ici.
-                La semaine du client s'en déduit à l'affichage — il n'y a pas
-                de planning séparé à tenir en cohérence. */}
+            {/* The suggested day is an attribute of the session, of the same
+                rank as its note: the coach sets it, once, here. The client's
+                week is derived from it at display time — there is no separate
+                schedule to keep consistent. */}
             <SuggestedDaysPicker
               value={session.suggestedDays}
               onChange={onUpdateSessionDays}
@@ -311,36 +306,35 @@ export const ClientProgramTab = ({
           </Text>
         )}
 
-        {/* Le chrome de séance.
+        {/* The session chrome.
 
-            Les deux commandes étaient côte à côte, de même taille, de même
-            gris et de même style d'icône, à quatre pixels l'une de l'autre.
-            L'une est anodine — on peut dupliquer dix fois sans dommage —,
-            l'autre détruit le travail d'une séance entière. La confirmation
-            existe déjà ; c'est le geste *avant* la confirmation qu'il faut
-            rendre moins facile, et deux boutons jumeaux le rendent facile par
-            erreur.
+            The two controls sat side by side, the same size, the same grey
+            and the same icon style, four pixels apart. One is harmless — you
+            can duplicate ten times without damage — the other destroys a
+            whole session's work. The confirmation already exists; it is the
+            gesture *before* the confirmation that has to be made less easy,
+            and two twin buttons make it easy by mistake.
 
-            « Supprimer » part donc seule à droite, en rouge, avec toute la
-            largeur de la colonne entre elle et sa voisine. */}
+            So "Supprimer" goes alone to the right, in red, with the column's
+            whole width between it and its neighbour. */}
         <HStack justify="flex-start" gap={4} rowGap={2} wrap="wrap" pt={2}>
           <Button
             size="xs"
             variant="ghost"
             color="fg.muted"
-            /* Assez larges, trop basses : 32 px de haut au doigt. Elles sont
-               seules sur leur rangée, donc la hauteur peut monter sans rien
-               recouvrir. */
+            /* Wide enough, too short: 32 px tall under a finger. They are
+               alone on their row, so the height can grow without covering
+               anything. */
             css={{ [TACTILE]: { minHeight: '44px' } }}
             onClick={onDuplicateSession}
           >
             <LuCopy size={13} />
             Dupliquer la séance
           </Button>
-          {/* Dupliquer et copier se ressemblent assez pour tenir côte à côte,
-              et assez peu pour ne pas se confondre : l'une reste chez ce
-              client, l'autre part chez un autre — et son libellé le dit avant
-              le clic, par les points de suspension qui annoncent un choix. */}
+          {/* Duplicating and copying are alike enough to sit side by side,
+              and unalike enough not to be confused: one stays with this
+              client, the other goes to another — and its label says so before
+              the click, through the ellipsis that announces a choice. */}
           <Button
             size="xs"
             variant="ghost"
@@ -354,10 +348,10 @@ export const ClientProgramTab = ({
           <Button
             size="xs"
             variant="ghost"
-            /* `ml="auto"` plutôt que `space-between` : l'écart maximal quand
-               les deux tiennent sur une ligne, et « Supprimer » qui reste à
-               droite quand elles passent à la ligne. `space-between` sur une
-               rangée qui ne se replie pas poussait la page de 51 px à 768. */
+            /* `ml="auto"` rather than `space-between`: the maximum gap when
+               both fit on one line, and "Supprimer" staying on the right when
+               they wrap. `space-between` on a row that does not wrap pushed
+               the page 51 px wide at 768. */
             ml="auto"
             color="app.error"
             _hover={{ bg: 'app.error/12' }}
@@ -391,8 +385,8 @@ export const ClientProgramTab = ({
         />
       )}
 
-      {/* La fiche par-dessus l'atelier : on corrige une consigne ou on colle
-          une vidéo sans naviguer, donc sans perdre le programme en cours. */}
+      {/* The card over the editor: you fix an instruction or paste a video
+          without navigating, and so without losing the programme in hand. */}
       <Drawer.Root
         open={!!sheetExercise}
         onOpenChange={(e) => !e.open && setSheetExercise(null)}
@@ -414,7 +408,6 @@ export const ClientProgramTab = ({
           </Drawer.Positioner>
         </Portal>
       </Drawer.Root>
-
     </>
   );
 };
