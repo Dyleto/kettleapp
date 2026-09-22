@@ -34,10 +34,10 @@ import { COACH_ROUTES } from '@/config/routes';
 import { Exercise, Session } from '@/types';
 
 /**
- * « Avec ses 3 exercices. », « Avec son exercice. », ou rien du tout.
+ * "Avec ses 3 exercices.", "Avec son exercice.", or nothing at all.
  *
- * Le pluriel n'est pas une affaire de « s » collé au bout : « Avec ses
- * 1 bloc » ne se dit pas, et c'est ce que produisait la forme courte.
+ * Plurals are not a matter of an "s" glued on the end: "Avec ses 1 bloc" is
+ * not something you say, and that is what the short form produced.
  */
 const compteRendu = (combien: number, nom: string): string | undefined => {
   if (combien === 0) return undefined;
@@ -52,9 +52,9 @@ const ClientDetails = () => {
   const { data: client, isLoading } = useClientDetails(clientId!);
   const { data: history = [] } = useClientHistory(clientId!);
 
-  // Le nom du client, pas « Séance 1 » : c'est ce qui distingue deux onglets
-  // ouverts côte à côte, et c'est le constat qu'on corrige. Tant qu'il charge,
-  // l'onglet garde le nom du produit plutôt que d'afficher un blanc.
+  // The client's name, not "Séance 1": that is what distinguishes two tabs
+  // open side by side, and it is the finding being fixed. While it loads, the
+  // tab keeps the product name rather than showing a blank.
   useDocumentTitle(
     client ? `${client.firstName} ${client.lastName}` : undefined
   );
@@ -63,9 +63,8 @@ const ClientDetails = () => {
     silent: true,
   });
 
-  // `mutateAsync` est stable, mais la mutation, elle, ne l'est pas : passer
-  // l'objet entier au crochet relancerait sa programmation d'envoi à chaque
-  // rendu.
+  // `mutateAsync` is stable, but the mutation is not: passing the whole
+  // object to the hook would restart its send scheduling on every render.
   const { mutateAsync } = updateProgramMutation;
   const save = useCallback(
     (sessions: Session[]) => mutateAsync(sessions),
@@ -84,16 +83,16 @@ const ClientDetails = () => {
   });
 
   /**
-   * À partir de quelle largeur le retour du client passe en colonne.
+   * From what width the client's feedback becomes a column.
    *
-   * Le seuil était à 1536 px, ce qui réservait la troisième colonne aux très
-   * grands écrans : sur un portable ordinaire, le coach lisait le retour de
-   * son client en bandeau au-dessus du programme qu'il commente, donc jamais
-   * en même temps que lui.
+   * The threshold was 1536 px, which reserved the third column for very large
+   * screens: on an ordinary laptop the coach read their client's feedback as
+   * a banner above the programme it comments on, and so never at the same
+   * time as it.
    *
-   * À 1280 px la place existe — le rail fait 220 px, la colonne de retour
-   * 300, il reste plus de 700 px pour le programme, soit davantage que les
-   * 660 qu'il occupait avant ce changement.
+   * At 1280 px the room exists — the rail is 220 px, the feedback column 300,
+   * leaving over 700 px for the programme, which is more than the 660 it
+   * occupied before this change.
    */
   const isWide = useBreakpointValue({ base: false, xl: true });
 
@@ -101,8 +100,8 @@ const ClientDetails = () => {
   const sessions = program?.sessions ?? [];
   const activeSession = sessions[currentIndex] ?? null;
 
-  // Le programme entier est en mémoire : « déjà dans ce programme » et
-  // « jamais faite » se calculent sans une seule requête de plus.
+  // The whole programme is in memory: "already in this programme" and "never
+  // done" are computed without a single extra request.
   const inProgram = useMemo<Exercise[]>(() => {
     const byId = new Map<string, Exercise>();
     program?.sessions.forEach((s) =>
@@ -116,12 +115,12 @@ const ClientDetails = () => {
   }, [program]);
 
   /**
-   * Combien de fois chaque séance a été faite, et quand pour la dernière.
+   * How many times each session was done, and when the last was.
    *
-   * « faite 4 fois » vivait en gris minuscule à droite du titre de la séance
-   * ouverte — donc une séance à la fois. C'est pourtant l'information qui dit
-   * si le programme est suivi : le coach a besoin de la lire sur toutes les
-   * séances d'un coup, pour voir celles que son client évite.
+   * "faite 4 fois" lived in tiny grey to the right of the open session's
+   * title — so one session at a time. Yet that is the information that says
+   * whether the programme is being followed: the coach needs to read it
+   * across every session at once, to see the ones their client avoids.
    */
   const suivi = useMemo(() => {
     const par = new Map<string, { fois: number; derniere?: string }>();
@@ -131,7 +130,9 @@ const ClientDetails = () => {
       par.set(h.originalSessionId, {
         fois: courant.fois + 1,
         derniere:
-          !courant.derniere || quand > courant.derniere ? quand : courant.derniere,
+          !courant.derniere || quand > courant.derniere
+            ? quand
+            : courant.derniere,
       });
     }
     return par;
@@ -149,15 +150,15 @@ const ClientDetails = () => {
   };
 
   /**
-   * Supprimer la séance ouverte, avec de quoi la reposer.
+   * Delete the open session, with the means to put it back.
    *
-   * C'est la plus grosse perte possible d'un seul geste — une séance emporte
-   * tous ses blocs — et c'est justement pourquoi le filet vaut mieux que la
-   * question : celle-ci se répond « oui » par réflexe après la troisième fois,
-   * le bandeau, lui, attend huit secondes sans rien demander.
+   * It is the biggest possible loss in one gesture — a session takes all its
+   * blocks with it — and that is precisely why the safety net beats the
+   * question: the question gets a reflex "yes" after the third time, while
+   * the banner waits eight seconds asking nothing.
    *
-   * La reprise ramène aussi le coach dessus. Annuler, c'est revenir où l'on
-   * était, pas seulement récupérer ce qu'on avait perdu.
+   * Undoing also brings the coach back to it. Cancelling means returning
+   * where you were, not merely recovering what you had lost.
    */
   const handleRemoveActiveSession = () => {
     if (!activeSession) return;
@@ -179,12 +180,12 @@ const ClientDetails = () => {
   };
 
   /**
-   * Supprimer un bloc, avec de quoi le reposer.
+   * Delete a block, with the means to put it back.
    *
-   * Il avait une confirmation, et elle disparaît avec ce filet : garder les
-   * deux, ce serait poser une question ET offrir un rattrapage, soit deux
-   * gestes pour une seule erreur possible. Un bloc part entier, avec ses
-   * exercices — le bandeau le dit, et « Annuler » le repose à son rang.
+   * It had a confirmation, and that goes with this safety net: keeping both
+   * would mean asking a question AND offering a recovery, that is two
+   * gestures for one possible mistake. A block leaves whole, with its
+   * exercises — the banner says so, and "Annuler" puts it back in its place.
    */
   const supprimerBloc = (blockId: string) => {
     const index = activeSession?.blocks.findIndex((b) => b._id === blockId);
@@ -203,12 +204,12 @@ const ClientDetails = () => {
   };
 
   /**
-   * Retirer un exercice, avec de quoi le reposer.
+   * Remove an exercise, with the means to put it back.
    *
-   * C'est le geste le plus fréquent de l'atelier, et le seul qui ne demandait
-   * rien : un ✕ dans la gouttière, à côté de « changer l'unité ». Une
-   * confirmation à chaque retrait serait insupportable ; un bandeau qui reste
-   * huit secondes ne coûte rien à qui ne s'est pas trompé.
+   * It is the editor's most frequent gesture, and the only one that asked
+   * nothing: a ✕ in the gutter, next to "change the unit". A confirmation on
+   * every removal would be unbearable; a banner that stays eight seconds
+   * costs nothing to someone who did not make a mistake.
    */
   const retirerExercice = (blockId: string, index: number) => {
     const bloc = activeSession?.blocks.find((b) => b._id === blockId);
@@ -227,8 +228,8 @@ const ClientDetails = () => {
   const handleDuplicateActiveSession = () => {
     if (!activeSession) return;
     actions.duplicateSession(activeSession._id);
-    // La copie est insérée juste après l'originale : on l'ouvre aussitôt,
-    // c'est elle qu'on vient créer pour l'ajuster.
+    // The copy is inserted right after the original: we open it at once, it
+    // is what has just been created in order to be adjusted.
     navigate(COACH_ROUTES.clientSession(clientId!, currentIndex + 2));
   };
 
@@ -256,9 +257,10 @@ const ClientDetails = () => {
 
   return (
     <>
-      {/* Mobile : une seule barre. Elle remplace le bandeau générique du
-          layout (voir le `handle` de la route) et absorbe l'en-tête de page —
-          le nom du client à gauche, son journal et le compte à droite. */}
+      {/* Mobile: one bar only. It replaces the layout's generic banner
+          (see the route's `handle`) and absorbs the page header — the
+          client's name on the left, their journal and the account on the
+          right. */}
       <Box
         as="header"
         display={{ base: 'block', md: 'none' }}
@@ -294,10 +296,10 @@ const ClientDetails = () => {
             onClick={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
             color="fg.muted"
             flexShrink={0}
-            /* Une taille réelle plutôt qu'une zone invisible : à 34 px de
-               large, ses 44 px débordaient de 5 px sur le menu du compte
-               juste à côté, et le menu l'emportait — on visait le journal,
-               on ouvrait le compte. */
+            /* A real size rather than an invisible zone: at 34 px wide,
+               its 44 px overflowed 5 px onto the account menu right beside
+               it, and the menu won — you aimed at the journal and opened the
+               account. */
             boxSize="44px"
             display="flex"
             alignItems="center"
@@ -321,8 +323,8 @@ const ClientDetails = () => {
         </HStack>
       </Box>
 
-      {/* La barre d'onglets mobile est fixée par-dessus la page : sans cette
-          réserve, les dernières lignes de l'atelier passent dessous. */}
+      {/* The mobile tab bar is fixed over the page: without this reserve,
+          the editor's last rows go underneath. */}
       <Box
         w="100%"
         px={{ base: 4, md: 8 }}
@@ -347,9 +349,8 @@ const ClientDetails = () => {
               <Avatar.Image alt="" src={client.picture} />
             </Avatar.Root>
             <VStack align="start" gap={0} flex={1} minW={0}>
-              {/* Le h1 de cet écran est celui de la barre mobile : une seule
-                  des deux en-têtes est affichée à la fois, mais toutes deux
-                  étaient balisées h1. */}
+              {/* This screen's h1 is the mobile bar's: only one of the two
+                  headers shows at a time, but both were marked up as h1. */}
               <Heading as="p" size="lg" fontWeight="bold">
                 {client.firstName} {client.lastName}
               </Heading>
@@ -371,10 +372,10 @@ const ClientDetails = () => {
           </HStack>
         </VStack>
 
-        {/* Le rail passe en colonne à `lg`, pas à `md` : voir `SessionRail`.
-            La disposition doit suivre le même seuil, sinon la bande
-            horizontale se retrouverait à côté de l'atelier au lieu d'être
-            au-dessus. */}
+        {/* The rail becomes a column at `lg`, not at `md`: see
+            `SessionRail`. The layout has to follow the same threshold,
+            otherwise the horizontal strip would end up beside the editor
+            instead of above it. */}
         <Stack
           direction={{ base: 'column', lg: 'row' }}
           align={{ base: 'stretch', lg: 'flex-start' }}
@@ -392,9 +393,9 @@ const ClientDetails = () => {
           <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
             {activeSession ? (
               <>
-                {/* Le rang reste le titre, le nom s'y ajoute — et s'édite
-                    là où il se lit, exactement comme le nom libre d'un bloc :
-                    « + nom » quand il n'y en a pas, le nom lui-même sinon. */}
+                {/* The rank stays the title, the name adds to it — and is
+                    edited where it is read, exactly like a block's free name:
+                    "+ nom" when there is none, the name itself otherwise. */}
                 <HStack
                   justify="flex-start"
                   align="baseline"
@@ -417,9 +418,9 @@ const ClientDetails = () => {
                     fontSize="sm"
                     width="220px"
                   />
-                  {/* Le compte est passé dans le rail, où il se lit sur
-                      toutes les séances à la fois. Le répéter ici ne dirait
-                      rien de plus sur celle qui est ouverte. */}
+                  {/* The count moved into the rail, where it reads across
+                      every session at once. Repeating it here would say
+                      nothing more about the open one. */}
                 </HStack>
 
                 {!isWide && <SessionFeedbackStrip history={sessionHistory} />}
@@ -482,15 +483,15 @@ const ClientDetails = () => {
               />
             ) : (
               /*
-               * Le programme n'est pas vide : c'est cette séance-là qui
-               * n'existe pas.
+               * The programme is not empty: it is this session that does not
+               * exist.
                *
-               * Les deux états disaient « Ce programme est vide », rail plein
-               * de S1…S5 à côté. C'est faux et c'est alarmant : un coach qui
-               * tombe dessus croit avoir perdu le travail de son client. On y
-               * arrive par une adresse en signet qui a vieilli, par un lien
-               * partagé, ou en supprimant la dernière séance alors qu'on
-               * était dessus.
+               * Both states said "Ce programme est vide", with a rail full of
+               * S1…S5 beside it. That is false and it is alarming: a coach
+               * who lands on it believes they have lost their client's work.
+               * You get here through a bookmarked address that has aged,
+               * through a shared link, or by deleting the last session while
+               * standing on it.
                */
               <EtatVide
                 titre={`La séance ${currentIndex + 1} n'existe pas`}

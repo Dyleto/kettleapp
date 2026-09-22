@@ -28,42 +28,41 @@ const daysSince = (date: Date | string) =>
   Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
 
 /**
- * Depuis combien de jours ce client n'a rien fait.
+ * How many days this client has done nothing.
  *
- * Sans séance terminée on compte depuis la mise en relation : « jamais fait
- * de séance » et « a décroché » restent deux phrases différentes à l'écran,
- * mais pour trier ce sont bien deux formes de la même inactivité, et celui
- * qu'on a inscrit il y a trois mois sans qu'il commence est le plus urgent
- * des deux.
+ * With no finished session we count from when they were linked: "never did a
+ * session" and "dropped off" remain two different sentences on screen, but
+ * for sorting they are two forms of the same inactivity, and the one signed
+ * up three months ago who never started is the more urgent of the two.
  */
 const inactivityDays = (client: Client): number =>
   daysSince(client.lastCompletedAt ?? client.linkedAt);
 
 /**
- * Une ligne de client, en cases fixes.
+ * One client row, in fixed cells.
  *
- * Quatre anatomies de ligne cohabitaient : « Trop dure · il y a 3 jours »,
- * « rien depuis 3 sem. », « nouveau client », « jamais fait de séance » — plus
- * un « 3 » ambre sans légende à droite. Impossible de balayer une colonne : il
- * fallait lire les sept lignes une par une, et l'ordre du tri « À traiter »
- * n'était reconstituable depuis aucune d'elles.
+ * Four row anatomies coexisted: "Trop dure · il y a 3 jours", "rien depuis 3
+ * sem.", "nouveau client", "jamais fait de séance" — plus an amber "3" with
+ * no caption on the right. Scanning a column was impossible: you had to read
+ * the seven rows one by one, and the "À traiter" sort order could be
+ * reconstructed from none of them.
  *
- * La grammaire est désormais fixe — état · ancienneté · ce qui attend — et les
- * cases vides restent vides à leur place. Ce qui attend le coach est écrit en
- * toutes lettres : c'est ce qui rend le rang de chaque client auto-explicatif.
+ * The grammar is now fixed — status · age · what is waiting — and empty cells
+ * stay empty in their place. What awaits the coach is spelled out: that is
+ * what makes each client's rank self-explanatory.
  */
 interface LigneClient {
-  /** L'état en un mot : le dernier ressenti, ou « Nouveau ». */
+  /** The status in one word: the last effort rating, or "Nouveau". */
   etat: string | null;
-  /** Depuis quand, quand ce n'est pas déjà dit par la case suivante. */
+  /** Since when, when the next cell does not already say it. */
   anciennete: string | null;
-  /** Ce qui attend le coach, ou rien. */
+  /** What awaits the coach, or nothing. */
   attente: string | null;
-  /** Une lecture en attente appelle une action ; un silence ne fait que durer. */
+  /** An unread session calls for action; a silence merely goes on. */
   attenteEstAction: boolean;
 }
 
-/** « il y a 3 semaines », dans une seule grammaire. */
+/** "il y a 3 semaines", in a single grammar. */
 const depuis = (days: number): string => {
   if (days <= 0) return "aujourd'hui";
   if (days === 1) return 'hier';
@@ -75,14 +74,14 @@ const depuis = (days: number): string => {
 };
 
 const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
-  // Jamais démarré. Au-delà du délai de silence, ce n'est plus un nouveau
-  // client : c'est quelqu'un qu'on a inscrit et qui n'a rien fait.
+  // Never started. Past the silence threshold this is no longer a new
+  // client: it is someone signed up who has done nothing.
   if (!client.lastCompletedAt) {
     const days = daysSince(client.linkedAt);
     return days >= SILENCE_THRESHOLD_DAYS
       ? {
-          // L'ancienneté compte depuis la mise en relation : c'est elle qui
-          // départage deux clients jamais démarrés dans le tri « À traiter ».
+          // Age counts from when they were linked: it is what separates two
+          // never-started clients in the "À traiter" sort.
           etat: null,
           anciennete: depuis(days),
           attente: 'jamais démarré',
@@ -99,8 +98,8 @@ const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
   const days = daysSince(client.lastCompletedAt);
   const etat = effortLabel ?? null;
 
-  // Des séances à lire : c'est la seule case qui demande une action, et elle
-  // prime sur le silence — on ne peut pas être muet et avoir écrit.
+  // Sessions to read: the only cell that calls for action, and it outranks
+  // silence — you cannot be silent and have written.
   if (client.unseenCount > 0) {
     const n = client.unseenCount;
     return {
@@ -111,8 +110,8 @@ const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
     };
   }
 
-  // Le silence. L'ancienneté reste vide : la phrase la porte déjà, et la
-  // répéter à deux centimètres d'intervalle ne dit rien de plus.
+  // Silence. The age cell stays empty: the sentence already carries it, and
+  // repeating it two centimetres away says nothing more.
   if (days >= SILENCE_THRESHOLD_DAYS) {
     return {
       etat,
@@ -122,7 +121,12 @@ const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
     };
   }
 
-  return { etat, anciennete: depuis(days), attente: null, attenteEstAction: false };
+  return {
+    etat,
+    anciennete: depuis(days),
+    attente: null,
+    attenteEstAction: false,
+  };
 };
 
 type ClientSort = 'triage' | 'alpha' | 'recent';
@@ -140,9 +144,9 @@ const byName = (a: Client, b: Client) =>
     { sensitivity: 'base' }
   );
 
-// À traiter d'abord — le plus de séances non vues —, puis le plus longtemps
-// sans rien faire, puis l'alphabétique. Le premier nom de la liste est
-// toujours le prochain à traiter, pour l'une ou l'autre raison.
+// To handle first — the most unseen sessions — then the longest inactive,
+// then alphabetical. The first name in the list is always the next one to
+// handle, for one reason or the other.
 const sortClients = (clients: Client[], sort: ClientSort): Client[] => {
   const list = [...clients];
 
@@ -172,7 +176,7 @@ const matches = (client: Client, query: string): boolean => {
 interface ClientRowProps {
   client: Client;
   onSelect: () => void;
-  /** Le client dont l'aperçu est affiché à côté. */
+  /** The client whose preview is shown alongside. */
   selected?: boolean;
 }
 
@@ -190,18 +194,19 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
       bg={selected ? 'bg.surface' : undefined}
       aria-current={selected ? 'true' : undefined}
     >
-      {/* Des colonnes, pas une phrase. Sur large, les cinq cases s'alignent
-          d'une ligne à l'autre : on balaie « ce qui attend » sans lire les
-          noms. Sur téléphone la largeur manque, mais l'ordre de lecture reste
-          le même — état et ancienneté sous le nom, ce qui attend à droite. */}
+      {/* Columns, not a sentence. On wide screens the five cells line up
+          from row to row: you scan "what is waiting" without reading the
+          names. On a phone the width is missing, but the reading order stays
+          the same — status and age under the name, what is waiting on the
+          right. */}
       <Grid
         alignItems="center"
         columnGap={3}
         rowGap={0}
         templateColumns={{
           base: '32px auto minmax(0, 1fr) auto',
-          // 152 px : « rien depuis 3 semaines » est la plus longue des
-          // phrases de cette colonne, et elle se tronquait à 136.
+          // 152 px: "rien depuis 3 semaines" is the longest sentence in
+          // this column, and it truncated at 136.
           md: '32px minmax(0, 1fr) 84px 108px 152px',
         }}
         templateAreas={{
@@ -224,8 +229,8 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           {client.firstName} {client.lastName}
         </Text>
 
-        {/* Les cases vides restent vides, mais à leur place : c'est ce qui
-            permet de comparer deux lignes sans les relire. */}
+        {/* Empty cells stay empty, but in their place: that is what lets
+            you compare two rows without rereading them. */}
         <Text
           gridArea="etat"
           fontSize="xs"
@@ -247,11 +252,11 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           {ligne.anciennete}
         </Text>
 
-        {/* En toutes lettres, à la place du nombre nu.
-            « 3 » ambre ne disait ni ce qu'il comptait, ni ce qu'il fallait en
-            faire — et sur la même ligne que le ressenti, l'ambre entrait en
-            concurrence avec une couleur qui veut dire autre chose. Seule une
-            lecture en attente appelle une action, donc seule elle la porte. */}
+        {/* Spelled out, in place of the bare number. An amber "3" said
+            neither what it counted nor what to do about it — and on the same
+            row as the effort rating, the amber competed with a colour that
+            means something else. Only an unread session calls for action, so
+            only it carries the accent. */}
         <Text
           gridArea="attente"
           fontSize="xs"
@@ -271,9 +276,9 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
 
 interface ClientsListProps {
   /**
-   * Quand un aperçu accompagne la liste, cliquer choisit au lieu d'ouvrir :
-   * c'est l'aperçu qui répond, et l'atelier reste à un bouton. Sans aperçu —
-   * sur un écran étroit — le clic ouvre directement, comme avant.
+   * When a preview accompanies the list, clicking selects rather than opens:
+   * the preview answers, and the editor stays one button away. With no
+   * preview — on a narrow screen — the click opens directly, as before.
    */
   onPreview?: (client: Client) => void;
   selectedId?: string;
@@ -296,14 +301,14 @@ export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
     [clients, query, sort]
   );
 
-  // Toujours l'atelier, jamais le journal.
+  // Always the editor, never the journal.
   //
-  // Les séances non vues y menaient : on arrivait sur le bon client et le bon
-  // retour — « trop dure, je n'ai pas pu finir le dernier bloc » — sur un
-  // écran en lecture seule. Le geste que ce retour appelle, alléger la
-  // séance, se joue dans l'atelier, qui affiche déjà ce même retour à côté du
-  // programme qu'il commente. Le journal reste l'historique complet, ouvert
-  // par son propre bouton.
+  // Unseen sessions used to lead there: you arrived on the right client and
+  // the right feedback — "too hard, I could not finish the last block" — on a
+  // read-only screen. The gesture that feedback calls for, lightening the
+  // session, happens in the editor, which already shows that same feedback
+  // beside the programme it comments on. The journal remains the full
+  // history, opened by its own button.
   const handleSelect = (client: Client) => {
     if (onPreview) return onPreview(client);
     navigate(COACH_ROUTES.clientSession(client._id, 1));
@@ -353,9 +358,9 @@ export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
 
   return (
     <VStack align="stretch" gap={3}>
-      {/* Chercher et trier n'apparaissent qu'à partir du moment où la liste
-          ne tient plus d'un coup d'œil. En dessous, l'ordre de traitement
-          suffit et deux commandes de plus ne feraient qu'encombrer. */}
+      {/* Search and sort only appear once the list no longer fits in a
+          glance. Below that, the handling order is enough and two more
+          controls would only clutter. */}
       {clients.length > 5 && (
         <VStack align="stretch" gap={2}>
           <HStack

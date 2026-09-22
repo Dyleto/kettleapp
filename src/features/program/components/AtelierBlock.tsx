@@ -24,11 +24,7 @@ import {
   getBlockLabel,
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
-import {
-  ecartTactile,
-  hitAreaTactile,
-  pasTactile,
-} from '@/components/hitArea';
+import { ecartTactile, hitAreaTactile, pasTactile } from '@/components/hitArea';
 import { formatDuration } from '@/utils/formatters';
 import { InlineText, InlineValue } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';
@@ -55,7 +51,7 @@ const KIND_LABEL: Record<MetricKind, string> = {
   custom: 'mesure libre',
 };
 
-/** Le même, en assez court pour tenir dans la gouttière d'une ligne. */
+/** The same, short enough to fit in a row's gutter. */
 const KIND_SHORT: Record<MetricKind, string> = {
   reps: 'reps',
   duration: 'durée',
@@ -79,10 +75,10 @@ const ExerciseRow = ({
   onUpdate,
   onRemove,
 }: ExerciseRowProps) => {
-  // La consigne d'un exercice n'a pas d'invitation permanente sous chaque
-  // ligne : cinq exercices, ce serait cinq « + consigne » à lire avant de
-  // lire le programme. Elle s'ouvre par la gouttière, là où vivent déjà les
-  // commandes de la ligne, et ne s'affiche ensuite que si elle existe.
+  // An exercise's instruction has no permanent invitation under every row:
+  // five exercises would mean five "+ consigne" to read before reading the
+  // programme. It opens from the gutter, where the row's controls already
+  // live, and afterwards only shows when it exists.
   const [noteOuverte, setNoteOuverte] = useState(false);
   const aUneNote = !!exercise.note?.trim();
 
@@ -106,24 +102,24 @@ const ExerciseRow = ({
   };
 
   const ligne = (
-    // La ligne passe sur deux niveaux d'elle-même quand le nom n'a plus la
-    // place. Pas de point de rupture deviné : c'est la largeur réellement
-    // disponible qui décide, et elle ne dépend pas que de l'écran — à 768 px
-    // le rail des séances apparaît et ne laisse que 116 px au nom, moins qu'à
-    // 390 px. La métrique garde son `ml="auto"` : alignée à droite qu'elle
-    // soit sur la même ligne ou sur la suivante.
+    // The row splits over two levels by itself when the name runs out of
+    // room. No guessed breakpoint: the width actually available decides, and
+    // it does not depend on the screen alone — at 768 px the session rail
+    // appears and leaves the name only 116 px, less than at 390 px. The
+    // metric keeps its `ml="auto"`: right-aligned whether it is on the same
+    // line or the next.
     //
-    // Tout tient dans la `flex-basis` du nom, laissée à `auto` : la base est
-    // alors la largeur du nom écrit d'un trait. Un nom court tient à côté de
-    // la métrique et la ligne ne se casse pas ; un nom long ne tient pas, et
-    // c'est ce qui déclenche le retour. `flex={1}` — base nulle — ne cassait
-    // jamais, et un `min-width` en pourcentage est cyclique ici : la largeur
-    // du conteneur dépend des lignes, les lignes du minimum, le minimum du
-    // conteneur. Chromium le tient alors pour nul au moment de casser.
+    // It all rests on the name's `flex-basis`, left at `auto`: the basis is
+    // then the width of the name written in one go. A short name fits beside
+    // the metric and the row does not break; a long name does not fit, and
+    // that is what triggers the wrap. `flex={1}` — a zero basis — never
+    // broke, and a percentage `min-width` is circular here: the container's
+    // width depends on the rows, the rows on the minimum, the minimum on the
+    // container. Chromium then treats it as zero at wrap time.
     <HStack
-      // Ancrage stable pour les mesures de mise en page : sans lui, une sonde
-      // doit remonter le DOM en comptant les niveaux, et le moindre
-      // regroupement la casse sans rien casser dans l'application.
+      // A stable anchor for layout measurements: without it a probe has to
+      // walk up the DOM counting levels, and the slightest regrouping breaks
+      // it without breaking anything in the app.
       data-exercise-row
       py={1.5}
       gap={3}
@@ -132,9 +128,9 @@ const ExerciseRow = ({
       align="center"
       css={{
         ...pasTactile,
-        // Visibles en permanence, en retrait : à zéro, un coach qui découvre
-        // l'atelier ne pouvait pas deviner qu'un bloc se déplace ou se
-        // supprime — la commande n'existait qu'après être passé dessus.
+        // Permanently visible, set back: at zero opacity, a coach
+        // discovering the editor could not guess a block can be moved or
+        // deleted — the control only existed after hovering over it.
         '&:hover [data-row-gutter], &:focus-within [data-row-gutter]': {
           opacity: 1,
         },
@@ -146,26 +142,26 @@ const ExerciseRow = ({
             {index + 1} ·
           </Text>
         )}
-        {/* Deux lignes plutôt qu'une : « Soulevé de terre jambes tendues à la
-            barre » en demande deux même sur toute la largeur d'un téléphone. */}
+        {/* Two lines rather than one: "Soulevé de terre jambes tendues à
+            la barre" needs two even across a whole phone's width. */}
         <Text fontSize="sm" color="fg.muted" lineClamp={2}>
           {exercise.exercise.name}
         </Text>
       </HStack>
 
-      {/* La prescription, alignée à droite en chiffres tabulaires : c'est ce
-          qu'on parcourt verticalement quand on relit une séance. */}
-      {/* La prescription et les commandes forment un seul élément : sans ce
-          groupe, elles se cassaient indépendamment et les commandes se
-          retrouvaient seules sur la ligne du dessous, à gauche, orphelines. */}
+      {/* The prescription, right-aligned in tabular figures: it is what
+          you scan vertically when rereading a session. */}
+      {/* The prescription and the controls form one element: without this
+          group they wrapped independently and the controls ended up alone on
+          the line below, to the left, orphaned. */}
       <HStack gap={3} flexShrink={0} ml="auto" align="center">
         {!ownMetrics && (
           <HStack gap={1} flexShrink={0}>
             {supportsSets && (
               <>
-                {/* Sans nombre écrit, l'exercice se fait une fois : « 1 » est
-                  la lecture juste, et c'est aussi la cible à cliquer pour en
-                  demander plusieurs. */}
+                {/* With no number written, the exercise happens once: "1" is
+                  the correct reading, and it is also the target to click to
+                  ask for several. */}
                 <InlineValue
                   value={exercise.sets}
                   onChange={(v) => onUpdate({ sets: v })}
@@ -259,8 +255,8 @@ const ExerciseRow = ({
           </HStack>
         )}
 
-        {/* Gouttière : révélée au survol ou au focus clavier, toujours visible
-          au tactile où le survol n'existe pas. */}
+        {/* Gutter: revealed on hover or keyboard focus, always visible on
+          touch where hover does not exist. */}
         <HStack
           data-row-gutter
           gap={2}
@@ -285,11 +281,11 @@ const ExerciseRow = ({
             <LuMessageSquare size={11} />
           </IconButton>
           {!ownMetrics && (
-            /* « ⇄ » ne disait ni qu'il remplace, ni qu'il échange, ni qu'il
-               inverse — un pictogramme que son auteur doit expliquer n'en est
-               pas un. Le mot, lui, porte deux informations que la flèche ne
-               portait ni l'une ni l'autre : ce que cette ligne mesure
-               aujourd'hui, et qu'on peut en changer. */
+            /* "⇄" said neither that it replaces, nor that it swaps, nor
+               that it reverses — a pictogram its author has to explain is not
+               one. The word carries two pieces of information the arrow
+               carried neither of: what this row measures today, and that it
+               can be changed. */
             <Box
               as="button"
               aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
@@ -327,9 +323,9 @@ const ExerciseRow = ({
   return (
     <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
       {ligne}
-      {/* La consigne se pose sous sa ligne, hors du calcul de retour à la
-          ligne de celle-ci, et n'apparaît que si elle existe ou qu'on vient
-          de la demander. */}
+      {/* The instruction sits under its row, outside that row's wrapping
+          calculation, and only appears when it exists or has just been
+          asked for. */}
       {(aUneNote || noteOuverte) && (
         <Box pb={1.5} pl={1}>
           <InlineText
@@ -348,7 +344,7 @@ const ExerciseRow = ({
 
 interface AtelierBlockProps {
   block: SessionBlock;
-  /** Exercices déjà posés ailleurs dans le programme. */
+  /** Exercises already placed elsewhere in the programme. */
   inProgram: Exercise[];
   dragHandleProps?: Record<string, unknown>;
   onUpdate: (updates: Partial<SessionBlock>) => void;
@@ -356,21 +352,20 @@ interface AtelierBlockProps {
   onAddExercise: (exercise: Exercise) => void;
   onRemoveExercise: (index: number) => void;
   onUpdateExercise: (index: number, updates: ExerciseUpdate) => void;
-  /** Fourni sous 768 px : le choix d'exercice passe alors par le tiroir plein
-   *  écran plutôt que par la liste déroulante, trop à l'étroit. */
+  /** Provided below 768 px: choosing an exercise then goes through the
+   *  full-screen drawer rather than the dropdown, which is too cramped. */
   onRequestExercisePicker?: () => void;
-  /** Ouvre la fiche d'un exercice par-dessus l'atelier. */
+  /** Opens an exercise's card over the editor. */
   onOpenExerciseSheet?: (exercise: Exercise) => void;
 }
 
 /**
- * Un bloc dans l'atelier du coach : le même rendu que celui que voit le
- * client, mais dont chaque valeur devient un champ au clic.
+ * A block in the coach's editor: the same rendering the client sees, but
+ * where every value becomes a field on click.
  *
- * Le principe dont tout découle : un programme se lit comme un programme,
- * pas comme un formulaire. Pas de boîte grise par valeur, pas de carte dans
- * une carte — de la typographie, un filet par bloc, et des commandes qui ne
- * se montrent que quand on s'approche.
+ * The principle everything follows from: a programme reads as a programme,
+ * not as a form. No grey box per value, no card inside a card — typography, a
+ * rule per block, and controls that only show when you come close.
  */
 export const AtelierBlock = ({
   block,
@@ -387,28 +382,28 @@ export const AtelierBlock = ({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   /**
-   * Le champ facultatif qu'on vient de réclamer.
+   * The optional field just requested.
    *
-   * Nom de bloc et consigne s'annonçaient chacun par un « + quelque chose »
-   * posé en permanence. À trois blocs, avec « + exercice » et « + note de
-   * séance », cela faisait sept invitations simultanées sur un écran, toutes
-   * du même gris et du même corps : le programme se lisait comme un
-   * formulaire à remplir plutôt que comme une séance à lire.
+   * Block name and instruction each announced themselves with a permanently
+   * placed "+ something". At three blocks, with "+ exercice" and "+ note de
+   * séance", that made seven simultaneous invitations on one screen, all the
+   * same grey and the same size: the programme read as a form to fill in
+   * rather than as a session to read.
    *
-   * Ils ne s'affichent plus que s'ils portent quelque chose — ou si on vient
-   * de les demander par le « ⋯ » du bloc.
+   * They now only show when they carry something — or when they have just
+   * been asked for through the block's "⋯".
    */
   const [champDemande, setChampDemande] = useState<'nom' | 'consigne' | null>(
     null
   );
   /**
-   * Ouvre un champ facultatif — une fois le menu vraiment parti.
+   * Opens an optional field — once the menu has really gone.
    *
-   * Le menu rend le focus à sa gâchette en se refermant. Monter le champ dans
-   * le même souffle, c'est le voir se refermer aussitôt sur son propre blur :
-   * mesuré, il apparaissait et disparaissait en moins de cent millisecondes,
-   * et le coach retombait sur l'invitation qu'il venait de choisir. On attend
-   * donc que la fermeture ait rendu le focus avant de monter le champ.
+   * The menu returns focus to its trigger as it closes. Mounting the field in
+   * the same breath means watching it close at once on its own blur:
+   * measured, it appeared and disappeared in under a hundred milliseconds,
+   * and the coach landed back on the invitation they had just chosen. So we
+   * wait until the close has returned focus before mounting the field.
    */
   const ouvrirChamp = (champ: 'nom' | 'consigne') =>
     requestAnimationFrame(() =>
@@ -424,8 +419,9 @@ export const AtelierBlock = ({
     <BlockFrame
       block={block}
       name={
-        /* Ni description du type — l'étiquette la dit déjà — ni placeholder
-           permanent : un bloc sans nom libre ne laisse aucune trace. */
+        /* Neither a description of the type — the label already says it —
+           nor a permanent placeholder: a block with no free name leaves no
+           trace. */
         nomVisible ? (
           <InlineText
             value={block.label}
@@ -447,9 +443,9 @@ export const AtelierBlock = ({
           _groupFocusWithin={{ opacity: 1 }}
           transition="opacity 0.15s"
         >
-          {/* Une seule commande pour tout ce qui est facultatif. Un « ⋯ »
-              ne promet rien et n'appelle à rien : c'est exactement ce qu'on
-              veut d'un champ dont la plupart des blocs se passent. */}
+          {/* One control for everything optional. A "⋯" promises nothing
+              and calls for nothing: exactly what you want for a field most
+              blocks do without. */}
           <Menu.Root>
             <Menu.Trigger asChild>
               <IconButton

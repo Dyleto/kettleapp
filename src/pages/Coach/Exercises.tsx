@@ -32,32 +32,31 @@ import { stripAccents } from '@/utils/formatters';
 const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
 
 /**
- * Les colonnes de la bibliothèque, à une seule adresse.
+ * The library's columns, at a single address.
  *
- * Le champ de recherche s'étendait sur toute la largeur — mesuré à 1 620 px —
- * pendant que les résultats qu'il filtre s'arrêtaient à 660. Un filtre plus
- * large que ce qu'il filtre donne l'impression qu'il cherche ailleurs.
+ * The search field stretched the full width — measured at 1,620 px — while
+ * the results it filters stopped at 660. A filter wider than what it filters
+ * looks like it is searching somewhere else.
  *
- * L'en-tête et la liste tirent donc leur gabarit du même endroit : ils ne
- * peuvent plus diverger.
+ * The header and the list therefore take their template from the same place:
+ * they can no longer drift apart.
  */
 const COLONNES = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
 
 /**
- * À partir de combien d'exercices un index alphabétique sert à quelque chose.
+ * From how many exercises an alphabetical index starts being useful.
  *
- * Neuf en-têtes de lettre pour dix exercices : la structure coûtait plus de
- * hauteur qu'elle n'en faisait gagner, et un index de neuf lettres pour dix
- * lignes ne raccourcit aucun trajet. Elle doit apparaître quand elle sert, pas
- * par principe.
+ * Nine letter headers for ten exercises: the structure cost more height than
+ * it saved, and a nine-letter index over ten rows shortens no journey. It
+ * should appear when it serves, not on principle.
  */
 const SEUIL_INDEX = 25;
 const GOUTTIERE = { base: 0, lg: 8 };
 
 const Exercises = () => {
   useDocumentTitle('Bibliothèque');
-  // L'exercice ouvert est dans l'URL, pas dans un état : un lien vers une
-  // fiche s'envoie, et le retour du navigateur referme la fiche.
+  // The open exercise lives in the URL, not in state: a link to a card can
+  // be sent, and the browser's back button closes the card.
   const { exerciseId } = useParams();
   const navigate = useNavigate();
 
@@ -75,8 +74,8 @@ const Exercises = () => {
 
   const isDesktop = useBreakpointValue({ base: false, lg: true });
 
-  // On relit l'exercice dans la liste plutôt que de garder une copie : après
-  // une modification, la fiche doit montrer la valeur enregistrée.
+  // We read the exercise back from the list rather than keeping a copy:
+  // after an edit, the card must show the saved value.
   const selected = exercises.find((e) => e._id === exerciseId) ?? null;
 
   const filtered = useMemo(() => {
@@ -89,7 +88,7 @@ const Exercises = () => {
     trimmed.length > 0 &&
     !exercises.some((e) => normalize(e.name) === normalize(trimmed));
 
-  // Groupement alphabétique (les accents rejoignent leur lettre de base : É→E)
+  // Alphabetical grouping (accents join their base letter: É→E).
   const grouped = useMemo(() => {
     const sorted = [...filtered].sort((a, b) =>
       a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
@@ -105,10 +104,10 @@ const Exercises = () => {
   }, [filtered]);
 
   /**
-   * Ce que le volet droit montre quand aucune fiche n'est ouverte.
+   * What the right pane shows when no card is open.
    *
-   * Un exercice jamais posé dans un programme n'y figure pas : ce serait
-   * remplir la place avec ce qui sert le moins.
+   * An exercise never placed in a programme does not appear there: that would
+   * be filling the space with what serves least.
    */
   const lesPlusUtilises = useMemo(
     () =>
@@ -119,8 +118,8 @@ const Exercises = () => {
     [exercises]
   );
 
-  // En dessous du seuil, une liste simple et dense : les groupes existent
-  // toujours, mais ils ne portent ni titre ni index.
+  // Below the threshold, a plain dense list: the groups still exist, but
+  // they carry neither heading nor index.
   const indexe = filtered.length >= SEUIL_INDEX;
   const letters = indexe ? grouped.map((g) => g.letter) : [];
 
@@ -145,12 +144,12 @@ const Exercises = () => {
   };
 
   /**
-   * Créer depuis l'en-tête.
+   * Creating from the header.
    *
-   * Il fallait taper un nom qui n'existe pas pour découvrir qu'on peut créer :
-   * la seule porte d'entrée était un accident de recherche. Le bouton la
-   * nomme. Il ne fabrique pas d'exercice sans nom pour autant — un nom est
-   * déjà là, il crée ; sinon il amène le curseur là où on l'écrit.
+   * You had to type a name that does not exist to discover you could create:
+   * the only way in was an accident of search. The button names it. It does
+   * not make a nameless exercise for all that — if a name is already there it
+   * creates; otherwise it takes the cursor to where you write one.
    */
   const champRecherche = useRef<HTMLInputElement>(null);
   const nouveau = () => {
@@ -185,10 +184,10 @@ const Exercises = () => {
             sectionRefs.current[letter] = el;
           }}
         >
-          {/* Le repère de lettre se lisait comme un exercice d'une lettre :
-              même graphie, même colonne, même couleur. Il passe donc dans la
-              marge, avec un filet qui court jusqu'au bord — c'est un
-              séparateur, pas une entrée de la liste. */}
+          {/* The letter marker read as a one-letter exercise: same type,
+              same column, same colour. So it moves into the margin, with a
+              rule running to the edge — it is a separator, not a list
+              entry. */}
           {indexe && (
             <Box
               position="sticky"
@@ -199,10 +198,9 @@ const Exercises = () => {
               pb={1}
             >
               <HStack gap={2} align="center">
-                {/* Une lettre d'index n'est ni une action ni un endroit où
-                  l'on se trouve : elle n'a rien à faire en ambre. Neuf
-                  en-têtes dorés pour dix exercices, c'était aussi neuf
-                  fausses invitations à cliquer. */}
+                {/* An index letter is neither an action nor a place you are:
+                  it has no business being amber. Nine gold headers for ten
+                  exercises was also nine false invitations to click. */}
                 <Text
                   fontSize="xs"
                   fontWeight="bold"
@@ -228,8 +226,8 @@ const Exercises = () => {
         </Box>
       ))}
 
-      {/* La recherche crée aussi : un exercice absent se tape et existe,
-          exactement comme dans le sélecteur de l'atelier. */}
+      {/* Search also creates: a missing exercise is typed and exists,
+          exactly as in the editor's selector. */}
       {canCreate && (
         <Box
           as="button"
@@ -260,15 +258,15 @@ const Exercises = () => {
   return (
     <Container maxW="container.xl" py={6}>
       <VStack gap={4} align="stretch">
-        {/* L'en-tête et la recherche vivent dans la même colonne que la liste :
-            le filtre fait exactement la largeur de ce qu'il filtre. */}
+        {/* The header and search live in the same column as the list: the
+            filter is exactly as wide as what it filters. */}
         <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
           <VStack gap={4} align="stretch" minW={0}>
-            {/* `space-between` sur une rangée qui ne se replie pas poussait
-                la page de 27 px à 360 : « Bibliothèque », le compte et
-                « Nouvel exercice » n'y tiennent pas d'un trait. `ml="auto"`
-                donne le même écart maximal quand ils tiennent, et laisse le
-                compte passer à la ligne quand ils ne tiennent pas. */}
+            {/* `space-between` on a row that does not wrap pushed the page
+                27 px wide at 360: "Bibliothèque", the count and "Nouvel
+                exercice" do not fit in one line there. `ml="auto"` gives the
+                same maximum gap when they do fit, and lets the count wrap
+                when they do not. */}
             <HStack
               justify="flex-start"
               align="baseline"
@@ -276,10 +274,10 @@ const Exercises = () => {
               rowGap={1}
               wrap="wrap"
             >
-              {/* Le même nom que dans la navigation et dans l'onglet. L'écran
-              s'appelait « Mes exercices » pendant qu'on y arrivait par
-              « Bibliothèque » : trois noms pour un endroit, dont deux à un
-              clic d'intervalle. */}
+              {/* The same name as in the navigation and in the tab. The screen
+              was called "Mes exercices" while you reached it through
+              "Bibliothèque": three names for one place, two of them one
+              click apart. */}
               <Text as="h1" fontSize="lg" fontWeight="bold">
                 Bibliothèque
               </Text>
@@ -288,9 +286,8 @@ const Exercises = () => {
                   {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
                   {query && ` · « ${query} »`}
                 </Text>
-                {/* La création avait pour seule porte d'entrée un accident de
-                    recherche : taper un nom qui n'existe pas. Le bouton la
-                    nomme. */}
+                {/* Creation's only way in was an accident of search: typing
+                    a name that does not exist. The button names it. */}
                 <Box
                   as="button"
                   onClick={nouveau}
@@ -375,10 +372,9 @@ const Exercises = () => {
                   {selected ? (
                     sheet
                   ) : (
-                    /* La moitié d'un écran de bureau ne peut pas rester une
-                       phrase d'attente. À défaut d'une fiche, le volet montre
-                       ce qui sert le plus — c'est aussi ce qu'on vient
-                       rouvrir le plus souvent. */
+                    /* Half a desktop screen cannot stay a waiting sentence. For
+                       want of a card, the pane shows what serves most — which
+                       is also what gets reopened most often. */
                     <VStack align="stretch" gap={3}>
                       <Text
                         fontSize="xs"
@@ -414,7 +410,7 @@ const Exercises = () => {
               )}
             </Grid>
 
-            {/* Index alphabétique mobile — portail fixe, toujours visible */}
+            {/* Mobile alphabetical index — a fixed portal, always visible */}
             {!isDesktop &&
               letters.length > 1 &&
               createPortal(
@@ -430,10 +426,10 @@ const Exercises = () => {
                   py={2}
                   px={1}
                 >
-                  {/* Un index A–Z ne peut pas offrir 44 px par lettre : vingt-six
-                      lettres feraient 1144 px de haut. 28 px est le compromis —
-                      au-dessus du plancher WCAG 2.5.8, et l'index reste un
-                      raccourci qu'on parcourt au pouce. */}
+                  {/* An A–Z index cannot give 44 px per letter: twenty-six
+                      letters would be 1,144 px tall. 28 px is the compromise
+                      — above the WCAG 2.5.8 floor, and the index stays a
+                      shortcut you run a thumb down. */}
                   <VStack gap={0}>
                     {letters.map((letter) => (
                       <Box
@@ -441,10 +437,10 @@ const Exercises = () => {
                         as="button"
                         aria-label={`Aller à la lettre ${letter}`}
                         onClick={() => scrollToLetter(letter)}
-                        // 10 px pour une cible qu'on vise au pouce, c'était
-                        // sous tout seuil de lisibilité. 12 px dans une case
-                        // de 28, soit 24 px réellement atteignables une fois
-                        // les voisines déduites.
+                        // 10 px for a target aimed at with a thumb was
+                        // below any legibility threshold. 12 px in a 28 px
+                        // cell, so 24 px genuinely reachable once the
+                        // neighbours are deducted.
                         fontSize="xs"
                         fontWeight="bold"
                         color="whiteAlpha.800"
@@ -470,8 +466,8 @@ const Exercises = () => {
         )}
       </VStack>
 
-      {/* Sous 1024 px la fiche s'ouvre en tiroir : la même fiche, pas un
-          second écran avec ses propres règles. */}
+      {/* Below 1024 px the card opens in a drawer: the same card, not a
+          second screen with its own rules. */}
       <Drawer.Root
         open={!isDesktop && !!selected}
         onOpenChange={(e) => !e.open && closeSheet()}

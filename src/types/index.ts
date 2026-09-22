@@ -1,8 +1,8 @@
 /**
- * La décision du client sur le partage de son ressenti.
+ * The client's decision about sharing how they felt.
  *
- * `version` est celle du texte auquel il a répondu. Le serveur la compare à
- * la version courante : c'est lui qui décide si la question se repose.
+ * `version` is that of the text they answered. The server compares it to the
+ * current version: it decides whether the question is put again.
  */
 export interface HealthConsent {
   granted: boolean;
@@ -20,11 +20,11 @@ export interface User {
   isCoach: boolean;
   isClient: boolean;
   healthConsent: HealthConsent | null;
-  /** Vrai tant que le client n'a pas répondu au texte en vigueur. */
+  /** True until the client has answered the text currently in force. */
   needsHealthConsent: boolean;
 }
 
-/** Ce que l'écran « Mon compte » a besoin de savoir, selon les rôles tenus. */
+/** What the "Mon compte" screen needs to know, per role held. */
 export interface AccountSummary {
   asClient: {
     coaches: {
@@ -34,7 +34,7 @@ export interface AccountSummary {
       linkedAt: string;
     }[];
     completedCount: number;
-    /** Combien de bilans un refus effacerait. Zéro = rien à avertir. */
+    /** How many wrap-ups a refusal would erase. Zero = nothing to warn about. */
     healthDataCount: number;
     healthConsent: HealthConsent | null;
     since: string;
@@ -53,11 +53,11 @@ export interface Client {
   picture?: string;
   linkedAt: Date;
   unseenCount: number;
-  /** Absent tant que le client n'a jamais terminé de séance. */
+  /** Absent until the client has finished a session. */
   lastCompletedAt?: Date;
   /**
-   * Le ressenti déclaré sur cette dernière séance. Absent si elle n'en portait
-   * pas — bilan d'avant la refonte, ou terminée sans se prononcer.
+   * How they said that last session felt. Absent when it carried none — a
+   * wrap-up from before the rework, or finished without answering.
    */
   lastEffort?: number;
 }
@@ -86,7 +86,7 @@ export interface Exercise {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
-  /** Nombre de séances du coach où l'exercice apparaît. Servi par l'API. */
+  /** How many of the coach's sessions the exercise appears in. Served by the API. */
   usageCount?: number;
 }
 
@@ -119,11 +119,11 @@ export interface BlockExercise {
   duration?: number;
   customMetric?: CustomMetric;
   /**
-   * La consigne du coach pour cet exercice, dans cette séance-là.
+   * The coach's instruction for this exercise, in that particular session.
    *
-   * À distinguer de `exercise.description`, qui décrit le mouvement en
-   * général et vit dans la bibliothèque, partagée par tous les clients et
-   * toutes les séances.
+   * Distinct from `exercise.description`, which describes the movement in
+   * general and lives in the library, shared by every client and every
+   * session.
    */
   note?: string;
 }
@@ -149,12 +149,12 @@ export interface SessionBlock {
 export interface Session {
   _id: string;
   order: number;
-  /** Le nom libre du coach — « Full body A ». Absent : la séance dit son rang. */
+  /** The coach's free name — "Full body A". Absent: the session states its rank. */
   name?: string;
   notes?: string;
   /**
-   * Jours conseillés par le coach, lundi = 0. Indicatif : un jour manqué ne
-   * crée aucune dette. Absent ou vide = la séance n'est liée à aucun jour.
+   * Days the coach suggests, Monday = 0. Advisory: a missed day creates no
+   * debt. Absent or empty = the session is tied to no day.
    */
   suggestedDays?: number[];
   blocks: SessionBlock[];
@@ -181,7 +181,7 @@ export interface BlockExerciseSnapshot {
   reps?: number;
   duration?: number;
   customMetric?: CustomMetric;
-  /** La consigne du coach, telle qu'elle était le jour de la séance. */
+  /** The coach's instruction, as it stood on the day of the session. */
   note?: string;
   performed?: PerformedValues;
 }
@@ -195,7 +195,7 @@ export interface BlockSnapshot {
   intervalMinutes?: number;
   /** Les tours prescrits par le coach. */
   rounds?: number;
-  /** Les tours réellement bouclés — le score, quand le format en a un. */
+  /** Rounds actually completed — the score, when the format has one. */
   performedRounds?: number;
   restBetweenRounds?: number;
   workDuration?: number;
@@ -210,14 +210,14 @@ export interface CompletedSession {
   originalSessionId: string;
   sessionOrder: number;
   /**
-   * Le nom que la séance portait ce jour-là, figé comme son rang : renommer
-   * une séance ne réécrit pas les bilans déjà enregistrés.
+   * The name the session bore that day, frozen like its rank: renaming a
+   * session does not rewrite wrap-ups already recorded.
    */
   sessionName?: string;
   blocks: BlockSnapshot[];
   coachNotes?: string;
   feedback?: SessionFeedback;
-  /** @deprecated Ancien bilan en 5 axes. Encore lu, plus jamais écrit. */
+  /** @deprecated The old five-axis wrap-up. Still read, never written again. */
   metrics?: SessionMetrics;
   clientNotes?: string;
   viewedByCoach: boolean;
@@ -236,7 +236,7 @@ export interface SessionFeedback {
   note?: string;
 }
 
-/** @deprecated Remplacé par `SessionFeedback`. Conservé pour relire l'historique. */
+/** @deprecated Replaced by `SessionFeedback`. Kept to read back history. */
 export interface SessionMetrics {
   stress: number;
   mood: number;
@@ -246,8 +246,8 @@ export interface SessionMetrics {
 }
 
 /**
- * Ce que le client a fait sur UNE série.
- * Une clé absente veut dire « non renseignée » — jamais zéro.
+ * What the client did on ONE set.
+ * A missing key means "not filled in" — never zero.
  */
 export interface PerformedSet {
   weight?: number;
@@ -256,20 +256,20 @@ export interface PerformedSet {
 }
 
 /**
- * Ce que le client a réellement fait, série par série.
+ * What the client actually did, set by set.
  *
- * La liste s'arrête là où l'exercice s'est arrêté : une série prescrite qui
- * n'y figure pas n'a pas été faite. « J'ai fait mes quatre séries » et « j'ai
- * lâché à la deuxième » sont deux informations différentes, et l'ancien
- * couple poids/reps unique n'en portait aucune des deux.
+ * The list stops where the exercise stopped: a prescribed set that is not
+ * there was not done. "I did my four sets" and "I gave up on the second" are
+ * two different pieces of information, and the old single weight/reps pair
+ * carried neither.
  */
 export interface PerformedValues {
   sets: PerformedSet[];
 }
 
 /**
- * Le réalisé d'un exercice, adressé par sa position dans l'instantané.
- * La liste remplace intégralement celle enregistrée ; `[]` l'efface.
+ * What was performed on an exercise, addressed by its position in the
+ * snapshot. The list wholly replaces the recorded one; `[]` erases it.
  */
 export interface PerformedEntry {
   blockOrder: number;
@@ -278,11 +278,11 @@ export interface PerformedEntry {
 }
 
 /**
- * Les tours bouclés d'un bloc qui se compte en tours — le score d'un AMRAP.
+ * The completed rounds of a block counted in rounds — an AMRAP's score.
  *
- * Adressé au bloc, pas à l'exercice : c'est la liste entière qu'on boucle.
- * Distinct de `rounds` dans l'instantané, qui reste ce que le coach avait
- * demandé ; comparer les deux est tout l'intérêt.
+ * Addressed to the block, not the exercise: it is the whole list you loop.
+ * Distinct from `rounds` in the snapshot, which stays what the coach asked
+ * for; comparing the two is the whole point.
  */
 export interface RoundsDoneEntry {
   blockOrder: number;
