@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/useAuth';
 import { LEGAL_ROUTES } from '@/config/legal';
 import { useAccount, useSetHealthConsent } from '../hooks/useAccount';
-import { ConfirmRefusSante } from './ConfirmRefusSante';
+import { ConfirmHealthOptOut } from './ConfirmHealthOptOut';
 
 /**
  * The question put to the client before they come in.
@@ -151,7 +151,7 @@ export const HealthConsentGate = () => {
         </HStack>
       </VStack>
 
-      <ConfirmRefusSante
+      <ConfirmHealthOptOut
         open={refusOuvert}
         onClose={() => setRefusOuvert(false)}
         onConfirm={() => {
@@ -159,9 +159,9 @@ export const HealthConsentGate = () => {
           setRefusOuvert(false);
         }}
         isPending={isPending}
-        titre="Refuser le partage ?"
+        title="Refuser le partage ?"
         action="Refuser et effacer"
-        nombre={aPerdre}
+        count={aPerdre}
       />
     </Box>
   );

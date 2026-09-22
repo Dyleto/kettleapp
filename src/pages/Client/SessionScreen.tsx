@@ -32,7 +32,7 @@ import {
 import { buildGuidedSteps } from '@/features/client/guidedSteps';
 import { buildRecap } from '@/features/client/recap';
 import { CLIENT_ROUTES } from '@/config/routes';
-import { EtatVide } from '@/components/EtatVide';
+import { EmptyState } from '@/components/EmptyState';
 import { hitArea } from '@/components/hitArea';
 import { sessionTitle } from '@/features/program/sessionTitle';
 
@@ -162,9 +162,9 @@ const SessionScreen = () => {
   if (sessions.length === 0) {
     return (
       <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
-        <EtatVide
-          titre="Pas encore de programme"
-          phrase="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+        <EmptyState
+          title="Pas encore de programme"
+          line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
         />
       </Container>
     );

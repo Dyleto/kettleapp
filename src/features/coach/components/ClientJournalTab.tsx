@@ -2,7 +2,7 @@ import { CompletedSession } from '@/types';
 import { useEffect, useState } from 'react';
 import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
 import { useMarkHistoryAsViewed } from '@/features/coach/hooks/useMarkHistoryAsViewed';
-import { EtatVide } from '@/components/EtatVide';
+import { EmptyState } from '@/components/EmptyState';
 import {
   CompletedSessionDrawer,
   SessionCalendarFilter,
@@ -125,9 +125,9 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
 
   if (history.length === 0) {
     return (
-      <EtatVide
-        titre="Aucune séance réalisée"
-        phrase="Les séances que votre client termine apparaîtront ici, avec ce qu'il a réellement fait."
+      <EmptyState
+        title="Aucune séance réalisée"
+        line="Les séances que votre client termine apparaîtront ici, avec ce qu'il a réellement fait."
       />
     );
   }

@@ -12,7 +12,7 @@ import { Client } from '@/types';
 import { COACH_ROUTES } from '@/config/routes';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { SessionHistoryCard } from '@/features/client';
-import { EtatVide } from '@/components/EtatVide';
+import { EmptyState } from '@/components/EmptyState';
 
 interface ClientPreviewProps {
   /** The client highlighted in the list, or `null` when none is chosen. */
@@ -90,9 +90,9 @@ export const ClientPreview = ({ client }: ClientPreviewProps) => {
             <Skeleton h="72px" borderRadius="lg" />
           </VStack>
         ) : history.length === 0 ? (
-          <EtatVide
-            titre="Aucune séance réalisée"
-            phrase="Les séances qu'il termine apparaîtront ici, avec ce qu'il en a dit."
+          <EmptyState
+            title="Aucune séance réalisée"
+            line="Les séances qu'il termine apparaîtront ici, avec ce qu'il en a dit."
           />
         ) : (
           <VStack align="stretch" gap={2}>

@@ -1,11 +1,11 @@
 import { ReactNode } from 'react';
 import { Box, Text, VStack } from '@chakra-ui/react';
 
-interface EtatVideProps {
+interface EmptyStateProps {
   /** What is missing, in one line. Not "no results": what is missing. */
-  titre: string;
+  title: string;
   /** Why it is empty, and what will happen. Optional when the title suffices. */
-  phrase?: string;
+  line?: string;
   /** An action, when there is one to offer. */
   action?: ReactNode;
 }
@@ -22,7 +22,7 @@ interface EtatVideProps {
  * is a normal moment in the relationship with a coach. It was the curt
  * version that had to go.
  */
-export const EtatVide = ({ titre, phrase, action }: EtatVideProps) => (
+export const EmptyState = ({ title, line, action }: EmptyStateProps) => (
   <Box
     p={8}
     textAlign="center"
@@ -33,11 +33,11 @@ export const EtatVide = ({ titre, phrase, action }: EtatVideProps) => (
   >
     <VStack gap={1.5}>
       <Text fontSize="lg" fontWeight="bold">
-        {titre}
+        {title}
       </Text>
-      {phrase && (
+      {line && (
         <Text color="fg.muted" fontSize="sm" maxW="42ch" lineHeight="1.7">
-          {phrase}
+          {line}
         </Text>
       )}
       {action && <Box pt={2}>{action}</Box>}

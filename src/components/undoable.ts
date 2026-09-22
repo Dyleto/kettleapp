@@ -22,20 +22,20 @@ import { toaster } from '@/components/ui/toasterInstance';
  * this second, and provide the means to rebuild — never the means to
  * "confirm".
  */
-export const annulable = ({
-  titre,
+export const undoable = ({
+  title,
   description,
-  annuler,
+  undo,
 }: {
   /** What has just happened, in the past tense: "Corde à sauter retiré". */
-  titre: string;
+  title: string;
   description?: string;
   /** Puts the previous state back. Called at most once. */
-  annuler: () => void;
+  undo: () => void;
 }) => {
-  let repris = false;
+  let taken = false;
   toaster.create({
-    title: titre,
+    title: title,
     description,
     // Longer than an ordinary message: you do not read a banner at the
     // moment it appears, you read it the second you realise your mistake.
@@ -46,9 +46,9 @@ export const annulable = ({
         // Chakra closes the banner on click, and a click on the background
         // closes it too: without this lock, an unlucky finger could replay
         // the undo and put the removed exercise back twice.
-        if (repris) return;
-        repris = true;
-        annuler();
+        if (taken) return;
+        taken = true;
+        undo();
       },
     },
   });

@@ -79,8 +79,8 @@ const ExerciseRow = ({
   // five exercises would mean five "+ consigne" to read before reading the
   // programme. It opens from the gutter, where the row's controls already
   // live, and afterwards only shows when it exists.
-  const [noteOuverte, setNoteOuverte] = useState(false);
-  const aUneNote = !!exercise.note?.trim();
+  const [noteOpen, setNoteOpen] = useState(false);
+  const hasNote = !!exercise.note?.trim();
 
   const kind = kindOf(exercise);
   const supportsSets = blockSupportsSets(block.type);
@@ -101,7 +101,7 @@ const ExerciseRow = ({
       });
   };
 
-  const ligne = (
+  const row = (
     // The row splits over two levels by itself when the name runs out of
     // room. No guessed breakpoint: the width actually available decides, and
     // it does not depend on the screen alone — at 768 px the session rail
@@ -267,16 +267,16 @@ const ExerciseRow = ({
         >
           <IconButton
             aria-label={
-              aUneNote
+              hasNote
                 ? `Modifier la consigne — ${exercise.exercise.name}`
                 : `Ajouter une consigne — ${exercise.exercise.name}`
             }
-            title={aUneNote ? 'Modifier la consigne' : 'Ajouter une consigne'}
+            title={hasNote ? 'Modifier la consigne' : 'Ajouter une consigne'}
             css={hitAreaTactile()}
             size="2xs"
             variant="ghost"
-            color={aUneNote ? 'app.primary' : 'fg.muted'}
-            onClick={() => setNoteOuverte(true)}
+            color={hasNote ? 'app.primary' : 'fg.muted'}
+            onClick={() => setNoteOpen(true)}
           >
             <LuMessageSquare size={11} />
           </IconButton>
@@ -322,18 +322,18 @@ const ExerciseRow = ({
 
   return (
     <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
-      {ligne}
+      {row}
       {/* The instruction sits under its row, outside that row's wrapping
           calculation, and only appears when it exists or has just been
           asked for. */}
-      {(aUneNote || noteOuverte) && (
+      {(hasNote || noteOpen) && (
         <Box pb={1.5} pl={1}>
           <InlineText
             value={exercise.note}
             onChange={(note) => onUpdate({ note })}
             addLabel="+ consigne"
             ariaLabel={`Consigne — ${exercise.exercise.name}`}
-            startOpen={noteOuverte && !aUneNote}
+            startOpen={noteOpen && !hasNote}
             multiline
           />
         </Box>
@@ -342,7 +342,7 @@ const ExerciseRow = ({
   );
 };
 
-interface AtelierBlockProps {
+interface WorkshopBlockProps {
   block: SessionBlock;
   /** Exercises already placed elsewhere in the programme. */
   inProgram: Exercise[];
@@ -367,7 +367,7 @@ interface AtelierBlockProps {
  * not as a form. No grey box per value, no card inside a card — typography, a
  * rule per block, and controls that only show when you come close.
  */
-export const AtelierBlock = ({
+export const WorkshopBlock = ({
   block,
   inProgram,
   dragHandleProps,
@@ -378,7 +378,7 @@ export const AtelierBlock = ({
   onUpdateExercise,
   onRequestExercisePicker,
   onOpenExerciseSheet,
-}: AtelierBlockProps) => {
+}: WorkshopBlockProps) => {
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   /**
@@ -393,7 +393,7 @@ export const AtelierBlock = ({
    * They now only show when they carry something — or when they have just
    * been asked for through the block's "⋯".
    */
-  const [champDemande, setChampDemande] = useState<'nom' | 'consigne' | null>(
+  const [fieldAsked, setFieldAsked] = useState<'name' | 'instruction' | null>(
     null
   );
   /**
@@ -405,15 +405,15 @@ export const AtelierBlock = ({
    * and the coach landed back on the invitation they had just chosen. So we
    * wait until the close has returned focus before mounting the field.
    */
-  const ouvrirChamp = (champ: 'nom' | 'consigne') =>
+  const openField = (field: 'name' | 'instruction') =>
     requestAnimationFrame(() =>
-      requestAnimationFrame(() => setChampDemande(champ))
+      requestAnimationFrame(() => setFieldAsked(field))
     );
 
-  const aUnNom = !!block.label?.trim();
-  const aUneConsigne = !!block.notes?.trim();
-  const nomVisible = aUnNom || champDemande === 'nom';
-  const consigneVisible = aUneConsigne || champDemande === 'consigne';
+  const hasName = !!block.label?.trim();
+  const hasInstruction = !!block.notes?.trim();
+  const nameVisible = hasName || fieldAsked === 'name';
+  const instructionVisible = hasInstruction || fieldAsked === 'instruction';
 
   return (
     <BlockFrame
@@ -422,14 +422,14 @@ export const AtelierBlock = ({
         /* Neither a description of the type — the label already says it —
            nor a permanent placeholder: a block with no free name leaves no
            trace. */
-        nomVisible ? (
+        nameVisible ? (
           <InlineText
             value={block.label}
             onChange={(label) => onUpdate({ label })}
             addLabel="+ nom"
             ariaLabel={`Nom personnalisé du bloc ${getBlockLabel(block.type)}`}
             width="160px"
-            startOpen={champDemande === 'nom' && !aUnNom}
+            startOpen={fieldAsked === 'name' && !hasName}
           />
         ) : undefined
       }
@@ -468,20 +468,20 @@ export const AtelierBlock = ({
                   minW="200px"
                 >
                   <Menu.Item
-                    value="nom"
-                    onClick={() => ouvrirChamp('nom')}
+                    value="name"
+                    onClick={() => openField('name')}
                     color="fg"
                     _hover={{ bg: 'whiteAlpha.100' }}
                   >
-                    {aUnNom ? 'Renommer le bloc' : 'Nommer le bloc'}
+                    {hasName ? 'Renommer le bloc' : 'Nommer le bloc'}
                   </Menu.Item>
                   <Menu.Item
-                    value="consigne"
-                    onClick={() => ouvrirChamp('consigne')}
+                    value="instruction"
+                    onClick={() => openField('instruction')}
                     color="fg"
                     _hover={{ bg: 'whiteAlpha.100' }}
                   >
-                    {aUneConsigne
+                    {hasInstruction
                       ? 'Modifier la consigne'
                       : 'Ajouter une consigne'}
                   </Menu.Item>
@@ -548,14 +548,14 @@ export const AtelierBlock = ({
         )
       }
       notes={
-        consigneVisible ? (
+        instructionVisible ? (
           <InlineText
             value={block.notes}
             onChange={(notes) => onUpdate({ notes })}
             addLabel="+ consigne"
             ariaLabel={`Consigne du bloc ${getBlockLabel(block.type)}`}
             width="100%"
-            startOpen={champDemande === 'consigne' && !aUneConsigne}
+            startOpen={fieldAsked === 'instruction' && !hasInstruction}
             multiline
           />
         ) : undefined

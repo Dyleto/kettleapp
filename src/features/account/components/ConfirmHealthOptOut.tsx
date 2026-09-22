@@ -6,11 +6,11 @@ interface Props {
   onConfirm: () => void;
   isPending: boolean;
   /** "Refuser le partage ?" on the way in, "Retirer mon accord ?" after. */
-  titre: string;
+  title: string;
   /** The action's label, which has to say what it does. */
   action: string;
   /** How many wrap-ups still carry a tag or a comment. */
-  nombre: number;
+  count: number;
 }
 
 /**
@@ -26,14 +26,14 @@ interface Props {
  * has declared nothing yet, refusing stays a single gesture: putting an
  * obstacle in front of a refusal with no object is discouraging the refusal.
  */
-export const ConfirmRefusSante = ({
+export const ConfirmHealthOptOut = ({
   open,
   onClose,
   onConfirm,
   isPending,
-  titre,
+  title,
   action,
-  nombre,
+  count,
 }: Props) => (
   <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
     <Dialog.Backdrop />
@@ -45,14 +45,14 @@ export const ConfirmRefusSante = ({
         maxW="sm"
       >
         <Dialog.Header>
-          <Dialog.Title>{titre}</Dialog.Title>
+          <Dialog.Title>{title}</Dialog.Title>
         </Dialog.Header>
         <Dialog.Body>
           <VStack align="stretch" gap={3}>
             <Text fontSize="sm" color="fg" lineHeight="1.65">
-              {nombre === 1
+              {count === 1
                 ? 'Une séance porte une étiquette de ressenti ou un commentaire.'
-                : `${nombre} séances portent une étiquette de ressenti ou un commentaire.`}{' '}
+                : `${count} séances portent une étiquette de ressenti ou un commentaire.`}{' '}
               Ces étiquettes et ces commentaires seront effacés, et ça ne se
               rattrape pas.
             </Text>

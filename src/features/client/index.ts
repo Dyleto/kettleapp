@@ -37,4 +37,4 @@ export {
   performedKey,
 } from './lastPerformance';
 export type { LastPerformance } from './lastPerformance';
-export { avancementProgramme, cumulRealisations } from './comptes';
+export { programProgress, lifetimeTotal } from './counts';

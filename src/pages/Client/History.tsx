@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import {
   CLIENT_GRID_MAX_W,
-  cumulRealisations,
+  lifetimeTotal,
   ExerciseProgressions,
   SessionCalendarFilter,
   SessionHistoryCard,
@@ -70,7 +70,7 @@ const History = () => {
                 <Text fontSize="xs" color="fg.muted">
                   {selectedDay
                     ? formatDayLabel(selectedDay)
-                    : cumulRealisations(history.length)}
+                    : lifetimeTotal(history.length)}
                 </Text>
                 {selectedDay && (
                   <Box

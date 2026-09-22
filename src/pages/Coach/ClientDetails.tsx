@@ -18,7 +18,7 @@ import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
 import { useProgramAutoSave } from '@/features/program/hooks/useProgramAutoSave';
-import { annulable } from '@/components/annulable';
+import { undoable } from '@/components/undoable';
 import { InlineText } from '@/features/program/components/InlineValue';
 import { getBlockLabel } from '@/features/program/constants';
 import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
@@ -29,7 +29,7 @@ import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStat
 import { BackLink } from '@/components/BackLink';
 import { Header } from '@/components/Header';
 import { TACTILE, hitArea } from '@/components/hitArea';
-import { EtatVide } from '@/components/EtatVide';
+import { EmptyState } from '@/components/EmptyState';
 import { COACH_ROUTES } from '@/config/routes';
 import { Exercise, Session } from '@/types';
 
@@ -39,10 +39,10 @@ import { Exercise, Session } from '@/types';
  * Plurals are not a matter of an "s" glued on the end: "Avec ses 1 bloc" is
  * not something you say, and that is what the short form produced.
  */
-const compteRendu = (combien: number, nom: string): string | undefined => {
-  if (combien === 0) return undefined;
-  if (combien === 1) return `Avec son ${nom}.`;
-  return `Avec ses ${combien} ${nom}s.`;
+const removedContents = (howMany: number, noun: string): string | undefined => {
+  if (howMany === 0) return undefined;
+  if (howMany === 1) return `Avec son ${noun}.`;
+  return `Avec ses ${howMany} ${noun}s.`;
 };
 
 const ClientDetails = () => {
@@ -163,17 +163,17 @@ const ClientDetails = () => {
   const handleRemoveActiveSession = () => {
     if (!activeSession) return;
     const index = currentIndex;
-    const supprimee = activeSession;
-    const combien = supprimee.blocks.length;
+    const removed = activeSession;
+    const howMany = removed.blocks.length;
 
-    actions.removeSession(supprimee._id);
+    actions.removeSession(removed._id);
     navigate(COACH_ROUTES.clientSession(clientId!, 1));
 
-    annulable({
-      titre: `Séance ${supprimee.order} supprimée`,
-      description: compteRendu(combien, 'bloc'),
-      annuler: () => {
-        actions.insertSession(index, supprimee);
+    undoable({
+      title: `Séance ${removed.order} supprimée`,
+      description: removedContents(howMany, 'bloc'),
+      undo: () => {
+        actions.insertSession(index, removed);
         navigate(COACH_ROUTES.clientSession(clientId!, index + 1));
       },
     });
@@ -187,19 +187,19 @@ const ClientDetails = () => {
    * gestures for one possible mistake. A block leaves whole, with its
    * exercises — the banner says so, and "Annuler" puts it back in its place.
    */
-  const supprimerBloc = (blockId: string) => {
+  const removeBlock = (blockId: string) => {
     const index = activeSession?.blocks.findIndex((b) => b._id === blockId);
-    const bloc =
+    const block =
       index !== undefined && index >= 0
         ? activeSession?.blocks[index]
         : undefined;
-    if (!activeSession || !bloc || index === undefined) return;
+    if (!activeSession || !block || index === undefined) return;
 
     actions.removeBlock(activeSession._id, blockId);
-    annulable({
-      titre: `Bloc ${getBlockLabel(bloc.type)} supprimé`,
-      description: compteRendu(bloc.exercises.length, 'exercice'),
-      annuler: () => actions.insertBlock(activeSession._id, index, bloc),
+    undoable({
+      title: `Bloc ${getBlockLabel(block.type)} supprimé`,
+      description: removedContents(block.exercises.length, 'exercice'),
+      undo: () => actions.insertBlock(activeSession._id, index, block),
     });
   };
 
@@ -211,17 +211,17 @@ const ClientDetails = () => {
    * every removal would be unbearable; a banner that stays eight seconds
    * costs nothing to someone who did not make a mistake.
    */
-  const retirerExercice = (blockId: string, index: number) => {
-    const bloc = activeSession?.blocks.find((b) => b._id === blockId);
-    const retire = bloc?.exercises[index];
-    if (!activeSession || !retire) return;
+  const removeExercise = (blockId: string, index: number) => {
+    const block = activeSession?.blocks.find((b) => b._id === blockId);
+    const removed = block?.exercises[index];
+    if (!activeSession || !removed) return;
 
     actions.removeExercise(activeSession._id, blockId, index);
-    annulable({
-      titre: `${retire.exercise.name} retiré`,
-      description: `De ${getBlockLabel(bloc.type)}.`,
-      annuler: () =>
-        actions.insertExercise(activeSession._id, blockId, index, retire),
+    undoable({
+      title: `${removed.exercise.name} retiré`,
+      description: `De ${getBlockLabel(block.type)}.`,
+      undo: () =>
+        actions.insertExercise(activeSession._id, blockId, index, removed),
     });
   };
 
@@ -441,7 +441,7 @@ const ClientDetails = () => {
                   onAddBlock={(type) =>
                     actions.addBlock(activeSession._id, type)
                   }
-                  onRemoveBlock={(blockId) => supprimerBloc(blockId)}
+                  onRemoveBlock={(blockId) => removeBlock(blockId)}
                   onUpdateBlock={(blockId, updates) =>
                     actions.updateBlock(activeSession._id, blockId, updates)
                   }
@@ -452,7 +452,7 @@ const ClientDetails = () => {
                     actions.addExercise(activeSession._id, blockId, exercise)
                   }
                   onRemoveExercise={(blockId, index) =>
-                    retirerExercice(blockId, index)
+                    removeExercise(blockId, index)
                   }
                   onUpdateExercise={(blockId, index, updates) =>
                     actions.updateExercise(
@@ -465,9 +465,9 @@ const ClientDetails = () => {
                 />
               </>
             ) : sessions.length === 0 ? (
-              <EtatVide
-                titre="Ce programme est vide"
-                phrase="Ajoutez une séance pour commencer à le construire."
+              <EmptyState
+                title="Ce programme est vide"
+                line="Ajoutez une séance pour commencer à le construire."
                 action={
                   <Button
                     bg="app.primary"
@@ -493,9 +493,9 @@ const ClientDetails = () => {
                * through a shared link, or by deleting the last session while
                * standing on it.
                */
-              <EtatVide
-                titre={`La séance ${currentIndex + 1} n'existe pas`}
-                phrase={`Ce programme en compte ${sessions.length}. Elle a peut-être été supprimée, ou l'adresse a vieilli.`}
+              <EmptyState
+                title={`La séance ${currentIndex + 1} n'existe pas`}
+                line={`Ce programme en compte ${sessions.length}. Elle a peut-être été supprimée, ou l'adresse a vieilli.`}
                 action={
                   <Button
                     bg="app.primary"

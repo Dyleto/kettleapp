@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { LuArrowRight } from 'react-icons/lu';
 import { CLIENT_ROUTES } from '@/config/routes';
-import { EtatVide } from '@/components/EtatVide';
+import { EmptyState } from '@/components/EmptyState';
 import { sessionTitle } from '@/features/program/sessionTitle';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
@@ -105,9 +105,9 @@ const Today = () => {
         )}
 
         {totalCount === 0 ? (
-          <EtatVide
-            titre="Pas encore de programme"
-            phrase="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+          <EmptyState
+            title="Pas encore de programme"
+            line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
           />
         ) : (
           nextSession && (

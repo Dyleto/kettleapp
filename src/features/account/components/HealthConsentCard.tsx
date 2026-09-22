@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
 import { HealthConsent } from '@/types';
 import { useSetHealthConsent } from '../hooks/useAccount';
-import { ConfirmRefusSante } from './ConfirmRefusSante';
+import { ConfirmHealthOptOut } from './ConfirmHealthOptOut';
 
 interface Props {
   consent: HealthConsent | null;
@@ -119,7 +119,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
         </Text>
       </VStack>
 
-      <ConfirmRefusSante
+      <ConfirmHealthOptOut
         open={retraitOuvert}
         onClose={() => setRetraitOuvert(false)}
         onConfirm={() => {
@@ -127,9 +127,9 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           setRetraitOuvert(false);
         }}
         isPending={isPending}
-        titre="Retirer mon accord ?"
+        title="Retirer mon accord ?"
         action="Retirer mon accord"
-        nombre={healthDataCount}
+        count={healthDataCount}
       />
     </VStack>
   );

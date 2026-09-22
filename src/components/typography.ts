@@ -14,6 +14,6 @@ import type { SystemStyleObject } from '@chakra-ui/react';
  * nothing else. It follows the text if its language or format changes, which
  * a capital baked into the string would not.
  */
-export const majusculeInitiale: SystemStyleObject = {
+export const initialCapital: SystemStyleObject = {
   '&::first-letter': { textTransform: 'uppercase' },
 };

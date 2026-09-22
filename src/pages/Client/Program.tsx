@@ -5,7 +5,7 @@ import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { Card } from '@/components/Card';
 import { Session } from '@/types';
 import {
-  avancementProgramme,
+  programProgress,
   CLIENT_GRID_MAX_W,
   getSessionBlockTypes,
   getSessionSummary,
@@ -13,7 +13,7 @@ import {
   useClientSessions,
 } from '@/features/client';
 import { CLIENT_ROUTES } from '@/config/routes';
-import { EtatVide } from '@/components/EtatVide';
+import { EmptyState } from '@/components/EmptyState';
 import { sessionTitle } from '@/features/program/sessionTitle';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
@@ -152,17 +152,17 @@ const Program = () => {
         </Text>
 
         {sessions.length === 0 ? (
-          <EtatVide
-            titre="Pas encore de programme"
-            phrase="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+          <EmptyState
+            title="Pas encore de programme"
+            line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
           />
         ) : (
           <>
             {/* A proportion, not a total: "3 complétées" here and "12
                 séances complétées" in the journal counted two different
-                things under the same word. See `comptes.ts`. */}
+                things under the same word. See `counts.ts`. */}
             <Text fontSize="xs" color="fg.muted">
-              {avancementProgramme(completedSessionIds.size, sessions.length)}
+              {programProgress(completedSessionIds.size, sessions.length)}
             </Text>
             <Grid
               templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}

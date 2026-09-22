@@ -43,7 +43,7 @@ import {
 import { useUpdateCompletedSession } from '../hooks/useCompleteSession';
 import { useAuth } from '@/contexts/useAuth';
 import { sessionTitle } from '@/features/program/sessionTitle';
-import { majusculeInitiale } from '@/components/typographie';
+import { initialCapital } from '@/components/typography';
 
 const toSessionBlock = (
   block: CompletedSession['blocks'][number],
@@ -216,11 +216,7 @@ export const CompletedSessionDrawer = ({
                         completed.sessionName
                       )}
                     </Text>
-                    <Text
-                      fontSize="xs"
-                      color="fg.muted"
-                      css={majusculeInitiale}
-                    >
+                    <Text fontSize="xs" color="fg.muted" css={initialCapital}>
                       {completedDate}
                     </Text>
                   </VStack>

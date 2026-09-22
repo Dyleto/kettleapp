@@ -25,7 +25,7 @@ import {
   SessionBlock,
 } from '@/types';
 import {
-  AtelierBlock,
+  WorkshopBlock,
   BlockTypeSelector,
   ExerciseSelectorPanel,
   InlineText,
@@ -224,7 +224,7 @@ export const ClientProgramTab = ({
               {session.blocks.map((block) => (
                 <SortableBlock key={block._id} id={block._id}>
                   {(dragHandleProps) => (
-                    <AtelierBlock
+                    <WorkshopBlock
                       block={block}
                       inProgram={inProgram}
                       dragHandleProps={dragHandleProps}

@@ -21,17 +21,17 @@
  */
 
 /** "3 séances sur 5 déjà faites" — how much of the programme is covered. */
-export const avancementProgramme = (faites: number, total: number): string => {
-  if (faites === 0) {
+export const programProgress = (done: number, total: number): string => {
+  if (done === 0) {
     return `${total} séance${total > 1 ? 's' : ''} · aucune encore faite`;
   }
-  return `${faites} séance${faites > 1 ? 's' : ''} sur ${total} déjà faite${
-    faites > 1 ? 's' : ''
+  return `${done} séance${done > 1 ? 's' : ''} sur ${total} déjà faite${
+    done > 1 ? 's' : ''
   }`;
 };
 
 /** "12 séances faites depuis le début" — the journal's running total. */
-export const cumulRealisations = (realisations: number): string =>
-  `${realisations} séance${realisations > 1 ? 's' : ''} faite${
-    realisations > 1 ? 's' : ''
+export const lifetimeTotal = (completions: number): string =>
+  `${completions} séance${completions > 1 ? 's' : ''} faite${
+    completions > 1 ? 's' : ''
   } depuis le début`;
