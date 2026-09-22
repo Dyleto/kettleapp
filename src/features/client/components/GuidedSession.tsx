@@ -545,7 +545,7 @@ const Round = ({
           remain, and announcing "next: round 4" teaches nothing. */}
       {step.nextLabel && (
         <Text fontSize="xs" color="fg.muted" textAlign="center">
-          dernier tour — nextUp&nbsp;: {step.nextLabel}
+          dernier tour — ensuite : {step.nextLabel}
         </Text>
       )}
     </VStack>
