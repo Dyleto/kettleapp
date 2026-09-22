@@ -1,31 +1,31 @@
 /**
- * L'horloge attend qu'on la lance.
+ * The clock waits to be started.
  *
- * Elle partait seule. Sur un tour, cela voulait dire que le décompte tournait
- * déjà avant que le client ait ramassé sa kettlebell : on ouvre la séance, on
- * arrive au tour 1 d'un EMOM, et on est déjà en retard.
+ * It used to start on its own. On a round, that meant the countdown was
+ * already running before the client had picked up their kettlebell: you open
+ * the session, you arrive at round 1 of an EMOM, and you are already behind.
  *
- * Partir est une décision, et elle appartient à celui qui va faire l'effort.
- * L'enchaînement, lui, reste le format : demander un toucher à chaque tour
- * détruirait l'EMOM — « every minute on the minute » veut dire que les
- * minutes se suivent, pas qu'on les relance.
+ * Starting is a decision, and it belongs to whoever is about to do the work.
+ * The chaining, though, is the format: asking for a tap on every round would
+ * destroy the EMOM — "every minute on the minute" means the minutes follow
+ * each other, not that you restart them.
  */
 import {
-  lancer,
+  launch,
   MOBILE,
   ok,
-  bilanDesEchecs,
-  connecter,
-  demarrer,
-  ecranGuide,
-  ou,
-  passerRepos,
-} from './commun.mjs';
+  failureCount,
+  signIn,
+  start,
+  guidedScreen,
+  where,
+  skipRest,
+} from './common.mjs';
 
-const browser = await lancer();
+const browser = await launch();
 
-/** Ce que dit l'horloge du tour : son temps, et ce que son bouton propose. */
-const horloge = (p) =>
+/** What the round's clock says: its time, and what its button offers. */
+const clock = (p) =>
   p.evaluate(() => {
     const r = document.querySelector('[aria-label="Séance guidée"]');
     const t = [...r.querySelectorAll('*')].find(
@@ -34,108 +34,104 @@ const horloge = (p) =>
     const btn = [...r.querySelectorAll('button')].find((e) =>
       /décompte|pause/i.test(e.getAttribute('aria-label') || '')
     );
-    const net = (x) => (x ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
+    const clean = (x) => (x ?? '').replace(/[   ]/g, ' ');
     return {
-      temps: net(t?.textContent.trim()) || null,
-      nom: net(btn?.getAttribute('aria-label')) || null,
+      time: clean(t?.textContent.trim()) || null,
+      name: clean(btn?.getAttribute('aria-label')) || null,
     };
   });
 
-/** Franchit l'échauffement de la séance 1 pour arriver sur l'EMOM. */
-const allerALEmom = async (p) => {
-  await demarrer(p, 'sess1');
-  // On s'arrête dès qu'on y est : compter les clics devient faux dès qu'un
-  // bloc fini enchaîne de lui-même sur le suivant.
+/** Steps past session 1's warm-up to reach the EMOM. */
+const goToEmom = async (p) => {
+  await start(p, 'sess1');
+  // We stop as soon as we are there: counting clicks goes wrong the moment a
+  // finished block chains onto the next by itself.
   for (let i = 0; i < 6; i++) {
-    if (/— EMOM$/.test(await ou(p))) return;
+    if (/— EMOM$/.test(await where(p))) return;
     const btn = p.getByRole('button', {
       name: /^(Fait|Suivant|Bloc suivant)$/,
     });
     if (!(await btn.count())) return;
     await btn.first().click();
     await p.waitForTimeout(300);
-    await passerRepos(p);
+    await skipRest(p);
   }
 };
 
-// ── Elle ne part pas sans nous ──────────────────────────────────────────
+// ── It does not leave without us ────────────────────────────────────────
 {
-  console.log('\n── le décompte d’un tour attend un toucher');
+  console.log('\n── a round\'s countdown waits for a tap');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await allerALEmom(p);
-  ok('on est bien sur l’EMOM', /— EMOM$/.test(await ou(p)), await ou(p));
+  const p = await signIn(ctx);
+  await goToEmom(p);
+  ok('we are indeed on the EMOM', /— EMOM$/.test(await where(p)), await where(p));
 
-  const debut = await horloge(p);
-  ok('l’horloge affiche le temps entier', debut.temps === '1:00', debut.temps);
+  const before = await clock(p);
+  ok('the clock shows the whole time', before.time === '1:00', before.time);
   ok(
-    '  → et propose de le lancer, pas de le mettre en pause',
-    /^Lancer le décompte/.test(debut.nom ?? ''),
-    debut.nom
+    '  → and offers to start it, not to pause it',
+    /^Lancer le décompte/.test(before.name ?? ''),
+    before.name
   );
   ok(
-    '  → l’écran le dit aussi',
-    /Toucher pour lancer/.test(await ecranGuide(p)),
-    (await ecranGuide(p)).match(/[^\n]*[Tt]oucher[^\n]*/)?.[0] ?? '(rien)'
+    '  → the screen says so too',
+    /Toucher pour lancer/.test(await guidedScreen(p)),
+    (await guidedScreen(p)).match(/[^\n]*[Tt]oucher[^\n]*/)?.[0] ?? '(nothing)'
   );
 
-  // Le point qui compte : attendre ne coûte pas de temps.
+  // The point that matters: waiting costs no time.
   await p.waitForTimeout(3000);
-  const apres = await horloge(p);
+  const after = await clock(p);
   ok(
-    'trois secondes d’attente n’entament pas le tour',
-    apres.temps === '1:00',
-    apres.temps
+    'three seconds of waiting do not eat into the round',
+    after.time === '1:00',
+    after.time
   );
 
   await p.getByRole('button', { name: /Lancer le décompte/ }).click();
   await p.waitForTimeout(2500);
-  const lance = await horloge(p);
-  ok(
-    'un toucher le lance',
-    /^Mettre en pause/.test(lance.nom ?? ''),
-    lance.nom
-  );
-  ok('  → et il court', /5[0-9] s restant/.test(lance.nom ?? ''), lance.nom);
+  const started = await clock(p);
+  ok('a tap starts it', /^Mettre en pause/.test(started.name ?? ''), started.name);
+  ok('  → and it runs', /5[0-9] s restant/.test(started.name ?? ''), started.name);
   await ctx.close();
 }
 
-// ── Une fois lancé, l'EMOM enchaîne ────────────────────────────────────
+// ── Once started, the EMOM chains on ───────────────────────────────────
 //
-// C'est le format : les minutes se suivent. Redemander un toucher à chaque
-// tour reviendrait à ne plus faire d'EMOM du tout.
+// That is the format: the minutes follow each other. Asking for a tap again
+// on every round would amount to no longer doing an EMOM at all.
 {
-  console.log('\n── une fois lancé, les tours suivants partent seuls');
+  console.log('\n── once started, the following rounds go on their own');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await allerALEmom(p);
+  const p = await signIn(ctx);
+  await goToEmom(p);
   await p.getByRole('button', { name: /Lancer le décompte/ }).click();
   await p.waitForTimeout(800);
 
   await p.getByRole('button', { name: /^Suivant$/ }).click();
   await p.waitForTimeout(1200);
-  const tour2 = await horloge(p);
+  const round2 = await clock(p);
   ok(
-    'le tour suivant du même bloc ne redemande rien',
-    /^Mettre en pause/.test(tour2.nom ?? ''),
-    tour2.nom
+    'the next round of the same block asks for nothing',
+    /^Mettre en pause/.test(round2.name ?? ''),
+    round2.name
   );
   ok(
-    '  → et on est bien au tour 2',
-    /Tour 2/.test(await ecranGuide(p)),
-    (await ecranGuide(p)).match(/Tour \d+[^\n]*/)?.[0] ?? '(rien)'
+    '  → and we really are on round 2',
+    /Tour 2/.test(await guidedScreen(p)),
+    (await guidedScreen(p)).match(/Tour \d+[^\n]*/)?.[0] ?? '(nothing)'
   );
   await ctx.close();
 }
 
-// ── Changer de bloc remet l'horloge en attente ─────────────────────────
+// ── Changing block puts the clock back on hold ─────────────────────────
 {
-  console.log('\n── un autre bloc, une autre décision');
+  console.log('\n── another block, another decision');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await demarrer(p, 'sess4');
-  // La séance 4 enchaîne un On-Off de 8 tours puis un bloc « Every ».
-  ok('on démarre sur le On-Off', /— On/i.test(await ou(p)), await ou(p));
+  const p = await signIn(ctx);
+  await start(p, 'sess4');
+  // Session 4 chains an 8-round On-Off then an "Every" block.
+  ok('we start on the On-Off', /— On/i.test(await where(p)), await where(p));
   await p.getByRole('button', { name: /Lancer le décompte/ }).click();
   await p.waitForTimeout(600);
   for (let i = 0; i < 8; i++) {
@@ -143,42 +139,42 @@ const allerALEmom = async (p) => {
     if (!(await b.count())) break;
     await b.click();
     await p.waitForTimeout(220);
-    if (/— Every/i.test(await ou(p))) break;
+    if (/— Every/i.test(await where(p))) break;
   }
-  ok('on atteint le bloc suivant', /— Every/i.test(await ou(p)), await ou(p));
-  const neuf = await horloge(p);
+  ok('we reach the next block', /— Every/i.test(await where(p)), await where(p));
+  const fresh = await clock(p);
   ok(
-    '  → son horloge attend à son tour',
-    /^Lancer le décompte/.test(neuf.nom ?? ''),
-    neuf.nom
+    '  → its clock waits in turn',
+    /^Lancer le décompte/.test(fresh.name ?? ''),
+    fresh.name
   );
   await ctx.close();
 }
 
-// ── Le repos, lui, part tout seul ──────────────────────────────────────
+// ── The rest, on the other hand, starts by itself ──────────────────────
 //
-// Il a été déclenché par le geste qui a fini la série : redemander un
-// toucher juste après en serait un de trop.
+// It was triggered by the gesture that finished the set: asking for a tap
+// right afterwards would be one gesture too many.
 {
-  console.log('\n── le repos entre deux séries n’attend pas, lui');
+  console.log('\n── the rest between two sets does not wait');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await demarrer(p, 'sess2');
+  const p = await signIn(ctx);
+  await start(p, 'sess2');
   for (let i = 0; i < 8; i++) {
     await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
     await p.waitForTimeout(180);
   }
   await p.getByRole('button', { name: /^Fait$/ }).click();
   await p.waitForTimeout(2200);
-  const r = await horloge(p);
+  const r = await clock(p);
   ok(
-    'le décompte du repos court dès qu’il apparaît',
-    /^Mettre en pause/.test(r.nom ?? ''),
-    r.nom
+    "the rest's countdown runs as soon as it appears",
+    /^Mettre en pause/.test(r.name ?? ''),
+    r.name
   );
-  ok('  → et il a bien entamé', /5[0-9] s restant/.test(r.nom ?? ''), r.nom);
+  ok('  → and it has indeed started', /5[0-9] s restant/.test(r.name ?? ''), r.name);
   await ctx.close();
 }
 
 await browser.close();
-process.exit(bilanDesEchecs() ? 1 : 0);
+process.exit(failureCount() ? 1 : 0);

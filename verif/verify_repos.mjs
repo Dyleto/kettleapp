@@ -1,28 +1,28 @@
 /**
- * Le repos entre deux séries, posé dans la liste.
+ * The rest between two sets, placed inside the list.
  *
- * Il occupait tout l'écran : on cochait « Fait », et le bloc qu'on était en
- * train de lire disparaissait derrière un mur de teal. Retour du terrain :
- * « pas agréable d'avoir d'un coup une full page REPOS ».
+ * It used to take the whole screen: you ticked "Fait", and the block you
+ * were reading disappeared behind a wall of teal. From the field: "not
+ * pleasant to suddenly get a full page REPOS".
  *
- * Un repos n'est pas un événement, c'est un intervalle entre deux séries —
- * et il appartient à l'endroit où cet intervalle se trouve.
+ * A rest is not an event, it is an interval between two sets — and it
+ * belongs where that interval is.
  */
 import {
-  lancer,
+  launch,
   MOBILE,
   ok,
-  bilanDesEchecs,
-  connecter,
-  demarrer,
-  ecranGuide,
-} from './commun.mjs';
+  failureCount,
+  signIn,
+  start,
+  guidedScreen,
+} from './common.mjs';
 
-const browser = await lancer();
+const browser = await launch();
 
-/** Mène jusqu'au bloc classique de la séance 2 et coche la première série. */
-const cocherUneSerie = async (p) => {
-  await demarrer(p, 'sess2');
+/** Walks to session 2's classic block and ticks the first set. */
+const tickOneSet = async (p) => {
+  await start(p, 'sess2');
   for (let i = 0; i < 8; i++) {
     await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
     await p.waitForTimeout(180);
@@ -36,76 +36,72 @@ const cocherUneSerie = async (p) => {
   await p.waitForTimeout(600);
 };
 
-// ── Le repos ne cache plus le bloc ───────────────────────────────────────
+// ── The rest no longer hides the block ───────────────────────────────────
 {
-  console.log('\n── le repos se pose dans la liste, il ne la couvre plus');
+  console.log('\n── the rest sits in the list, it no longer covers it');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherUneSerie(p);
+  const p = await signIn(ctx);
+  await tickOneSet(p);
 
-  const ecran = await ecranGuide(p);
-  const lignes = ecran.split('\n').filter(Boolean);
+  const screen = await guidedScreen(p);
+  const lines = screen.split('\n').filter(Boolean);
 
-  const bande = await p
+  const strips = await p
     .getByRole('button', { name: 'Passer', exact: true })
     .count();
+  ok('a rest strip appears in the list', strips === 1, `${strips} strip(s)`);
   ok(
-    'une bande de repos apparaît dans la liste',
-    bande === 1,
-    `${bande} bande(s)`
-  );
-  ok(
-    '  → avec ce qui vient après',
-    /ensuite Goblet Squat/i.test(ecran),
-    (lignes.find((l) => /ensuite/i.test(l)) ?? '(rien)').slice(0, 60)
+    '  → carrying what comes next',
+    /ensuite Goblet Squat/i.test(screen),
+    (lines.find((l) => /ensuite/i.test(l)) ?? '(nothing)').slice(0, 60)
   );
 
-  // Le cœur du sujet : tout le bloc reste lisible pendant le repos.
-  // `innerText` lit aussi ce qui est caché derrière un panneau : il faut
-  // demander au navigateur ce qu'on toucherait réellement à cet endroit.
-  const vraimentVisible = await p.evaluate(() => {
-    const racine = document.querySelector('[aria-label="Séance guidée"]');
-    const cible = [...racine.querySelectorAll('*')].find(
+  // The heart of the matter: the whole block stays readable during the rest.
+  // `innerText` also reads what is hidden behind a panel, so we have to ask
+  // the browser what a finger would actually land on at that spot.
+  const trulyVisible = await p.evaluate(() => {
+    const root = document.querySelector('[aria-label="Séance guidée"]');
+    const target = [...root.querySelectorAll('*')].find(
       (e) => e.children.length === 0 && /Fentes marchées/.test(e.textContent)
     );
-    if (!cible) return { trouve: false };
-    const r = cible.getBoundingClientRect();
-    const dessus = document.elementFromPoint(r.left + 4, r.top + r.height / 2);
+    if (!target) return { found: false };
+    const r = target.getBoundingClientRect();
+    const onTop = document.elementFromPoint(r.left + 4, r.top + r.height / 2);
     return {
-      trouve: true,
-      couvert: dessus !== cible && !cible.contains(dessus),
+      found: true,
+      covered: onTop !== target && !target.contains(onTop),
     };
   });
   ok(
-    'le bloc reste entièrement lisible pendant le repos',
-    vraimentVisible.trouve && !vraimentVisible.couvert,
-    JSON.stringify(vraimentVisible)
+    'the block stays entirely readable during the rest',
+    trulyVisible.found && !trulyVisible.covered,
+    JSON.stringify(trulyVisible)
   );
   ok(
-    '  → et ses dernières lignes aussi',
-    /Fentes marchées/.test(ecran) && /série 4 \/ 4/.test(ecran),
-    lignes.filter((l) => /Fentes/.test(l)).length + ' ligne(s) de fentes'
+    '  → and its last lines too',
+    /Fentes marchées/.test(screen) && /série 4 \/ 4/.test(screen),
+    lines.filter((l) => /Fentes/.test(l)).length + ' lunge line(s)'
   );
   ok(
-    '  → y compris l’en-tête du bloc et son avancement',
-    /CLASSIQUE/.test(ecran) && /1 sur 7 faits/.test(ecran),
-    lignes.find((l) => /faits dans ce bloc/.test(l)) ?? '(rien)'
+    "  → including the block's header and its progress",
+    /CLASSIQUE/.test(screen) && /1 sur 7 faits/.test(screen),
+    lines.find((l) => /faits dans ce bloc/.test(l)) ?? '(nothing)'
   );
 
-  // Il se pose entre la série cochée et celle qui suit.
-  const iFaite = lignes.findIndex((l) => /^26 kg$/.test(l.trim()));
-  const iRepos = lignes.findIndex((l) => /REPOS/i.test(l));
-  const iSuivante = lignes.findIndex((l) => /série 2 \/ 4/.test(l));
+  // It sits between the ticked set and the one that follows.
+  const iDone = lines.findIndex((l) => /^26 kg$/.test(l.trim()));
+  const iRest = lines.findIndex((l) => /REPOS/i.test(l));
+  const iNext = lines.findIndex((l) => /série 2 \/ 4/.test(l));
   ok(
-    '  → exactement entre la série faite et la suivante',
-    iFaite >= 0 && iFaite < iRepos && iRepos < iSuivante,
-    `faite ${iFaite}, repos ${iRepos}, suivante ${iSuivante}`
+    '  → exactly between the set just done and the next one',
+    iDone >= 0 && iDone < iRest && iRest < iNext,
+    `done ${iDone}, rest ${iRest}, next ${iNext}`
   );
 
-  // Aucun panneau ne recouvre le bloc.
-  const recouvre = await p.evaluate(() => {
-    const racine = document.querySelector('[aria-label="Séance guidée"]');
-    return [...racine.querySelectorAll('div')].some((e) => {
+  // No panel covers the block.
+  const overlays = await p.evaluate(() => {
+    const root = document.querySelector('[aria-label="Séance guidée"]');
+    return [...root.querySelectorAll('div')].some((e) => {
       const st = getComputedStyle(e);
       const r = e.getBoundingClientRect();
       return (
@@ -115,76 +111,76 @@ const cocherUneSerie = async (p) => {
       );
     });
   });
-  ok('  → et rien ne se superpose au bloc', !recouvre);
+  ok('  → and nothing overlays the block', !overlays);
   await ctx.close();
 }
 
-// ── On peut travailler pendant le repos ─────────────────────────────────
+// ── You can work during the rest ────────────────────────────────────────
 //
-// C'est ce que l'intégration achète : corriger une charge, relire la dose du
-// mouvement suivant, rouvrir une consigne — ce qu'on fait vraiment en
-// attendant.
+// That is what the inlining buys: correcting a load, re-reading the next
+// movement's dose, reopening an instruction — what you actually do while
+// waiting.
 {
-  console.log('\n── pendant le repos, la séance reste utilisable');
+  console.log('\n── during the rest, the session stays usable');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherUneSerie(p);
+  const p = await signIn(ctx);
+  await tickOneSet(p);
 
-  const champ = p
+  const field = p
     .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
     .first();
-  ok('la série en cours porte toujours son champ', (await champ.count()) > 0);
-  await champ.fill('28');
+  ok('the current set still carries its field', (await field.count()) > 0);
+  await field.fill('28');
   await p.waitForTimeout(300);
   ok(
-    '  → et on peut y noter une charge sans attendre la fin du repos',
-    (await champ.inputValue()) === '28',
-    await champ.inputValue()
+    '  → and a load can be entered without waiting out the rest',
+    (await field.inputValue()) === '28',
+    await field.inputValue()
   );
   ok(
-    '  → la bande de repos, elle, court toujours',
+    '  → while the rest strip keeps running',
     (await p.getByRole('button', { name: 'Passer', exact: true }).count()) === 1
   );
   await ctx.close();
 }
 
-// ── « Passer » rend la main, sans rien défaire ──────────────────────────
+// ── "Passer" hands back control without undoing anything ────────────────
 {
-  console.log('\n── passer le repos ne défait rien');
+  console.log('\n── skipping the rest undoes nothing');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherUneSerie(p);
+  const p = await signIn(ctx);
+  await tickOneSet(p);
   await p.getByRole('button', { name: 'Passer', exact: true }).click();
   await p.waitForTimeout(400);
-  const ecran = await ecranGuide(p);
+  const screen = await guidedScreen(p);
   ok(
-    'la bande de repos disparaît',
+    'the rest strip disappears',
     (await p.getByRole('button', { name: 'Passer', exact: true }).count()) === 0
   );
   ok(
-    '  → la série cochée le reste',
-    /1 sur 7 faits/.test(ecran),
-    (ecran.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
+    '  → the ticked set stays ticked',
+    /1 sur 7 faits/.test(screen),
+    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(nothing)'])[0]
   );
-  ok('  → et la charge notée est toujours là', /26 kg/.test(ecran));
+  ok('  → and the recorded load is still there', /26 kg/.test(screen));
   await ctx.close();
 }
 
-// ── Pas de repos là où le coach n'en a pas prescrit ─────────────────────
+// ── No rest where the coach prescribed none ─────────────────────────────
 {
-  console.log('\n── aucun repos inventé après le dernier exercice');
+  console.log('\n── no rest invented after the last exercise');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  // Le chipper de la séance 3 ne prescrit aucun repos entre ses mouvements.
-  await demarrer(p, 'sess3');
+  const p = await signIn(ctx);
+  // Session 3's chipper prescribes no rest between its movements.
+  await start(p, 'sess3');
   await p.getByRole('button', { name: /^Fait$/ }).click();
   await p.waitForTimeout(600);
   ok(
-    'un bloc sans repos prescrit n’affiche aucune bande',
+    'a block with no prescribed rest shows no strip',
     (await p.getByRole('button', { name: 'Passer', exact: true }).count()) === 0
   );
   await ctx.close();
 }
 
 await browser.close();
-process.exit(bilanDesEchecs() ? 1 : 0);
+process.exit(failureCount() ? 1 : 0);

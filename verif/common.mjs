@@ -1,6 +1,6 @@
 /**
- * Ce que toutes les suites refont : ouvrir un navigateur, se connecter,
- * démarrer une séance guidée, lire l'écran.
+ * What every suite redoes: open a browser, sign in, start a guided session,
+ * read the screen.
  */
 import { chromium } from 'playwright-core';
 
@@ -12,19 +12,19 @@ export const MOBILE = {
   hasTouch: true,
 };
 
-export const lancer = () => chromium.launch({ executablePath: CHROME });
+export const launch = () => chromium.launch({ executablePath: CHROME });
 
-let echecs = 0;
-export const ok = (l, c, e = '') => {
-  if (!c) echecs++;
-  console.log(`${c ? 'OK  ' : 'FAIL'}  ${l}${e ? ' — ' + e : ''}`);
+let failures = 0;
+export const ok = (label, cond, extra = '') => {
+  if (!cond) failures++;
+  console.log(`${cond ? 'OK  ' : 'FAIL'}  ${label}${extra ? ' — ' + extra : ''}`);
 };
-export const bilanDesEchecs = () => echecs;
+export const failureCount = () => failures;
 
-/** Les espaces insécables cassent les expressions écrites à la main. */
-export const net = (t) => (t ?? '').replace(/[   ]/g, ' ');
+/** Non-breaking spaces break hand-written expressions. */
+export const clean = (t) => (t ?? '').replace(/[   ]/g, ' ');
 
-export const connecter = async (ctx) => {
+export const signIn = async (ctx) => {
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('[pageerror]', e.message));
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
@@ -39,15 +39,15 @@ export const connecter = async (ctx) => {
   return p;
 };
 
-export const demarrer = async (p, sess) => {
+export const start = async (p, sess) => {
   await p.goto(`${BASE}/client/session/${sess}`, {
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(800);
-  // L'écran d'ouverture porte le mot du coach : on le franchit pour
-  // atteindre la séance elle-même.
+  // The opening screen carries the coach's note: we step past it to reach
+  // the session itself.
   const c = p.getByRole('button', { name: /^Commencer$/ });
   if (await c.count()) {
     await c.click();
@@ -56,12 +56,13 @@ export const demarrer = async (p, sess) => {
 };
 
 /**
- * Où l'on en est, lu sur la barre d'avancement.
+ * Where we are, read off the progress bar.
  *
- * C'est le seul repère fiable : le texte de l'écran annonce le bloc suivant
- * dès le dernier tour, ce qui fait croire qu'on y est déjà.
+ * It is the only reliable marker: the screen's text announces the next block
+ * from the last round onwards, which makes it look as though we are already
+ * there.
  */
-export const ou = (p) =>
+export const where = (p) =>
   p.evaluate(
     () =>
       document
@@ -69,28 +70,28 @@ export const ou = (p) =>
         ?.getAttribute('aria-valuetext') ?? ''
   );
 
-export const ecranGuide = (p) =>
+export const guidedScreen = (p) =>
   p
     .evaluate(
       () =>
         document.querySelector('[aria-label="Séance guidée"]')?.innerText ?? ''
     )
-    .then(net);
+    .then(clean);
 
-export const boites = (p) =>
+export const dialogs = (p) =>
   p
     .evaluate(() =>
       [...document.querySelectorAll('[role="dialog"]')]
         .map((d) => d.innerText)
         .join('\n')
     )
-    .then(net);
+    .then(clean);
 
 /**
- * Le repos entre deux séries se pose dans la liste, pas en plein écran :
- * son bouton dit « Passer », et rien d'autre ne porte ce nom exact.
+ * The rest between two sets sits in the list, not full screen: its button
+ * says "Passer", and nothing else carries that exact name.
  */
-export const passerRepos = async (p) => {
+export const skipRest = async (p) => {
   const r = p.getByRole('button', { name: 'Passer', exact: true });
   if (await r.count()) {
     await r.click();

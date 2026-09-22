@@ -1,35 +1,35 @@
 /**
- * Rouvrir un exercice déjà fait.
+ * Reopening an exercise already done.
  *
- * Une ligne cochée était morte : on ne pouvait ni la relire, ni corriger la
- * charge qu'on venait d'y taper de travers, ni la refaire. Or les trois
- * choses qu'on veut d'un exercice passé n'ont rien à voir avec le curseur —
- * elles se font donc sur place, sans déplacer où l'on en est.
+ * A ticked row was dead: you could neither re-read it, nor fix the load you
+ * had just mistyped into it, nor redo it. Yet the three things you want from
+ * a past exercise have nothing to do with the cursor — so they happen in
+ * place, without moving where you are.
  *
- * Corriger et refaire sont deux gestes distincts : qui répare une faute de
- * frappe ne veut pas retrouver la série devant lui.
+ * Correcting and redoing are two distinct gestures: whoever is repairing a
+ * typo does not want the set back in front of them.
  */
 import {
-  lancer,
+  launch,
   MOBILE,
   ok,
-  bilanDesEchecs,
-  connecter,
-  demarrer,
-  ecranGuide,
-  passerRepos,
-} from './commun.mjs';
+  failureCount,
+  signIn,
+  start,
+  guidedScreen,
+  skipRest,
+} from './common.mjs';
 
-const browser = await lancer();
+const browser = await launch();
 
-const garde = (p) =>
+const record = (p) =>
   p.evaluate(() =>
     JSON.parse(localStorage.getItem('kettle-seance-sess2') || 'null')
   );
 
-/** Coche les deux premières séries du bloc classique, à 24 puis 25 kg. */
-const cocherDeuxSeries = async (p) => {
-  await demarrer(p, 'sess2');
+/** Ticks the classic block's first two sets, at 24 then 25 kg. */
+const tickTwoSets = async (p) => {
+  await start(p, 'sess2');
   for (let i = 0; i < 8; i++) {
     await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
     await p.waitForTimeout(180);
@@ -46,68 +46,68 @@ const cocherDeuxSeries = async (p) => {
     }
     await p.getByRole('button', { name: /^Fait$/ }).click();
     await p.waitForTimeout(300);
-    await passerRepos(p);
+    await skipRest(p);
   }
 };
 
-// ── Une ligne cochée s'ouvre ────────────────────────────────────────────
+// ── A ticked row opens ──────────────────────────────────────────────────
 {
-  console.log('\n── un exercice fait se rouvre');
+  console.log('\n── an exercise already done reopens');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherDeuxSeries(p);
+  const p = await signIn(ctx);
+  await tickTwoSets(p);
 
-  const rouvrables = await p.getByRole('button', { name: /^Rouvrir/ }).count();
+  const reopenable = await p.getByRole('button', { name: /^Rouvrir/ }).count();
   ok(
-    'les exercices faits sont touchables',
-    rouvrables === 2,
-    `${rouvrables} rouvrable(s)`
+    'the exercises already done are touchable',
+    reopenable === 2,
+    `${reopenable} reopenable`
   );
 
-  // Ce qui n'est pas fait ne se rouvre pas : la série en cours porte déjà son
-  // champ, et celles à venir n'ont rien à rouvrir.
-  const enCours = await p
+  // What is not done does not reopen: the current set already carries its
+  // field, and the ones still to come have nothing to reopen.
+  const current = await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 3/ })
     .count();
-  ok('  → ce qui n’est pas encore fait ne l’est pas', enCours === 0);
+  ok('  → what is not done yet is not', current === 0);
 
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
   await p.waitForTimeout(400);
 
-  const champ = p.locator('input[aria-label^="Corriger le poids"]');
-  const combien = await champ.count();
-  const lu = combien > 0 ? await champ.first().inputValue() : null;
+  const field = p.locator('input[aria-label^="Corriger le poids"]');
+  const howMany = await field.count();
+  const read = howMany > 0 ? await field.first().inputValue() : null;
   ok(
-    'la ligne s’ouvre sur la charge qu’on y avait mise',
-    combien === 1 && lu === '24',
-    lu === null ? '(aucun champ)' : lu
+    'the row opens on the load that was put into it',
+    howMany === 1 && read === '24',
+    read === null ? '(no field)' : read
   );
-  const ecran = await ecranGuide(p);
-  ok('  → avec de quoi la refaire', /Refaire/.test(ecran));
-  ok('  → de quoi revoir le mouvement', /Revoir le mouvement/.test(ecran));
-  ok('  → et de quoi refermer', /Fermer/.test(ecran));
+  const screen = await guidedScreen(p);
+  ok('  → with the means to redo it', /Refaire/.test(screen));
+  ok('  → the means to review the movement', /Revoir le mouvement/.test(screen));
+  ok('  → and the means to close it again', /Fermer/.test(screen));
 
-  // Une seule à la fois : deux charges modifiables à l'écran ramèneraient le
-  // formulaire à chaque ligne que la liste a été réécrite pour enlever.
+  // One at a time: two editable loads on screen would bring the form back to
+  // every row, which the list was rewritten to remove.
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 2/ })
     .click();
   await p.waitForTimeout(400);
   ok(
-    '  → une seule ligne ouverte à la fois',
+    '  → only one row open at a time',
     (await p.locator('input[aria-label^="Corriger le poids"]').count()) === 1
   );
   await ctx.close();
 }
 
-// ── Corriger n'est pas décocher ────────────────────────────────────────
+// ── Correcting is not unticking ────────────────────────────────────────
 {
-  console.log('\n── corriger une charge ne défait rien');
+  console.log('\n── correcting a load undoes nothing');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherDeuxSeries(p);
+  const p = await signIn(ctx);
+  await tickTwoSets(p);
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
@@ -115,44 +115,44 @@ const cocherDeuxSeries = async (p) => {
   await p.locator('input[aria-label^="Corriger le poids"]').first().fill('30');
   await p.waitForTimeout(400);
 
-  const g = await garde(p);
+  const g = await record(p);
   ok(
-    'la correction part au bon endroit',
+    'the correction lands in the right place',
     g.performed['2:1'].sets[0].weight === 30,
     JSON.stringify(g.performed['2:1'].sets)
   );
   ok(
-    '  → sans toucher à la série suivante',
+    '  → without touching the next set',
     g.performed['2:1'].sets[1].weight === 25
   );
   ok(
-    '  → et la série reste cochée',
+    '  → and the set stays ticked',
     g.done.length === 2,
     JSON.stringify(g.done)
   );
   ok(
-    '  → le bloc le dit toujours',
-    /2 sur 7 faits/.test(await ecranGuide(p)),
-    (await ecranGuide(p)).match(/[^\n]*faits dans ce bloc[^\n]*/)?.[0] ??
-      '(rien)'
+    '  → the block still says so',
+    /2 sur 7 faits/.test(await guidedScreen(p)),
+    (await guidedScreen(p)).match(/[^\n]*faits dans ce bloc[^\n]*/)?.[0] ??
+      '(nothing)'
   );
 
   await p.getByRole('button', { name: /^Fermer$/ }).click();
   await p.waitForTimeout(300);
   ok(
-    '  → refermer ne défait rien non plus',
-    (await garde(p)).done.length === 2 &&
+    '  → closing it again undoes nothing either',
+    (await record(p)).done.length === 2 &&
       (await p.locator('input[aria-label^="Corriger le poids"]').count()) === 0
   );
   await ctx.close();
 }
 
-// ── Refaire remet la série devant soi ──────────────────────────────────
+// ── Redoing puts the set back in front of you ──────────────────────────
 {
-  console.log('\n── « Refaire » rend la série à faire');
+  console.log('\n── "Refaire" makes the set to-do again');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherDeuxSeries(p);
+  const p = await signIn(ctx);
+  await tickTwoSets(p);
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
@@ -160,59 +160,55 @@ const cocherDeuxSeries = async (p) => {
   await p.getByRole('button', { name: /^Refaire$/ }).click();
   await p.waitForTimeout(500);
 
-  const g = await garde(p);
+  const g = await record(p);
+  ok('the set is unticked', !g.done.includes('2:1:1'), JSON.stringify(g.done));
   ok(
-    'la série est décochée',
-    !g.done.includes('2:1:1'),
-    JSON.stringify(g.done)
-  );
-  ok(
-    '  → le bloc le compte',
-    /1 sur 7 faits/.test(await ecranGuide(p)),
-    (await ecranGuide(p)).match(/[^\n]*faits dans ce bloc[^\n]*/)?.[0] ??
-      '(rien)'
+    '  → the block counts it',
+    /1 sur 7 faits/.test(await guidedScreen(p)),
+    (await guidedScreen(p)).match(/[^\n]*faits dans ce bloc[^\n]*/)?.[0] ??
+      '(nothing)'
   );
 
-  // Le curseur suit tout seul : il est le premier exercice non fait.
-  const courant = await p
+  // The cursor follows on its own: it is the first exercise not done.
+  const currentLabel = await p
     .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
     .first()
     .getAttribute('aria-label');
   ok(
-    '  → et elle redevient l’exercice en cours',
-    /série 1 \/ 4/.test(courant ?? ''),
-    courant ?? '(aucun)'
+    '  → and it becomes the current exercise again',
+    /série 1 \/ 4/.test(currentLabel ?? ''),
+    currentLabel ?? '(none)'
   );
 
-  // Refaire n'est pas oublier ce qu'on a soulevé.
+  // Redoing is not forgetting what you lifted.
   ok(
-    '  → la charge notée reste',
+    '  → the recorded load stays',
     g.performed?.['2:1']?.sets?.[0]?.weight === 24,
     JSON.stringify(g.performed?.['2:1']?.sets?.[0] ?? null)
   );
   await ctx.close();
 }
 
-// ── Revoir le mouvement ────────────────────────────────────────────────
+// ── Reviewing the movement ─────────────────────────────────────────────
 {
-  console.log('\n── revoir un mouvement déjà fait');
+  console.log('\n── reviewing a movement already done');
   const ctx = await browser.newContext(MOBILE);
-  const p = await connecter(ctx);
-  await cocherDeuxSeries(p);
+  const p = await signIn(ctx);
+  await tickTwoSets(p);
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
   await p.waitForTimeout(400);
   await p.getByRole('button', { name: /^Revoir le mouvement$/ }).click();
   await p.waitForTimeout(500);
-  const ecran = await ecranGuide(p);
+  const screen = await guidedScreen(p);
   ok(
-    'la consigne du mouvement s’ouvre',
-    /Kettlebell contre la poitrine/.test(ecran),
-    ecran.split('\n').filter(Boolean).slice(0, 3).join(' · ')
+    "the movement's instruction opens",
+    /Kettlebell contre la poitrine/.test(screen),
+    screen.split('\n').filter(Boolean).slice(0, 3).join(' · ')
   );
   await ctx.close();
 }
 
 await browser.close();
-process.exit(bilanDesEchecs() ? 1 : 0);
+process.exit(failureCount() ? 1 : 0);
