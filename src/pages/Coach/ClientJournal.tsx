@@ -34,9 +34,9 @@ const ClientJournal = () => {
   if (!client) return null;
 
   return (
-    // Le journal est un écran de lecture à deux colonnes, pas un formulaire :
-    // à partir de 2xl il prend la largeur que demandent deux mois de
-    // calendrier côte à côte, sinon la liste se réduit à un filet de texte.
+    // The journal is a two-column reading screen, not a form: from 2xl it
+    // takes the width two months of calendar side by side need, otherwise the
+    // list shrinks to a thread of text.
     <Box
       maxW={{ base: COACH_CONTENT_MAX_W, '2xl': '1400px' }}
       mx="auto"
@@ -44,14 +44,14 @@ const ClientJournal = () => {
       py={8}
     >
       <VStack align="stretch" gap={1} mb={6}>
-        {/* Le repère d'identité est dans le titre, pas dans la sortie.
-            C'était l'inverse : « Journal complet » en titre, le nom du client
-            dans le bouton de retour. Sur un écran qu'on consulte client après
-            client, on lisait donc le nom de celui qu'on quitte pour savoir
-            celui qu'on regarde.
+        {/* The identity marker is in the title, not in the exit. It
+            used to be the other way round: "Journal complet" as the title,
+            the client's name in the back button. On a screen you go through
+            client after client, you therefore read the name of the one you
+            are leaving to know the one you are looking at.
 
-            Le retour, lui, n'a plus besoin de le répéter : il dit simplement
-            où il ramène. */}
+            The back link no longer needs to repeat it: it simply says where
+            it takes you. */}
         <BackLink
           label="Programme"
           onClick={() => navigate(COACH_ROUTES.clientSession(clientId!, 1))}

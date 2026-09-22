@@ -13,10 +13,10 @@ const ClientLayout = () => {
   const clientSessions = useClientSessions();
   const { user } = useAuth();
 
-  // Le ressenti de fin de séance est une donnée de santé : on demande avant
-  // de collecter, pas après. La question passe devant l'espace client tout
-  // entier — barre d'onglets comprise — sinon elle se contourne, et un
-  // consentement qu'on peut contourner n'en est pas un.
+  // End-of-session effort is health data: we ask before collecting, not
+  // after. The question comes in front of the whole client area — tab bar
+  // included — otherwise it can be worked around, and a consent you can work
+  // around is not one.
   if (user?.needsHealthConsent) return <HealthConsentGate />;
 
   return (

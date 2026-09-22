@@ -11,7 +11,7 @@ interface CreateCoachData {
 }
 
 /**
- * Hook pour créer un coach (admin uniquement)
+ * Creates a coach (admin only).
  */
 export const useCreateCoach = () => {
   return useMutation({

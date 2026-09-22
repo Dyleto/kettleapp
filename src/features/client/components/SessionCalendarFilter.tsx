@@ -8,25 +8,25 @@ interface SessionCalendarFilterProps {
   history: CompletedSession[];
   selectedDay: string | null;
   onSelectDay: (day: string | null) => void;
-  /** Deux mois côte à côte quand la colonne a la place. */
+  /** Two months side by side when the column has room. */
   months?: 1 | 2;
-  /** En dessous de cette largeur, le calendrier se replie. */
+  /** Below this width, the calendar folds away. */
   collapseBelow?: 'md' | 'lg';
 }
 
 /**
- * Le calendrier, replié quand l'écran est trop étroit pour le porter.
+ * The calendar, folded away when the screen is too narrow to carry it.
  *
- * Une grille de mois occupe presque tout un écran de téléphone : ce qu'on est
- * venu lire — les séances et ce que le client en a dit — commence alors sous
- * la ligne de flottaison. Replié derrière « Filtrer par date », il redevient
- * ce qu'il est : un filtre qu'on ouvre quand on en a besoin.
+ * A month grid takes up almost a whole phone screen: what you came to read —
+ * the sessions and what the client said about them — then starts below the
+ * fold. Tucked behind "Filtrer par date", it becomes what it is again: a
+ * filter you open when you need it.
  *
- * Ce comportement existait côté coach seulement, et l'historique du client
- * exposait la même grille sur 390 px. Deux calendriers dans la même
- * application doivent se comporter pareil — et comme c'est la version repliée
- * qui est la bonne sur téléphone, c'est elle qu'on partage, plutôt que de
- * l'écrire une seconde fois et de la laisser diverger.
+ * This behaviour existed on the coach side only, and the client's history
+ * showed the same grid on 390 px. Two calendars in the same app must behave
+ * the same — and since the folded version is the right one on a phone, that
+ * is the one we share, rather than writing it a second time and letting it
+ * drift.
  */
 export const SessionCalendarFilter = ({
   history,
@@ -39,8 +39,8 @@ export const SessionCalendarFilter = ({
     useBreakpointValue({ base: true, [collapseBelow]: false }) ?? false;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Un jour choisi garde le calendrier ouvert : on vient d'y cliquer, et le
-  // refermer sous le doigt ferait disparaître le repère qu'on utilise.
+  // A chosen day keeps the calendar open: you have just clicked in it, and
+  // closing it under the finger would remove the landmark you are using.
   const showCalendar = !isNarrow || isFilterOpen || selectedDay !== null;
 
   return (

@@ -1,4 +1,12 @@
-import { Avatar, Box, Button, HStack, Skeleton, Text, VStack } from '@chakra-ui/react';
+import {
+  Avatar,
+  Box,
+  Button,
+  HStack,
+  Skeleton,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { Client } from '@/types';
 import { COACH_ROUTES } from '@/config/routes';
@@ -7,21 +15,21 @@ import { SessionHistoryCard } from '@/features/client';
 import { EtatVide } from '@/components/EtatVide';
 
 interface ClientPreviewProps {
-  /** Le client survolé dans la liste, ou `null` si aucun n'est choisi. */
+  /** The client highlighted in the list, or `null` when none is chosen. */
   client: Client | null;
 }
 
 /**
- * Ce qu'il y a à savoir d'un client, sans quitter la liste.
+ * What there is to know about a client, without leaving the list.
  *
- * Entre 30 et 55 % de la fenêtre restait vide sur cet écran : la liste
- * s'arrêtait à 720 px et le reste ne servait à rien. Le coach devait ouvrir
- * l'atelier — donc perdre la liste — pour lire ce que son client avait dit de
- * sa dernière séance, puis revenir pour passer au suivant.
+ * Between 30 and 55 % of the window stayed empty on this screen: the list
+ * stopped at 720 px and the rest served nothing. The coach had to open the
+ * editor — and so lose the list — to read what their client had said about
+ * their last session, then come back to move to the next one.
  *
- * L'aperçu ne remplace pas l'atelier : il répond à « qu'est-ce qui m'attend
- * chez celui-là ? », qui est la question qu'on se pose en parcourant la
- * liste. Ouvrir reste un clic.
+ * The preview does not replace the editor: it answers "what is waiting for me
+ * with this one?", which is the question you ask while scanning the list.
+ * Opening is still one click.
  */
 export const ClientPreview = ({ client }: ClientPreviewProps) => {
   const navigate = useNavigate();

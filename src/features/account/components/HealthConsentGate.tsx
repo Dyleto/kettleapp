@@ -17,17 +17,16 @@ import { useAccount, useSetHealthConsent } from '../hooks/useAccount';
 import { ConfirmRefusSante } from './ConfirmRefusSante';
 
 /**
- * La question posée au client avant qu'il n'entre.
+ * The question put to the client before they come in.
  *
- * Ce qu'il déclare après une séance — une douleur, une maladie, une nuit
- * blanche — est une donnée de santé. On ne la collecte pas sans un accord
- * explicite, et cet accord n'en est un que s'il est libre : refuser tient en
- * un clic, au même endroit et à la même taille qu'accepter, et l'application
- * s'ouvre dans les deux cas.
+ * What they declare after a session — a pain, an illness, a sleepless night —
+ * is health data. We do not collect it without explicit agreement, and that
+ * agreement only counts if it is free: refusing takes one click, in the same
+ * place and at the same size as accepting, and the app opens either way.
  *
- * L'écran ne s'affiche qu'une fois. Le refus est enregistré comme décision —
- * sans quoi on reposerait la question à chaque visite, ce qui reviendrait à
- * la poser jusqu'à ce que la réponse arrange.
+ * The screen only shows once. A refusal is recorded as a decision — otherwise
+ * we would put the question again at every visit, which would amount to
+ * asking until the answer suits.
  */
 export const HealthConsentGate = () => {
   const { user, logout } = useAuth();
@@ -35,10 +34,11 @@ export const HealthConsentGate = () => {
   const { data } = useAccount();
   const [refusOuvert, setRefusOuvert] = useState(false);
 
-  // Un compte déjà utilisé peut porter des ressentis collectés avant que la
-  // question ne soit posée. Refuser les efface — on le dit avant, avec le
-  // nombre. Sur un compte neuf il n'y a rien à perdre, et refuser reste un
-  // seul geste : un obstacle devant un refus sans objet découragerait le refus.
+  // An account already in use may carry effort ratings collected before the
+  // question was ever put. Refusing erases them — we say so first, with the
+  // number. On a fresh account there is nothing to lose, and refusing stays a
+  // single gesture: an obstacle in front of a refusal with no object would
+  // discourage the refusal.
   const aPerdre = data?.asClient?.healthDataCount ?? 0;
 
   const refuser = () => {
@@ -70,10 +70,10 @@ export const HealthConsentGate = () => {
 
         <VStack align="stretch" gap={4}>
           <Text fontSize="sm" color="fg" lineHeight="1.65">
-            Après chaque séance, Kettle te propose de dire comment tu l'as
-            vécue : l'effort, et s'il y a lieu une douleur, une maladie, une
-            mauvaise nuit. Ce sont des données de santé. Ton coach les voit,
-            et c'est avec elles qu'il adapte la suite.
+            Après chaque séance, Kettle te propose de dire comment tu l'as vécue
+            : l'effort, et s'il y a lieu une douleur, une maladie, une mauvaise
+            nuit. Ce sont des données de santé. Ton coach les voit, et c'est
+            avec elles qu'il adapte la suite.
           </Text>
           <Box
             bg="surface.card"
@@ -90,8 +90,8 @@ export const HealthConsentGate = () => {
             </Text>
           </Box>
           <Text fontSize="xs" color="fg.muted" lineHeight="1.65">
-            Tu peux revenir sur ta réponse quand tu veux, depuis « Mon
-            compte ». Le détail de ce qu'on conserve est dans la{' '}
+            Tu peux revenir sur ta réponse quand tu veux, depuis « Mon compte ».
+            Le détail de ce qu'on conserve est dans la{' '}
             <Link
               as={RouterLink}
               {...{ to: LEGAL_ROUTES.confidentialite }}
@@ -104,9 +104,9 @@ export const HealthConsentGate = () => {
           </Text>
         </VStack>
 
-        {/* Les deux réponses ont la même taille et la même place. Une seule
-            mise en avant ferait du refus un second choix, et le consentement
-            ne serait plus libre. */}
+        {/* Both answers have the same size and the same place. Giving
+            one of them prominence would make refusal a second choice, and the
+            consent would no longer be free. */}
         <Stack direction={{ base: 'column', sm: 'row' }} gap={3}>
           <Button
             flex={1}

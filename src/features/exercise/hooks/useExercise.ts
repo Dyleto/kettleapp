@@ -4,9 +4,9 @@ import { Exercise } from '@/types';
 import { queryKeys } from '@/config/queryKeys';
 
 /**
- * Hook pour récupérer un exercice par son ID
+ * Fetches one exercise by its id.
  *
- * @param id - ID de l'exercice
+ * @param id - the exercise's id
  */
 export const useExercise = (id?: string) => {
   return useQuery({

@@ -16,15 +16,15 @@ interface SessionHistoryCardProps {
   completed: CompletedSession;
   showUnseenIndicator?: boolean;
   /**
-   * `journal` sur l'historique : la date exacte, et le commentaire s'il y en
-   * a un — on est venu lire. `accueil` sur la page du jour : la date en
-   * relatif, parce qu'on y répond à « c'était quand », et pas de commentaire,
-   * parce qu'on ne fait que passer.
+   * `journal` on the history: the exact date, and the comment if there is one
+   * — you came to read. `accueil` on the day's page: the date in relative
+   * form, because there you answer "when was that", and no comment, because
+   * you are only passing through.
    *
-   * Le reste ne change pas, et c'est le but : l'accueil rendait sa propre
-   * carte, sans chevron ni libellé d'action, à côté d'une carte qui en avait
-   * un. Deux cartes voisines qui n'obéissent pas à la même convention font de
-   * l'absence de flèche un signe — alors qu'elle ne signifiait rien.
+   * The rest does not change, and that is the point: home used to render its
+   * own card, with no chevron and no action label, next to a card that had
+   * one. Two neighbouring cards that do not follow the same convention turn
+   * the missing arrow into a sign — when it meant nothing.
    */
   variant?: 'journal' | 'accueil';
 }
@@ -45,8 +45,8 @@ export const SessionHistoryCard = ({
           month: 'short',
         }).format(new Date(completed.completedAt));
 
-  // Un mot que le client et le coach lisent pareil, au lieu d'un nombre
-  // qu'aucun des deux ne peut interpréter.
+  // A word the client and the coach read the same way, instead of a number
+  // neither can interpret.
   const effort = getEffortSummary(completed);
 
   return (

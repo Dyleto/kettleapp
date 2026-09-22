@@ -1,11 +1,11 @@
 import { AxiosError } from 'axios';
 
 /**
- * Génère un message d'erreur lisible selon le contexte
+ * Produces a readable error message for the context at hand.
  */
 export const getErrorMessage = (error: unknown, context: string): string => {
   if (error instanceof AxiosError) {
-    // Erreur réseau
+    // Network error
     if (!error.response) {
       return `${context} : Vérifiez votre connexion internet.`;
     }

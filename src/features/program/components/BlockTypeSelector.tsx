@@ -15,7 +15,7 @@ interface BlockTypeSelectorProps {
   onSelect: (type: BlockType) => void;
 }
 
-/** Une tuile de format : le nom, sa couleur de famille, ce qu'il fait. */
+/** One format tile: the name, its family colour, what it does. */
 const Tuile = ({
   type,
   onSelect,
@@ -79,18 +79,18 @@ const Grille = ({
 export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
   const [toutVoir, setToutVoir] = useState(false);
 
-  // Les familles, une fois retirés les formats déjà proposés au-dessus : une
-  // famille entièrement courante disparaît du repli plutôt que d'y figurer
-  // vide.
+  // The families, once the formats already offered above are removed: a
+  // family that is entirely common disappears from the fold rather than
+  // sitting there empty.
   const restantes = BLOCK_FAMILIES.map((f) => ({
     ...f,
     types: f.types.filter((t) => !BLOCK_TYPES_COURANTS.includes(t)),
   })).filter((f) => f.types.length > 0);
 
   return (
-    /* Ancrage stable pour les mesures, comme `data-block-type` sur un bloc :
-       une sonde qui reconnaissait les tuiles à leur taille attrapait aussi
-       les rangées du rail dès qu'elles grandissaient. */
+    /* A stable anchor for measurements, like `data-block-type` on a block:
+       a probe that recognised tiles by their size also caught the rail's rows
+       as soon as they grew. */
     <VStack align="stretch" gap={4} data-block-picker>
       <Box>
         <Text

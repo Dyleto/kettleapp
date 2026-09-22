@@ -9,7 +9,7 @@ import {
   performedKey,
 } from '../lastPerformance';
 
-/** Le bloc porteur et l'exercice : les deux décident du nombre de passages. */
+/** The parent block and the exercise: both decide how many passes there are. */
 const findExercise = (
   session: Session,
   blockOrder: number,
@@ -25,7 +25,7 @@ const findExercise = (
 interface SessionDetailProps {
   session: Session;
   isLoading?: boolean;
-  /** Saisie du réalisé. Absent = lecture seule, rendu inchangé. */
+  /** Recording what was performed. Absent = read-only, rendering unchanged. */
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
@@ -99,16 +99,14 @@ export const SessionDetail = ({
               );
             }
 
-            // En lecture : pas de champ, mais ce qu'on avait mis la dernière
-            // fois. Le mode guidé le rappelait déjà — tout le monde ne
-            // l'utilise pas, et c'est justement au moment de charger la barre
-            // qu'on cherche l'information.
+            // In read mode: no field, but what was used last time. Guided
+            // mode already recalled it — not everyone uses guided mode, and
+            // loading the bar is exactly the moment you look for that.
             //
-            // Sa hauteur est réservée même quand elle est vide. Présente sur
-            // trois exercices sur sept, elle décalait les lignes voisines : la
-            // liste devenait irrégulière et l'absence se lisait comme une
-            // donnée manquante, alors qu'elle veut seulement dire « on n'a
-            // encore rien noté ici ».
+            // Its height is reserved even when empty. Present on three
+            // exercises out of seven, it shifted the neighbouring lines: the
+            // list became irregular and the absence read as missing data,
+            // when it only means "nothing has been recorded here yet".
             return (
               <Text
                 fontSize="xs"

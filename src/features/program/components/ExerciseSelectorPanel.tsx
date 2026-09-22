@@ -27,19 +27,19 @@ interface ExerciseSelectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (exercise: Exercise) => void;
-  /** Exercices déjà posés ailleurs dans ce programme. */
+  /** Exercises already placed elsewhere in this programme. */
   inProgram?: Exercise[];
-  /** Ouvre la fiche de l'exercice sans quitter l'atelier. */
+  /** Opens the exercise's card without leaving the editor. */
   onOpenSheet?: (exercise: Exercise) => void;
 }
 
 /**
- * Le choix d'exercice sous 768 px.
+ * Choosing an exercise below 768 px.
  *
- * C'est le même sélecteur que sur desktop, dans un tiroir : mêmes groupes,
- * même création par la recherche, mêmes lignes. Il proposait auparavant
- * « Récemment ajoutés » puis « Tous les exercices », si bien que les mêmes
- * exercices apparaissaient deux fois dans une liste de cartes.
+ * It is the same selector as on desktop, in a drawer: same groups, same
+ * create-from-search, same rows. It used to offer "Récemment ajoutés" and
+ * then "Tous les exercices", so the same exercises appeared twice in one list
+ * of cards.
  */
 export const ExerciseSelectorPanel = ({
   isOpen,

@@ -16,11 +16,11 @@ import axios from 'axios';
 import { LegalFooter } from '@/components/LegalFooter';
 
 /**
- * La sortie d'un lien qui ne marche pas.
+ * The way out of a link that does not work.
  *
- * C'est le tout premier écran d'un nouveau client, et son état d'échec ne
- * proposait rien : ni connexion, ni retour. On ne peut pas réparer le lien à
- * sa place, mais on peut au moins ne pas le laisser sur une page noire.
+ * This is a new client's very first screen, and its failure state offered
+ * nothing: no sign-in, no way back. We cannot repair the link for them, but
+ * we can at least not leave them on a black page.
  */
 const DeadEndExit = () => (
   <Button
@@ -39,10 +39,10 @@ const DeadEndExit = () => (
 );
 
 /**
- * L'attente, dessinée comme ce qui va arriver.
+ * The wait, drawn as what is about to arrive.
  *
- * Un rond de chargement ne dit pas ce qu'on attend. La silhouette de la carte
- * d'invitation, si — et quand elle se remplit, rien ne bouge de place.
+ * A spinner does not say what you are waiting for. The invitation card's
+ * outline does — and when it fills in, nothing moves.
  */
 const Attente = () => (
   <VStack gap={3} w="100%" aria-busy="true" aria-label="Vérification du lien">
@@ -56,11 +56,11 @@ const Attente = () => (
 );
 
 /**
- * Le lien tronqué.
+ * The truncated link.
  *
- * C'est le cas réel : les messageries coupent les URL longues, et le jeton
- * est à la fin. On redirigeait alors vers la connexion sans un mot — d'où un
- * compte créé sans rattachement, c'est-à-dire la boucle de l'entrée A1.
+ * This is the real case: messaging apps cut long URLs, and the token is at
+ * the end. We then redirected to sign-in without a word — hence an account
+ * created with no coach attached, which is the loop of entry A1.
  */
 const LienIncomplet = () => (
   <VStack gap={3} w="100%">
@@ -233,8 +233,8 @@ const Join = () => {
             </Text>
           )}
 
-          {/* L'autre endroit où l'on crée un compte : rejoindre un coach, c'est
-              en créer un. Les mêmes pages, lisibles avant d'accepter. */}
+          {/* The other place where an account is created: joining a coach
+              is creating one. The same pages, readable before accepting. */}
           <LegalFooter />
         </VStack>
       </Container>

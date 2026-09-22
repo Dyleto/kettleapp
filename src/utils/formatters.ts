@@ -7,7 +7,7 @@ import { BlockExercise, BlockType, SessionBlock } from '@/types';
 import { formatDuration } from './duration';
 
 /**
- * Retire les accents et diacritiques d'une chaîne (é→e, à→a, ç→c…)
+ * Strips accents and diacritics from a string (é→e, à→a, ç→c…).
  */
 export const stripAccents = (str: string): string =>
   str.normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -15,13 +15,13 @@ export const stripAccents = (str: string): string =>
 export { formatCountdown, formatDuration } from './duration';
 
 /**
- * La prescription d'un exercice, telle qu'elle s'affiche à droite de son nom.
+ * An exercise's prescription, as it shows to the right of its name.
  *
- * `block` est facultatif pour les appelants qui n'ont que le type, mais le
- * fournir change le rendu des blocs Tabata / On-Off : leur effort est défini
- * une fois pour tout le bloc (`workDuration`) et pas sur chaque exercice. Sans
- * lui, ces lignes s'affichaient nues pendant que le mode guidé, lui, montrait
- * « 20s » — la même donnée lue de deux façons selon l'écran.
+ * `block` is optional for callers that only have the type, but providing it
+ * changes how Tabata / On-Off blocks render: their work is defined once for
+ * the whole block (`workDuration`) and not on each exercise. Without it these
+ * lines showed bare while guided mode showed "20s" — the same data read two
+ * ways depending on the screen.
  */
 export const formatExerciseMetric = (
   ex: BlockExercise,
@@ -29,16 +29,16 @@ export const formatExerciseMetric = (
   block?: Pick<SessionBlock, 'workDuration' | 'repsScheme'>
 ): string => {
   /*
-   * Ce que la ligne demande, quand c'est le bloc qui le dit.
+   * What the line asks for, when it is the block that says it.
    *
-   * Audit UX : une pyramide affichait « PYRAMIDE 2-4-6-8-6-4-2 » puis
-   * « Goblet Squat » avec la colonne de droite VIDE — celle que le client
-   * parcourt justement pour savoir ce qu'on lui demande. Avec un exercice ça
-   * se devine ; avec trois, plus du tout.
+   * From the UX audit: a pyramid showed "PYRAMIDE 2-4-6-8-6-4-2" then "Goblet
+   * Squat" with the right column EMPTY — the very column the client scans to
+   * know what is being asked. With one exercise you can guess; with three,
+   * not at all.
    *
-   * Ces blocs-là tiennent leurs paliers sur le bloc et non sur l'exercice
-   * (`blockDefinesOwnMetrics`), et la ligne n'avait donc rien à écrire. Elle
-   * écrit maintenant la série, là où les autres écrivent « 15 reps ».
+   * Those blocks hold their rungs on the block and not on the exercise
+   * (`blockDefinesOwnMetrics`), so the line had nothing to write. It now
+   * writes the series, where the others write "15 reps".
    */
   const paliers =
     blockDefinesOwnMetrics(blockType) && block?.repsScheme?.length
@@ -51,8 +51,8 @@ export const formatExerciseMetric = (
       ? formatDuration(block.workDuration)
       : '');
 
-  // Même règle que pour les durées : une espace insécable avant l'unité. Un
-  // nombre séparé de sa lettre en fin de ligne se lit deux fois.
+  // Same rule as for durations: a non-breaking space before the unit. A
+  // number split from its letter at the end of a line is read twice.
   const effort = ex.reps
     ? `${ex.reps}\u00A0reps`
     : ex.duration

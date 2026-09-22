@@ -11,11 +11,11 @@ export const useAccount = () =>
   });
 
 /**
- * Enregistre la décision du client sur le partage de son ressenti.
+ * Records the client's decision about sharing how they felt.
  *
- * La réponse met à jour l'utilisateur en mémoire plutôt que de relancer une
- * requête : c'est elle qui lève la porte d'entrée, et une porte qui reste
- * fermée le temps d'un aller-retour se voit.
+ * The response updates the user in memory rather than firing another request:
+ * it is what lifts the gate, and a gate that stays shut for the length of a
+ * round-trip is visible.
  */
 export const useSetHealthConsent = () => {
   const queryClient = useQueryClient();
@@ -43,8 +43,8 @@ export const useDeleteAccount = () =>
   useMutation({
     mutationFn: accountService.remove,
     onSuccess: () => {
-      // Le serveur a détruit la session. On repart de la page de connexion par
-      // un rechargement complet : plus rien en mémoire ne doit survivre.
+      // The server destroyed the session. We start again from the sign-in
+      // page with a full reload: nothing in memory must survive.
       window.location.href = '/login';
     },
     onError: () => {

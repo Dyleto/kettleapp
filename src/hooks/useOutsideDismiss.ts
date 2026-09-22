@@ -1,10 +1,10 @@
 import { RefObject, useEffect } from 'react';
 
 /**
- * Ferme un panneau quand on clique ailleurs, ou qu'on appuie sur Échap.
+ * Closes a panel when you click elsewhere, or press Escape.
  *
- * Un panneau qui ne se ferme qu'avec son propre bouton oblige à viser : on
- * croit l'avoir quitté en cliquant à côté, et il est toujours là.
+ * A panel that only closes with its own button forces you to aim: you think
+ * you left it by clicking beside it, and it is still there.
  */
 export const useOutsideDismiss = (
   ref: RefObject<HTMLElement | null>,
@@ -22,8 +22,8 @@ export const useOutsideDismiss = (
       if (event.key === 'Escape') onDismiss();
     };
 
-    // « pointerdown » plutôt que « click » : le panneau s'efface au moment
-    // où le doigt se pose, pas au relâchement.
+    // `pointerdown` rather than `click`: the panel clears the moment the
+    // finger lands, not when it lifts.
     document.addEventListener('pointerdown', handlePointerDown);
     document.addEventListener('keydown', handleKeyDown);
     return () => {

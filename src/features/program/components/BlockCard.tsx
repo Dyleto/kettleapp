@@ -14,13 +14,14 @@ interface BlockCardProps {
 }
 
 /**
- * Un bloc en lecture — côté client, et dans le bilan que relit le coach.
+ * A block in read mode — on the client side, and in the wrap-up the coach
+ * reads back.
  *
- * Il passait par onze composants, un par type, tous délégant à une coquille
- * qui savait aussi éditer. L'édition est passée à l'atelier depuis longtemps :
- * il ne restait qu'une carte arrondie et beaucoup de code mort. Les réglages
- * de chaque type se résument déjà en une phrase — c'est tout ce dont la
- * lecture a besoin, et un type de plus ne demande donc plus de composant.
+ * It went through eleven components, one per type, all delegating to a shell
+ * that also knew how to edit. Editing moved to the editor long ago: what
+ * remained was a rounded card and a lot of dead code. Each type's settings
+ * already summarise in one sentence — that is all reading needs, and so one
+ * more type no longer calls for one more component.
  */
 export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
   const summary = getBlockConfigSummary(block);
@@ -30,10 +31,10 @@ export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
     <BlockFrame
       block={block}
       name={
-        /* Le tiret cadratin sépare : sans lui, le type et le nom se
-           collaient en une bouillie — « AMRAP AMRAP 12 ». La règle vit dans
-           `getBlockFreeName`, pas ici : l'atelier du coach, lui, montre le
-           nom tel qu'il l'a tapé, puisque c'est là qu'il le modifie. */
+        /* The em dash separates: without it the type and the name ran
+           together into mush — "AMRAP AMRAP 12". The rule lives in
+           `getBlockFreeName`, not here: the coach's editor shows the name as
+           typed, since that is where it gets changed. */
         nomLibre ? (
           <Text fontSize="xs" color="fg.muted">
             — {nomLibre}

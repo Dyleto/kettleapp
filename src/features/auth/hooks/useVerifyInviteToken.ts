@@ -8,7 +8,7 @@ interface VerifyTokenResponse {
 }
 
 /**
- * Hook pour vérifier un token d'invitation
+ * Checks an invitation token.
  */
 export const useVerifyInviteToken = (token: string | undefined) => {
   return useQuery({

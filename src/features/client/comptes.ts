@@ -1,27 +1,26 @@
 /**
- * Compter les séances, et dire ce qu'on compte.
+ * Counting sessions, and saying what is being counted.
  *
- * Deux écrans affichaient un nombre de séances faites, avec le même mot et
- * deux sens différents :
+ * Two screens showed a number of sessions done, with the same word and two
+ * different meanings:
  *
- *   « Mon programme »  →  « 3 complétées »   — trois séances du programme
- *                                               ont été faites au moins une
- *                                               fois (ce sont les trois
- *                                               cartes marquées « Terminée »)
- *   « Mon journal »    →  « 12 séances complétées » — douze réalisations
+ *   "Mon programme"  →  "3 complétées"   — three of the programme's sessions
+ *                                           have been done at least once
+ *                                           (the three cards marked
+ *                                           "Terminée")
+ *   "Mon journal"    →  "12 séances complétées" — twelve occurrences
  *
- * Aucun des deux n'était faux, et l'écart n'est pas un cas limite : un
- * programme se répète chaque semaine, donc dès la deuxième semaine les deux
- * nombres divergent pour tout le monde. Un client qui lit « 3 » puis « 12 »
- * conclut qu'un des deux écrans ment.
+ * Neither was wrong, and the gap is not an edge case: a programme repeats
+ * every week, so from the second week the two numbers diverge for everyone. A
+ * client who reads "3" then "12" concludes that one of the screens is lying.
  *
- * Les deux phrases vivent donc ici, l'une à côté de l'autre, et chacune dit
- * sur quoi elle porte : une proportion du programme d'un côté, un cumul
- * depuis le début de l'autre. Une proportion ne peut pas se lire comme un
- * total — c'est ce qui empêche la confusion de revenir.
+ * So both sentences live here, side by side, and each says what it covers: a
+ * proportion of the programme on one hand, a running total on the other. A
+ * proportion cannot be read as a total — which is what stops the confusion
+ * coming back.
  */
 
-/** « 3 séances sur 5 déjà faites » — la couverture du programme. */
+/** "3 séances sur 5 déjà faites" — how much of the programme is covered. */
 export const avancementProgramme = (faites: number, total: number): string => {
   if (faites === 0) {
     return `${total} séance${total > 1 ? 's' : ''} · aucune encore faite`;
@@ -31,7 +30,7 @@ export const avancementProgramme = (faites: number, total: number): string => {
   }`;
 };
 
-/** « 12 séances faites depuis le début » — le cumul du journal. */
+/** "12 séances faites depuis le début" — the journal's running total. */
 export const cumulRealisations = (realisations: number): string =>
   `${realisations} séance${realisations > 1 ? 's' : ''} faite${
     realisations > 1 ? 's' : ''

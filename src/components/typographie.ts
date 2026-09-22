@@ -1,18 +1,18 @@
 import type { SystemStyleObject } from '@chakra-ui/react';
 
 /**
- * Une majuscule à l'initiale — et à l'initiale seulement.
+ * A capital on the first letter — and on the first letter only.
  *
- * `Intl.DateTimeFormat('fr-FR')` rend « mardi 30 août 2025 » en minuscules,
- * ce qui est correct : le français n'a pas de majuscule aux jours ni aux
- * mois. Restait à en poser une en début de phrase, et trois endroits le
- * faisaient avec `textTransform="capitalize"` — qui capitalise *chaque mot*.
- * On lisait « Mardi 30 Août 2025 », et « Juillet 2025 — Septembre 2025 » sur
- * l'en-tête du calendrier.
+ * `Intl.DateTimeFormat('fr-FR')` renders "mardi 30 août 2025" in lower case,
+ * which is correct: French capitalises neither days nor months. A capital was
+ * still needed at the start of a sentence, and three places did it with
+ * `textTransform="capitalize"` — which capitalises *every word*. You read
+ * "Mardi 30 Août 2025", and "Juillet 2025 — Septembre 2025" on the calendar
+ * header.
  *
- * `::first-letter` fait exactement ce qui était visé : la première lettre du
- * bloc, et rien d'autre. Elle suit le texte s'il change de langue ou de
- * format, ce qu'une majuscule posée dans la chaîne ne ferait pas.
+ * `::first-letter` does exactly what was meant: the block's first letter and
+ * nothing else. It follows the text if its language or format changes, which
+ * a capital baked into the string would not.
  */
 export const majusculeInitiale: SystemStyleObject = {
   '&::first-letter': { textTransform: 'uppercase' },

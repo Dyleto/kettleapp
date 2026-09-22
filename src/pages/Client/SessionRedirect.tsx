@@ -6,13 +6,13 @@ import { CLIENT_ROUTES } from '@/config/routes';
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
 /**
- * `/client/session` n'affiche plus rien : il redirige vers l'adresse propre de
- * la séance suivante.
+ * `/client/session` shows nothing any more: it redirects to the next
+ * session's own address.
  *
- * Sans ça, deux écrans montraient la même chose sous deux adresses dont une
- * seule était rechargeable — terminer une séance puis rafraîchir ne montrait
- * plus la même page. Même asymétrie que celle supprimée côté Coach avec
- * `/coach/clients/:id` → `/s/1`.
+ * Without this, two screens showed the same thing under two addresses of
+ * which only one was reloadable — finishing a session then refreshing no
+ * longer showed the same page. The same asymmetry removed on the coach side
+ * with `/coach/clients/:id` → `/s/1`.
  */
 const SessionRedirect = () => {
   const { nextSession, isLoading } = useOutletContext<ClientSessionsData>();
@@ -29,8 +29,8 @@ const SessionRedirect = () => {
     );
   }
 
-  // Programme vide : il n'y a aucune séance à adresser. L'écran Programme dit
-  // exactement la même chose, au mot près (cf. p3-3).
+  // Empty programme: there is no session to address. The Programme screen
+  // says exactly the same thing, word for word (see p3-3).
   if (!nextSession) {
     return <Navigate to={CLIENT_ROUTES.program} replace />;
   }

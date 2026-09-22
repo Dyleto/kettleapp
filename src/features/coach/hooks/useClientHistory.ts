@@ -7,10 +7,9 @@ export const useClientHistory = (clientId: string) => {
     queryKey: queryKeys.coach.clients.history(clientId),
     queryFn: () => coachService.getClientHistory(clientId),
     enabled: !!clientId,
-    // L'API ne garantit pas d'ordre, et le journal affichait les séances
-    // telles qu'elles arrivaient : 19, 16, 22, 26 août à la suite. Un journal
-    // se lit du plus récent au plus ancien — on le trie ici, une fois, plutôt
-    // que dans chaque écran qui le consomme.
+    // The API guarantees no order, and the journal showed sessions as they
+    // arrived: 19, 16, 22, 26 August in a row. A journal reads newest first —
+    // we sort here, once, rather than in every screen that consumes it.
     select: (history) =>
       [...history].sort(
         (a, b) =>

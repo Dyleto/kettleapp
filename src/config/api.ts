@@ -7,7 +7,7 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Fonction pour configurer le token
+// Where the token is configured.
 api.interceptors.response.use(
   (response) => response,
   (error) => {

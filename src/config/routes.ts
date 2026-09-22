@@ -1,7 +1,7 @@
 import { User } from '@/types';
 
-// Les documents légaux se lisent sans compte : quelqu'un doit pouvoir savoir
-// ce qu'on collecte avant de décider de s'inscrire.
+// Legal documents are readable without an account: someone has to be able to
+// know what we collect before deciding to sign up.
 const PUBLIC_ROUTES = new Set([
   '/login',
   '/auth/callback',
@@ -43,17 +43,18 @@ export const COACH_ROUTES = {
 };
 
 /**
- * Où mène « Mon compte » depuis le menu.
+ * Where "Mon compte" leads from the menu.
  *
- * L'écran vit dans l'espace où l'on se trouve : un compte qui tient les deux
- * rôles n'a pas à changer de monde pour lire son adresse e-mail. On suit donc
- * le chemin courant, et on retombe sur le rôle quand il ne dit rien.
+ * The screen lives in the area you are already in: an account holding both
+ * roles should not have to change worlds to read its own email address. So we
+ * follow the current path, and fall back on the role when it says nothing.
  */
 export const getAccountRoute = (
   user: User | null,
   pathname: string
 ): string | null => {
-  if (pathname.startsWith('/coach') && user?.isCoach) return COACH_ROUTES.account;
+  if (pathname.startsWith('/coach') && user?.isCoach)
+    return COACH_ROUTES.account;
   if (pathname.startsWith('/client') && user?.isClient)
     return CLIENT_ROUTES.account;
   if (user?.isClient) return CLIENT_ROUTES.account;

@@ -4,10 +4,9 @@ import { MobileTopBar } from '@/components/MobileTopBar';
 import { Box, Flex } from '@chakra-ui/react';
 import { useBottomBarClaimed } from '@/hooks/useBottomBar';
 
-// Une page peut porter elle-même la barre du haut mobile (`handle`) : elle
-// connaît son sujet, la barre générique ne connaît que le nom du produit.
-// Deux bandeaux empilés sur un écran de 844 px, c'est un cinquième de la
-// hauteur perdu avant le premier exercice.
+// A page can carry the mobile top bar itself (`handle`): it knows its
+// subject, the generic bar only knows the product name. Two bars stacked on
+// an 844 px screen is a fifth of the height lost before the first exercise.
 const ownsMobileTopBar = (handle: unknown): boolean =>
   typeof handle === 'object' &&
   handle !== null &&
@@ -15,8 +14,8 @@ const ownsMobileTopBar = (handle: unknown): boolean =>
 
 const CoachLayout = () => {
   const pageOwnsTopBar = useMatches().some((m) => ownsMobileTopBar(m.handle));
-  // Le bas de l'écran n'a qu'une place : la ligne d'échec de l'atelier la
-  // prend plutôt que de s'empiler par-dessus.
+  // The bottom of the screen has only one slot: the editor's failure line
+  // takes it rather than stacking on top.
   const basOccupe = useBottomBarClaimed();
 
   return (

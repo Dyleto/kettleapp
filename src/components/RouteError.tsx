@@ -9,12 +9,12 @@ import { useAuth } from '@/contexts/useAuth';
 import { getDefaultRoleRoute } from '@/config/routes';
 
 /**
- * Deux écrans, parce que ce sont deux situations.
+ * Two screens, because these are two situations.
  *
- * Une adresse qui n'existe pas n'est pas une panne : proposer « Recharger la
- * page » y était doublement faux — ça ne peut pas marcher, et ça laisse
- * croire que l'application est cassée alors qu'il suffit de repartir de
- * l'accueil. Une vraie erreur d'exécution, elle, se recharge utilement.
+ * An address that does not exist is not a breakdown: offering "Recharger la
+ * page" there was wrong twice over — it cannot work, and it suggests the app
+ * is broken when all you need is to start again from home. A real runtime
+ * error, on the other hand, usefully reloads.
  */
 export function RouteError() {
   const error = useRouteError();
@@ -23,8 +23,8 @@ export function RouteError() {
 
   const introuvable = isRouteErrorResponse(error) && error.status === 404;
 
-  // Une adresse inconnue n'a rien à signaler : seules les vraies erreurs
-  // méritent la console.
+  // An unknown address has nothing to report: only real errors deserve the
+  // console.
   if (!introuvable) console.error('Route error:', error);
 
   return (
@@ -39,7 +39,11 @@ export function RouteError() {
     >
       <VStack gap={5} maxW="380px">
         <Box color={introuvable ? 'fg.muted' : 'app.error'}>
-          {introuvable ? <LuCompass size={28} /> : <LuTriangleAlert size={28} />}
+          {introuvable ? (
+            <LuCompass size={28} />
+          ) : (
+            <LuTriangleAlert size={28} />
+          )}
         </Box>
 
         <VStack gap={2}>
@@ -62,7 +66,9 @@ export function RouteError() {
             fontWeight="bold"
             minH="48px"
             w="100%"
-            onClick={() => navigate(getDefaultRoleRoute(user), { replace: true })}
+            onClick={() =>
+              navigate(getDefaultRoleRoute(user), { replace: true })
+            }
           >
             Retour à l'accueil
           </Button>

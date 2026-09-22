@@ -7,7 +7,7 @@ export const accountService = {
     return data;
   },
 
-  /** Le droit à l'effacement. Sans retour possible : le serveur ferme aussi la session. */
+  /** The right to erasure. No way back: the server also closes the session. */
   remove: async () => {
     await api.delete('/api/account');
   },

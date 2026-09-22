@@ -8,20 +8,20 @@ import {
 
 interface SuggestedDaysProps {
   days?: number[];
-  /** Rappelle à quoi servent les pastilles là où rien ne l'annonce. */
+  /** Recalls what the chips are for, where nothing else announces it. */
   withLabel?: boolean;
 }
 
 /**
- * Les jours conseillés, tels que le coach les a cochés.
+ * The suggested days, as the coach ticked them.
  *
- * Le client lisait « Conseillée le lundi et le jeudi » là où le coach voyait
- * des pastilles : la même donnée sous deux formes, qu'on ne rapproche pas
- * d'un coup d'œil. Ce sont les mêmes pastilles des deux côtés, seulement
- * inertes ici — le client ne choisit pas ses jours.
+ * The client read "Conseillée le lundi et le jeudi" where the coach saw
+ * chips: the same data in two forms, which you do not connect at a glance.
+ * They are the same chips on both sides, only inert here — the client does
+ * not choose their days.
  *
- * Seuls les jours conseillés paraissent : montrer les sept, dont cinq
- * éteints, serait une commande sans commande.
+ * Only the suggested days appear: showing all seven, five of them off, would
+ * be a control that controls nothing.
  */
 export const SuggestedDays = ({ days, withLabel }: SuggestedDaysProps) => {
   const valid = [...new Set(days ?? [])]
@@ -30,9 +30,8 @@ export const SuggestedDays = ({ days, withLabel }: SuggestedDaysProps) => {
   if (valid.length === 0) return null;
 
   return (
-    // Une séance peut porter les sept jours : à 390 px, sept pastilles et
-    // leur libellé dépassent de 23 px. Elles passent à la ligne plutôt que
-    // de pousser la page en travers.
+    // A session can carry all seven days: at 390 px, seven chips and their
+    // label overflow by 23 px. They wrap rather than push the page sideways.
     <HStack
       gap={1.5}
       wrap="wrap"

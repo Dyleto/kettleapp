@@ -10,7 +10,7 @@ import {
 export interface CompleteSessionPayload {
   feedback: SessionFeedback;
   performed?: PerformedEntry[];
-  /** Le score des blocs qui se comptent en tours — un AMRAP. */
+  /** The score of blocks counted in rounds — an AMRAP. */
   roundsDone?: RoundsDoneEntry[];
   clientNotes?: string;
   completedAt?: string;
@@ -51,8 +51,8 @@ export const clientService = {
     return data.completed;
   },
 
-  // Corriger un bilan déjà envoyé. Toujours ouvert : un chiffre saisi de
-  // travers en plein effort doit pouvoir se réparer depuis l'historique.
+  // Correct a wrap-up already sent. Always open: a number typed wrong
+  // mid-effort has to be repairable from the history.
   updateCompletedSession: async (
     completedId: string,
     payload: UpdateCompletedSessionPayload

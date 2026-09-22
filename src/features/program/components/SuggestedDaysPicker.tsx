@@ -9,20 +9,20 @@ interface SuggestedDaysPickerProps {
 }
 
 /**
- * Les jours où le coach conseille cette séance. Lundi = 0.
+ * The days the coach suggests for this session. Monday = 0.
  *
- * La rangée reste posée, même vide. Elle a d'abord vécu derrière un
- * « + jour conseillé » révélé au survol, comme la note de séance : personne
- * ne l'aurait trouvée, et sept boutons d'une ligne ne pèsent pas le prix
- * d'une commande introuvable.
+ * The row stays put, even when empty. It first lived behind a "+ jour
+ * conseillé" revealed on hover, like the session note: nobody would have
+ * found it, and seven buttons on one line do not cost what an undiscoverable
+ * control costs.
  *
- * Ce que veulent dire les jours cochés se lit sur les boutons eux-mêmes —
- * `aria-pressed` pour les lecteurs d'écran, l'accent pour les autres. La
- * phrase qui doublait la rangée ne disait rien de plus.
+ * What the ticked days mean reads from the buttons themselves —
+ * `aria-pressed` for screen readers, the accent for everyone else. The
+ * sentence that doubled the row said nothing more.
  *
- * Plusieurs jours sont permis, et c'est le cas courant : un full body se fait
- * lundi, mercredi et vendredi. Rien n'empêche non plus deux séances le même
- * jour — ce n'est pas un conflit à arbitrer, juste deux conseils.
+ * Several days are allowed, and that is the common case: a full body happens
+ * Monday, Wednesday and Friday. Nothing stops two sessions on the same day
+ * either — that is not a conflict to arbitrate, just two suggestions.
  */
 export const SuggestedDaysPicker = ({
   value,
@@ -38,9 +38,8 @@ export const SuggestedDaysPicker = ({
     );
 
   return (
-    // Sept boutons ne tiennent pas toujours sur la largeur qu'on leur laisse
-    // — mesuré à 768 px, « Dim » débordait de 22 px. Ils passent à la ligne
-    // plutôt que de pousser la page.
+    // Seven buttons do not always fit the width they are given — measured at
+    // 768 px, "Dim" overflowed by 22 px. They wrap rather than push the page.
     <HStack
       gap={1}
       rowGap={1}
@@ -58,12 +57,11 @@ export const SuggestedDaysPicker = ({
             aria-label={WEEKDAY_FULL[day]}
             onClick={() => toggle(day)}
             {...dayChipStyle(active)}
-            /* Au doigt, la pastille grandit pour de bon plutôt que de se
-               doubler d'une zone invisible : sept d'entre elles se suivent à
-               4 px, et sept zones de 44 se recouvriraient toutes. Sept
-               pastilles de 44 tiennent sur la largeur d'un téléphone — et si
-               elles n'y tiennent pas, la rangée passe à la ligne, ce qu'elle
-               sait déjà faire. */
+            /* Under a finger the chip genuinely grows rather than being
+               doubled by an invisible zone: seven of them follow each other
+               4 px apart, and seven 44 px zones would all overlap. Seven
+               44 px chips fit across a phone — and if they do not, the row
+               wraps, which it already knows how to do. */
             css={{
               ...hitArea(32),
               [TACTILE]: { minWidth: '44px', minHeight: '44px' },

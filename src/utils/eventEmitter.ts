@@ -9,7 +9,7 @@ class EventEmitter {
     }
     this.listeners[event].push(callback);
 
-    // Retourner une fonction pour se désabonner
+    // Return a function that unsubscribes.
     return () => {
       this.listeners[event] = this.listeners[event].filter(
         (cb) => cb !== callback

@@ -30,12 +30,12 @@ function getStatus(
 }
 
 /**
- * `bg` habille la pastille d'état ; `surface`, la carte entière.
+ * `bg` dresses the status chip; `surface`, the whole card.
  *
- * Cinq cartes de poids identique, dont seules la couleur d'une pastille et
- * celle d'un liseré de deux pixels changeaient : la seule qui porte une action
- * ne se voyait qu'après lecture. Elle se pose maintenant sur un fond plus
- * clair — la carte se distingue avant qu'on la lise.
+ * Five cards of identical weight, of which only a chip's colour and a
+ * two-pixel edge changed: the one carrying an action was only visible after
+ * reading. It now sits on a lighter background — the card stands out before
+ * you read it.
  */
 const STATUS_CONFIG: Record<
   SessionStatus,
@@ -105,10 +105,10 @@ const SessionRow = ({ session, status, onSelect }: SessionRowProps) => {
             {config.label}
           </Box>
         </HStack>
-        {/* Le jour conseillé se lit ici parce que c'est ici qu'on choisit
-            quoi faire — et sous la forme exacte où le coach l'a posé. Une
-            séance sans jour ne rend rien : l'absence de conseil n'est pas
-            une information à afficher. */}
+        {/* The suggested day reads here because here is where you choose
+            what to do — and in the exact form the coach set it. A session
+            with no day renders nothing: the absence of a suggestion is not
+            information worth showing. */}
         <SuggestedDays days={session.suggestedDays} withLabel />
         {session.blocks.length === 0 ? (
           <Text fontSize="xs" color="fg.muted">
@@ -158,9 +158,9 @@ const Program = () => {
           />
         ) : (
           <>
-            {/* Une proportion, pas un total : « 3 complétées » ici et
-                « 12 séances complétées » au journal comptaient deux choses
-                différentes sous le même mot. Voir `comptes.ts`. */}
+            {/* A proportion, not a total: "3 complétées" here and "12
+                séances complétées" in the journal counted two different
+                things under the same word. See `comptes.ts`. */}
             <Text fontSize="xs" color="fg.muted">
               {avancementProgramme(completedSessionIds.size, sessions.length)}
             </Text>

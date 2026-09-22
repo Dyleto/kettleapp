@@ -62,7 +62,7 @@ export const NativeSelectField = forwardRef<
 
   return (
     <Box ref={containerRef} w="100%">
-      {/* Bouton déclencheur */}
+      {/* Trigger button */}
       <HStack
         w="100%"
         p={2}
@@ -109,7 +109,7 @@ export const NativeSelectField = forwardRef<
         </Box>
       </HStack>
 
-      {/* Menu déroulant */}
+      {/* Dropdown menu */}
       {isOpen && (
         <VStack
           position="absolute"

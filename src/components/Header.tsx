@@ -104,10 +104,10 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               <LuChevronUp />
             </Button>
           ) : (
-            // `role="group"` posé ici écrasait le rôle de gâchette du menu :
-            // l'avatar sortait de l'ordre de tabulation et le menu devenait
-            // inatteignable au clavier — sur mobile, c'était le seul chemin
-            // vers la déconnexion. C'est un bouton, et il porte son nom.
+            // `role="group"` set here overrode the menu trigger's role: the
+            // avatar dropped out of the tab order and the menu became
+            // unreachable by keyboard — on mobile it was the only path to
+            // signing out. It is a button, and it carries its name.
             <Box
               as="button"
               aria-label={`Menu du compte de ${user?.firstName ?? 'mon compte'}`}
@@ -129,9 +129,9 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               borderRadius="xl"
               padding={1}
             >
-              {/* Relu par le lecteur d'écran à l'ouverture via le nom de la
-                  gâchette : le répéter comme premier élément du menu ferait
-                  entendre deux fois la même chose avant la première action. */}
+              {/* Read out by the screen reader on opening, via the
+                  trigger's name: repeating it as the menu's first item would
+                  say the same thing twice before the first action. */}
               <HStack p={2} aria-hidden="true">
                 {avatar}
                 <VStack align="start" gap={0} ml={2}>

@@ -4,7 +4,7 @@ import { LuCalendar, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 
 interface DateInputProps {
   label?: string;
-  /** Nom du champ pour les technologies d'assistance. */
+  /** The field's name for assistive technology. */
   ariaLabel?: string;
   value: string; // YYYY-MM-DD
   max?: string; // YYYY-MM-DD
@@ -41,8 +41,8 @@ export const DateInput = ({
         </Box>
       )}
       <DatePicker.Control>
-        {/* Le champ portait une étiquette visible mais reliée à rien : annoncé,
-            il était anonyme. */}
+        {/* The field carried a visible label tied to nothing: when
+            announced, it was anonymous. */}
         <DatePicker.Input aria-label={ariaLabel ?? label} />
         <DatePicker.IndicatorGroup>
           <DatePicker.Trigger

@@ -1,9 +1,9 @@
 /**
- * L'aspect d'une pastille de jour, partagé entre l'atelier du coach — où
- * elle se coche — et les écrans du client — où elle se lit.
+ * How a day chip looks, shared between the coach's editor — where it is
+ * ticked — and the client's screens — where it is read.
  *
- * Les deux vues montrent la même chose ; les laisser diverger, c'est faire
- * croire à deux données différentes.
+ * Both views show the same thing; letting them drift apart would suggest two
+ * different pieces of data.
  */
 export const dayChipStyle = (active: boolean) =>
   ({

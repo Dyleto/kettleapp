@@ -11,7 +11,7 @@ export function useGoogleOAuth() {
 
       storage.setItem('google_oauth_state', state);
 
-      // Stocker le token d'invitation pour le récupérer après callback
+      // Keep the invitation token so it can be read back after the callback.
       if (invitationToken) {
         storage.setItem('invitation_token', invitationToken);
       } else {

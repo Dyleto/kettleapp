@@ -18,9 +18,9 @@ export interface BlockProps {
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   /**
-   * Contenu inséré sous chaque exercice, en mode lecture uniquement.
-   * Sert au Client à saisir ce qu'il a réellement fait sans que le rendu
-   * partagé avec le Coach change d'un pixel quand la prop est absente.
+   * Content inserted under each exercise, in read mode only.
+   * Lets the client record what they actually did without the rendering
+   * shared with the coach shifting by a pixel when the prop is absent.
    */
   renderExerciseExtra?: (ctx: {
     blockOrder: number;

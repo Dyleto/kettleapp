@@ -1,26 +1,26 @@
 /**
- * Un identifiant au format ObjectId, fabriqué côté client.
+ * An ObjectId-shaped identifier, made on the client.
  *
- * Le format d'ObjectId est conçu pour être généré n'importe où : douze octets,
- * dont un horodatage, une part aléatoire propre au processus et un compteur.
- * Deux navigateurs ne peuvent pas produire le même dans la même seconde.
+ * The ObjectId format is designed to be generated anywhere: twelve bytes,
+ * comprising a timestamp, a random part specific to the process, and a
+ * counter. Two browsers cannot produce the same one in the same second.
  *
- * On s'en sert pour qu'une séance ait sa clé définitive dès sa création, avant
- * même d'avoir été enregistrée. L'API peut alors traiter chaque envoi comme un
- * upsert sur cette clé : renvoyer deux fois le même programme donne le même
- * résultat. C'est ce que l'enregistrement automatique exige — il envoie
- * souvent, et parfois deux fois de suite avant la première réponse.
+ * We use it so a session has its final key from creation, before it has even
+ * been saved. The API can then treat every send as an upsert on that key:
+ * sending the same programme twice gives the same result. That is what
+ * autosave requires — it sends often, and sometimes twice in a row before the
+ * first response.
  *
- * Les identifiants temporaires précédents (`temp-<uuid>`) n'étaient pas des
- * ObjectId valides : l'API les ignorait et créait une séance à chaque envoi.
+ * The previous temporary identifiers (`temp-<uuid>`) were not valid
+ * ObjectIds: the API ignored them and created a session on every send.
  */
 
-/** Cinq octets tirés une fois par chargement de page, comme le fait le pilote. */
+/** Five bytes drawn once per page load, as the driver does. */
 const ALEA = Array.from(crypto.getRandomValues(new Uint8Array(5)))
   .map((octet) => octet.toString(16).padStart(2, '0'))
   .join('');
 
-/** Le compteur démarre au hasard pour que deux onglets ne se suivent pas. */
+/** The counter starts at random so two tabs do not follow each other. */
 let compteur = crypto.getRandomValues(new Uint32Array(1))[0] % 0xffffff;
 
 export const newObjectId = (): string => {

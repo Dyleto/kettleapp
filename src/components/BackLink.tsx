@@ -3,18 +3,18 @@ import { LuArrowLeft } from 'react-icons/lu';
 import { hitAreaTactile } from './hitArea';
 
 interface BackLinkProps {
-  /** Ce qu'on rejoint, pas ce qu'on quitte : « Clients », « Programme ». */
+  /** Where you are going, not what you are leaving: "Clients", "Programme". */
   label: string;
   onClick: () => void;
 }
 
 /**
- * Le retour en haut d'écran.
+ * The back link at the top of the screen.
  *
- * Deux des trois occurrences étaient des `HStack` avec un `onClick` : pas de
- * rôle, pas dans l'ordre de tabulation, rien à annoncer. Sur le journal, où
- * c'était le seul chemin vers le programme du client, la page n'avait donc
- * aucune sortie au clavier.
+ * Two of the three occurrences were `HStack`s with an `onClick`: no role, not
+ * in the tab order, nothing to announce. On the journal, where it was the
+ * only path back to the client's programme, the page therefore had no
+ * keyboard exit at all.
  */
 export const BackLink = ({ label, onClick }: BackLinkProps) => (
   <Box

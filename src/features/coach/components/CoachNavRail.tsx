@@ -34,8 +34,8 @@ export const CoachNavRail = () => {
                   gap={3}
                   px={3}
                   py={2.5}
-                  /* 41 px de haut : la navigation était la seule chose de
-                     l'écran à passer sous le plancher tactile. */
+                  /* 41 px tall: navigation was the only thing on screen
+                     that fell below the touch-target floor. */
                   minH="44px"
                   borderRadius="md"
                   color={isActive ? 'app.primary' : 'fg.muted'}

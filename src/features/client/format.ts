@@ -25,9 +25,9 @@ export const getCompletedSessionBlockTypes = (
 };
 
 /**
- * Le mot que le client a choisi pour cette séance — « Juste », « Dure ».
- * `null` pour un bilan enregistré avant la refonte du ressenti : la question
- * ne lui a jamais été posée, on n'invente pas de réponse.
+ * The word the client picked for this session — "Juste", "Dure".
+ * `null` for a wrap-up recorded before the effort scale was reworked: the
+ * question was never put to them, and we do not invent an answer.
  */
 export const getEffortSummary = (completed: CompletedSession) =>
   getEffortLevel(completed.feedback?.effort) ?? null;

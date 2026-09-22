@@ -8,17 +8,17 @@ interface VideoPlayerProps {
 }
 
 /**
- * La vidéo d'un exercice : une vignette, puis le lecteur au clic.
+ * An exercise's video: a thumbnail, then the player on click.
  *
- * L'iframe était montée d'emblée à chaque fiche ouverte — requête tierce,
- * cookies et lecteur complet pour une vidéo qu'on ne regarde pas forcément,
- * et dans l'atelier on en ouvre plusieurs d'affilée. Surtout, une iframe peint
- * son propre fond blanc : tant qu'elle n'avait pas chargé, l'écran affichait
- * une dalle claire au milieu d'une application sombre. Kettle est une PWA
- * qu'on utilise en salle, le réseau lent n'y est pas une hypothèse.
+ * The iframe used to be mounted immediately on every card opened — a
+ * third-party request, cookies and a full player for a video nobody
+ * necessarily watches, and in the editor you open several in a row. Above
+ * all, an iframe paints its own white background: until it had loaded, the
+ * screen showed a pale slab in the middle of a dark app. Kettle is a PWA used
+ * in the gym; a slow network is not a hypothesis there.
  *
- * `youtube-nocookie` une fois le lecteur monté : on ne dépose rien tant que
- * personne n'a demandé à voir la vidéo.
+ * `youtube-nocookie` once the player is mounted: nothing is dropped until
+ * someone has asked to see the video.
  */
 const VideoPlayer = ({ url }: VideoPlayerProps) => {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -50,7 +50,7 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
   }
 
   const { id, isShort } = parsed;
-  // Format vertical pour les Shorts en mobile uniquement.
+  // Vertical format for Shorts, on mobile only.
   const ratio = isShort && isMobile ? '177.78%' : '56.25%';
   const maxW = isShort && isMobile ? '400px' : undefined;
 
@@ -98,10 +98,10 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
             bg="bg.canvas"
             cursor="pointer"
           >
-            {/* La vignette peut ne pas arriver (hors-ligne, domaine bloqué) :
-                on la retire alors complètement plutôt que de laisser le
-                navigateur peindre sa propre icône d'image cassée. Le fond
-                sombre reste visible, jamais une dalle blanche. */}
+            {/* The thumbnail may never arrive (offline, domain blocked):
+                we then remove it entirely rather than let the browser paint
+                its own broken-image icon. The dark background stays visible,
+                never a white slab. */}
             {!thumbFailed && (
               <Image
                 src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}

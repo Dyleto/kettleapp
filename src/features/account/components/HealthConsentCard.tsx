@@ -17,33 +17,34 @@ const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
 });
 
 /**
- * L'interrupteur du partage de ressenti, et la trace de la dernière décision.
+ * The switch for sharing how you felt, and the trace of the last decision.
  *
- * Retirer son accord doit être aussi simple que de le donner : c'est le même
- * geste, au même endroit, sans confirmation. Un accord qu'on ne peut pas
- * reprendre d'un doigt n'en est pas un.
+ * Withdrawing consent must be as simple as giving it: the same gesture, in
+ * the same place, with no confirmation. A consent you cannot take back with
+ * one finger is not one.
  *
- * Tout y est écrit à la première personne, et pas par goût : cette carte
- * paraît dans les deux espaces, où Kettle n'emploie pas la même adresse — il
- * tutoie le client et vouvoie le coach. Un compte qui tient les deux rôles
- * lisait donc « Ton coach voit ce que tu déclares » au milieu d'une page qui
- * le vouvoyait partout ailleurs. La première personne échappe au problème
- * sans traîner un booléen dans chaque phrase, et c'est de toute façon la voix
- * d'un consentement : on déclare ce qu'on accepte, on ne se le fait pas dire.
+ * Everything here is written in the first person, and not out of taste: this
+ * card appears in both areas, where Kettle does not use the same form of
+ * address — it says "tu" to the client and "vous" to the coach. An account
+ * holding both roles therefore read "Ton coach voit ce que tu déclares" in
+ * the middle of a page that said "vous" everywhere else. The first person
+ * escapes the problem without dragging a boolean through every sentence, and
+ * it is the voice of a consent anyway: you declare what you accept, you are
+ * not told it.
  */
 export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   const { mutate, isPending } = useSetHealthConsent();
   const [retraitOuvert, setRetraitOuvert] = useState(false);
   const granted = consent?.granted === true;
 
-  // Donner son accord tient en un geste. Le retirer aussi — la fenêtre ne
-  // demande pas de confirmer une intention, elle annonce une conséquence :
-  // ce qui a déjà été enregistré est effacé, et ça ne se rattrape pas.
+  // Giving consent takes one gesture. Withdrawing it too — the dialog does
+  // not ask you to confirm an intention, it announces a consequence: what has
+  // already been recorded is erased, and that cannot be undone.
   const basculer = () => {
     if (isPending) return;
-    // Retirer son accord alors qu'il n'y a rien d'enregistré n'efface rien :
-    // la fenêtre n'aurait rien à annoncer, et retirer doit rester aussi
-    // simple que donner.
+    // Withdrawing consent when nothing is recorded erases nothing: the
+    // dialog would have nothing to announce, and withdrawing must stay as
+    // simple as giving.
     if (granted && healthDataCount > 0) {
       setRetraitOuvert(true);
       return;
@@ -77,8 +78,8 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           role="switch"
           aria-checked={granted}
           aria-labelledby="partage-ressenti"
-          // `Box as="button"` ne prend pas `disabled` en Chakra v3 : on
-          // l'annonce et on garde la porte fermée dans le gestionnaire.
+          // `Box as="button"` does not take `disabled` in Chakra v3: we
+          // announce it and keep the door shut in the handler.
           aria-disabled={isPending}
           onClick={basculer}
           flexShrink={0}

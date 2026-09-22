@@ -1,36 +1,34 @@
 import { useEffect, useRef } from 'react';
 
-/** La marque posée dans l'historique, et le seul mot qui identifie nos repères. */
+/** The mark left in history, and the only word identifying our landmarks. */
 const REPERE = 'kettleCouche';
 
 /**
- * Le bouton retour du téléphone referme la couche du dessus, au lieu de
- * quitter la page.
+ * The phone's back button closes the top layer instead of leaving the page.
  *
- * Sur Android, le retour matériel est le geste d'annulation universel : on
- * ouvre un tiroir, on se trompe, on appuie sur retour. Aucune des couches de
- * l'application ne posait de repère dans l'historique — le retour ne trouvait
- * donc rien à défaire au-dessus de la page, et quittait la page. Un coach au
- * milieu de sa séance se retrouvait sur la liste de ses clients, et le vivait
- * comme une annulation.
+ * On Android, hardware back is the universal undo gesture: you open a drawer,
+ * you get it wrong, you press back. None of the app's layers put a landmark
+ * in history — so back found nothing to undo above the page, and left the
+ * page. A coach in the middle of a session ended up on their client list, and
+ * experienced it as a cancellation.
  *
- * Le remède tient en une ligne d'historique. À l'ouverture on pose un repère
- * sans changer d'adresse — la route ne bouge pas, rien ne se recharge. Le
- * retour le consomme, `popstate` se déclenche, et on ferme.
+ * The remedy is one history entry. On opening we push a landmark without
+ * changing address — the route does not move, nothing reloads. Back consumes
+ * it, `popstate` fires, and we close.
  *
- * L'état existant est recopié plutôt qu'écrasé : le routeur y range son propre
- * repère de position, et le lui retirer lui ferait perdre le fil de ses
- * allers-retours.
+ * The existing state is copied rather than overwritten: the router keeps its
+ * own position marker there, and taking it away would make it lose track of
+ * its own back-and-forth.
  *
- * La fermeture par un autre chemin — la croix, un clic dehors, un choix fait —
- * doit retirer ce repère, sinon il faudrait deux retours pour quitter une page
- * dont la couche est déjà fermée. D'où le `history.back()` du nettoyage,
- * conditionné au fait que le repère soit encore là : quand c'est le retour qui
- * a fermé, il est déjà consommé et il n'y a rien à retirer.
+ * Closing by another path — the cross, a click outside, a choice made — has
+ * to remove that landmark, otherwise it would take two backs to leave a page
+ * whose layer is already closed. Hence the `history.back()` on cleanup,
+ * conditional on the landmark still being there: when back is what closed, it
+ * has already been consumed and there is nothing to remove.
  */
 export const useBackDismiss = (isOpen: boolean, onDismiss: () => void) => {
-  // La fermeture est relue au moment où le retour survient, pas figée à
-  // l'ouverture : le parent peut se redessiner entre les deux.
+  // The close handler is read back at the moment back happens, not frozen on
+  // opening: the parent may re-render in between.
   const fermeture = useRef(onDismiss);
   useEffect(() => {
     fermeture.current = onDismiss;
@@ -39,19 +37,16 @@ export const useBackDismiss = (isOpen: boolean, onDismiss: () => void) => {
   useEffect(() => {
     if (!isOpen) return;
 
-    window.history.pushState(
-      { ...window.history.state, [REPERE]: true },
-      ''
-    );
+    window.history.pushState({ ...window.history.state, [REPERE]: true }, '');
 
     const surRetour = () => fermeture.current();
     window.addEventListener('popstate', surRetour);
 
     return () => {
       window.removeEventListener('popstate', surRetour);
-      // Le repère est encore là : c'est donc une fermeture ordinaire, et
-      // c'est à nous de le retirer. L'écouteur est déjà décroché, ce retour
-      // ne rappellera personne.
+      // The landmark is still there: this is an ordinary close, and it is
+      // up to us to remove it. The listener is already detached, so this back
+      // will call nobody.
       if (window.history.state?.[REPERE]) window.history.back();
     };
   }, [isOpen]);

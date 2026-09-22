@@ -6,7 +6,7 @@ import { Exercise } from '@/types';
 import { queryKeys } from '@/config/queryKeys';
 
 /**
- * Hook pour créer un exercice
+ * Creates an exercise.
  */
 export const useCreateExercise = () => {
   const queryClient = useQueryClient();
@@ -33,7 +33,7 @@ export const useCreateExercise = () => {
 };
 
 /**
- * Hook pour modifier un exercice
+ * Updates an exercise.
  */
 export const useUpdateExercise = () => {
   const queryClient = useQueryClient();
@@ -63,7 +63,7 @@ export const useUpdateExercise = () => {
 };
 
 /**
- * Hook pour supprimer un exercice
+ * Deletes an exercise.
  */
 export const useDeleteExercise = () => {
   const queryClient = useQueryClient();

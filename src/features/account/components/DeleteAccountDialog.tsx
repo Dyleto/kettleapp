@@ -5,18 +5,18 @@ import { useDeleteAccount } from '../hooks/useAccount';
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Ce qui disparaît, écrit en clair, avec les vrais nombres. */
+  /** What disappears, spelled out, with the real numbers. */
   consequences: string[];
   tutoiement: boolean;
 }
 
 /**
- * La confirmation de suppression.
+ * The deletion confirmation.
  *
- * Elle énumère ce qui part plutôt que de demander « êtes-vous sûr » : la
- * question ne renseigne sur rien, la liste oui. Et le bouton destructeur est
- * au-dessus d'« Annuler » — sur un téléphone, le pouce se pose en bas, et
- * c'est là qu'on veut l'issue de secours.
+ * It lists what goes rather than asking "are you sure": the question informs
+ * nobody, the list does. And the destructive button sits above "Annuler" — on
+ * a phone the thumb lands at the bottom, and that is where you want the way
+ * out.
  */
 export const DeleteAccountDialog = ({
   open,
@@ -60,11 +60,7 @@ export const DeleteAccountDialog = ({
               </VStack>
             </VStack>
           </Dialog.Body>
-          <Dialog.Footer
-            flexDirection="column"
-            alignItems="stretch"
-            gap={2}
-          >
+          <Dialog.Footer flexDirection="column" alignItems="stretch" gap={2}>
             <Button
               bg="app.error"
               color="bg.canvas"

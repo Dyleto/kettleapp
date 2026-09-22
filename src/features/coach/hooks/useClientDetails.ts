@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { coachService } from '@/services/coachService';
 import { queryKeys } from '@/config/queryKeys';
 
-// On passe l'ID en paramètre du hook
+// The id is passed as a parameter.
 export const useClientDetails = (clientId: string) => {
   return useQuery({
     queryKey: queryKeys.coach.clients.detail(clientId),

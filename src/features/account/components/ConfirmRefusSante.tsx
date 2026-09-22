@@ -5,25 +5,26 @@ interface Props {
   onClose: () => void;
   onConfirm: () => void;
   isPending: boolean;
-  /** « Refuser le partage ? » à l'entrée, « Retirer mon accord ? » après. */
+  /** "Refuser le partage ?" on the way in, "Retirer mon accord ?" after. */
   titre: string;
-  /** Le libellé de l'action, qui doit dire ce qu'elle fait. */
+  /** The action's label, which has to say what it does. */
   action: string;
-  /** Combien de bilans portent encore une étiquette ou un commentaire. */
+  /** How many wrap-ups still carry a tag or a comment. */
   nombre: number;
 }
 
 /**
- * Ce qu'on annonce avant d'effacer.
+ * What is announced before erasing.
  *
- * Refuser le partage n'efface pas seulement l'avenir : ce qui a déjà été
- * collecté part aussi, sans quoi le refus ne serait qu'un affichage et la
- * donnée resterait en base sans rien pour la justifier. C'est irréversible,
- * donc ça se dit avant — avec le nombre réel, pas une formule vague.
+ * Refusing to share does not only erase the future: what has already been
+ * collected goes too, otherwise the refusal would be mere display and the
+ * data would stay in the database with nothing to justify it. It cannot be
+ * undone, so it is said beforehand — with the real number, not a vague
+ * phrase.
  *
- * La fenêtre ne s'ouvre que s'il y a quelque chose à perdre. Sur un compte
- * qui n'a encore rien déclaré, refuser reste un seul geste : mettre un
- * obstacle devant un refus sans objet, c'est décourager le refus.
+ * The dialog only opens when there is something to lose. On an account that
+ * has declared nothing yet, refusing stays a single gesture: putting an
+ * obstacle in front of a refusal with no object is discouraging the refusal.
  */
 export const ConfirmRefusSante = ({
   open,

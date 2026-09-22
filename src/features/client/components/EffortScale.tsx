@@ -3,8 +3,8 @@ import { useRef } from 'react';
 import { EFFORT_SCALE, EFFORT_ZONE_COLOR, getEffortLevel } from '../constants';
 
 interface EffortScaleProps {
-  /** `undefined` = rien de choisi. Jamais de présélection : une valeur non
-   *  choisie ne doit pas pouvoir être enregistrée comme une réponse. */
+  /** `undefined` = nothing chosen. Never preselected: a value nobody
+   *  picked must not be recordable as an answer. */
   value?: number;
   onChange: (value: number) => void;
 }
@@ -39,8 +39,8 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
               role="radio"
               aria-checked={isSelected}
               aria-label={`${level.label} — ${level.description}`}
-              // Un seul point d'entrée au clavier : on tabule jusqu'à
-              // l'échelle, puis on la parcourt aux flèches.
+              // One keyboard entry point: you tab to the scale, then move
+              // through it with the arrow keys.
               tabIndex={isSelected || (!value && i === 0) ? 0 : -1}
               flex={1}
               minH="56px"
@@ -76,10 +76,9 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
                 <Text fontSize="lg" fontWeight="800" fontFamily="mono">
                   {level.rank}
                 </Text>
-                {/* Le nom de chaque cran, et pas seulement des deux
-                    extrémités : la cible est « Juste », au milieu, et rien
-                    à l'écran ne disait où elle se trouvait avant d'avoir
-                    tapé. */}
+                {/* The name of every step, and not just the two ends: the
+                    target is "Juste", in the middle, and nothing on screen
+                    said where it was until you had tapped. */}
                 <Text
                   fontSize="10px"
                   lineHeight="1.2"
@@ -94,9 +93,9 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
         })}
       </HStack>
 
-      {/* Hauteur réservée : le choix d'un niveau ne doit pas faire sauter la
-          fenêtre au moment du tap. Le nom du cran est maintenant sur le cran
-          lui-même — il ne reste ici que ce qu'il ajoute : la description. */}
+      {/* Height reserved: choosing a level must not make the dialog jump at
+          the moment of the tap. The step's name is now on the step itself —
+          all that remains here is what it adds: the description. */}
       <Box minH="20px" textAlign="center">
         {selected && (
           <Text fontSize="xs" color={EFFORT_ZONE_COLOR[selected.zone]}>

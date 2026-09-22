@@ -2,25 +2,25 @@ import { ReactNode } from 'react';
 import { Box, Text, VStack } from '@chakra-ui/react';
 
 interface EtatVideProps {
-  /** Ce qui manque, en une ligne. Pas « Aucun résultat » : ce qui manque. */
+  /** What is missing, in one line. Not "no results": what is missing. */
   titre: string;
-  /** Pourquoi c'est vide, et ce qui va arriver. Facultatif si le titre suffit. */
+  /** Why it is empty, and what will happen. Optional when the title suffices. */
   phrase?: string;
-  /** Une action, quand il y en a une à proposer. */
+  /** An action, when there is one to offer. */
   action?: ReactNode;
 }
 
 /**
- * Un écran vide, écrit d'une seule façon.
+ * An empty screen, written one way.
  *
- * Le même état — « ton coach n'a pas encore écrit de programme » — se disait
- * de trois manières selon l'écran, dont une sèche : « Aucune séance dans le
- * programme. » Trois formulations donnent l'impression de trois situations
- * différentes, et la version sèche donne l'impression d'une erreur.
+ * The same state — "your coach has not written a programme yet" — was said
+ * three ways depending on the screen, one of them curt: "Aucune séance dans
+ * le programme." Three wordings suggest three different situations, and the
+ * curt one suggests an error.
  *
- * Le ton chaleureux est le bon : un programme vide n'est pas une panne, c'est
- * un moment normal de la relation avec son coach. C'est la version sèche qui
- * devait disparaître.
+ * The warm tone is the right one: an empty programme is not a breakdown, it
+ * is a normal moment in the relationship with a coach. It was the curt
+ * version that had to go.
  */
 export const EtatVide = ({ titre, phrase, action }: EtatVideProps) => (
   <Box

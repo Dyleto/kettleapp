@@ -2,7 +2,7 @@ import api from '@/config/api';
 import { User } from '@/types'; // Assurez-vous d'avoir le type User
 
 export const authService = {
-  // Login avec Google
+  // Sign in with Google.
   googleLogin: async (
     code: string,
     redirectUri: string,
@@ -19,18 +19,18 @@ export const authService = {
     return data;
   },
 
-  // Récupérer le profil courant
+  // Fetch the current profile.
   getMe: async () => {
     const { data } = await api.get<{ user: User }>('/api/auth/me');
     return data;
   },
 
-  // Déconnexion
+  // Sign out.
   logout: async () => {
     await api.post('/api/auth/logout');
   },
 
-  // Vérifier un token d'invitation (public)
+  // Check an invitation token (public).
   verifyInviteToken: async (token: string) => {
     const { data } = await api.get(
       `/api/auth/verify-invite-token?token=${token}`

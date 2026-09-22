@@ -29,10 +29,10 @@ export const Toaster = () => {
         padding={{ base: '0 0 20px 0', md: '0 20px 20px 0' }}
       >
         {(toast) => (
-          /* Les jetons du thème, pas la palette par défaut de Chakra : un
-             message « Exercice créé » sortait en vert saturé au moment même
-             où le bouton juste à côté virait au teal `app.success`. Deux
-             verts pour le même événement, côte à côte. */
+          /* The theme tokens, not Chakra's default palette: an
+             "Exercice créé" message came out in saturated green at the very
+             moment the button beside it turned `app.success` teal. Two greens
+             for the same event, side by side. */
           <Toast.Root
             width={{ base: '90vw', md: 'sm' }}
             style={{ pointerEvents: 'auto', marginBottom: '8px' }}
@@ -70,9 +70,9 @@ export const Toaster = () => {
                 <Toast.Description>{toast.description}</Toast.Description>
               )}
             </Stack>
-            {/* « Annuler » doit se voir et se viser : c'est la seule chose
-                d'un bandeau sur laquelle on appuie, et elle passait en texte
-                nu de la taille du message. */}
+            {/* "Annuler" has to be seen and aimed at: it is the only thing
+                in a toast you press, and it was plain text the size of the
+                message. */}
             {toast.action && (
               <Toast.ActionTrigger
                 color="app.primary"

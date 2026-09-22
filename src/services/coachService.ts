@@ -21,11 +21,11 @@ export const coachService = {
   },
 
   /**
-   * Copier une séance chez un autre client.
+   * Copy a session to another client.
    *
-   * Rien du contenu ne transite : on désigne la séance, le serveur la relit
-   * lui-même. Il rend la copie telle qu'il l'a écrite — le nouveau client
-   * reçoit ses propres identifiants.
+   * None of the content travels: we name the session, the server reads it
+   * back itself. It returns the copy as it wrote it — the new client gets its
+   * own identifiers.
    */
   copySessionToClient: async (params: {
     targetClientId: string;

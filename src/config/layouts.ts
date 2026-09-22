@@ -1,5 +1,5 @@
 /**
- * Templates de grille réutilisables pour la cohérence du design
+ * Reusable grid templates, so layouts stay consistent.
  */
 export const GRID_LAYOUTS = {
   /**
@@ -29,7 +29,7 @@ export const GRID_LAYOUTS = {
   },
 
   /**
-   * Grid sessions avec largeur fixe
+   * Session grid, at a fixed width.
    */
   sessions: {
     base: '1fr',

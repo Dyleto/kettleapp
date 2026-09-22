@@ -3,19 +3,19 @@ import { useEffect } from 'react';
 const PRODUIT = 'Kettle';
 
 /**
- * Ce que dit l'onglet du navigateur.
+ * What the browser tab says.
  *
- * Toutes les pages s'appelaient « Kettle ». Deux clients ouverts dans deux
- * onglets étaient indiscernables, l'historique du navigateur ne servait à
- * rien, et un signet ne disait pas ce qu'il pointait.
+ * Every page was called "Kettle". Two clients open in two tabs were
+ * indistinguishable, browser history was useless, and a bookmark did not say
+ * what it pointed at.
  *
- * Le sujet passe devant, parce qu'un onglet réduit ne montre que ses premiers
- * caractères : « Corentin Le Moullec · Kettle » reste lisible à dix
- * caractères, « Kettle · Corentin Le Moullec » ne l'est plus.
+ * The subject comes first, because a shrunk tab only shows its first few
+ * characters: "Corentin Le Moullec · Kettle" is still readable at ten
+ * characters, "Kettle · Corentin Le Moullec" is not.
  *
- * `undefined` est un état d'attente, pas une absence de titre : pendant qu'un
- * nom se charge, l'onglet garde le nom du produit plutôt que d'afficher un
- * blanc puis de sauter.
+ * `undefined` is a waiting state, not an absence of title: while a name
+ * loads, the tab keeps the product name rather than showing a blank and then
+ * jumping.
  */
 export const useDocumentTitle = (sujet?: string) => {
   useEffect(() => {

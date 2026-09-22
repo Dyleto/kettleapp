@@ -1,6 +1,6 @@
 /**
- * Source de vérité unique pour les clés de cache React Query.
- * Permet d'éviter les fautes de frappe et facilite l'invalidation du cache.
+ * The single source of truth for React Query cache keys.
+ * Avoids typos and makes cache invalidation straightforward.
  */
 export const queryKeys = {
   auth: {
