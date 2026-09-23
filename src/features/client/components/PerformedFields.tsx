@@ -17,7 +17,7 @@ interface PerformedFieldsProps {
    * empty entry gets numbered. The length sets how many input rows there are.
    */
   setLabels?: string[];
-  /** "la dernière fois : 26 kg · 3 × 12 reps", or `null`. */
+  /** "la dernière fois : 3 × 12 reps · 26 kg", or `null`. */
   lastLabel?: string | null;
   /** The exercise is measured in time: asking for repetitions makes no
    *  sense, so we only show the load. */
@@ -76,13 +76,10 @@ const SetInputs = ({
   isTimed: boolean;
   onChange: (next: PerformedSet) => void;
 }) => (
+  // The work first, the load second — « 9 reps · 12 kg », the order it is
+  // said in. A timed exercise has no repetitions to ask for, so the load
+  // stands alone.
   <HStack gap={3} align="center" flexWrap="wrap">
-    <Field
-      label="Poids utilisé, en kilos"
-      suffix="kg"
-      value={set.weight}
-      onChange={(v) => onChange({ ...set, weight: v })}
-    />
     {!isTimed && (
       <Field
         label="Répétitions réellement faites"
@@ -91,6 +88,12 @@ const SetInputs = ({
         onChange={(v) => onChange({ ...set, reps: v })}
       />
     )}
+    <Field
+      label="Poids utilisé, en kilos"
+      suffix="kg"
+      value={set.weight}
+      onChange={(v) => onChange({ ...set, weight: v })}
+    />
   </HStack>
 );
 
@@ -134,9 +137,9 @@ export const PerformedFields = ({
     onChange({ sets: truncateAtFirstEmpty(next) });
   };
 
-  // Folded, you describe every set at once: "I held 26 kg × 12 from start to
-  // finish". Clearing the field erases the whole exercise, which is indeed
-  // what clearing the only displayed value means.
+  // Folded, you describe every set at once: "I held 12 reps at 26 kg from
+  // start to finish". Clearing the field erases the whole exercise, which is
+  // indeed what clearing the only displayed value means.
   const collapsedSet = uniformSet(rows) ?? rows[0] ?? {};
   const setAll = (next: PerformedSet) =>
     emit(

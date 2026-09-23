@@ -22,25 +22,38 @@ export const truncateAtFirstEmpty = (sets: PerformedSet[]): PerformedSet[] => {
 export const uniformSet = (sets: PerformedSet[]): PerformedSet | null =>
   sets.length > 0 && sets.every((s) => sameSet(s, sets[0])) ? sets[0] : null;
 
-const setParts = (set: PerformedSet): string[] => {
+/** The work done — repetitions, or time. `null` when neither was recorded. */
+const workOf = (set: PerformedSet): string | null => {
   const parts: string[] = [];
-  if (set.weight !== undefined) parts.push(`${set.weight} kg`);
   if (set.reps !== undefined) parts.push(`${set.reps} reps`);
   if (set.duration !== undefined) parts.push(`${set.duration}s`);
-  return parts;
+  return parts.length > 0 ? parts.join(' · ') : null;
 };
+
+/** The load. `null` when none was recorded. */
+const loadOf = (set: PerformedSet): string | null =>
+  set.weight !== undefined ? `${set.weight} kg` : null;
 
 /**
  * What was performed, on one line. `null` when there is nothing to say.
  *
+ * The work comes first, the load second — « 9 reps · 12 kg », the way it is
+ * said out loud. The load used to lead, which read as « 12 kg × 9 »: the
+ * number you actually did came last, behind the number you chose.
+ *
  * Four shapes, from the most common to the rarest:
- *   one set                      « 26 kg · 12 reps »
- *   several identical sets       « 26 kg · 3 × 12 reps »
- *   same load, fewer reps        « 26 kg · 12 + 10 + 8 »
- *   everything else              « 26 kg × 12 · 24 kg × 10 »
+ *   one set                      « 12 reps · 26 kg »
+ *   several identical sets       « 3 × 12 reps · 26 kg »
+ *   same load, fewer reps        « 12 + 10 + 8 reps · 26 kg »
+ *   everything else              « 12 × 26 kg · 10 × 24 kg »
  *
  * The first three cover what people usually write; the last does not try to
  * be short, it tries to stay unambiguous.
+ *
+ * The word « reps » is what keeps it so. Now that a number before the load
+ * means repetitions, a bare count before it would collide with the set count:
+ * « 3 × 26 kg » could be three sets or three repetitions. Spelling the unit
+ * costs five characters and removes the doubt everywhere at once.
  */
 export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
   const kept = truncateAtFirstEmpty(sets);
@@ -48,17 +61,14 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
 
   const uniform = uniformSet(kept);
   if (uniform) {
-    const parts = setParts(uniform);
-    if (parts.length === 0) return null;
-    if (kept.length === 1) return parts.join(' · ');
-    // The set count goes before the work, never before the load:
-    // « 3 × 26 kg » would read as a total weight.
-    const weight = uniform.weight !== undefined ? `${uniform.weight} kg` : null;
-    const work = setParts({ reps: uniform.reps, duration: uniform.duration });
-    if (work.length === 0) return `${kept.length} × ${weight}`;
-    return [weight, `${kept.length} × ${work.join(' · ')}`]
-      .filter(Boolean)
-      .join(' · ');
+    const work = workOf(uniform);
+    const load = loadOf(uniform);
+    if (!work && !load) return null;
+    if (kept.length === 1) return [work, load].filter(Boolean).join(' · ');
+    // With no work to count, the count has to name its own unit: « 3 × 26 kg »
+    // would read as three repetitions at 26 kg, which is not what happened.
+    if (!work) return `${kept.length} séries · ${load}`;
+    return [`${kept.length} × ${work}`, load].filter(Boolean).join(' · ');
   }
 
   const weights = kept.map((s) => s.weight);
@@ -66,7 +76,7 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
     weights[0] !== undefined && weights.every((w) => w === weights[0]);
   if (sameWeight && kept.every((s) => s.duration === undefined)) {
     const reps = kept.map((s) => (s.reps === undefined ? '—' : String(s.reps)));
-    return `${weights[0]} kg · ${reps.join(' + ')}`;
+    return `${reps.join(' + ')} reps · ${weights[0]} kg`;
   }
 
   // In a list of sets the « × » already says these are repetitions:
@@ -79,9 +89,9 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
       ]
         .filter(Boolean)
         .join(' · ');
-      const weight = set.weight !== undefined ? `${set.weight} kg` : null;
-      if (!weight) return work || '—';
-      return work ? `${weight} × ${work}` : weight;
+      const load = loadOf(set);
+      if (!load) return work || '—';
+      return work ? `${work} × ${load}` : load;
     })
     .join(' · ');
 };
