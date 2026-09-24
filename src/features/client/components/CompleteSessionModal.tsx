@@ -1,5 +1,13 @@
 import { FeedbackTag, SessionFeedback } from '@/types';
-import { Box, Button, Dialog, Separator, Text, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Dialog,
+  HStack,
+  Separator,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 import { useState } from 'react';
 import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
 import { DateInput } from '@/components/DateInput';
@@ -82,12 +90,26 @@ export const CompleteSessionModal = ({
       <Dialog.Positioner>
         {/* The statement, the scale, the tags and the comment in one box:
             on a small screen it overflows, and it is "Valider" you lose at
-            the bottom. The body scrolls, the header and footer hold. */}
+            the bottom. The body scrolls, the header and footer hold.
+
+            The dialog carries a 64 px margin top and bottom by default, and
+            `maxH="90dvh"` knew nothing about it: the box was allowed 760 px
+            inside 716 px of room, so it hung 44 px past its own margin — and
+            in landscape, where those 128 px are a third of the screen,
+            "Valider" left the viewport altogether.
+
+            So the margin shrinks to 16 px where the screen is small, and the
+            height is what is actually left rather than a fraction of the
+            whole. A phone held upright gains 52 px of body from it. */}
         <Dialog.Content
           bg="bg.canvas"
           borderColor="whiteAlpha.100"
           borderWidth="1px"
-          maxH="90dvh"
+          m={{ base: 4, md: 16 }}
+          maxH={{
+            base: 'calc(100dvh - 2rem)',
+            md: 'calc(100dvh - 8rem)',
+          }}
           display="flex"
           flexDirection="column"
         >
@@ -123,6 +145,17 @@ export const CompleteSessionModal = ({
               {recap && (
                 <>
                   {recap}
+                  {/* This sentence belongs beside the statement it comments
+                      on, and it belongs to what scrolls. In the footer it
+                      claimed a line of its own — `flexBasis="100%"` — on a
+                      surface that never shrinks, and so took that line from
+                      the body on every single session. */}
+                  {chargesDejaNotees && (
+                    <Text fontSize="xs" color="fg.muted" textAlign="center">
+                      Tes charges sont déjà enregistrées&nbsp;— rien à
+                      ressaisir.
+                    </Text>
+                  )}
                   <Separator borderColor="whiteAlpha.100" />
                   <Dialog.Title fontSize="lg" fontWeight="800">
                     Cette séance, c'était&nbsp;?
@@ -165,13 +198,25 @@ export const CompleteSessionModal = ({
               {/* Folded away: nine times out of ten the session happened
                   today, and the field sat between the comment and the confirm
                   button for a rare case. */}
-              <VStack align="center" gap={2}>
+              {/* The row keeps its height open or closed, so unfolding costs
+                  nothing. Two things make that true: the label sits beside
+                  the field rather than above it, and the row reserves the
+                  field's height while still folded. Stacked and unreserved,
+                  one tap added 48 px to a body that already scrolled — the
+                  whole wrap-up jumped under your thumb, which is what you
+                  notice, far more than the scrollbar itself. */}
+              <HStack justify="center" gap={2} flexWrap="wrap" minH="44px">
                 {isDateOpen ? (
                   <>
-                    <Text fontSize="xs" color="fg.muted" letterSpacing="wide">
-                      Date de réalisation
+                    <Text
+                      fontSize="xs"
+                      color="fg.muted"
+                      letterSpacing="wide"
+                      flexShrink={0}
+                    >
+                      Fait le
                     </Text>
-                    <Box w="60%" minW="180px">
+                    <Box maxW="180px">
                       <DateInput
                         ariaLabel="Date de réalisation de la séance"
                         value={completedAt}
@@ -193,16 +238,20 @@ export const CompleteSessionModal = ({
                     Ce n'était pas aujourd'hui&nbsp;?
                   </Box>
                 )}
-              </VStack>
+              </HStack>
             </VStack>
           </Dialog.Body>
 
           <Dialog.Footer gap={3} flexWrap="wrap" flexShrink={0}>
             {/* A greyed-out button with no explanation looks broken. We say
-                what is missing, next to what will not go. */}
+                what is missing, next to what will not go — and short enough
+                to share the line with it. "Choisis un cran pour valider."
+                wrapped the footer onto a second row at 390 px, and a footer
+                does not scroll: that row came straight out of the body. The
+                greyed "Valider" beside it carries the rest of the sentence. */}
             {effort === undefined && (
-              <Text fontSize="xs" color="fg.muted" mr="auto">
-                Choisis un cran pour valider.
+              <Text fontSize="xs" color="fg.muted" mr="auto" flexShrink={0}>
+                Choisis un cran.
               </Text>
             )}
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
@@ -221,16 +270,6 @@ export const CompleteSessionModal = ({
             >
               Valider
             </Button>
-            {chargesDejaNotees && (
-              <Text
-                flexBasis="100%"
-                textAlign="center"
-                fontSize="xs"
-                color="fg.muted"
-              >
-                Tes charges sont déjà enregistrées&nbsp;— rien à ressaisir.
-              </Text>
-            )}
           </Dialog.Footer>
         </Dialog.Content>
       </Dialog.Positioner>
