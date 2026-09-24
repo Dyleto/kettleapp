@@ -231,6 +231,27 @@ const program = () => ({
 // altering the program itself.
 const snapshot = (session) => JSON.parse(JSON.stringify(session.blocks));
 
+/**
+ * A snapshot of a session as it stood BEFORE the coach reworked it.
+ *
+ * This is the case the programme screen used to get wrong: the coach edits a
+ * session instead of deleting and recreating it, so the id survives and the
+ * client is told they have already done something that did not exist last
+ * week. A wrap-up whose blocks no longer match the session that bears its id
+ * is the only way to reproduce it.
+ */
+const reworkedSnapshot = (session) => {
+  const blocks = snapshot(session);
+  // The first exercise asked for something else that day. Nothing else
+  // differs, so the comparison has to catch this alone.
+  if (blocks[0]?.exercises?.[0]) {
+    const ex = blocks[0].exercises[0];
+    if (ex.reps !== undefined) ex.reps += 5;
+    else if (ex.duration !== undefined) ex.duration += 30;
+  }
+  return blocks;
+};
+
 const isEmptySet = (set) =>
   set.weight === undefined &&
   set.reps === undefined &&
@@ -356,6 +377,16 @@ let HISTORY = EMPTY_PROGRAM
         feedback: { effort: 5, tags: ['fatigue'] },
         clientNotes: 'Dur sur la fin.',
         viewedByCoach: false,
+      },
+      {
+        // Session 3 was done once, then reworked: same id, other content.
+        _id: 'cs7',
+        completedAt: '2026-08-12T17:30:00.000Z',
+        originalSessionId: 'sess3',
+        sessionOrder: 3,
+        blocks: reworkedSnapshot(SESSIONS[2]),
+        feedback: { effort: 3 },
+        viewedByCoach: true,
       },
     ];
 

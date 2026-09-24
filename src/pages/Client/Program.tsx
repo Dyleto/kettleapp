@@ -1,11 +1,10 @@
 import { useOutletContext, useNavigate } from 'react-router-dom';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import { useMemo } from 'react';
-import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
+import { Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { Card } from '@/components/Card';
 import { Session } from '@/types';
 import {
-  programProgress,
   CLIENT_GRID_MAX_W,
   getSessionBlockTypes,
   getSessionSummary,
@@ -15,119 +14,83 @@ import {
 import { CLIENT_ROUTES } from '@/config/routes';
 import { EmptyState } from '@/components/EmptyState';
 import { sessionTitle } from '@/features/program/sessionTitle';
+import {
+  matchSession,
+  matchLabel,
+  type SessionMatch,
+} from '@/features/client/sessionMatch';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
-type SessionStatus = 'done' | 'next' | 'upcoming';
-
-function getStatus(
-  session: Session,
-  nextSession: Session | undefined,
-  completedSessionIds: Set<string>
-): SessionStatus {
-  if (session._id === nextSession?._id) return 'next';
-  if (completedSessionIds.has(session._id)) return 'done';
-  return 'upcoming';
-}
 
 /**
- * `bg` dresses the status chip; `surface`, the whole card.
+ * The next session is the one carrying an action, and it is the card that
+ * says so — a lighter surface and a coloured edge. Everything else reads
+ * the same, because everything else is just as available.
  *
- * Five cards of identical weight, of which only a chip's colour and a
- * two-pixel edge changed: the one carrying an action was only visible after
- * reading. It now sits on a lighter background — the card stands out before
- * you read it.
+ * The status chips that used to sit here — "TERMINÉE", "À FAIRE", "À VENIR"
+ * — said nothing you could act on. Worse, "TERMINÉE" was a claim about the
+ * past drawn from an id that outlives an edit, so it was wrong as soon as
+ * the coach rewrote a session. The card now carries the one fact that is
+ * worth reading: when you last did this session, as it stands today.
  */
-const STATUS_CONFIG: Record<
-  SessionStatus,
-  {
-    label: string;
-    color: string;
-    textColor: string;
-    bg: string;
-    surface?: string;
-  }
-> = {
-  done: {
-    label: 'Terminée',
-    color: 'session.rest',
-    textColor: 'session.rest.fg',
-    bg: 'session.rest/16',
-  },
-  next: {
-    label: 'À faire',
-    color: 'app.primary',
-    textColor: 'app.primary',
-    bg: 'app.primary/16',
-    surface: 'bg.surface',
-  },
-  upcoming: {
-    label: 'À venir',
-    color: 'fg.muted',
-    textColor: 'fg.muted',
-    bg: 'whiteAlpha.50',
-  },
-};
+const NEXT_ACCENT = 'app.primary';
+const PLAIN_ACCENT = 'fg.muted';
 
 interface SessionRowProps {
   session: Session;
-  status: SessionStatus;
+  isNext: boolean;
+  match: SessionMatch;
   onSelect: () => void;
 }
 
-const SessionRow = ({ session, status, onSelect }: SessionRowProps) => {
-  const config = STATUS_CONFIG[status];
-
-  return (
-    <Card
-      accentColor={config.color}
-      hoverEffect="border"
-      withGlow={false}
-      onClick={onSelect}
-      p={4}
-      bg={config.surface}
-    >
-      <VStack align="stretch" gap={1.5}>
-        <HStack justify="space-between" align="center">
-          <Text fontWeight="bold" fontSize="sm">
-            {sessionTitle(session.order, session.name)}
-          </Text>
-          <Box
-            px={2}
-            py={0.5}
-            borderRadius="full"
-            bg={config.bg}
-            fontSize="xs"
-            fontWeight="bold"
-            color={config.textColor}
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            {config.label}
-          </Box>
-        </HStack>
-        {/* The suggested day reads here because here is where you choose
+const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
+  <Card
+    accentColor={isNext ? NEXT_ACCENT : PLAIN_ACCENT}
+    hoverEffect="border"
+    withGlow={false}
+    onClick={onSelect}
+    p={4}
+    bg={isNext ? 'bg.surface' : undefined}
+  >
+    <VStack align="stretch" gap={1.5}>
+      <HStack justify="space-between" align="baseline" gap={2}>
+        <Text fontWeight="bold" fontSize="sm">
+          {sessionTitle(session.order, session.name)}
+        </Text>
+        {/* A date, not a badge. "Faite le 12 sept." is read once and tells
+            you what a chip never could: whether it is time to come back to
+            this one. */}
+        <Text
+          fontSize="xs"
+          color={match.state === 'done' ? 'fg.muted' : 'fg.subtle'}
+          flexShrink={0}
+          textAlign="right"
+        >
+          {matchLabel(match)}
+        </Text>
+      </HStack>
+      {/* The suggested day reads here because here is where you choose
             what to do — and in the exact form the coach set it. A session
             with no day renders nothing: the absence of a suggestion is not
             information worth showing. */}
-        <SuggestedDays days={session.suggestedDays} withLabel />
-        {session.blocks.length === 0 ? (
+      <SuggestedDays days={session.suggestedDays} withLabel />
+      {session.blocks.length === 0 ? (
+        <Text fontSize="xs" color="fg.muted">
+          Aucun bloc pour cette séance.
+        </Text>
+      ) : (
+        <>
           <Text fontSize="xs" color="fg.muted">
-            Aucun bloc pour cette séance.
+            {getSessionSummary(session)}
           </Text>
-        ) : (
-          <>
-            <Text fontSize="xs" color="fg.muted">
-              {getSessionSummary(session)}
-            </Text>
-            <Text fontSize="xs" color="fg.muted">
-              {getSessionBlockTypes(session)}
-            </Text>
-          </>
-        )}
-      </VStack>
-    </Card>
-  );
-};
+          <Text fontSize="xs" color="fg.muted">
+            {getSessionBlockTypes(session)}
+          </Text>
+        </>
+      )}
+    </VStack>
+  </Card>
+);
 
 const Program = () => {
   useDocumentTitle('Mon programme');
@@ -135,9 +98,11 @@ const Program = () => {
   const { sessions, nextSession, history } =
     useOutletContext<ClientSessionsData>();
 
-  const completedSessionIds = useMemo(
-    () => new Set(history.map((h) => h.originalSessionId)),
-    [history]
+  // One pass over the history per session: the comparison walks the blocks,
+  // so it is not free, and the list re-renders on every navigation.
+  const matches = useMemo(
+    () => new Map(sessions.map((s) => [s._id, matchSession(s, history)])),
+    [sessions, history]
   );
 
   const handleSelect = (sessionId: string) => {
@@ -157,27 +122,17 @@ const Program = () => {
             line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
           />
         ) : (
-          <>
-            {/* A proportion, not a total: "3 complétées" here and "12
-                séances complétées" in the journal counted two different
-                things under the same word. See `counts.ts`. */}
-            <Text fontSize="xs" color="fg.muted">
-              {programProgress(completedSessionIds.size, sessions.length)}
-            </Text>
-            <Grid
-              templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}
-              gap={3}
-            >
-              {sessions.map((session) => (
-                <SessionRow
-                  key={session._id}
-                  session={session}
-                  status={getStatus(session, nextSession, completedSessionIds)}
-                  onSelect={() => handleSelect(session._id)}
-                />
-              ))}
-            </Grid>
-          </>
+          <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={3}>
+            {sessions.map((session) => (
+              <SessionRow
+                key={session._id}
+                session={session}
+                isNext={session._id === nextSession?._id}
+                match={matches.get(session._id) ?? { state: 'never' }}
+                onSelect={() => handleSelect(session._id)}
+              />
+            ))}
+          </Grid>
         )}
       </VStack>
     </Container>
