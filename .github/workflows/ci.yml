@@ -1,0 +1,85 @@
+# What has to hold before anything is merged.
+#
+# Nothing guarded this repository until now: the bench under `verif/` — ten
+# suites, 169 assertions — only ever ran when someone remembered to run it,
+# and two regressions reached `develop` in a single week for want of it.
+#
+# The bench is the reason this file exists. Typecheck, lint and format are
+# cheap and catch typos; the bench is what catches a session that stops
+# recording, a button that leaves the screen, or a rest that hides the block.
+name: CI
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+
+# A new push makes the previous run pointless: the only interesting answer is
+# about the current head.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Types, lint, format, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run build
+
+  bench:
+    name: The bench (10 suites)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - name: Install the bench's own dependencies
+        working-directory: verif
+        run: npm ci
+
+      # `playwright-core` ships no browser of its own. We install the one its
+      # installed version expects — read from the lockfile rather than
+      # pinned here, so the two can never drift apart. The bench then finds
+      # it by itself: `CHROME_PATH` stays unset and Playwright resolves.
+      - name: Install Chromium
+        working-directory: verif
+        run: |
+          VERSION=$(node -p "require('playwright-core/package.json').version")
+          npx --yes "playwright@$VERSION" install --with-deps chromium
+
+      # The bench drives the real front end against the in-memory API that
+      # `verif/mock-server.mjs` serves on 3001. No database anywhere.
+      - name: Point the front end at the test API
+        run: |
+          echo 'VITE_API_URL=http://localhost:3001' > .env
+          echo 'VITE_GOOGLE_CLIENT_ID=test' >> .env
+
+      - name: Start the front end
+        run: |
+          npx vite --port 5173 > vite.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null http://localhost:5173 && break
+            sleep 2
+          done
+          curl -sf -o /dev/null http://localhost:5173
+
+      - name: Run every suite
+        run: npm run verify
+
+      - name: The front end's log, when something failed
+        if: failure()
+        run: tail -60 vite.log

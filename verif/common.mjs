@@ -2,17 +2,35 @@
  * What every suite redoes: open a browser, sign in, start a guided session,
  * read the screen.
  */
+import { existsSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
-export const BASE = 'http://localhost:5173';
-export const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+export const BASE = process.env.KETTLE_BASE ?? 'http://localhost:5173';
+
+/**
+ * Where Chromium is, when we have to say.
+ *
+ * This container ships one at a fixed path and forbids downloading another,
+ * so the path was hard-coded. That made the bench unrunnable anywhere else —
+ * including on a CI runner, which is the one place it has to run without
+ * anyone asking.
+ *
+ * So: an explicit `CHROME_PATH` wins, the container's copy is used when it is
+ * there, and otherwise we say nothing and let Playwright resolve its own
+ * install. Three cases, no configuration to remember.
+ */
+const CONTAINER_CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+export const CHROME =
+  process.env.CHROME_PATH ??
+  (existsSync(CONTAINER_CHROME) ? CONTAINER_CHROME : undefined);
 export const MOBILE = {
   viewport: { width: 390, height: 844 },
   isMobile: true,
   hasTouch: true,
 };
 
-export const launch = () => chromium.launch({ executablePath: CHROME });
+export const launch = () =>
+  chromium.launch(CHROME ? { executablePath: CHROME } : {});
 
 let failures = 0;
 export const ok = (label, cond, extra = '') => {

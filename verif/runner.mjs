@@ -7,9 +7,23 @@
  * avoid.
  */
 import { execSync, spawn } from 'node:child_process';
+import { readdirSync } from 'node:fs';
 import { setTimeout as wait } from 'node:timers/promises';
 
-const suites = process.argv.slice(2);
+/**
+ * `--all` runs every suite in the directory.
+ *
+ * Naming them explicitly is right when you are working on one, and wrong for
+ * CI: a suite added and forgotten in a hand-written list is a suite that
+ * never runs again, and nothing says so. Reading the directory means a new
+ * `verify_*.mjs` file is covered the moment it exists.
+ */
+const asked = process.argv.slice(2);
+const suites = asked.includes('--all')
+  ? readdirSync(import.meta.dirname)
+      .filter((f) => /^verify_.+\.mjs$/.test(f))
+      .sort()
+  : asked;
 const results = [];
 
 const ping = async () => {
@@ -73,6 +87,25 @@ const startMock = async () => {
   throw new Error('the mock does not answer');
 };
 
+/**
+ * The front end has to be up, and saying so once beats failing ten times.
+ *
+ * Without it every suite dies in `signIn` on a navigation timeout, and the
+ * output is ten stack traces that name Playwright rather than the missing
+ * server. The cause is one line long; it should read as one line.
+ */
+const FRONT = process.env.KETTLE_BASE ?? 'http://localhost:5173';
+try {
+  const r = await fetch(FRONT, { redirect: 'manual' });
+  if (!(r.status > 0)) throw new Error('no answer');
+} catch {
+  console.log(
+    `\nThe front end does not answer on ${FRONT}.\n` +
+      'Start it first (npx vite), or set KETTLE_BASE.'
+  );
+  process.exit(2);
+}
+
 for (const suite of suites) {
   const mock = await startMock();
   const out = await new Promise((resolve) => {
@@ -106,7 +139,7 @@ for (const suite of suites) {
 // "all green" for zero suites is the one result that must never be trusted.
 if (suites.length === 0) {
   console.log(
-    '\nNo suite named. Usage: node runner.mjs verify_recap.mjs [...]'
+    '\nNo suite named. Usage: node runner.mjs --all | verify_recap.mjs [...]'
   );
   process.exit(2);
 }
