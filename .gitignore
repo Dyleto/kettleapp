@@ -31,7 +31,11 @@ dist/
 *.DS_Store
 
 # npm
-package-lock.json
+#
+# The lockfile is versioned, deliberately. Ignoring it is right for a library
+# that others install; for an application it means no two installs are
+# guaranteed alike, no build is reproducible, and `npm ci` — which is what CI
+# needs — cannot run at all. The API repository already versioned its own.
 yarn.lock
 
 # Build output
