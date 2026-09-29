@@ -7,34 +7,43 @@ import { LuTimer } from 'react-icons/lu';
 interface TimerProps {
   duration: number;
   /**
-   * Provided when the clock leads — an imposed rest, a timed round: it moves
-   * on by itself, that is the format. Absent when it merely accompanies: a
-   * timed set stops and waits, because nobody wants to watch the page change
-   * under them while they finish their last rep.
+   * Fourni quand l'horloge mène — un repos imposé, un tour chronométré : elle
+   * enchaîne d'elle-même, c'est le format. Absent quand elle ne fait
+   * qu'accompagner : une série chronométrée s'arrête et attend, parce que
+   * personne ne veut voir la page changer sous lui pendant qu'il finit sa
+   * dernière répétition.
    */
   onComplete?: () => void;
   couleur: string;
   /** The track under the gauge — darker on a light background. */
   track?: string;
-  /** What reads to the left of the time: the block and the round, "Repos"… */
+  /** Ce qui se lit à gauche du temps : le bloc et le tour, « Repos »… */
   title?: React.ReactNode;
   holdLabel?: string;
   /**
-   * Smaller when it sits above a list: in an AMRAP the clock matters, but the
-   * list of movements is what you came to read.
+   * Plus petite quand elle se pose au-dessus d'une liste : dans un AMRAP
+   * l'horloge compte, mais c'est la liste des mouvements qu'on est venu lire.
    */
   compact?: boolean;
   /**
-   * `false` makes the clock wait for a tap.
+   * `false` fait attendre une touche à l'horloge.
    *
-   * A rest starts on its own — it was triggered by the gesture that ended the
-   * set. A round does not: the client has to pick up the bell first.
+   * Un repos démarre seul — il a été déclenché par le geste qui a terminé la
+   * série. Un tour non : le client doit d'abord reprendre sa kettlebell.
    */
   autoStart?: boolean;
   /** Called on the very first start, never on a resume. */
   onStart?: () => void;
 }
 
+/**
+ * Le décompte, dans les deux rôles qu'il peut tenir.
+ *
+ * Avec `onComplete`, l'horloge mène : elle passe la main d'elle-même, c'est
+ * le format qui le veut. Sans, elle accompagne : elle s'arrête à zéro et
+ * attend, parce que personne ne veut voir la page changer sous lui pendant
+ * qu'il finit sa dernière répétition.
+ */
 export const Timer = ({
   duration,
   onComplete,
@@ -62,8 +71,8 @@ export const Timer = ({
     }
   }, [remaining]);
 
-  // A countdown that does not hand over by itself announces once, plainly:
-  // nobody is looking at the screen at that moment.
+  // Un décompte qui ne passe pas la main de lui-même l'annonce une fois,
+  // simplement : personne ne regarde l'écran à ce moment-là.
   useEffect(() => {
     if (isDone && !onComplete) {
       navigator.vibrate?.([120, 80, 120]);
@@ -92,8 +101,9 @@ export const Timer = ({
             }
       }
       cursor={isDone ? 'default' : 'pointer'}
-      // The remaining time is part of the name: without it, someone who
-      // cannot see the screen may pause without ever knowing where they are.
+      // Le temps restant fait partie du nom : sans lui, quelqu'un qui ne
+      // voit pas l'écran peut mettre en pause sans jamais savoir où il en
+      // est.
       aria-label={
         isDone
           ? 'Temps écoulé'
@@ -103,10 +113,10 @@ export const Timer = ({
       }
     >
       <HStack justify="space-between" align="flex-end" gap={3}>
-        {/* The hint sits under the title rather than under the gauge: the
-            left column is shorter than the figure on the right, so it costs
-            no height at all. Adding a line below cost 20 px, which is what a
-            phone lying flat does not have. */}
+        {/* L'indication se place sous le titre plutôt que sous la jauge :
+            la colonne de gauche est plus courte que le chiffre de droite,
+            elle ne coûte donc aucune hauteur. Ajouter une ligne en dessous
+            coûtait 20 px, ce qu'un téléphone posé à plat n'a pas. */}
         <Box minW={0}>
           {title}
           {!isDone && !isRunning && (
@@ -157,17 +167,17 @@ export const Timer = ({
 };
 
 /**
- * A countdown offered rather than imposed.
+ * Un décompte proposé plutôt qu'imposé.
  *
- * The page-by-page flow gave a full-screen stopwatch to every timed set and
- * every rest. It is that staging the field feedback refused — "not 7 reps
- * back squat, then 120 s rest, then 6 reps" — not the stopwatch itself, which
- * was useful. Removing it along with the screen would throw out the useful
- * thing with its bad presentation.
+ * Le déroulé page à page donnait un chronomètre plein écran à chaque série
+ * chronométrée et à chaque repos. C'est cette mise en scène que le retour du
+ * terrain refusait — « pas 7 reps back squat, puis 120 s de repos, puis 6
+ * reps » — pas le chronomètre lui-même, qui était utile. Le retirer avec
+ * l'écran jetterait la chose utile avec sa mauvaise présentation.
  *
- * So it lives under the line that prescribes it: "2 min" for the work,
- * "45 s rest" for what follows. You start it when you get there, and it turns
- * back into a button once done — because three sets remain.
+ * Il vit donc sous la ligne qui le prescrit : « 2 min » pour le travail,
+ * « 45 s de repos » pour ce qui suit. On le lance en y arrivant, et il
+ * redevient un bouton une fois fini — parce qu'il reste trois séries.
  */
 export const OnDemandTimer = ({
   duration,
@@ -187,8 +197,8 @@ export const OnDemandTimer = ({
           duration={duration}
           couleur={couleur}
           onComplete={() => {
-            // Nobody is looking at the screen at that moment: we say it to
-            // the wrist. `Timer` only does so itself without `onComplete`.
+            // Personne ne regarde l'écran à ce moment-là : on le dit au
+            // poignet. `Timer` ne le fait lui-même que sans `onComplete`.
             navigator.vibrate?.([120, 80, 120]);
             setEnCours(false);
           }}

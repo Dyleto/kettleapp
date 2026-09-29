@@ -3,18 +3,19 @@ import { hitArea } from '@/shared/components/hitArea';
 import { Timer } from './Timer';
 
 /**
- * The rest between two sets, laid inside the list.
+ * Le repos entre deux séries, posé à l'intérieur de la liste.
  *
- * It used to be a full-screen panel: tick "Fait", and the block you were
- * reading vanished behind a wall of teal. From the field: "not pleasant to
- * suddenly get a full-page REST". It is also the same mistake the page-by-
- * page flow made everywhere else — staging a wait as an event.
+ * C'était un panneau plein écran : on cochait « Fait », et le bloc qu'on
+ * était en train de lire disparaissait derrière un mur turquoise. Retour du
+ * terrain : « pas agréable de se retrouver d'un coup avec un REPOS en pleine
+ * page ». C'est aussi la même erreur que celle du déroulé page à page
+ * partout ailleurs — mettre en scène une attente comme un événement.
  *
- * A rest is not an event. It is a gap between two sets, and it belongs where
- * that gap is: between the set just ticked and the one coming. The list
- * stays readable throughout — you can see what is left, reread the next
- * movement's dose, correct a load — which is exactly what people do while
- * they wait.
+ * Un repos n'est pas un événement. C'est un intervalle entre deux séries, et
+ * il appartient là où cet intervalle se trouve : entre la série qu'on vient
+ * de cocher et celle qui vient. La liste reste lisible tout du long — on voit
+ * ce qu'il reste, on relit la dose du mouvement suivant, on corrige une
+ * charge — ce qui est exactement ce qu'on fait en attendant.
  */
 export const RestStrip = ({
   duration,
@@ -68,8 +69,8 @@ export const RestStrip = ({
         }
       />
     </Box>
-    {/* Skipping stays one tap away, and keeps its 44 px: it is the gesture of
-        someone already back on the bar. */}
+    {/* Passer reste à une touche, et garde ses 44 px : c'est le geste de
+        quelqu'un déjà revenu sur la barre. */}
     <Box
       as="button"
       onClick={onDone}

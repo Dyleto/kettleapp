@@ -15,17 +15,17 @@ import { OnDemandTimer } from './Timer';
 import { RestStrip } from './RestStrip';
 
 /**
- * A block you tick off, set by set.
+ * Un bloc qu'on coche, série par série.
  *
- * This was guided mode's broken half: the prescription card, with input
- * fields stuck onto it. Nothing could be ticked, nothing advanced. Measured
- * on a seven-rung pyramid: one 14 px line and 511 px of black. A sheet of
- * paper did better — you could cross things out on it.
+ * C'était la moitié cassée du mode guidé : la carte de prescription, avec des
+ * champs de saisie collés dessus. Rien ne pouvait être coché, rien n'avançait.
+ * Mesuré sur une pyramide de sept paliers : une ligne de 14 px et 511 px de
+ * noir. Une feuille de papier faisait mieux — on pouvait y rayer.
  *
- * Exactly one set is "current". It is the only one written large, and the
- * only one carrying a field: hierarchy comes from state, not from an
- * arbitrary typographic choice, and the list becomes readable again because
- * a form no longer cuts it at every line.
+ * Une seule série est « en cours ». C'est la seule écrite en grand, et la
+ * seule à porter un champ : la hiérarchie vient de l'état, pas d'un choix
+ * typographique arbitraire, et la liste redevient lisible parce qu'un
+ * formulaire ne la coupe plus à chaque ligne.
  */
 export const BlockList = ({
   block,
@@ -48,38 +48,38 @@ export const BlockList = ({
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
   onOuvrirDetail: (ex: BlockExercise) => void;
-  /** The rest under way, and the set it follows. */
+  /** Le repos en cours, et la série qu'il suit. */
   rest: { afterKey: string; duration: number; nextUp: string } | null;
   onRestDone: () => void;
   /** Untick a set: it goes back to being something to do. */
   onUndo: (key: string) => void;
 }) => {
   /**
-   * The ticked set currently reopened, if any.
+   * La série cochée actuellement rouverte, s'il y en a une.
    *
-   * One at a time: reopening two would put two editable loads on screen and
-   * bring back the very thing the list was rewritten to remove — a form at
-   * every line.
+   * Une à la fois : en rouvrir deux mettrait deux charges éditables à l'écran
+   * et ramènerait précisément ce que la réécriture de la liste avait retiré —
+   * un formulaire à chaque ligne.
    */
   const [opened, setOpened] = useState<string | null>(null);
 
-  /** Whether this movement has anything to show beyond its dose. */
+  /** Si ce mouvement a quelque chose à montrer au-delà de sa dose. */
   const aDuDetailDe = (e: GuidedSet) =>
     !!e.exercise.note?.trim() ||
     !!e.exercise.exercise.description?.trim() ||
     !!e.exercise.exercise.videoUrl?.trim();
   /**
-   * The set's rank within its exercise, when there is more than one.
+   * Le rang de la série dans son exercice, quand il y en a plus d'une.
    *
-   * A pyramid does not do series: it climbs and comes back down rungs, and
-   * that is the word the coach uses in the editor.
+   * Une pyramide ne fait pas des séries : elle monte et redescend des
+   * paliers, et c'est le mot que le coach emploie dans l'éditeur.
    */
   const rankOf = (e: GuidedSet) =>
     e.total > 1
       ? `${blockDefinesOwnMetrics(block.type) ? 'palier' : 'série'} ${e.rank} / ${e.total}`
       : '';
 
-  /** What was recorded on this precise set. */
+  /** Ce qui a été noté sur cette série précise. */
   const valueOfSet = (e: GuidedSet) =>
     performed?.[performedKey(e.blockOrder, e.exerciseOrder)]?.sets?.[
       e.rank - 1
@@ -106,8 +106,8 @@ export const BlockList = ({
         const isCurrent = current?.key === e.key;
         const value = valueOfSet(e);
         const rank = rankOf(e);
-        // The rest belongs to the set it follows, so it is drawn right after
-        // it — the gap is where the gap is.
+        // Le repos appartient à la série qu'il suit, il se dessine donc juste
+        // après elle — l'intervalle est là où est l'intervalle.
         const restHere =
           rest && rest.afterKey === e.key ? (
             <RestStrip
@@ -203,11 +203,12 @@ export const BlockList = ({
                     </HStack>
                   )}
 
-                  {/* A set whose dose is a duration needs timing. The automatic
-                    rest covers the rest, not the work: replacing the
-                    prescription card with the sets quietly removed the timer
-                    from "2 min of skipping rope". Offered, never imposed —
-                    you start it when you get there. */}
+                  {/* Une série dont la dose est une durée demande à être
+                    chronométrée. Le repos automatique couvre le repos, pas le
+                    travail : remplacer la carte de prescription par les
+                    séries avait retiré en silence le minuteur de « 2 min de
+                    corde à sauter ». Proposé, jamais imposé — on le lance en
+                    y arrivant. */}
                   {e.exercise.duration ? (
                     <Box ml={-4}>
                       <OnDemandTimer
@@ -226,8 +227,8 @@ export const BlockList = ({
                     ) : (
                       <Box />
                     )}
-                    {/* What "Fait" triggers: without this line, the full-screen
-                      rest arrives as a surprise. */}
+                    {/* Ce que « Fait » déclenche : sans cette ligne, le repos
+                      plein écran arrive par surprise. */}
                     {e.restAfter && (
                       <HStack gap={1.5} color="session.rest" flexShrink={0}>
                         <LuTimer size={13} />
@@ -244,10 +245,10 @@ export const BlockList = ({
           );
         }
 
-        // A ticked set reopens: you reread it, you fix its load, you do it
-        // again. It used to be a dead line — and the three things people
-        // actually want from it have nothing to do with the cursor, so they
-        // happen in place rather than by moving it.
+        // Une série cochée se rouvre : on la relit, on corrige sa charge, on
+        // la refait. C'était une ligne morte — et les trois choses qu'on veut
+        // réellement en faire n'ont rien à voir avec le curseur, elles se
+        // font donc sur place plutôt qu'en le déplaçant.
         if (fait && opened === e.key) {
           return (
             <Fragment key={e.key}>
@@ -310,9 +311,9 @@ export const BlockList = ({
                   ) : (
                     <Box />
                   )}
-                  {/* Undoing is not correcting: someone who fixes a typo does
-                      not want the set back in front of them, and someone who
-                      redoes it does. Two gestures, two buttons. */}
+                  {/* Défaire n'est pas corriger : celui qui répare une faute de
+                      frappe ne veut pas retrouver la série devant lui, celui
+                      qui la refait si. Deux gestes, deux boutons. */}
                   <Box
                     as="button"
                     onClick={() => onUndo(e.key)}
@@ -409,10 +410,10 @@ export const BlockList = ({
                 </Text>
               )}
               <Box flex={1} />
-              {/* On what remains, the rest gives the block's rhythm: you can see
-                the squats are on 1 min and the lunges on 45 s without having
-                to get there. On what is done it teaches nothing any more —
-                the load takes its place. */}
+              {/* Sur ce qui reste, le repos donne le rythme du bloc : on voit
+                que les squats sont à 1 min et les fentes à 45 s sans avoir à
+                y arriver. Sur ce qui est fait, il n'apprend plus rien — la
+                charge prend sa place. */}
               {fait ? (
                 <Text
                   fontSize="sm"

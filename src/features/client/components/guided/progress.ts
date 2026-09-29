@@ -1,45 +1,50 @@
 import { type GuidedStep } from '../../guidedSteps';
 import { writeProgress, readProgress } from '../../sessionProgress';
 
-// This is the only screen used while training, the one where losing your
-// place is least affordable: an incoming call, or a screen locked too long,
-// must not send you back to step 1 of a session that has forty.
+// C'est le seul écran qu'on utilise en s'entraînant, celui où perdre sa
+// place coûte le plus cher : un appel entrant, ou un écran verrouillé trop
+// longtemps, ne doit pas renvoyer à l'étape 1 d'une séance qui en compte
+// quarante.
 //
-// The position joins the loads in a single durable record — see
-// `sessionProgress`. They used to be separate, filed in two memories with
-// different lifetimes: the app kept what can be found again and lost what
-// cannot.
+// La position rejoint les charges dans un unique enregistrement durable —
+// voir `sessionProgress`. Elles étaient séparées, rangées dans deux mémoires
+// de durées de vie différentes : l'application gardait ce qui se retrouve et
+// perdait ce qui ne se retrouve pas.
 export const readSavedIndex = (sessionId: string): number =>
   readProgress(sessionId)?.step ?? 0;
 
+/** Écrit la position dans l'enregistrement durable de la séance — le même
+ * que celui des charges, voir `sessionProgress`. */
 export const writeSavedIndex = (sessionId: string, index: number) =>
   writeProgress(sessionId, { step: index });
 
 /**
- * The steps grouped by block, in order.
+ * Les étapes groupées par bloc, dans l'ordre.
  *
- * Thirty two-pixel dashes cannot be read: you know neither where you are nor
- * how much is left. Three segments — warm-up, EMOM, AMRAP — read at a glance,
- * and the client reasons in blocks, not in pages.
+ * Trente tirets de deux pixels ne se lisent pas : on ne sait ni où l'on est
+ * ni ce qu'il reste. Trois segments — échauffement, EMOM, AMRAP — se lisent
+ * d'un coup d'œil, et le client raisonne en blocs, pas en pages.
  *
- * Each segment's width follows its step count: a twelve-page EMOM is wider
- * than a two-page warm-up. Equal segments would lie about what is left.
+ * La largeur de chaque segment suit son poids : un EMOM de douze pages est
+ * plus large qu'un échauffement de deux. Des segments égaux mentiraient sur
+ * ce qu'il reste.
  */
 /**
- * What a step weighs in the bar: the time it asks for.
+ * Ce qu'une étape pèse dans la barre : le temps qu'elle demande.
  *
- * It used to weigh pages, and it lied by a factor of ten. Measured on the
- * test session: the twelve-minute AMRAP got 24 px, the EMOM 239 — the bar
- * announced the session was 85 % done by the end of the EMOM, when in lived
- * time the two blocks are even. A client looking at it after the EMOM thought
- * they had finished.
+ * Elle pesait des pages, et elle se trompait d'un facteur dix. Mesuré sur la
+ * séance de test : l'AMRAP de douze minutes obtenait 24 px, l'EMOM 239 — la
+ * barre annonçait la séance faite à 85 % à la fin de l'EMOM, alors qu'en
+ * temps vécu les deux blocs se valent. Un client qui la regardait après
+ * l'EMOM se croyait arrivé.
  *
- * The coach gives the duration where it is part of the format: a round's
- * interval, an AMRAP's length. We take it as given. Elsewhere — a set, a rung
- * — they do not give it, and we count one minute per set. That is an
- * approximation, and a deliberate one: an EMOM interval IS a minute, and a
- * set with its rest is worth about as much. It is infinitely better than
- * counting how many times someone taps "Suivant".
+ * Le coach donne la durée là où elle fait partie du format : l'intervalle
+ * d'un tour, la longueur d'un AMRAP. On la prend telle quelle. Ailleurs — une
+ * série, un palier — il ne la donne pas, et l'on compte une minute par série.
+ * C'est une approximation, et elle est délibérée : un intervalle d'EMOM EST
+ * une minute, et une série avec son repos vaut à peu près autant. C'est
+ * infiniment mieux que de compter combien de fois quelqu'un tape
+ * « Suivant ».
  */
 export const weightOf = (step: GuidedStep): number => {
   if (step.type === 'rest') return step.duration / 60;
@@ -51,13 +56,15 @@ export const weightOf = (step: GuidedStep): number => {
   return Math.max(1, step.sets.length);
 };
 
+/** Découpe les étapes en tronçons de bloc : un segment de barre par bloc,
+ * large à proportion du temps qu'il demande. */
 export const splitIntoBlockRuns = (steps: GuidedStep[]) => {
   const blockRuns: {
     label: string;
     start: number;
-    /** Number of steps — what makes the fill advance. */
+    /** Nombre d'étapes — ce qui fait avancer le remplissage. */
     size: number;
-    /** What the block represents — what makes the segment's width. */
+    /** Ce que le bloc représente — ce qui fait la largeur du segment. */
     weight: number;
   }[] = [];
   steps.forEach((step, i) => {
