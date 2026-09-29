@@ -7,6 +7,14 @@ import {
 } from '@/features/client/client.service';
 import { queryKeys } from '@/shared/config/queryKeys';
 
+/**
+ * Termine une séance.
+ *
+ * C'est le seul moment où l'enregistrement local s'efface : tant que le
+ * serveur n'a pas accusé réception, ce que le client a noté reste sur son
+ * téléphone. Sortir du mode guidé, répondre au téléphone, recharger la page
+ * ne coûtent rien.
+ */
 export const useCompleteSession = () => {
   const queryClient = useQueryClient();
 
@@ -31,6 +39,8 @@ export const useCompleteSession = () => {
   });
 };
 
+/** Corrige un bilan déjà envoyé : un chiffre tapé de travers en plein effort
+ * doit pouvoir se réparer depuis l'historique. */
 export const useUpdateCompletedSession = () => {
   const queryClient = useQueryClient();
 

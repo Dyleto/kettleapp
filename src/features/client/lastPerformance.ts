@@ -1,14 +1,16 @@
 import { CompletedSession, PerformedValues } from '@/shared/types';
 import { formatPerformedSets, truncateAtFirstEmpty } from './performedFormat';
 
+/** Ce qu'on a mis la dernière fois sur un mouvement, avec la date à laquelle
+ * c'était. */
 export interface LastPerformance extends PerformedValues {
   completedAt: Date;
 }
 
 /**
- * An exercise's address inside a session snapshot — "block order : exercise
- * order". It is exactly the key the API expects for what was performed, and
- * the only one used on the front end.
+ * L'adresse d'un exercice dans l'instantané d'une séance — « rang du bloc :
+ * rang de l'exercice ». C'est exactement la clé qu'attend l'API pour ce qui a
+ * été réalisé, et la seule utilisée côté front.
  */
 export const performedKey = (blockOrder: number, exerciseOrder: number) =>
   `${blockOrder}:${exerciseOrder}`;
@@ -22,21 +24,22 @@ const hasAnyValue = (p: PerformedValues) =>
   truncateAtFirstEmpty(p.sets ?? []).length > 0;
 
 /**
- * The last known `performed` for each exercise, across all sessions.
+ * Le dernier `performed` connu pour chaque exercice, toutes séances
+ * confondues.
  *
- * Indexed by exercise id and not by position: "how much did I use?" is about
- * the movement, not about the slot it happened to occupy in that day's
- * session.
+ * Indexé par identifiant d'exercice et non par position : « combien j'ai mis
+ * la dernière fois ? » porte sur le mouvement, pas sur la place qu'il
+ * occupait ce jour-là dans la séance.
  *
- * Computed entirely from the history already loaded — no request.
+ * Calculé entièrement depuis l'historique déjà chargé — aucune requête.
  */
 export const buildLastPerformanceIndex = (
   history: CompletedSession[]
 ): Map<string, LastPerformance> => {
   const index = new Map<string, LastPerformance>();
 
-  // Oldest to newest: the last write wins, so every exercise ends up on its
-  // most recent attempt.
+  // Du plus ancien au plus récent : la dernière écriture gagne, donc chaque
+  // exercice finit sur sa tentative la plus récente.
   const chronological = [...history].sort(
     (a, b) =>
       new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()

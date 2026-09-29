@@ -1,13 +1,18 @@
 import { CompletedSession, PerformedSet } from '@/shared/types';
 import { truncateAtFirstEmpty } from './performedFormat';
 
+/** Ce qu'on suit sur un exercice : une charge, des répétitions, ou du temps
+ * — jamais deux à la fois sur la même flèche. */
 export type ProgressionMetric = 'weight' | 'reps' | 'duration';
 
+/** Un point de la courbe : une séance, et ce qu'on y a mis. */
 export interface ProgressionPoint {
   value: number;
   completedAt: Date;
 }
 
+/** Un mouvement et ses cinq derniers points, prêts à être lus de gauche à
+ * droite. */
 export interface ExerciseProgression {
   exerciseId: string;
   name: string;
@@ -17,16 +22,17 @@ export interface ExerciseProgression {
   lastAt: Date;
 }
 
-// Repetitions and seconds are totalled across the session: the wording says
-// so, so a total is not read as one set's value.
+// Les répétitions et les secondes se totalisent sur la séance : le libellé
+// le dit, pour qu'un total ne se lise pas comme la valeur d'une série.
 export const METRIC_UNIT: Record<ProgressionMetric, string> = {
   weight: 'kg',
   reps: 'reps au total',
   duration: 's au total',
 };
 
-// A single value is not a progression, and beyond five points the line
-// stops being readable: we keep the last five, the most telling.
+// Une valeur unique n'est pas une progression, et au-delà de cinq points la
+// ligne cesse d'être lisible : on garde les cinq derniers, les plus
+// parlants.
 const MIN_POINTS = 2;
 const MAX_POINTS = 5;
 
@@ -43,9 +49,10 @@ const nameOf = (exercise: Record<string, unknown>): string => {
 type SessionTotals = { weight?: number; reps?: number; duration?: number };
 
 /**
- * An exercise done over several sets gives one point per session, not one per
- * set: the heaviest load held that day, and the volume — the total reps or
- * seconds. That is what answers "how much do I use next time?".
+ * Un exercice fait sur plusieurs séries donne un point par séance, et non un
+ * par série : la charge la plus lourde tenue ce jour-là, et le volume — le
+ * total des répétitions ou des secondes. C'est ce qui répond à « combien je
+ * mets la prochaine fois ? ».
  */
 export const sessionTotals = (sets: PerformedSet[]): SessionTotals | null => {
   const kept = truncateAtFirstEmpty(sets);
@@ -71,14 +78,15 @@ export const sessionTotals = (sets: PerformedSet[]): SessionTotals | null => {
 };
 
 /**
- * "Goblet Squat: 20 → 24 → 26 kg", per exercise, across the whole history.
+ * « Goblet Squat : 20 → 24 → 26 kg », par exercice, sur tout l'historique.
  *
- * The client saw their sessions one by one: to know whether they were adding
- * load you had to open three wrap-ups and remember. The data is already
- * there, in the snapshots — all that was missing was a vertical reading.
+ * Le client voyait ses séances une à une : pour savoir s'il ajoutait de la
+ * charge, il fallait ouvrir trois bilans et se souvenir. La donnée est déjà
+ * là, dans les instantanés — il ne manquait qu'une lecture verticale.
  *
- * One quantity per exercise, the most recent attempt's: mixing kilos and
- * repetitions on the same arrow would mean nothing.
+ * Une seule quantité par exercice, celle de la tentative la plus récente :
+ * mêler des kilos et des répétitions sur la même flèche ne voudrait rien
+ * dire.
  */
 export const buildExerciseProgressions = (
   history: CompletedSession[]
@@ -142,12 +150,13 @@ export const buildExerciseProgressions = (
     });
   });
 
-  // Most recently worked first: that is the one the question "how much do I
-  // use next time?" is being asked about.
+  // Le plus récemment travaillé d'abord : c'est celui-là dont on se demande
+  // « combien je mets la prochaine fois ? ».
   return progressions.sort((a, b) => b.lastAt.getTime() - a.lastAt.getTime());
 };
 
-/** `true` when the last point is strictly above the previous one. */
+/** `true` quand le dernier point est strictement au-dessus du
+ * précédent. */
 export const isRising = (progression: ExerciseProgression): boolean => {
   const { points } = progression;
   return points[points.length - 1].value > points[points.length - 2].value;

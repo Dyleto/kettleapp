@@ -1,28 +1,32 @@
 import { PerformedSet, PerformedValues } from '@/shared/types';
 
+/** Une série sans aucune valeur : ni charge, ni répétitions, ni durée. */
 export const isEmptySet = (set: PerformedSet): boolean =>
   set.weight === undefined &&
   set.reps === undefined &&
   set.duration === undefined;
 
+/** Deux séries identiques champ à champ — ce qui permet d'écrire
+ * « 3 × 12 reps · 26 kg » au lieu de les énumérer. */
 export const sameSet = (a: PerformedSet, b: PerformedSet): boolean =>
   a.weight === b.weight && a.reps === b.reps && a.duration === b.duration;
 
 /**
- * A set left empty means the exercise stopped there: the following ones did
- * not happen. An empty set therefore truncates the list, it is not skipped —
- * the same rule the server applies.
+ * Une série laissée vide veut dire que l'exercice s'est arrêté là : les
+ * suivantes n'ont pas eu lieu. Une série vide tronque donc la liste, elle
+ * n'est pas sautée — la même règle que celle qu'applique le serveur.
  */
 export const truncateAtFirstEmpty = (sets: PerformedSet[]): PerformedSet[] => {
   const stop = sets.findIndex(isEmptySet);
   return stop === -1 ? sets : sets.slice(0, stop);
 };
 
-/** The set common to all of them, or `null` if they differ. */
+/** La série commune à toutes, ou `null` si elles diffèrent. */
 export const uniformSet = (sets: PerformedSet[]): PerformedSet | null =>
   sets.length > 0 && sets.every((s) => sameSet(s, sets[0])) ? sets[0] : null;
 
-/** The work done — repetitions, or time. `null` when neither was recorded. */
+/** Le travail fait — des répétitions, ou du temps. `null` quand ni l'un ni
+ * l'autre n'a été noté. */
 const workOf = (set: PerformedSet): string | null => {
   const parts: string[] = [];
   if (set.reps !== undefined) parts.push(`${set.reps} reps`);
@@ -30,7 +34,7 @@ const workOf = (set: PerformedSet): string | null => {
   return parts.length > 0 ? parts.join(' · ') : null;
 };
 
-/** The load. `null` when none was recorded. */
+/** La charge. `null` quand aucune n'a été notée. */
 const loadOf = (set: PerformedSet): string | null =>
   set.weight !== undefined ? `${set.weight} kg` : null;
 
@@ -96,5 +100,13 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
     .join(' · ');
 };
 
+/**
+ * Ce qui a été fait, écrit comme on le dit : le travail, puis la charge.
+ *
+ * Retour du terrain : « c'est plus naturel de mettre 9 × 12 kg plutôt que
+ * 12 kg × 9 ». On dit « douze répétitions à vingt-six kilos », dans cet
+ * ordre. Le mot « reps » reste écrit pour qu'un nombre nu ne se confonde pas
+ * avec le compteur de séries qui le précède parfois.
+ */
 export const formatPerformed = (performed?: PerformedValues): string | null =>
   performed ? formatPerformedSets(performed.sets) : null;

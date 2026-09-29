@@ -1,18 +1,18 @@
 import { PerformedValues } from '@/shared/types';
 
 /**
- * What an ongoing session keeps of itself between two openings.
+ * Ce qu'une séance en cours garde d'elle-même entre deux ouvertures.
  *
- * The app used to carefully remember where you were — the step index went
- * into `sessionStorage` on every move — and forget what you had done: the
- * loads lived in a bare `useState`. One reload, one incoming call killing
- * the tab, and forty minutes of notes were gone. That is the opposite of
- * what deserves keeping: a position can be found again, a load you lifted
- * cannot.
+ * L'application retenait soigneusement où l'on en était — l'index d'étape
+ * partait dans `sessionStorage` à chaque déplacement — et oubliait ce qu'on
+ * avait fait : les charges vivaient dans un `useState` nu. Un rechargement,
+ * un appel entrant qui tue l'onglet, et quarante minutes de notes
+ * disparaissaient. C'est l'inverse de ce qui mérite d'être gardé : une
+ * position se retrouve, une charge qu'on a soulevée non.
  *
- * So both live together, in `localStorage`, which survives the tab closing
- * where `sessionStorage` dies with it. That is precisely the case we set out
- * to cover.
+ * Les deux vivent donc ensemble, dans `localStorage`, qui survit à la
+ * fermeture de l'onglet là où `sessionStorage` meurt avec lui. C'est
+ * précisément le cas qu'on cherchait à couvrir.
  */
 interface SessionProgress {
   /** So the shape can change without reading stale records. */
@@ -22,27 +22,27 @@ interface SessionProgress {
   /** What was recorded, keyed by `performedKey(blockOrder, exerciseOrder)`. */
   performed: Record<string, PerformedValues>;
   /**
-   * The sets already done, by key.
+   * Les séries déjà faites, par clé.
    *
-   * Distinct from the position: you can go back to a block without undoing
-   * what you did there, and a ticked set stays ticked even if you scroll
-   * back to read the previous movement's instructions.
+   * Distinct de la position : on peut revenir sur un bloc sans défaire ce
+   * qu'on y a fait, et une série cochée le reste même si l'on remonte lire la
+   * consigne du mouvement précédent.
    */
   done: string[];
   /**
-   * Rounds completed, by block order.
+   * Les tours bouclés, par rang de bloc.
    *
-   * An AMRAP is not ticked off, it is counted. The count therefore lives
-   * beside the sets, and it is lost just as easily — all the more reason for
-   * it to be here.
+   * Un AMRAP ne se coche pas, il se compte. Le compte vit donc à côté des
+   * séries, et il se perd tout aussi facilement — raison de plus pour qu'il
+   * soit ici.
    */
   rounds: Record<string, number>;
   /**
-   * When the session started, in milliseconds.
+   * Quand la séance a commencé, en millisecondes.
    *
-   * Set on first opening and never redefined: what we want to announce at
-   * the end is the duration actually lived, not the one since the last
-   * return to the app.
+   * Posé à la première ouverture et jamais redéfini : ce qu'on veut annoncer
+   * à la fin est la durée réellement vécue, pas celle écoulée depuis le
+   * dernier retour dans l'application.
    */
   startedAt?: number;
   /** When, in milliseconds. Used to tell whether this still concerns today. */
@@ -52,11 +52,12 @@ interface SessionProgress {
 const key = (sessionId: string) => `kettle-seance-${sessionId}`;
 
 /**
- * Past this, the record belongs to another attempt.
+ * Au-delà, l'enregistrement appartient à une autre tentative.
  *
- * A training session fits in a few hours. Offering to "pick up where you
- * left off" three days later helps nobody, and repopulating the inputs with
- * last week's loads would be worse: they would be submitted unread.
+ * Une séance d'entraînement tient en quelques heures. Proposer de « reprendre
+ * où tu en étais » trois jours plus tard n'aide personne, et repeupler les
+ * champs avec les charges de la semaine dernière serait pire : elles
+ * partiraient sans être relues.
  */
 const LIFETIME = 12 * 60 * 60 * 1000;
 
@@ -70,12 +71,14 @@ const empty = (): SessionProgress => ({
 });
 
 /**
- * The shape this record had when its fields were named in French.
+ * La forme qu'avait cet enregistrement quand ses champs portaient des noms
+ * français.
  *
- * A client who is mid-session when the new build ships would otherwise lose
- * everything: the record is still there, but none of its fields answer to
- * their new names. It costs a handful of lines to read the old shape, and
- * the alternative is exactly the loss this module exists to prevent.
+ * Un client en pleine séance au moment où la nouvelle version part perdrait
+ * sinon tout : l'enregistrement est toujours là, mais aucun de ses champs ne
+ * répond à son nouveau nom. Lire l'ancienne forme coûte une poignée de
+ * lignes, et l'alternative est exactement la perte que ce module existe pour
+ * empêcher.
  */
 interface LegacyProgress {
   version: 1;
@@ -130,7 +133,7 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
   }
 };
 
-/** Writes what changes, and keeps the rest. */
+/** Écrit ce qui change, et garde le reste. */
 export const writeProgress = (
   sessionId: string,
   patch: Partial<Omit<SessionProgress, 'version' | 'updatedAt'>>
@@ -145,15 +148,15 @@ export const writeProgress = (
     };
     localStorage.setItem(key(sessionId), JSON.stringify(next));
   } catch {
-    // Same: carry on without memory rather than break the session.
+    // Pareil : on continue sans mémoire plutôt que de casser la séance.
   }
 };
 
 /**
- * The session went to the server, or the client asked to start over.
+ * La séance est partie au serveur, ou le client a demandé à recommencer.
  *
- * This is the only moment we erase. Leaving guided mode no longer erases
- * anything: stepping out to answer the phone must not cost the session.
+ * C'est le seul moment où l'on efface. Quitter le mode guidé n'efface plus
+ * rien : sortir pour répondre au téléphone ne doit pas coûter la séance.
  */
 export const forgetProgress = (sessionId: string) => {
   try {

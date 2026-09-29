@@ -6,52 +6,57 @@ import {
 } from '@/shared/types';
 
 /**
- * Has this session already been done — this session, not its identifier?
+ * Cette séance a-t-elle déjà été faite — cette séance-là, pas son
+ * identifiant ?
  *
- * The programme screen used to answer with `originalSessionId`, and that id
- * survives an edit. From the field: "I changed my programme by editing the
- * sessions rather than deleting and recreating them, so they kept the same
- * id, and it marks a session as done that I have never done."
+ * L'écran du programme répondait avec `originalSessionId`, et cet identifiant
+ * survit à une modification. Retour du terrain : « j'ai modifié mon programme
+ * en changeant les séances plutôt qu'en les supprimant et en les recréant,
+ * donc elles ont gardé le même id, et ça me met une séance comme terminée
+ * alors que je ne l'ai jamais faite. »
  *
- * An id says where a session sits in the programme. It says nothing about
- * what is in it. A coach who rewrites session 2 from top to bottom leaves
- * the id untouched, and the client is told they have already done something
- * that did not exist last week.
+ * Un identifiant dit où une séance se trouve dans le programme. Il ne dit
+ * rien de ce qu'elle contient. Un coach qui réécrit la séance 2 de fond en
+ * comble laisse l'identifiant intact, et l'on annonce au client qu'il a déjà
+ * fait quelque chose qui n'existait pas la semaine dernière.
  *
- * So we compare the content. Every wrap-up carries `blocks` — a snapshot of
- * the session as it stood that day — which is exactly what is needed, and it
- * is already in hand: nothing to ask the API for.
+ * On compare donc le contenu. Chaque bilan porte `blocks` — un instantané de
+ * la séance telle qu'elle était ce jour-là — qui est exactement ce qu'il
+ * faut, et qui est déjà en main : rien à demander à l'API.
  */
 export type SessionMatch =
-  /** Same content as a recorded wrap-up. `on` is the most recent one. */
+  /** Même contenu qu'un bilan enregistré. `on` est le plus récent. */
   | { state: 'done'; on: Date }
-  /** Done under another form: the id matches, the content no longer does. */
+  /** Faite sous une autre forme : l'identifiant correspond, le contenu
+   * non. */
   | { state: 'changed' }
   /** No wrap-up carries this id at all. */
   | { state: 'never' };
 
 /**
- * What describes the work to do, and nothing else.
+ * Ce qui décrit le travail à faire, et rien d'autre.
  *
- * Two sessions are the same session when what there is to do is the same.
- * Which leaves out, deliberately:
+ * Deux séances sont la même séance quand ce qu'il y a à faire est le même. Ce
+ * qui laisse dehors, délibérément :
  *
- *   — names and labels, on the session and on the blocks: renaming "Full
- *     body A" to "Full body" changes nothing you do;
- *   — the coach's instructions, for the same reason — they describe how, not
- *     what;
- *   — everything performed (loads, completed rounds): that is the answer,
- *     not the question.
+ *   — les noms et les étiquettes, sur la séance comme sur les blocs :
+ *     renommer « Full body A » en « Full body » ne change rien à ce qu'on
+ *     fait ;
+ *   — les consignes du coach, pour la même raison — elles décrivent le
+ *     comment, pas le quoi ;
+ *   — tout ce qui a été réalisé (charges, tours bouclés) : c'est la réponse,
+ *     pas la question.
  *
- * A change of load, of repetitions or of rounds does break the match, and
- * that is the point: the coach made it a different session on purpose.
+ * Un changement de charge, de répétitions ou de tours rompt bien la
+ * correspondance, et c'est tout l'intérêt : le coach en a fait une autre
+ * séance exprès.
  */
 const doseOf = (block: SessionBlock | BlockSnapshot): string => {
   const exercises = [...block.exercises]
     .sort((a, b) => a.order - b.order)
     .map((ex) => {
-      // A snapshot's exercise is an untyped record — it went through the
-      // API and came back. Only its identity is read here.
+      // L'exercice d'un instantané est un enregistrement sans type — il est
+      // passé par l'API et en est revenu. Seule son identité est lue ici.
       const id =
         typeof ex.exercise === 'object' && ex.exercise !== null
           ? String((ex.exercise as { _id?: unknown })._id ?? '')
@@ -92,12 +97,14 @@ export const sessionDose = (blocks: (SessionBlock | BlockSnapshot)[]): string =>
     .join('\n');
 
 /**
- * When this session was last done in the form it has today.
+ * Quand cette séance a été faite pour la dernière fois sous la forme qu'elle
+ * a aujourd'hui.
  *
- * Three answers, and the middle one is why there are three. Saying "jamais
- * faite" about a session the client did last week — under another form —
- * would be true to the letter and wrong to the ear. `changed` says what
- * actually happened: you did it, it is no longer the same.
+ * Trois réponses, et c'est celle du milieu qui explique pourquoi il y en a
+ * trois. Dire « jamais faite » d'une séance que le client a faite la semaine
+ * dernière — sous une autre forme — serait vrai à la lettre et faux à
+ * l'oreille. `changed` dit ce qui s'est réellement passé : tu l'as faite,
+ * ce n'est plus la même.
  */
 export const matchSession = (
   session: Session,

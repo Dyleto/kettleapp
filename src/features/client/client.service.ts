@@ -7,6 +7,14 @@ import {
   SessionFeedback,
 } from '@/shared/types';
 
+/**
+ * Ce qu'une séance terminée envoie au serveur.
+ *
+ * Tout est facultatif sauf l'identifiant de la séance : on peut terminer sans
+ * avoir rien noté, et c'est le cas d'un client qui a fait sa séance sans
+ * ouvrir le mode guidé. Ce qui est absent n'est pas nul — c'est non
+ * renseigné, et le serveur le traite ainsi.
+ */
 export interface CompleteSessionPayload {
   feedback: SessionFeedback;
   performed?: PerformedEntry[];
@@ -16,6 +24,8 @@ export interface CompleteSessionPayload {
   completedAt?: string;
 }
 
+/** La correction d'un bilan déjà envoyé : les mêmes champs, tous
+ * remplaçables. */
 export interface UpdateCompletedSessionPayload {
   feedback?: SessionFeedback;
   performed?: PerformedEntry[];
@@ -24,6 +34,14 @@ export interface UpdateCompletedSessionPayload {
   completedAt?: string;
 }
 
+/**
+ * Ce que l'espace client demande à l'API.
+ *
+ * Trois lectures et deux écritures : le programme, l'historique, la
+ * progression d'un exercice ; terminer une séance, corriger un bilan. Le
+ * client ne modifie jamais son programme — c'est ce qui rend cette surface
+ * aussi petite.
+ */
 export const clientService = {
   getProgram: async (): Promise<ClientProgram> => {
     const { data } = await api.get<{ program: ClientProgram }>(
@@ -51,8 +69,8 @@ export const clientService = {
     return data.completed;
   },
 
-  // Correct a wrap-up already sent. Always open: a number typed wrong
-  // mid-effort has to be repairable from the history.
+  // Corriger un bilan déjà envoyé. Toujours ouvert : un chiffre tapé de
+  // travers en plein effort doit pouvoir se réparer depuis l'historique.
   updateCompletedSession: async (
     completedId: string,
     payload: UpdateCompletedSessionPayload

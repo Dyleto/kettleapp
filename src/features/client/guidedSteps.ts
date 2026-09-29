@@ -14,18 +14,19 @@ import {
 import { formatDuration } from '@/shared/utils/formatters';
 
 /**
- * One set: a thing you do, and that can be done.
+ * Une série : une chose qu'on fait, et qui peut être faite.
  *
- * Guided mode only ever had a model of "where the cursor is" — an index
- * advancing through a list of screens. That is the model of a slideshow. A
- * slideshow advances; a training log records. Hence every symptom: nothing
- * could be ticked, the progress bar counted pages, resuming spoke in "step 5
- * of 12", and the wrap-up opened on "fill in what you remember" — the
- * admission that the app had retained nothing.
+ * Le mode guidé n'a jamais eu qu'un modèle de « où est le curseur » — un
+ * index qui avance dans une liste d'écrans. C'est le modèle d'un diaporama.
+ * Un diaporama avance ; un carnet d'entraînement enregistre. D'où tous les
+ * symptômes : rien ne pouvait être coché, la barre de progression comptait
+ * des pages, la reprise parlait en « étape 5 sur 12 », et le bilan s'ouvrait
+ * sur « remplis ce dont tu te souviens » — l'aveu que l'application n'avait
+ * rien retenu.
  *
- * The set is the unit that was missing: one series, one rung of a pyramid,
- * one movement of a chipper. The client's job is to move them from "to do"
- * to "done", and it is the same gesture everywhere.
+ * La série est l'unité qui manquait : une série, un palier de pyramide, un
+ * mouvement d'un chipper. Le travail du client est de les faire passer de
+ * « à faire » à « fait », et c'est le même geste partout.
  */
 export interface GuidedSet {
   /** Stable identity: it carries the state, and survives a reload. */
@@ -40,50 +41,55 @@ export interface GuidedSet {
   /** What there is to do: "10 reps", or "8 reps" on a rung. */
   dose: string;
   /**
-   * The prescribed repetitions, as a number — when there are any.
+   * Les répétitions prescrites, sous forme de nombre — quand il y en a.
    *
-   * The dose is text, made to be read. Tonnage needs the number: guided mode
-   * only asks for a weight per set, never for reps, because ticking "done"
-   * already says the prescribed work was done. Without this field, "so many
-   * kilos lifted" could never appear on a session run in guided mode — that
-   * is to say, almost never.
+   * La dose est du texte, faite pour être lue. Le tonnage a besoin du
+   * nombre : le mode guidé ne demande qu'une charge par série, jamais de
+   * répétitions, parce que cocher « fait » dit déjà que le travail prescrit a
+   * été fait. Sans ce champ, « tant de kilos soulevés » ne pourrait jamais
+   * apparaître sur une séance menée en mode guidé — c'est-à-dire presque
+   * jamais.
    */
   reps?: number;
-  /** The rest prescribed after this set, if there is one. */
+  /** Le repos prescrit après cette série, s'il y en a un. */
   restAfter?: number;
-  /** The exercise it comes from — for its instructions and its video. */
+  /** L'exercice dont elle vient — pour ses consignes et sa vidéo. */
   exercise: BlockExercise;
 }
 
 /**
- * Three shapes, and the block decides which.
+ * Trois formes, et c'est le bloc qui décide laquelle.
  *
- *   timed — EMOM, Tabata, On/Off: the clock leads the round, it chains on.
- *   list  — classic, pyramid, chipper, warm-up: you tick things off.
- *   loop  — AMRAP: you do not tick a loop, you count its rounds.
+ *   timed — EMOM, Tabata, On/Off : l'horloge mène le tour, il s'enchaîne.
+ *   list  — classique, pyramide, chipper, échauffement : on coche.
+ *   loop  — AMRAP : une boucle ne se coche pas, on compte ses tours.
  *
- * The shape also decides the primary button, always in the same place: the
- * clock presses it for timed, "Fait" for a list, "+1 tour" for a loop.
+ * La forme décide aussi du bouton principal, toujours au même endroit :
+ * l'horloge l'actionne pour `timed`, « Fait » pour une liste, « +1 tour »
+ * pour une boucle.
  */
 export type BlockShape = 'timed' | 'list' | 'loop';
 
+/** Une étape du mode guidé : un tour chronométré, une liste, une boucle, ou
+ * un repos. */
 export type GuidedStep =
   | {
       /**
-       * One round, with its clock.
+       * Un tour, avec son horloge.
        *
-       * An EMOM is by definition on the minute: the minute starts, you chain
-       * the movements of the round, and whatever is left of the minute is the
-       * rest. Guided mode made something else entirely of it — one page per
-       * movement, with no clock, then a "REST 1:00" page. The client never
-       * saw the minute running, so could not know whether they were ahead;
-       * and they took a full minute the coach had not prescribed. A ten-round
-       * EMOM meant to last ten minutes lasted twenty.
+       * Un EMOM est par définition à la minute : la minute part, on enchaîne
+       * les mouvements du tour, et ce qu'il reste de la minute est le repos.
+       * Le mode guidé en faisait tout autre chose — une page par mouvement,
+       * sans horloge, puis une page « REPOS 1:00 ». Le client ne voyait
+       * jamais la minute tourner, donc ne pouvait pas savoir s'il était en
+       * avance ; et il prenait une minute entière que le coach n'avait pas
+       * prescrite. Un EMOM de dix tours censé durer dix minutes en durait
+       * vingt.
        *
-       * The unit is therefore the round, not the movement. That gives the
-       * clock back to the format, it finally provides a "Round 3 / 10" to
-       * display — ten rigorously identical screens were indistinguishable —
-       * and it brings the test EMOM down from thirty steps to ten.
+       * L'unité est donc le tour, pas le mouvement. Cela rend l'horloge au
+       * format, cela fournit enfin un « Tour 3 / 10 » à afficher — dix écrans
+       * rigoureusement identiques étaient indiscernables — et cela fait
+       * passer l'EMOM du jeu de test de trente étapes à dix.
        */
       type: 'round';
       blockLabel: string;
@@ -91,52 +97,55 @@ export type GuidedStep =
       /** 1-indexed, as it is spoken: "Round 3 / 10". */
       round: number;
       rounds: number;
-      /** What there is to do in this round, in order. */
+      /** Ce qu'il y a à faire dans ce tour, dans l'ordre. */
       exercises: BlockExercise[];
       /**
-       * The round's time.
+       * Le temps du tour.
        *
-       * EMOM: the whole interval — the rest is whatever is left of it, and
-       * managing it is up to the client, as in the gym. Tabata / On-Off: the
-       * work time alone, followed by `restSeconds`, both imposed.
+       * EMOM : tout l'intervalle — le repos est ce qu'il en reste, et le
+       * gérer appartient au client, comme en salle. Tabata / On-Off : le
+       * seul temps de travail, suivi de `restSeconds`, tous deux imposés.
        */
       workSeconds?: number;
-      /** The rest imposed after the work. Absent on an EMOM: see above. */
+      /** Le repos imposé après le travail. Absent sur un EMOM : voir
+       * ci-dessus. */
       restSeconds?: number;
-      /** What comes after the last round. `null` while rounds remain. */
+      /** Ce qui vient après le dernier tour. `null` tant qu'il en reste. */
       nextLabel: string | null;
     }
   | {
       /**
-       * A whole block, read at once.
+       * Un bloc entier, lu d'un coup.
        *
-       * From the field: "during the exercise we should see all the info at
-       * once — not 7 reps back squat, then 120 s rest, then 6 reps… And when
-       * I get to the AMRAP it is worse, I simply cannot see all the
-       * movements, which blocks me if I have not written it on a notepad."
+       * Retour du terrain : « pendant l'exercice on devrait voir toutes les
+       * infos d'un coup — pas 7 reps back squat, puis 120 s de repos, puis 6
+       * reps… Et quand j'arrive à l'AMRAP c'est pire, je ne vois tout
+       * simplement pas tous les mouvements, ce qui me bloque si je ne l'ai
+       * pas écrit sur un carnet. »
        *
-       * An AMRAP is a list you loop, not a queue.
+       * Un AMRAP est une liste qu'on boucle, pas une file d'attente.
        */
       type: 'block';
       blockLabel: string;
       block: SessionBlock;
-      /** `list` you tick, `loop` you count. Never `timed` here. */
+      /** `list` se coche, `loop` se compte. Jamais `timed` ici. */
       shape: Exclude<BlockShape, 'timed'>;
       /** Empty on a loop: an AMRAP is not ticked off, it is counted. */
       sets: GuidedSet[];
     }
   | {
       type: 'rest';
-      /** The block this rest belongs to — it counts in its progress. */
+      /** Le bloc auquel ce repos appartient — il compte dans sa progression. */
       blockLabel: string;
       duration: number;
       nextExerciseName: string | null;
     };
 
 /**
- * The blocks whose rounds are led by a timer: the interval for an EMOM, the
- * work/rest pair for a Tabata and an On-Off. They are the only ones where the
- * "one page per round" shape makes sense — elsewhere the client leads.
+ * Les blocs dont les tours sont menés par un minuteur : l'intervalle pour un
+ * EMOM, le couple travail/repos pour un Tabata et un On-Off. Ce sont les
+ * seuls où la forme « une page par tour » a du sens — ailleurs, c'est le
+ * client qui mène.
  */
 const ROUND_BASED_TYPES: BlockType[] = ['emom', 'every', 'tabata', 'onoff'];
 
@@ -147,38 +156,39 @@ const sortByOrder = <T extends { order: number }>(items: T[]): T[] =>
 const roundTime = (
   block: SessionBlock
 ): { workSeconds?: number; restSeconds?: number } => {
-  // Tabata / On-Off: work and rest are both prescribed, to the second.
+  // Tabata / On-Off : le travail et le repos sont tous deux prescrits, à la
+  // seconde près.
   if (blockSupportsRepsOnly(block.type)) {
     return { workSeconds: block.workDuration, restSeconds: block.restDuration };
   }
-  // EMOM / Every: the interval is the budget for the whole round. It is one
-  // minute unless stated otherwise — that is what "EMOM" means.
+  // EMOM / Every : l'intervalle est le budget de tout le tour. C'est une
+  // minute sauf mention contraire — c'est ce que « EMOM » veut dire.
   return { workSeconds: (block.intervalMinutes ?? 1) * 60 };
 };
 
 /**
- * A movement's dose for *one* round — without the "n ×".
+ * La dose d'un mouvement pour *un* tour — sans le « n × ».
  *
- * The total is carried by "Round 3 / 10": repeating it on every line would
- * read as "10 × 15 reps" to someone who only has one round to do.
+ * Le total est porté par « Tour 3 / 10 » : le répéter sur chaque ligne se
+ * lirait « 10 × 15 reps » pour quelqu'un qui n'a qu'un tour à faire.
  */
 export const roundDose = (block: SessionBlock, ex: BlockExercise): string => {
   if (ex.reps) return `${ex.reps} reps`;
   if (ex.duration) return formatDuration(ex.duration);
   if (ex.customMetric)
     return `${ex.customMetric.value} ${ex.customMetric.unit}`;
-  // Tabata / On-Off: with no prescribed reps, the dose is the block's work
-  // time — that is what says how much of it you do.
+  // Tabata / On-Off : sans répétitions prescrites, la dose est le temps de
+  // travail du bloc — c'est lui qui dit combien on en fait.
   if (blockSupportsRepsOnly(block.type) && block.workDuration !== undefined)
     return formatDuration(block.workDuration);
   return '';
 };
 
 /**
- * The prescribed repetitions for one set, as a number.
+ * Les répétitions prescrites pour une série, sous forme de nombre.
  *
- * A pyramid varies them from rung to rung — that is its whole principle;
- * everywhere else every set carries the same dose.
+ * Une pyramide les fait varier d'un palier à l'autre — c'est tout son
+ * principe ; partout ailleurs, chaque série porte la même dose.
  */
 export const repsOfSet = (
   block: Pick<SessionBlock, 'type' | 'repsScheme'>,
@@ -191,19 +201,20 @@ export const repsOfSet = (
 };
 
 /**
- * A list block's sets, in the order they are done.
+ * Les séries d'un bloc en liste, dans l'ordre où on les fait.
  *
- * The breakdown already existed — `prescribedSetLabels` gives it, and it has
- * always been what splits the wrap-up form. It simply was not used to guide:
- * we showed it, we did not walk it.
+ * Le découpage existait déjà — `prescribedSetLabels` le donne, et c'est
+ * depuis toujours ce qui découpe le formulaire de bilan. Il n'était
+ * simplement pas utilisé pour guider : on le montrait, on ne le parcourait
+ * pas.
  */
 export const setsOfBlock = (block: SessionBlock): GuidedSet[] => {
   const sets: GuidedSet[] = [];
   sortByOrder(block.exercises).forEach((ex) => {
     const rungs = prescribedSetLabels(block, ex);
     const own = roundDose(block, ex);
-    // A pyramid prescribes a rest between its rungs, a set-based block
-    // between its sets: it is the same moment under two names.
+    // Une pyramide prescrit un repos entre ses paliers, un bloc à séries
+    // entre ses séries : c'est le même moment sous deux noms.
     const rest = blockDefinesOwnMetrics(block.type)
       ? block.restBetweenRounds
       : restBetweenSetsOf(block, ex);
@@ -215,11 +226,12 @@ export const setsOfBlock = (block: SessionBlock): GuidedSet[] => {
         rank: i + 1,
         total: rungs.length,
         name: ex.exercise.name,
-        // The rung carries its own dose; elsewhere it is the exercise's.
+        // Le palier porte sa propre dose ; ailleurs c'est celle de
+        // l'exercice.
         dose: label || own,
         reps: repsOfSet(block, ex, i + 1),
-        // No rest after the last one: the next exercise comes then, and the
-        // coach prescribed nothing for that gap.
+        // Pas de repos après le dernier : l'exercice suivant vient alors,
+        // et le coach n'a rien prescrit pour cet intervalle.
         restAfter: i < rungs.length - 1 ? rest : undefined,
         exercise: ex,
       });
@@ -228,6 +240,13 @@ export const setsOfBlock = (block: SessionBlock): GuidedSet[] => {
   return sets;
 };
 
+/**
+ * Découpe une séance en étapes guidées.
+ *
+ * Pure, et c'est ce qui la rend vérifiable : une séance entre, une liste
+ * d'étapes sort, sans horloge ni écran. Tout ce que le mode guidé affiche en
+ * découle — la barre de progression, ce qui se coche, ce qui se compte.
+ */
 export function buildGuidedSteps(session: Session): GuidedStep[] {
   const steps: GuidedStep[] = [];
   const sortedBlocks = sortByOrder(session.blocks);
@@ -239,9 +258,9 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
     const nextBlockFirstExerciseName =
       nextBlock?.exercises[0]?.exercise.name ?? null;
 
-    // The shape follows the block. A rhythm led by a timer unfolds round by
-    // round, the clock in the middle of the screen and your hands busy.
-    // Everything else is a list, and reads as one.
+    // La forme suit le bloc. Un rythme mené par un minuteur se déroule tour
+    // par tour, l'horloge au milieu de l'écran et les mains occupées. Tout le
+    // reste est une liste, et se lit comme telle.
     const timed =
       ROUND_BASED_TYPES.includes(block.type) && (block.rounds ?? 1) > 1;
 
@@ -259,7 +278,8 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
         exercises,
         workSeconds,
         restSeconds,
-        // While rounds remain, the counter is enough to say what comes next.
+        // Tant qu'il reste des tours, le compteur suffit à dire ce qui
+        // vient.
         nextLabel:
           i === rounds - 1
             ? nextBlock
@@ -268,9 +288,10 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
             : null,
       }));
     } else {
-      // An AMRAP is not ticked off: you loop the list until time runs out,
-      // and what counts is the number of rounds. Everything else — classic,
-      // pyramid, chipper, warm-up — is a series of sets done one by one.
+      // Un AMRAP ne se coche pas : on boucle la liste jusqu'à la fin du
+      // temps, et ce qui compte est le nombre de tours. Tout le reste —
+      // classique, pyramide, chipper, échauffement — est une suite de séries
+      // faites une à une.
       const shape = block.type === 'amrap' ? 'loop' : 'list';
       blockSteps = [
         {
@@ -285,18 +306,19 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
 
     steps.push(...blockSteps);
 
-    // Rest between two blocks: only when the coach actually defined a
-    // duration, never an invented value. A timed block already carries its
-    // rest inside its rounds — adding another would recreate the phantom
-    // minute we just removed.
+    // Repos entre deux blocs : uniquement quand le coach a réellement défini
+    // une durée, jamais une valeur inventée. Un bloc chronométré porte déjà
+    // son repos dans ses tours — en ajouter un autre recréerait la minute
+    // fantôme qu'on vient de retirer.
     const isLastBlock = blockIndex === sortedBlocks.length - 1;
     const interBlockRest = timed
       ? undefined
       : (block.restDuration ?? block.restBetweenRounds);
 
     if (!isLastBlock && interBlockRest) {
-      // This rest is the tail of the block that has just ended — it is its
-      // own duration — so it counts in that block's progress, not the next.
+      // Ce repos est la queue du bloc qui vient de finir — c'est sa
+      // propre durée — il compte donc dans la progression de ce bloc-là, pas
+      // du suivant.
       steps.push({
         type: 'rest',
         blockLabel,
@@ -306,8 +328,8 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
     }
   });
 
-  // A session does not end on a rest: the last round of the last block is
-  // done, there is nothing left to catch your breath before.
+  // Une séance ne se termine pas sur un repos : le dernier tour du dernier
+  // bloc est fait, il ne reste rien avant quoi souffler.
   while (steps[steps.length - 1]?.type === 'rest') {
     steps.pop();
   }

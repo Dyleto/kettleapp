@@ -3,16 +3,26 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 interface UseCountdownOptions {
   onComplete?: () => void;
   /**
-   * Whether the countdown starts on its own.
+   * Si le décompte démarre de lui-même.
    *
-   * It always did, and on a round that meant the clock was already running
-   * before the client had picked up the kettlebell: you open the session,
-   * land on round 1 of an EMOM, and you are already late. Starting is a
-   * decision — it belongs to whoever is about to do the work.
+   * Il le faisait toujours, et sur un tour cela voulait dire que l'horloge
+   * tournait déjà avant que le client n'ait saisi sa kettlebell : on ouvre la
+   * séance, on arrive au tour 1 d'un EMOM, et l'on est déjà en retard.
+   * Démarrer est une décision — elle appartient à celui qui va faire le
+   * travail.
    */
   autoStart?: boolean;
 }
 
+/**
+ * Un décompte qui survit à l'écran éteint.
+ *
+ * Il compte à partir d'une échéance absolue et non en soustrayant une seconde
+ * par tick : un onglet en arrière-plan voit ses minuteurs ralentis, et le
+ * chrono d'un EMOM prenait plusieurs secondes de retard par tour dès que le
+ * client verrouillait son téléphone — ce qu'il fait en le posant pour
+ * soulever.
+ */
 export function useCountdown(
   seconds: number,
   { onComplete, autoStart = true }: UseCountdownOptions = {}
@@ -27,9 +37,9 @@ export function useCountdown(
   }, [onComplete]);
 
   useEffect(() => {
-    // The deadline is only set once the countdown actually runs: priming it
-    // on mount would make a clock that has not been started lose the seconds
-    // spent waiting for the first tap.
+    // L'échéance n'est posée qu'une fois le décompte réellement lancé :
+    // l'amorcer au montage ferait perdre à une horloge non démarrée les
+    // secondes passées à attendre la première touche.
     if (isRunning && endAtRef.current === null) {
       endAtRef.current = Date.now() + seconds * 1000;
     }

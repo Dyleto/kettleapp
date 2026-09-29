@@ -3,39 +3,40 @@ import { LastPerformance, performedKey } from './lastPerformance';
 import { GuidedStep, setsOfBlock } from './guidedSteps';
 
 /**
- * What the client has just done, said in numbers.
+ * Ce que le client vient de faire, dit en chiffres.
  *
- * The arc of a session used to be: forty minutes of effort, then a form,
- * then a toast, then the home screen. We asked twice before giving
- * anything. The recap reverses the order — a statement of fact first, the
- * question second.
+ * L'arc d'une séance était : quarante minutes d'effort, puis un formulaire,
+ * puis un toast, puis l'accueil. On demandait deux fois avant de donner quoi
+ * que ce soit. Le récapitulatif inverse l'ordre — un constat d'abord, la
+ * question ensuite.
  *
- * It is only possible because recording happens during the session: the two
- * pieces hold each other up, and that is deliberate. Noting as you go stops
- * being a chore and becomes what buys the recap — and the "fill in what you
- * remember" screen disappears for anyone who did.
+ * Il n'est possible que parce que la saisie se fait pendant la séance : les
+ * deux pièces se tiennent, et c'est voulu. Noter au fil cesse d'être une
+ * corvée et devient ce qui paie le récapitulatif — et l'écran « remplis ce
+ * dont tu te souviens » disparaît pour qui l'a fait.
  */
 export interface Recap {
   /** Minutes elapsed since guided mode opened. Absent when unknown. */
   durationMinutes?: number;
   setsDone: number;
   setsTotal: number;
-  /** Sum of weight × reps actually recorded. Zero when there are none. */
+  /** Somme des charge × répétitions réellement notées. Zéro quand il n'y en a
+   * pas. */
   tonnage: number;
   /** Rounds completed, all blocks together. */
   rounds: number;
   comparisons: Comparison[];
 }
 
-/** A movement, what went into it today, and what that changes. */
+/** Un mouvement, ce qu'on y a mis aujourd'hui, et ce que cela change. */
 export interface Comparison {
   name: string;
-  /** The heaviest load of the day on this movement. */
+  /** La charge la plus lourde du jour sur ce mouvement. */
   load: number;
   /**
-   * The gap with last time. `undefined` when there is no last time: we do not
-   * compare against nothing, and "+26 kg" on a first attempt would be a
-   * flattering lie.
+   * L'écart avec la dernière fois. `undefined` quand il n'y a pas de dernière
+   * fois : on ne compare pas à rien, et « +26 kg » sur une première tentative
+   * serait un mensonge flatteur.
    */
   delta?: number;
 }
@@ -48,11 +49,11 @@ const heaviest = (sets: PerformedSet[] = []): number | undefined => {
 };
 
 /**
- * What may legitimately count as repetitions, set by set.
+ * Ce qui peut légitimement compter comme des répétitions, série par série.
  *
- * Keyed "block:exercise:rank", that is, the address of one precise set. Only
- * the sets the client ticked off appear here: the prescribed dose only holds
- * for what was actually done.
+ * Indexé « bloc:exercice:rang », c'est-à-dire l'adresse d'une série précise.
+ * Seules les séries que le client a cochées y figurent : la dose prescrite ne
+ * vaut que pour ce qui a réellement été fait.
  */
 export const allowedReps = (
   session: Session,
@@ -70,17 +71,17 @@ export const allowedReps = (
 };
 
 /**
- * Tonnage: what was actually moved.
+ * Le tonnage : ce qui a réellement été déplacé.
  *
- * A set only counts when we know both its weight AND its repetitions. The
- * repetitions come first from what the client typed; failing that, from the
- * prescribed dose — but only for a set they ticked as done, because ticking
- * is precisely the claim that they did what was written. Without that second
- * case the number would always be zero in guided mode, where only a weight
- * is entered.
+ * Une série ne compte que si l'on connaît à la fois sa charge ET ses
+ * répétitions. Les répétitions viennent d'abord de ce que le client a tapé ;
+ * à défaut, de la dose prescrite — mais uniquement pour une série qu'il a
+ * cochée, cocher étant précisément l'affirmation qu'il a fait ce qui était
+ * écrit. Sans ce second cas, le nombre serait toujours nul en mode guidé, où
+ * l'on ne saisit qu'une charge.
  *
- * What stays excluded: a set weighed but never done. Inventing it would
- * inflate a number the client reads back from one session to the next.
+ * Ce qui reste exclu : une série pesée mais jamais faite. L'inventer
+ * gonflerait un nombre que le client relit d'une séance à l'autre.
  */
 export const tonnageOf = (
   performed: Record<string, PerformedValues>,
@@ -101,17 +102,17 @@ export const tonnageOf = (
   );
 
 /**
- * What was done, and what there was to do.
+ * Ce qui a été fait, et ce qu'il y avait à faire.
  *
- * Two units live together in a session and have to be counted together: the
- * sets of a list block, ticked one by one, and the rounds of a timed block,
- * which are not ticked — the clock leads them, and you go through them.
- * Counting only the ticked ones would tell someone who just did the whole
- * session, Tabata included, "7 sets out of 15": a statement that accuses.
+ * Deux unités cohabitent dans une séance et doivent se compter ensemble : les
+ * séries d'un bloc en liste, cochées une à une, et les tours d'un bloc
+ * chronométré, qui ne se cochent pas — l'horloge les mène, et on les
+ * traverse. Ne compter que les cochées annoncerait à quelqu'un qui vient de
+ * faire toute la séance, Tabata compris, « 7 séries sur 15 » : un constat qui
+ * accuse.
  *
- * A round is therefore done as soon as you have gone past it. A loop does not
- * enter this count: its own unit is the completed round, and it has its own
- * figure.
+ * Un tour est donc fait dès qu'on l'a dépassé. Une boucle n'entre pas dans ce
+ * compte : son unité à elle est le tour bouclé, et elle a son propre chiffre.
  */
 export const countSets = (
   steps: GuidedStep[],
@@ -132,10 +133,11 @@ export const countSets = (
 };
 
 /**
- * The movements we can say something about, biggest gap first.
+ * Les mouvements dont on peut dire quelque chose, le plus grand écart
+ * d'abord.
  *
- * Three at most: a recap listing twelve lines is no longer a statement, it is
- * a table. What we want to show is what moved.
+ * Trois au plus : un récapitulatif qui aligne douze lignes n'est plus un
+ * constat, c'est un tableau. Ce qu'on veut montrer, c'est ce qui a bougé.
  */
 export const comparisonsOf = (
   session: Session,
@@ -160,13 +162,20 @@ export const comparisonsOf = (
     });
   });
 
-  // What progressed first, then what held, then what has no past: a gap of
-  // zero is still information — "I held my load".
+  // Ce qui a progressé d'abord, puis ce qui a tenu, puis ce qui n'a pas de
+  // passé : un écart nul reste une information — « j'ai tenu ma charge ».
   return rows
     .sort((a, b) => Math.abs(b.delta ?? -1) - Math.abs(a.delta ?? -1))
     .slice(0, maximum);
 };
 
+/**
+ * Le constat de fin de séance, calculé de ce qui a été noté.
+ *
+ * Aucune requête : tout vient de la séance en main et de l'historique déjà
+ * chargé. C'est la condition pour que l'écran s'affiche immédiatement, au
+ * moment précis où le client pose sa kettlebell.
+ */
 export const buildRecap = ({
   session,
   steps,
@@ -191,8 +200,8 @@ export const buildRecap = ({
   const counts = countSets(steps, step, done);
   const elapsed = startedAt === undefined ? -1 : now - startedAt;
   return {
-    // A session opened yesterday and finished today would give an absurd
-    // number. Past six hours we would rather say nothing.
+    // Une séance ouverte hier et terminée aujourd'hui donnerait un nombre
+    // absurde. Au-delà de six heures, on préfère ne rien dire.
     durationMinutes:
       elapsed > 0 && elapsed < 6 * 3600_000
         ? Math.max(1, Math.round(elapsed / 60_000))

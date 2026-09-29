@@ -1,29 +1,32 @@
 import { CompletedSession, Session } from '@/shared/types';
 import { dayKey, mondayIndex, startOfWeek } from './sessionDates';
 
+/** Un jour de la semaine : ce qui y est conseillé, et ce qui y a été
+ * fait. */
 export interface WeekDayPlan {
   date: Date;
   /** "2026-09-07", the day's local key. */
   key: string;
   /** Lundi = 0. */
   index: number;
-  /** What the client actually did that day. */
+  /** Ce que le client a réellement fait ce jour-là. */
   done: CompletedSession[];
-  /** What the coach suggests for that day, in programme order. */
+  /** Ce que le coach conseille ce jour-là, dans l'ordre du programme. */
   suggested: Session[];
 }
 
 /**
- * The current week, Monday to Sunday, crossing what is suggested with what is
- * done.
+ * La semaine en cours, du lundi au dimanche, croisant ce qui est conseillé
+ * avec ce qui est fait.
  *
- * Suggested days are stored on the session — a session declares "I am
- * generally done on Monday and Thursday". The week itself is stored nowhere:
- * we rebuild it here at display time. One source of truth, and deleting a
- * session never leaves a schedule to repair behind it.
+ * Les jours conseillés sont portés par la séance — une séance déclare « on me
+ * fait plutôt le lundi et le jeudi ». La semaine, elle, n'est enregistrée
+ * nulle part : on la reconstruit ici, à l'affichage. Une seule source de
+ * vérité, et supprimer une séance ne laisse jamais un agenda à réparer
+ * derrière elle.
  *
- * Nothing here computes lateness: a suggested day is a suggestion. A missed
- * Monday produces no state, it simply stays a Monday with no session.
+ * Rien ici ne calcule de retard : un jour conseillé est un conseil. Un lundi
+ * manqué ne produit aucun état, il reste simplement un lundi sans séance.
  */
 export const buildWeekPlan = (
   sessions: Session[],
@@ -74,11 +77,11 @@ export const hasSuggestedDays = (sessions: Session[]): boolean =>
   sessions.some((s) => (s.suggestedDays?.length ?? 0) > 0);
 
 /**
- * The session suggested for today and not yet done today.
+ * La séance conseillée aujourd'hui et pas encore faite aujourd'hui.
  *
- * That is all "advisory" allows: we highlight what is planned while it is not
- * done, and stay silent afterwards. No session missed yesterday surfaces
- * here.
+ * C'est tout ce que « indicatif » autorise : on met en avant ce qui est prévu
+ * tant que ce n'est pas fait, et l'on se tait ensuite. Aucune séance manquée
+ * hier ne remonte ici.
  */
 export const getSessionForToday = (
   sessions: Session[],

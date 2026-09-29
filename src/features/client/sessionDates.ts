@@ -1,9 +1,9 @@
 /**
- * A local day key, "2026-03-07".
+ * Une clé de jour local, « 2026-03-07 ».
  *
- * `toISOString()` shifts to UTC: a session recorded at 10 pm in Paris would
- * land on the previous day in the grid. So we read the date as the coach's
- * browser displays it.
+ * `toISOString()` bascule en UTC : une séance enregistrée à 22 h à Paris
+ * tomberait la veille dans la grille. On lit donc la date telle que le
+ * navigateur du coach l'affiche.
  */
 export const dayKey = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -18,11 +18,12 @@ export const formatDayLabel = (key: string): string => {
   }).format(new Date(year, month - 1, day));
 };
 
-// ─── The week's vocabulary ─────────────────────────────────────────────────
-// Monday = 0 everywhere in the app: the French week does not start on Sunday,
-// and `Date.getDay()` does.
+// ─── Le vocabulaire de la semaine ───────────────────────────────────────────
+// Lundi = 0 partout dans l'application : la semaine française ne commence pas
+// le dimanche, et `Date.getDay()` si.
 
-/** The calendar's seven letters — compact, but L/M/M and S/D blur together. */
+/** Les sept lettres du calendrier — compactes, mais L/M/M et S/D s'y
+ * confondent. */
 export const WEEKDAY_LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'] as const;
 
 /** Three letters: what is needed once a day must be chosen, not merely read. */
@@ -36,6 +37,8 @@ export const WEEKDAY_SHORT = [
   'Dim',
 ] as const;
 
+/** Le nom entier, quand il y a la place — « lundi » se lit sans effort là où
+ * « L » se devine. */
 export const WEEKDAY_FULL = [
   'lundi',
   'mardi',
@@ -46,10 +49,10 @@ export const WEEKDAY_FULL = [
   'dimanche',
 ] as const;
 
-/** Monday = 0: the French week does not start on Sunday. */
+/** Lundi = 0 : la semaine française ne commence pas le dimanche. */
 export const mondayIndex = (date: Date): number => (date.getDay() + 6) % 7;
 
-/** The Monday of the week containing `from`, at local midnight. */
+/** Le lundi de la semaine qui contient `from`, à minuit local. */
 export const startOfWeek = (from: Date): Date => {
   const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
   d.setDate(d.getDate() - mondayIndex(d));

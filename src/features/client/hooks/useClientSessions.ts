@@ -15,6 +15,14 @@ import { buildLastPerformanceIndex } from '../lastPerformance';
 import { getSessionForToday } from '../weekPlan';
 import { forgetProgress } from '../sessionProgress';
 
+/**
+ * Le programme du client, et laquelle de ses séances vient maintenant.
+ *
+ * Un seul « à faire » pour toute l'application : l'accueil, la pastille du
+ * programme et la redirection `/client/session` doivent désigner la même
+ * séance, sans quoi le client lit trois réponses différentes à la même
+ * question.
+ */
 export const useClientSessions = () => {
   const { sessionId } = useParams<{ sessionId?: string }>();
   const navigate = useNavigate();
@@ -42,17 +50,18 @@ export const useClientSessions = () => {
     [historyQuery.data]
   );
 
-  // The programme is a cycle: once the last session is done, we go back to
-  // the first. There is no "end" of programme.
+  // Le programme est un cycle : une fois la dernière séance faite, on revient
+  // à la première. Il n'y a pas de « fin » de programme.
   const nextSession = useMemo(() => {
     const sortedSessions = [...sessions].sort((a, b) => a.order - b.order);
     if (sortedSessions.length === 0) return undefined;
 
-    // A session suggested today comes ahead of the cycle — that is all the
-    // suggested day changes. One "to do" for the whole app: home, the
-    // programme badge and the /client/session redirect point at the same
-    // session. With no suggested day anywhere, nothing changes:
-    // `getSessionForToday` returns nothing and the cycle takes over again.
+    // Une séance conseillée aujourd'hui passe devant le cycle — c'est tout ce
+    // que change un jour conseillé. Un seul « à faire » pour toute
+    // l'application : l'accueil, la pastille du programme et la redirection
+    // /client/session pointent la même séance. Sans jour conseillé nulle
+    // part, rien ne change : `getSessionForToday` ne rend rien et le cycle
+    // reprend la main.
     const suggestedToday = getSessionForToday(sortedSessions, history);
     if (suggestedToday) return suggestedToday;
 
@@ -76,15 +85,16 @@ export const useClientSessions = () => {
 
   const isLoading = programQuery.isLoading || historyQuery.isLoading;
 
-  // `/client/session` now redirects to the next session's id: the screen has
-  // a single source, the URL.
+  // `/client/session` redirige maintenant vers l'identifiant de la prochaine
+  // séance : l'écran a une source unique, l'URL.
   const activeSession = sessionId
     ? sessions.find((s) => s._id === sessionId)
     : undefined;
   const isManualSelection = !!sessionId && sessionId !== nextSession?._id;
 
-  // An id matching no session (a stale link, a session the coach deleted)
-  // leads back to the programme rather than getting stuck.
+  // Un identifiant qui ne correspond à aucune séance (un lien périmé, une
+  // séance que le coach a supprimée) ramène au programme plutôt que de rester
+  // bloqué.
   useEffect(() => {
     if (!isLoading && sessionId && !activeSession) {
       toaster.create({
@@ -116,21 +126,21 @@ export const useClientSessions = () => {
         },
         {
           onSuccess: () => {
-            // The session is on the server: the local record has no reason
-            // to exist any more. This is the only moment we erase — leaving
-            // guided mode must cost nothing, and nor must stepping out to
-            // answer the phone.
+            // La séance est sur le serveur : l'enregistrement local n'a plus
+            // aucune raison d'exister. C'est le seul moment où l'on efface —
+            // quitter le mode guidé ne doit rien coûter, et sortir pour
+            // répondre au téléphone non plus.
             forgetProgress(activeSession._id);
-            // The only place in the client's journey where something is
-            // sent with no acknowledgement: you landed back on home, and
-            // nothing said the wrap-up had left.
+            // Le seul endroit du parcours client où quelque chose partait
+            // sans accusé de réception : on se retrouvait sur l'accueil, et
+            // rien ne disait que le bilan était parti.
             toaster.create({
               title: 'Séance enregistrée',
               description: 'Ton coach la verra.',
               type: 'success',
-              // The default duration falls under two and a half seconds:
-              // too short for an acknowledgement that arrives at the same
-              // time as a change of screen.
+              // La durée par défaut tombe sous deux secondes et demie : trop
+              // court pour un accusé de réception qui arrive en même temps
+              // qu'un changement d'écran.
               duration: 4500,
             });
             navigate(CLIENT_ROUTES.today);
