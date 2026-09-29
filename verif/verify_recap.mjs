@@ -1,10 +1,10 @@
 /**
- * The end-of-session recap: state the fact before asking the question.
+ * Le récapitulatif de fin de séance : constater avant de demander.
  *
- * The arc of a session used to be: forty minutes of effort, then "do you
- * want to record your loads?" — in front of loads already recorded — then
- * "how was it?", then a toast, then the home screen. We asked twice before
- * giving anything.
+ * L'arc d'une séance était : quarante minutes d'effort, puis « tu veux noter
+ * tes charges ? » — devant des charges déjà notées — puis « c'était
+ * comment ? », puis un toast, puis l'accueil. On demandait deux fois avant de
+ * donner quoi que ce soit.
  */
 import {
   launch,
@@ -20,17 +20,18 @@ import {
 const browser = await launch();
 
 /**
- * Runs session 2 to the end, recording a load on every set of the classic
- * block — what a client does who uses guided mode as a working log.
+ * Mène la séance 2 jusqu'au bout, en notant une charge sur chaque série du
+ * bloc classique — ce que fait un client qui se sert du mode guidé comme d'un
+ * carnet.
  */
 const runSess2 = async (p, goblet, lunges) => {
   await start(p, 'sess2');
-  // The Tabata: eight rounds, nothing to record.
+  // Le Tabata : huit tours, rien à noter.
   for (let i = 0; i < 8; i++) {
     await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
     await p.waitForTimeout(200);
   }
-  // The classic block: seven sets, a weight on each.
+  // Le bloc classique : sept séries, une charge sur chacune.
   for (let i = 0; i < 7; i++) {
     const kg = p
       .locator(
@@ -48,96 +49,97 @@ const runSess2 = async (p, goblet, lunges) => {
     await p.waitForTimeout(300);
     await skipRest(p);
   }
-  // "Terminer la séance" (the escape hatch, at the top) and "Terminer" (the
-  // primary button) coexist: the exact name picks the second.
+  // « Terminer la séance » (la sortie de secours, en haut) et « Terminer »
+  // (le bouton principal) coexistent : le nom exact désigne le second.
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1400);
 };
 
-// ── The statement comes before the question ─────────────────────────────
+// ── Le constat vient avant la question ──────────────────────────────────
 {
-  console.log('\n── the end of a session rewards before it asks');
+  console.log("\n── la fin d'une séance récompense avant de demander");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await runSess2(p, 26, 16);
 
   const t = await dialogs(p);
   ok(
-    'we do not ask again for loads already recorded',
+    'on ne redemande pas des charges déjà notées',
     !/Tu veux noter tes charges/i.test(t),
     (t.match(/[^\n]*noter tes charges[^\n]*/) ?? [
-      '(the question no longer arises)',
+      '(la question ne se pose plus)',
     ])[0]
   );
   ok(
-    'the wrap-up opens on the statement',
+    "le bilan s'ouvre sur le constat",
     /C'est fait\./.test(t),
-    t.split('\n').filter(Boolean)[0] ?? '(nothing)'
+    t.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   ok(
-    '  → and names the session',
+    '  → et nomme la séance',
     /Séance 2\s*—\s*Haut du corps/.test(t),
-    (t.match(/[^\n]*Séance 2[^\n]*/) ?? ['(nothing)'])[0]
+    (t.match(/[^\n]*Séance 2[^\n]*/) ?? ['(rien)'])[0]
   );
   ok(
-    '  → the question comes after, not before',
+    '  → la question vient après, pas avant',
     t.indexOf("C'est fait.") < t.indexOf('Cette séance'),
-    `statement at ${t.indexOf("C'est fait.")}, question at ${t.indexOf('Cette séance')}`
+    `constat en ${t.indexOf("C'est fait.")}, question en ${t.indexOf('Cette séance')}`
   );
-  ok('  → and it is still asked', /Cette séance, c'était/.test(t));
+  ok('  → et elle est toujours posée', /Cette séance, c'était/.test(t));
 
   ok(
-    "the session's duration is stated",
+    'la durée de la séance est annoncée',
     /\d+ min[\s\S]{0,20}de séance/.test(t),
-    (t.match(/[^\n]*de séance[^\n]*/) ?? ['(nothing)'])[0]
+    (t.match(/[^\n]*de séance[^\n]*/) ?? ['(rien)'])[0]
   );
   ok(
-    'the exercises done are counted',
+    'les exercices faits sont comptés',
     /15[\s\S]{0,30}exercices, tous faits/.test(t),
-    (t.match(/[^\n]*exercices[^\n]*/) ?? ['(nothing)'])[0]
+    (t.match(/[^\n]*exercices[^\n]*/) ?? ['(rien)'])[0]
   );
-  // 26 kg × 10 reps × 4 sets + 16 kg × 12 reps × 3 sets.
+  // 26 kg × 10 reps × 4 séries + 16 kg × 12 reps × 3 séries.
   ok(
-    'the tonnage is that of the doses actually ticked',
+    'le tonnage est celui des doses réellement cochées',
     /1 616 kg/.test(t),
-    (t.match(/[^\n]*soulevés[^\n]*/) ?? ['(nothing)'])[0]
+    (t.match(/[^\n]*soulevés[^\n]*/) ?? ['(rien)'])[0]
   );
 
-  // The test data already carries one past session: 26 kg on the Goblet,
-  // 12 on the lunges.
+  // Le jeu de données porte déjà une séance passée : 26 kg au Goblet, 12 aux
+  // fentes.
   ok(
-    'the statement compares with last time',
+    'le constat compare avec la dernière fois',
     /Par rapport à la dernière fois/i.test(t)
   );
   ok(
-    '  → what went up is said',
+    '  → ce qui a monté est dit',
     /Fentes marchées[\s\S]{0,30}\+4 kg/.test(t),
-    (t.match(/Fentes marchées[\s\S]{0,30}/) ?? ['(nothing)'])[0].replace(
+    (t.match(/Fentes marchées[\s\S]{0,30}/) ?? ['(rien)'])[0].replace(
       /\n+/g,
       ' · '
     )
   );
   ok(
-    '  → and so is what held, which is not nothing',
+    "  → et ce qui a tenu aussi, ce qui n'est pas rien",
     /Goblet Squat[\s\S]{0,20}=/.test(t),
-    (t.match(/Goblet Squat[\s\S]{0,20}/) ?? ['(nothing)'])[0].replace(
+    (t.match(/Goblet Squat[\s\S]{0,20}/) ?? ['(rien)'])[0].replace(
       /\n+/g,
       ' · '
     )
   );
   ok(
-    'and we reassure about what is already stored',
+    'et on rassure sur ce qui est déjà enregistré',
     /Tes charges sont déjà enregistrées/.test(t),
-    (t.match(/[^\n]*déjà enregistrées[^\n]*/) ?? ['(nothing)'])[0]
+    (t.match(/[^\n]*déjà enregistrées[^\n]*/) ?? ['(rien)'])[0]
   );
 
-  // The submit button stays reachable: the recap made the box taller.
+  // Le bouton de validation reste atteignable : le récapitulatif a grandi la
+  // boîte.
   const submit = p.getByRole('button', { name: /^Valider$/ });
   const box = await submit.boundingBox();
   ok(
-    '  → and "Valider" stays within the screen',
+    "  → et « Valider » reste dans l'écran",
     !!box && box.y + box.height <= 844,
-    box ? `bottom at ${Math.round(box.y + box.height)} px` : '(not found)'
+    box ? `bas à ${Math.round(box.y + box.height)} px` : '(introuvable)'
   );
 
   await p.getByRole('radio', { name: /Juste/ }).click();
@@ -148,16 +150,16 @@ const runSess2 = async (p, goblet, lunges) => {
     Object.keys(localStorage).filter((k) => k.startsWith('kettle-seance-'))
   );
   ok(
-    'a session that has been sent leaves nothing behind',
+    'une séance envoyée ne laisse rien derrière elle',
     leftovers.length === 0,
-    leftovers.join(', ') || '(nothing)'
+    leftovers.join(', ') || '(rien)'
   );
   await ctx.close();
 }
 
-// ── The second time, the recap has something to compare ────────────────
+// ── La seconde fois, le récapitulatif a de quoi comparer ────────────────
 {
-  console.log('\n── on the second session, the gap reads');
+  console.log("\n── à la deuxième séance, l'écart se lit");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await runSess2(p, 26, 16);
@@ -169,32 +171,32 @@ const runSess2 = async (p, goblet, lunges) => {
   await runSess2(p, 30, 16);
   const t = await dialogs(p);
   ok(
-    'the movement we loaded up comes first',
+    'le mouvement chargé en plus vient en premier',
     /Goblet Squat[\s\S]{0,40}\+4 kg/.test(t),
-    (t.match(/Goblet Squat[\s\S]{0,30}/) ?? ['(nothing)'])[0].replace(
+    (t.match(/Goblet Squat[\s\S]{0,30}/) ?? ['(rien)'])[0].replace(
       /\n+/g,
       ' · '
     )
   );
   ok(
-    '  → and the one we held says so too',
+    "  → et celui qu'on a tenu le dit aussi",
     /Fentes marchées[\s\S]{0,30}=/.test(t),
-    (t.match(/Fentes marchées[\s\S]{0,20}/) ?? ['(nothing)'])[0].replace(
+    (t.match(/Fentes marchées[\s\S]{0,20}/) ?? ['(rien)'])[0].replace(
       /\n+/g,
       ' · '
     )
   );
-  ok('  → "1re fois" is gone', !/1re fois/.test(t));
+  ok('  → « 1re fois » a disparu', !/1re fois/.test(t));
   await ctx.close();
 }
 
-// ── A movement never done compares with nothing ────────────────────────
+// ── Un mouvement jamais fait ne se compare à rien ───────────────────────
 {
-  console.log('\n── on a new movement, we invent no progress');
+  console.log("\n── sur un mouvement neuf, on n'invente aucune progression");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
-  // A chipper: four movements. Only the Kettlebell Swing has a past.
+  // Un chipper : quatre mouvements. Seul le Kettlebell Swing a un passé.
   for (let i = 0; i < 4; i++) {
     const kg = p
       .locator(
@@ -215,21 +217,21 @@ const runSess2 = async (p, goblet, lunges) => {
   await p.waitForTimeout(1400);
   const t = await dialogs(p);
   ok(
-    'a movement with no past says so',
+    'un mouvement sans passé le dit',
     /1re fois/.test(t),
-    (t.match(/[^\n]*1re fois[^\n]*/) ?? ['(none)'])[0]
+    (t.match(/[^\n]*1re fois[^\n]*/) ?? ['(aucune)'])[0]
   );
   ok(
-    '  → and no gap is invented in its place',
+    "  → et aucun écart n'est inventé à sa place",
     !/Burpee[\s\S]{0,24}[+−-]\d/.test(t),
-    (t.match(/Burpee[\s\S]{0,24}/) ?? ['(nothing)'])[0].replace(/\n+/g, ' · ')
+    (t.match(/Burpee[\s\S]{0,24}/) ?? ['(rien)'])[0].replace(/\n+/g, ' · ')
   );
   await ctx.close();
 }
 
-// ── Whoever recorded nothing is still offered the chance ───────────────
+// ── À qui n'a rien noté, on le propose encore ───────────────────────────
 {
-  console.log('\n── nothing recorded during: the question keeps its point');
+  console.log('\n── rien noté pendant : la question garde son sens');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess2');
@@ -237,34 +239,34 @@ const runSess2 = async (p, goblet, lunges) => {
     await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
     await p.waitForTimeout(200);
   }
-  // Nothing was ticked: the primary button still says "Fait". We leave by
-  // the escape hatch, the one that is always there.
+  // Rien n'a été coché : le bouton principal dit encore « Fait ». On sort
+  // par la sortie de secours, celle qui est toujours là.
   await p
     .getByRole('button', { name: 'Terminer la séance', exact: true })
     .click();
   await p.waitForTimeout(1300);
   const t = await dialogs(p);
   ok(
-    'we still offer to record the loads',
+    'on propose encore de noter les charges',
     /Tu veux noter tes charges/i.test(t),
-    t.split('\n').filter(Boolean)[0] ?? '(nothing)'
+    t.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   await p.getByRole('button', { name: /Passer au ressenti/ }).click();
   await p.waitForTimeout(900);
   const t2 = await dialogs(p);
   ok(
-    '  → and the statement is there all the same: the session did happen',
+    '  → et le constat est là quand même : la séance a bien eu lieu',
     /C'est fait\./.test(t2),
-    t2.split('\n').filter(Boolean)[0] ?? '(nothing)'
+    t2.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
-  ok('  → with no invented tonnage', !/soulevés en tout/.test(t2));
-  ok('  → nor a promise of stored loads', !/déjà enregistrées/.test(t2));
+  ok('  → sans tonnage inventé', !/soulevés en tout/.test(t2));
+  ok('  → ni promesse de charges enregistrées', !/déjà enregistrées/.test(t2));
   await ctx.close();
 }
 
-// ── The AMRAP's rounds appear in the statement ─────────────────────────
+// ── Les tours de l'AMRAP figurent dans le constat ───────────────────────
 {
-  console.log("\n── the AMRAP's score is one of the recap's figures");
+  console.log("\n── le score de l'AMRAP est l'un des chiffres du constat");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess1');
@@ -279,7 +281,7 @@ const runSess2 = async (p, goblet, lunges) => {
     if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
   }
   const plus = p.getByRole('button', { name: /^\+1 tour$/ });
-  ok('we reach the loop', (await plus.count()) > 0);
+  ok('on atteint la boucle', (await plus.count()) > 0);
   for (let i = 0; i < 6; i++) {
     await plus.click();
     await p.waitForTimeout(150);
@@ -288,14 +290,14 @@ const runSess2 = async (p, goblet, lunges) => {
     .getByRole('button', { name: 'Terminer la séance', exact: true })
     .click();
   await p.waitForTimeout(1400);
-  // No weight recorded here: the question keeps its point, we step past it.
+  // Aucune charge notée ici : la question garde son sens, on la franchit.
   await p.getByRole('button', { name: /Passer au ressenti/ }).click();
   await p.waitForTimeout(900);
   const t = await dialogs(p);
   ok(
-    'the completed rounds are in the statement',
+    'les tours bouclés figurent dans le constat',
     /6 tours[\s\S]{0,20}bouclés/.test(t),
-    (t.match(/[^\n]*tours[^\n]*\n?[^\n]*/) ?? ['(nothing)'])[0].replace(
+    (t.match(/[^\n]*tours[^\n]*\n?[^\n]*/) ?? ['(rien)'])[0].replace(
       /\n/g,
       ' · '
     )

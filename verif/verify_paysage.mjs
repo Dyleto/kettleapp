@@ -1,15 +1,15 @@
 /**
- * Guided mode, phone on its side.
+ * Le mode guidé, téléphone posé à plat.
  *
- * A client who props their phone against a wall during an EMOM lays it flat.
- * The screen then goes from 844 px tall to 390, and guided mode's chrome took
- * 186 of them: three bars and two buttons for half the screen. Measured
- * before: 165 usable px for 260 px of content — an EMOM round whose movements
- * you could not see.
+ * Un client qui cale son téléphone contre un mur pendant un EMOM le couche.
+ * L'écran passe alors de 844 px de haut à 390, et le décor du mode guidé en
+ * prenait 186 : trois barres et deux boutons pour la moitié de l'écran.
+ * Mesuré avant : 165 px utiles pour 260 px de contenu — un tour d'EMOM dont
+ * on ne voyait pas les mouvements.
  *
- * Two rules hold this suite together:
- *   — what you press stays whole and inside the screen;
- *   — what does not fit scrolls, and nothing is ever cut with no recourse.
+ * Deux règles tiennent cette suite :
+ *   — ce qu'on presse reste entier et dans l'écran ;
+ *   — ce qui ne tient pas défile, et rien n'est jamais coupé sans recours.
  */
 import {
   launch,
@@ -23,8 +23,8 @@ import {
 
 const browser = await launch();
 
-// iPhone on its side (past the `md` threshold, the trap), and a small Android
-// on its side.
+// iPhone posé à plat (au-delà du seuil `md`, c'est le piège), et un petit
+// Android posé à plat.
 const LANDSCAPE = {
   viewport: { width: 844, height: 390 },
   isMobile: true,
@@ -41,7 +41,7 @@ const PORTRAIT = {
   hasTouch: true,
 };
 
-/** What can be seen of an element, and what sticks out of the screen. */
+/** Ce qu'on voit d'un élément, et ce qui dépasse de l'écran. */
 const boxOf = (p, selector) =>
   p.evaluate((sel) => {
     const el = typeof sel === 'string' ? document.querySelector(sel) : null;
@@ -57,7 +57,7 @@ const boxOf = (p, selector) =>
     };
   }, selector);
 
-/** The primary button, measured by its name. */
+/** Le bouton principal, mesuré par son nom. */
 const buttonBox = (p, pattern) =>
   p.evaluate((m) => {
     const el = [...document.querySelectorAll('button')]
@@ -78,7 +78,7 @@ const buttonBox = (p, pattern) =>
     };
   }, pattern);
 
-/** What the screen shows, and what there would be to show. */
+/** Ce que l'écran montre, et ce qu'il y aurait à montrer. */
 const viewport = (p) =>
   p.evaluate(() => {
     const root = document.querySelector('[aria-label="Séance guidée"]');
@@ -97,7 +97,13 @@ const viewport = (p) =>
       : null;
   });
 
-/** A screen with no scrollbar that overflows cuts with no recourse. */
+/**
+ * Un écran sans barre de défilement qui déborde coupe sans recours.
+ *
+ * C'est la seule chose qu'on ne peut pas rattraper : un contenu plus haut que
+ * sa boîte, et aucun moyen d'atteindre le reste. On descend l'arbre jusqu'au
+ * premier coupable et on le nomme.
+ */
 const cutWithNoRecourse = (p) =>
   p.evaluate(() => {
     const panels = [...document.querySelectorAll('div')].filter(
@@ -129,17 +135,17 @@ const cutWithNoRecourse = (p) =>
     return cuts(el);
   });
 
-// ── The full screens: none cuts without a scrollbar ─────────────────────
+// ── Les pleins écrans : aucun ne coupe sans barre de défilement ─────────
 {
-  console.log('\n── landscape: the full screens do not cut in silence');
+  console.log('\n── paysage : les pleins écrans ne coupent pas en silence');
   const ctx = await browser.newContext(LANDSCAPE);
   const p = await signIn(ctx);
 
-  // 1. The opening screen. Session 2 is the case that matters: its coach
-  //    wrote a note there, and that is what overflows the screen.
+  // 1. L'écran d'ouverture. La séance 2 est le cas qui compte : son coach y
+  //    a écrit une note, et c'est elle qui fait déborder l'écran.
   for (const [what, sess] of [
-    ["without the coach's note", 'sess1'],
-    ["with the coach's note", 'sess2'],
+    ['sans la note du coach', 'sess1'],
+    ['avec la note du coach', 'sess2'],
   ]) {
     await p.goto(`${BASE}/client/session/${sess}`, {
       waitUntil: 'domcontentloaded',
@@ -149,22 +155,21 @@ const cutWithNoRecourse = (p) =>
     await p.waitForTimeout(900);
     const overflow = await cutWithNoRecourse(p);
     ok(
-      `the opening screen cuts nothing without recourse (${what})`,
+      `l'écran d'ouverture ne coupe rien sans recours (${what})`,
       overflow === null,
       overflow
-        ? `${overflow.tag}: ${overflow.seen} px seen of ${overflow.content} — "${overflow.txt}"`
+        ? `${overflow.tag} : ${overflow.seen} px vus sur ${overflow.content} — « ${overflow.txt} »`
         : ''
     );
     const begin = await buttonBox(p, '^Commencer$');
     ok(
-      '  → and "Commencer" is inside the screen',
+      "  → et « Commencer » est dans l'écran",
       begin && begin.belowFold === 0 && begin.aboveFold === 0,
-      begin ? `from ${begin.top} to ${begin.bottom} of 390` : '(not found)'
+      begin ? `de ${begin.top} à ${begin.bottom} sur 390` : '(introuvable)'
     );
   }
 
-  // We restart from session 1 for what follows: its first block can be
-  // ticked.
+  // On repart de la séance 1 pour la suite : son premier bloc se coche.
   await p.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
@@ -177,7 +182,7 @@ const cutWithNoRecourse = (p) =>
     .click();
   await p.waitForTimeout(600);
 
-  // 2. The rest triggered by "Fait".
+  // 2. Le repos déclenché par « Fait ».
   const kg = p
     .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
     .first();
@@ -190,66 +195,66 @@ const cutWithNoRecourse = (p) =>
   const skip = await buttonBox(p, 'Passer le repos');
   if (skip) {
     ok(
-      'the rest keeps its button whole and inside the screen',
+      "le repos garde son bouton entier et dans l'écran",
       skip.belowFold === 0 && skip.aboveFold === 0 && skip.h >= 44,
-      `${skip.h} px, bottom at ${skip.bottom}`
+      `${skip.h} px, bas à ${skip.bottom}`
     );
     await p.getByRole('button', { name: /^Passer le repos$/ }).click();
     await p.waitForTimeout(300);
   } else {
     ok(
-      'the rest keeps its button whole and inside the screen',
+      "le repos garde son bouton entier et dans l'écran",
       true,
-      '(no rest here)'
+      '(aucun repos ici)'
     );
   }
 
-  // 3. The leave confirmation.
+  // 3. La confirmation de sortie.
   await p.getByRole('button', { name: /^Quitter$/ }).click();
   await p.waitForTimeout(500);
   const leaving = await cutWithNoRecourse(p);
   ok(
-    'the leave confirmation cuts nothing',
+    'la confirmation de sortie ne coupe rien',
     leaving === null,
     leaving
-      ? `${leaving.tag}: ${leaving.seen} px seen of ${leaving.content} — "${leaving.txt}"`
+      ? `${leaving.tag} : ${leaving.seen} px vus sur ${leaving.content} — « ${leaving.txt} »`
       : ''
   );
   const quit = await buttonBox(p, '^Quitter$');
   ok(
-    '  → and both its answers are inside the screen',
+    "  → et ses deux réponses sont dans l'écran",
     quit && quit.belowFold === 0 && quit.aboveFold === 0,
-    quit ? `bottom at ${quit.bottom} of 390` : '(not found)'
+    quit ? `bas à ${quit.bottom} sur 390` : '(introuvable)'
   );
   await p.getByRole('button', { name: /^Quitter$/ }).click();
   await p.waitForTimeout(700);
 
-  // 4. The resume screen.
+  // 4. L'écran de reprise.
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(900);
   const resume = await cutWithNoRecourse(p);
   ok(
-    'the resume screen cuts nothing',
+    "l'écran de reprise ne coupe rien",
     resume === null,
     resume
-      ? `${resume.tag}: ${resume.seen} px seen of ${resume.content} — "${resume.txt}"`
+      ? `${resume.tag} : ${resume.seen} px vus sur ${resume.content} — « ${resume.txt} »`
       : ''
   );
   const resumeBtn = await buttonBox(p, '^Reprendre$');
   ok(
-    '  → "Reprendre" is inside the screen',
+    "  → « Reprendre » est dans l'écran",
     resumeBtn && resumeBtn.belowFold === 0 && resumeBtn.aboveFold === 0,
-    resumeBtn ? `bottom at ${resumeBtn.bottom} of 390` : '(not found)'
+    resumeBtn ? `bas à ${resumeBtn.bottom} sur 390` : '(introuvable)'
   );
   await ctx.close();
 }
 
-// ── An EMOM round fits on a landscape screen ────────────────────────────
+// ── Un tour d'EMOM tient sur un écran posé à plat ───────────────────────
 for (const [name, vp] of [
-  ['iPhone on its side', LANDSCAPE],
-  ['small Android on its side', SMALL],
+  ['iPhone à plat', LANDSCAPE],
+  ['petit Android à plat', SMALL],
 ]) {
-  console.log(`\n── ${name}: the EMOM round`);
+  console.log(`\n── ${name} : le tour d'EMOM`);
   const ctx = await browser.newContext(vp);
   const p = await signIn(ctx);
   await start(p, 'sess1');
@@ -266,25 +271,25 @@ for (const [name, vp] of [
 
   const z = await viewport(p);
   ok(
-    'the whole round fits in the screen',
+    "tout le tour tient dans l'écran",
     z && z.content <= z.seen,
-    z ? `${z.seen} px seen for ${z.content} px of content` : '(no zone)'
+    z ? `${z.seen} px vus pour ${z.content} px de contenu` : '(aucune zone)'
   );
 
   const btn = await buttonBox(p, '^Suivant$');
   ok(
-    '  → the primary button stays whole and inside the screen',
+    "  → le bouton principal reste entier et dans l'écran",
     btn && btn.belowFold === 0 && btn.aboveFold === 0 && btn.h >= 44,
     btn
-      ? `${btn.h} px tall, bottom at ${btn.bottom} of ${vp.viewport.height}`
-      : '(not found)'
+      ? `${btn.h} px de haut, bas à ${btn.bottom} sur ${vp.viewport.height}`
+      : '(introuvable)'
   );
 
   const q = await buttonBox(p, '^Quitter$');
   ok(
-    '  → and the way out is still reachable',
+    '  → et la sortie reste atteignable',
     q && q.belowFold === 0 && q.aboveFold === 0 && q.h >= 44,
-    q ? `${q.h} px, top at ${q.top}` : '(not found)'
+    q ? `${q.h} px, haut à ${q.top}` : '(introuvable)'
   );
 
   const duplicates = await p.$$eval(
@@ -295,16 +300,16 @@ for (const [name, vp] of [
       ).length
   );
   ok(
-    '  → one way out in the tree, not two',
+    "  → une sortie dans l'arbre, pas deux",
     duplicates === 1,
-    `${duplicates} button(s)`
+    `${duplicates} bouton(s)`
   );
   await ctx.close();
 }
 
-// ── A list block: what does not fit must be able to scroll ──────────────
+// ── Un bloc en liste : ce qui ne tient pas doit pouvoir défiler ─────────
 {
-  console.log('\n── landscape: a block of seven sets');
+  console.log('\n── paysage : un bloc de sept séries');
   const ctx = await browser.newContext(LANDSCAPE);
   const p = await signIn(ctx);
   await start(p, 'sess2');
@@ -314,33 +319,34 @@ for (const [name, vp] of [
   }
   const z = await viewport(p);
   ok(
-    'seven sets do not fit — and it is the list that scrolls',
+    "sept séries ne tiennent pas — et c'est la liste qui défile",
     z && (z.content <= z.seen || z.scrolls),
-    z ? `${z.seen} px seen for ${z.content} px` : '(no zone)'
+    z ? `${z.seen} px vus pour ${z.content} px` : '(aucune zone)'
   );
 
-  // The current set carries the input field: that is what has to be visible.
+  // La série en cours porte le champ de saisie : c'est elle qui doit être
+  // visible.
   const field = await boxOf(
     p,
     '[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]'
   );
   ok(
-    '  → the current set is visible without scrolling',
+    '  → la série en cours est visible sans défiler',
     field && field.belowFold === 0 && field.aboveFold === 0,
-    field ? `from ${field.top} to ${field.bottom} of 390` : '(no field)'
+    field ? `de ${field.top} à ${field.bottom} sur 390` : '(aucun champ)'
   );
   const btn = await buttonBox(p, '^Fait$');
   ok(
-    '  → and "Fait" stays whole',
+    '  → et « Fait » reste entier',
     btn && btn.belowFold === 0 && btn.h >= 44,
-    btn ? `${btn.h} px, bottom at ${btn.bottom}` : '(not found)'
+    btn ? `${btn.h} px, bas à ${btn.bottom}` : '(introuvable)'
   );
   await ctx.close();
 }
 
-// ── The end-of-session wrap-up, in landscape ────────────────────────────
+// ── Le bilan de fin de séance, à plat ───────────────────────────────────
 {
-  console.log('\n── landscape: the recap and its question');
+  console.log('\n── paysage : le récapitulatif et sa question');
   const ctx = await browser.newContext(LANDSCAPE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
@@ -364,9 +370,9 @@ for (const [name, vp] of [
   await p.waitForTimeout(1500);
   const submit = await buttonBox(p, '^Valider$');
   ok(
-    '"Valider" stays whole and inside the screen',
+    "« Valider » reste entier et dans l'écran",
     submit && submit.belowFold === 0 && submit.aboveFold === 0,
-    submit ? `from ${submit.top} to ${submit.bottom} of 390` : '(not found)'
+    submit ? `de ${submit.top} à ${submit.bottom} sur 390` : '(introuvable)'
   );
   const body = await p.evaluate(() => {
     const d = document.querySelector('[role="dialog"]');
@@ -379,16 +385,18 @@ for (const [name, vp] of [
     return b ? { seen: b.clientHeight, content: b.scrollHeight } : null;
   });
   ok(
-    '  → and the statement stays readable: the body scrolls',
+    '  → et le constat reste lisible : le corps défile',
     body && body.seen > 0,
-    body ? `${body.seen} px seen for ${body.content} px` : '(no scrolling body)'
+    body
+      ? `${body.seen} px vus pour ${body.content} px`
+      : '(aucun corps qui défile)'
   );
   await ctx.close();
 }
 
-// ── In portrait, nothing moved ──────────────────────────────────────────
+// ── En portrait, rien n'a bougé ─────────────────────────────────────────
 {
-  console.log('\n── portrait: the validated mock-up does not move');
+  console.log('\n── portrait : la maquette validée ne bouge pas');
   const ctx = await browser.newContext(PORTRAIT);
   const p = await signIn(ctx);
   await start(p, 'sess1');
@@ -417,14 +425,14 @@ for (const [name, vp] of [
     };
   });
   ok(
-    '"Quitter" keeps a line of its own',
+    '« Quitter » garde une ligne à lui',
     measures.heights[0] === 76,
     `${measures.heights[0]} px`
   );
   ok(
-    '  → and the clock its 72 px',
+    "  → et l'horloge ses 72 px",
     measures.size === '72px',
-    measures.size ?? '(none)'
+    measures.size ?? '(aucune)'
   );
   const q = await p.$$eval(
     'button',
@@ -433,7 +441,7 @@ for (const [name, vp] of [
         (e) => e.offsetParent !== null && e.innerText.trim() === 'Quitter'
       ).length
   );
-  ok('  → one way out here too', q === 1, `${q} button(s)`);
+  ok('  → une sortie ici aussi', q === 1, `${q} bouton(s)`);
   await ctx.close();
 }
 

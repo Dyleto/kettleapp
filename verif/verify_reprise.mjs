@@ -1,13 +1,13 @@
 /**
- * Resuming, or starting over.
+ * Reprendre, ou recommencer.
  *
- * Leaving guided mode erases nothing: you find your place and your loads on
- * coming back. To start from scratch, the resume screen offers it — and
- * "recommencer" then has to really put everything back to zero.
+ * Quitter le mode guidé n'efface rien : on retrouve sa place et ses charges
+ * en revenant. Pour repartir de zéro, l'écran de reprise le propose — et
+ * « recommencer » doit alors réellement tout remettre à zéro.
  *
- * The previous suite checked that the loads survive "recommencer" — which
- * must persist — without ever checking what must go back to zero. That is
- * exactly where the defect slipped through.
+ * La suite précédente vérifiait que les charges survivent à « recommencer » —
+ * ce qui doit persister — sans jamais vérifier ce qui doit repartir à zéro.
+ * C'est exactement par là que le défaut est passé.
  */
 import {
   launch,
@@ -24,13 +24,14 @@ import {
 
 const browser = await launch();
 
+// L'enregistrement local d'une séance, lu dans la page.
 const record = (p, sess) =>
   p.evaluate(
     (s) => JSON.parse(localStorage.getItem(`kettle-seance-${s}`) || 'null'),
     sess
   );
 
-/** Leaves the session, comes back to it, and clicks "Recommencer". */
+/** Quitte la séance, y revient, et clique « Recommencer ». */
 const startOver = async (p) => {
   await p.getByRole('button', { name: /^Quitter$/ }).click();
   await p.waitForTimeout(300);
@@ -42,12 +43,12 @@ const startOver = async (p) => {
   await p.waitForTimeout(800);
 };
 
-// ── A list block: the case where "recommencer" did nothing ──────────────
+// ── Un bloc en liste : le cas où « recommencer » ne faisait rien ────────
 //
-// A chipper is a single step. Resetting the step therefore changed nothing,
-// and the ticked movements stayed ticked.
+// Un chipper est une étape unique. Réinitialiser l'étape ne changeait donc
+// rien, et les mouvements cochés le restaient.
 {
-  console.log('\n── starting over unticks what had been ticked');
+  console.log('\n── recommencer décoche ce qui avait été coché');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
@@ -67,7 +68,7 @@ const startOver = async (p) => {
   }
   const before = await record(p, 'sess3');
   ok(
-    'three movements are ticked before leaving',
+    'trois mouvements sont cochés avant de quitter',
     before.done.length === 3,
     JSON.stringify(before.done)
   );
@@ -75,26 +76,26 @@ const startOver = async (p) => {
   await startOver(p);
   const after = await record(p, 'sess3');
   ok(
-    'after "recommencer", nothing is ticked any more',
+    "après « recommencer », plus rien n'est coché",
     after.done.length === 0,
     JSON.stringify(after.done)
   );
 
   const screen = await guidedScreen(p);
   ok(
-    '  → and the block says so: zero out of four',
+    '  → et le bloc le dit : zéro sur quatre',
     /0 sur 4 faits/.test(screen),
-    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(nothing)'])[0]
+    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
   );
   ok(
-    '  → the cursor is back on the first movement',
+    '  → le curseur est revenu sur le premier mouvement',
     /Burpee[\s\S]{0,40}21 reps/.test(screen),
     screen.split('\n').filter(Boolean).slice(2, 5).join(' · ')
   );
 
-  // The loads, on the other hand, stay: that is the deliberate part.
+  // Les charges, elles, restent : c'est la part délibérée.
   ok(
-    '  → but the recorded loads are still there',
+    '  → mais les charges notées sont toujours là',
     Object.keys(after.performed).length === 3,
     JSON.stringify(Object.keys(after.performed))
   );
@@ -103,16 +104,16 @@ const startOver = async (p) => {
     .first()
     .inputValue();
   ok(
-    '  → and the first one reads back in its field',
+    '  → et la première se relit dans son champ',
     value === '20',
-    value || '(empty)'
+    value || '(vide)'
   );
   await ctx.close();
 }
 
-// ── A loop: the round counter restarts too ──────────────────────────────
+// ── Une boucle : le compteur de tours repart aussi ──────────────────────
 {
-  console.log('\n── starting over puts the round counter back to zero');
+  console.log('\n── recommencer remet le compteur de tours à zéro');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess1');
@@ -133,34 +134,34 @@ const startOver = async (p) => {
   }
   const before = await record(p, 'sess1');
   ok(
-    'six rounds are counted, and the step has advanced',
+    "six tours sont comptés, et l'étape a avancé",
     before.rounds['3'] === 6 && before.step > 0,
-    `step ${before.step}, rounds ${JSON.stringify(before.rounds)}`
+    `étape ${before.step}, tours ${JSON.stringify(before.rounds)}`
   );
 
   await startOver(p);
   const after = await record(p, 'sess1');
   ok(
-    'after "recommencer", everything is at zero',
+    'après « recommencer », tout est à zéro',
     after.step === 0 &&
       after.done.length === 0 &&
       Object.keys(after.rounds).length === 0,
-    `step ${after.step}, done ${after.done.length}, rounds ${JSON.stringify(after.rounds)}`
+    `étape ${after.step}, faits ${after.done.length}, tours ${JSON.stringify(after.rounds)}`
   );
   ok(
-    '  → and the progress bar says so',
+    '  → et la barre de progression le dit',
     /Étape 1 sur/.test(await where(p)),
     await where(p)
   );
   await ctx.close();
 }
 
-// ── And we really do start clean ────────────────────────────────────────
+// ── Et l'on repart réellement à neuf ────────────────────────────────────
 //
-// Started over then left, coming back still offered to resume: the session
-// believed itself started because it counted ticked sets.
+// Recommencée puis quittée, on proposait encore de la reprendre en revenant :
+// la séance se croyait commencée parce qu'elle comptait des séries cochées.
 {
-  console.log('\n── after starting over, we start from a fresh session');
+  console.log("\n── après avoir recommencé, on repart d'une séance neuve");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
@@ -184,20 +185,23 @@ const startOver = async (p) => {
     return d[d.length - 1]?.innerText ?? '';
   });
   ok(
-    'we no longer offer to resume a session that was reset',
+    'on ne propose plus de reprendre une séance remise à zéro',
     !/Reprendre où tu en étais/i.test(panel),
-    panel.split('\n').filter(Boolean)[0] ?? '(nothing)'
+    panel.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   await ctx.close();
 }
 
-// ── A record from before the move to English still reads ───────────────
+// ── Un enregistrement d'avant le passage aux noms anglais se relit ──────
 //
-// The local-storage fields carried French names. A client mid-session when
-// the build shipped would have lost everything: their record is still there,
-// but none of its fields answer to their new name.
+// Les champs du stockage local portaient des noms français. Un client en
+// pleine séance au moment où la version est partie aurait tout perdu : son
+// enregistrement est toujours là, mais aucun de ses champs ne répond à son
+// nouveau nom.
 {
-  console.log('\n── a session started before the release is found again');
+  console.log(
+    '\n── une séance commencée avant la mise en production se retrouve'
+  );
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await p.evaluate(() => {
@@ -229,47 +233,47 @@ const startOver = async (p) => {
     return (d[d.length - 1]?.innerText ?? '').replace(/\u00A0/g, ' ');
   });
   ok(
-    'we offer to resume a session stored in the old format',
+    "on propose de reprendre une séance rangée à l'ancien format",
     /Reprendre où tu en étais/i.test(panel),
-    panel.split('\n').filter(Boolean)[0] ?? '(nothing)'
+    panel.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   ok(
-    '  → and the load recorded before the release is announced',
+    '  → et la charge notée avant la mise en production est annoncée',
     /charges sur 1 exercice/i.test(panel),
-    (panel.match(/[^\n]*charges[^\n]*/) ?? ['(nothing)'])[0]
+    (panel.match(/[^\n]*charges[^\n]*/) ?? ['(rien)'])[0]
   );
 
   await p.getByRole('button', { name: /^Reprendre$/ }).click();
   await p.waitForTimeout(800);
-  // We resume at the first unticked exercise: the third. The first two are
-  // behind, ticked, with the load from the old format.
+  // On reprend au premier exercice non coché : le troisième. Les deux
+  // premiers sont derrière, cochés, avec la charge de l'ancien format.
   const screen = await guidedScreen(p);
   ok(
-    '  → we resume after the two exercises already ticked',
+    '  → on reprend après les deux exercices déjà cochés',
     /2 sur 4 faits/.test(screen),
-    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(nothing)'])[0]
+    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
   );
   ok(
-    '  → and the load from the old format is still displayed',
+    "  → et la charge de l'ancien format s'affiche toujours",
     /37 kg/.test(screen),
-    (screen.match(/[^\n]*37 kg[^\n]*/) ?? ['(nothing)'])[0]
+    (screen.match(/[^\n]*37 kg[^\n]*/) ?? ['(rien)'])[0]
   );
 
-  // The first write rewrites the record in the new format, without losing
-  // anything it carried.
+  // La première écriture réécrit l'enregistrement au nouveau format, sans
+  // rien perdre de ce qu'il portait.
   await p.getByRole('button', { name: /^Fait$/ }).click();
   await p.waitForTimeout(400);
   const migrated = await record(p, 'sess3');
   ok(
-    '  → on the first write, it moves to the new format',
+    '  → à la première écriture, il passe au nouveau format',
     migrated.version === 2,
     `version ${migrated.version}`
   );
   ok(
-    '  → keeping what it carried',
+    "  → en gardant ce qu'il portait",
     migrated.done.length === 3 &&
       migrated.performed['1:1'].sets[0].weight === 37,
-    `${migrated.done.length} done, ${JSON.stringify(migrated.performed['1:1'])}`
+    `${migrated.done.length} faits, ${JSON.stringify(migrated.performed['1:1'])}`
   );
   await ctx.close();
 }
