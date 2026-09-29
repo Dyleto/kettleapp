@@ -1,4 +1,4 @@
-import { PerformedValues } from '@/types';
+import { PerformedValues } from '@/shared/types';
 
 /**
  * What an ongoing session keeps of itself between two openings.

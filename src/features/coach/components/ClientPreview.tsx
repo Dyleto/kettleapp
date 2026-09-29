@@ -8,11 +8,11 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
-import { Client } from '@/types';
-import { COACH_ROUTES } from '@/config/routes';
+import { Client } from '@/shared/types';
+import { COACH_ROUTES } from '@/shared/config/routes';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { SessionHistoryCard } from '@/features/client';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState } from '@/shared/components/EmptyState';
 
 interface ClientPreviewProps {
   /** The client highlighted in the list, or `null` when none is chosen. */

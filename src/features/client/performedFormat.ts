@@ -1,4 +1,4 @@
-import { PerformedSet, PerformedValues } from '@/types';
+import { PerformedSet, PerformedValues } from '@/shared/types';
 
 export const isEmptySet = (set: PerformedSet): boolean =>
   set.weight === undefined &&

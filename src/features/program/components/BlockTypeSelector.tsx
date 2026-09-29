@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BlockType } from '@/types';
+import { BlockType } from '@/shared/types';
 import {
   BLOCK_ACCENT_COLOR,
   BLOCK_FAMILIES,

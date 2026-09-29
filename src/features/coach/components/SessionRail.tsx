@@ -6,7 +6,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react';
 import { LuPlus } from 'react-icons/lu';
-import { Session } from '@/types';
+import { Session } from '@/shared/types';
 import {
   BLOCK_ACCENT_COLOR,
   getBlockAccent,

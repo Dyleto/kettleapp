@@ -11,12 +11,12 @@ import {
 import { useState } from 'react';
 import { LuCopy } from 'react-icons/lu';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { coachService } from '@/services/coachService';
-import { queryKeys } from '@/config/queryKeys';
-import { toaster } from '@/components/ui/toasterInstance';
+import { coachService } from '@/features/coach/coach.service';
+import { queryKeys } from '@/shared/config/queryKeys';
+import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useClients } from '@/features/coach/hooks/useClients';
-import { useBackDismiss } from '@/hooks/useBackDismiss';
-import { hitArea } from '@/components/hitArea';
+import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
+import { hitArea } from '@/shared/components/hitArea';
 
 interface CopySessionToClientProps {
   sourceClientId: string;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
-import { HealthConsent } from '@/types';
+import { HealthConsent } from '@/shared/types';
 import { useSetHealthConsent } from '../hooks/useAccount';
 import { ConfirmHealthOptOut } from './ConfirmHealthOptOut';
 

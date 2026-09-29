@@ -1,5 +1,5 @@
 import { Box, Wrap } from '@chakra-ui/react';
-import { FeedbackTag } from '@/types';
+import { FeedbackTag } from '@/shared/types';
 import { FEEDBACK_TAGS, FEEDBACK_TAG_LABELS } from '../constants';
 
 interface FeedbackTagsProps {

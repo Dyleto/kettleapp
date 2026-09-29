@@ -11,8 +11,8 @@ import {
 import { LuHeartPulse, LuLogOut } from 'react-icons/lu';
 import { Link as RouterLink } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from '@/contexts/useAuth';
-import { LEGAL_ROUTES } from '@/config/legal';
+import { useAuth } from '@/shared/contexts/useAuth';
+import { LEGAL_ROUTES } from '@/shared/config/legal';
 import { useAccount, useSetHealthConsent } from '../hooks/useAccount';
 import { ConfirmHealthOptOut } from './ConfirmHealthOptOut';
 

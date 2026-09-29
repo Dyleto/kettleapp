@@ -1,7 +1,7 @@
 import { Box, HStack, Text, useBreakpointValue } from '@chakra-ui/react';
 import { useState } from 'react';
 import { LuCalendarDays } from 'react-icons/lu';
-import { CompletedSession } from '@/types';
+import { CompletedSession } from '@/shared/types';
 import { SessionCalendar } from './SessionCalendar';
 
 interface SessionCalendarFilterProps {

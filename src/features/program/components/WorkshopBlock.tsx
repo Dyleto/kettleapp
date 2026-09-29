@@ -16,7 +16,7 @@ import {
   LuTrash2,
   LuX,
 } from 'react-icons/lu';
-import { BlockExercise, Exercise, SessionBlock } from '@/types';
+import { BlockExercise, Exercise, SessionBlock } from '@/shared/types';
 import {
   blockDefinesOwnMetrics,
   blockIndexPrefix,
@@ -24,8 +24,12 @@ import {
   getBlockLabel,
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
-import { ecartTactile, hitAreaTactile, pasTactile } from '@/components/hitArea';
-import { formatDuration } from '@/utils/formatters';
+import {
+  ecartTactile,
+  hitAreaTactile,
+  pasTactile,
+} from '@/shared/components/hitArea';
+import { formatDuration } from '@/shared/utils/formatters';
 import { InlineText, InlineValue } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';
 import { InlineExercisePicker } from './InlineExercisePicker';

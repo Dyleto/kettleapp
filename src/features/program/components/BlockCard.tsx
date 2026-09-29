@@ -1,5 +1,5 @@
 import { Box, Text } from '@chakra-ui/react';
-import { SessionBlock } from '@/types';
+import { SessionBlock } from '@/shared/types';
 import {
   getBlockConfigSummary,
   getBlockFreeName,

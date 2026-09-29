@@ -1,7 +1,7 @@
 import { Box, Flex, HStack, Text } from '@chakra-ui/react';
-import { SessionBlock } from '@/types';
+import { SessionBlock } from '@/shared/types';
 import { InlineSequence, InlineValue } from './InlineValue';
-import { formatDuration } from '@/utils/formatters';
+import { formatDuration } from '@/shared/utils/formatters';
 
 interface BlockConfigInlineProps {
   block: SessionBlock;

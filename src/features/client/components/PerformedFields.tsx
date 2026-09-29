@@ -1,8 +1,8 @@
 import { Box, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
 import { LuChevronRight } from 'react-icons/lu';
-import { PerformedSet, PerformedValues } from '@/types';
-import { hitArea } from '@/components/hitArea';
+import { PerformedSet, PerformedValues } from '@/shared/types';
+import { hitArea } from '@/shared/components/hitArea';
 import {
   isEmptySet,
   truncateAtFirstEmpty,

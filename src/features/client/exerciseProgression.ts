@@ -1,4 +1,4 @@
-import { CompletedSession, PerformedSet } from '@/types';
+import { CompletedSession, PerformedSet } from '@/shared/types';
 import { truncateAtFirstEmpty } from './performedFormat';
 
 export type ProgressionMetric = 'weight' | 'reps' | 'duration';

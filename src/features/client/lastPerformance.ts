@@ -1,4 +1,4 @@
-import { CompletedSession, PerformedValues } from '@/types';
+import { CompletedSession, PerformedValues } from '@/shared/types';
 import { formatPerformedSets, truncateAtFirstEmpty } from './performedFormat';
 
 export interface LastPerformance extends PerformedValues {

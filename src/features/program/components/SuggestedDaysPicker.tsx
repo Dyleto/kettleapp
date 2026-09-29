@@ -1,6 +1,6 @@
 import { Box, HStack } from '@chakra-ui/react';
-import { TACTILE, hitArea } from '@/components/hitArea';
-import { dayChipStyle } from '@/components/dayChip';
+import { TACTILE, hitArea } from '@/shared/components/hitArea';
+import { dayChipStyle } from '@/shared/components/dayChip';
 import { WEEKDAY_FULL, WEEKDAY_SHORT } from '@/features/client/sessionDates';
 
 interface SuggestedDaysPickerProps {

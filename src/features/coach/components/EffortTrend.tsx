@@ -1,6 +1,6 @@
 import { Box, HStack, Text, VStack, Wrap } from '@chakra-ui/react';
 import { getRelativeDate } from '@/features/client';
-import { CompletedSession, FeedbackTag } from '@/types';
+import { CompletedSession, FeedbackTag } from '@/shared/types';
 import {
   EFFORT_LEVELS,
   EFFORT_ZONE_COLOR,

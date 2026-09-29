@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/config/api';
+import api from '@/shared/config/api';
 
-import { toaster } from '@/components/ui/toasterInstance';
-import { Exercise } from '@/types';
-import { queryKeys } from '@/config/queryKeys';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import { Exercise } from '@/shared/types';
+import { queryKeys } from '@/shared/config/queryKeys';
 
 /**
  * Creates an exercise.

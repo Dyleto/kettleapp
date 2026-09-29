@@ -1,12 +1,12 @@
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-import { Provider } from './components/ui/provider';
-import { AuthProvider } from './contexts/AuthProvider';
-import { Toaster } from './components/ui/toaster';
-import { ErrorHandler } from './components/ErrorHandler';
+import { Provider } from './shared/components/ui/provider';
+import { AuthProvider } from './shared/contexts/AuthProvider';
+import { Toaster } from './shared/components/ui/toaster';
+import { ErrorHandler } from './shared/components/ErrorHandler';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from './config/queryClient';
-import ErrorBoundary from './components/ErrorBoundary';
+import { queryClient } from './shared/config/queryClient';
+import ErrorBoundary from './shared/components/ErrorBoundary';
 
 /**
  * A module that fails to load after a deployment.

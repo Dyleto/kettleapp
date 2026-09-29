@@ -1,6 +1,6 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { CompletedSession, Session } from '@/types';
-import { hitArea } from '@/components/hitArea';
+import { CompletedSession, Session } from '@/shared/types';
+import { hitArea } from '@/shared/components/hitArea';
 import { EFFORT_ZONE_COLOR } from '../constants';
 import { getEffortSummary } from '../format';
 import { dayKey, mondayIndex, WEEKDAY_LETTERS } from '../sessionDates';

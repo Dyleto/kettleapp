@@ -1,4 +1,4 @@
-import { BlockExercise, SessionBlock } from '@/types';
+import { BlockExercise, SessionBlock } from '@/shared/types';
 import { ReactNode } from 'react';
 
 export interface BlockProps {

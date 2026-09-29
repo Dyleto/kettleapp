@@ -1,5 +1,5 @@
-import { queryKeys } from '@/config/queryKeys';
-import { coachService } from '@/services/coachService';
+import { queryKeys } from '@/shared/config/queryKeys';
+import { coachService } from '@/features/coach/coach.service';
 import { useQuery } from '@tanstack/react-query';
 
 export const useClientHistory = (clientId: string) => {

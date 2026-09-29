@@ -6,42 +6,58 @@ import {
   Navigate,
   useParams,
 } from 'react-router-dom';
-import RootLayout from './layouts/RootLayout';
+import RootLayout from './shared/layouts/RootLayout';
 import React from 'react';
-import { RouteError } from './components/RouteError';
-import { COACH_ROUTES } from './config/routes';
-const NoRole = React.lazy(() => import('./pages/NoRole'));
+import { RouteError } from './shared/components/RouteError';
+import { COACH_ROUTES } from './shared/config/routes';
+const NoRole = React.lazy(() => import('@/features/auth/pages/NoRole'));
 
-const Login = React.lazy(() => import('./pages/Login'));
-const AuthCallback = React.lazy(() => import('./pages/AuthCallback'));
-const Join = React.lazy(() => import('./pages/Join'));
-
-const AdminDashboard = React.lazy(() => import('./pages/Admin/Dashboard'));
-
-const CoachLayout = React.lazy(() => import('./pages/Coach/CoachLayout'));
-const Clients = React.lazy(() => import('./pages/Coach/Clients'));
-const ClientDetails = React.lazy(() => import('./pages/Coach/ClientDetails'));
-const ClientJournal = React.lazy(() => import('./pages/Coach/ClientJournal'));
-const Exercises = React.lazy(() => import('./pages/Coach/Exercises'));
-
-const ClientLayout = React.lazy(() => import('./pages/Client/ClientLayout'));
-const Today = React.lazy(() => import('./pages/Client/Today'));
-const Program = React.lazy(() => import('./pages/Client/Program'));
-const SessionScreen = React.lazy(() => import('./pages/Client/SessionScreen'));
-const SessionRedirect = React.lazy(
-  () => import('./pages/Client/SessionRedirect')
+const Login = React.lazy(() => import('@/features/auth/pages/Login'));
+const AuthCallback = React.lazy(
+  () => import('@/features/auth/pages/AuthCallback')
 );
-const History = React.lazy(() => import('./pages/Client/History'));
+const Join = React.lazy(() => import('@/features/auth/pages/Join'));
+
+const AdminDashboard = React.lazy(
+  () => import('@/features/admin/pages/Dashboard')
+);
+
+const CoachLayout = React.lazy(
+  () => import('@/features/coach/pages/CoachLayout')
+);
+const Clients = React.lazy(() => import('@/features/coach/pages/Clients'));
+const ClientDetails = React.lazy(
+  () => import('@/features/coach/pages/ClientDetails')
+);
+const ClientJournal = React.lazy(
+  () => import('@/features/coach/pages/ClientJournal')
+);
+const Exercises = React.lazy(
+  () => import('@/features/exercise/pages/Exercises')
+);
+
+const ClientLayout = React.lazy(
+  () => import('@/features/client/pages/ClientLayout')
+);
+const Today = React.lazy(() => import('@/features/client/pages/Today'));
+const Program = React.lazy(() => import('@/features/client/pages/Program'));
+const SessionScreen = React.lazy(
+  () => import('@/features/client/pages/SessionScreen')
+);
+const SessionRedirect = React.lazy(
+  () => import('@/features/client/pages/SessionRedirect')
+);
+const History = React.lazy(() => import('@/features/client/pages/History'));
 
 // The same screen on both sides: one account can hold both roles, and it
 // should not have to change space to read itself back.
-const Account = React.lazy(() => import('./pages/Account'));
+const Account = React.lazy(() => import('@/features/account/pages/Account'));
 
 const Confidentialite = React.lazy(
-  () => import('./pages/Legal/Confidentialite')
+  () => import('@/features/legal/pages/Confidentialite')
 );
 const MentionsLegales = React.lazy(
-  () => import('./pages/Legal/MentionsLegales')
+  () => import('@/features/legal/pages/MentionsLegales')
 );
 
 const ClientDetailsRedirect = () => {

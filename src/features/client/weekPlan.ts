@@ -1,4 +1,4 @@
-import { CompletedSession, Session } from '@/types';
+import { CompletedSession, Session } from '@/shared/types';
 import { dayKey, mondayIndex, startOfWeek } from './sessionDates';
 
 export interface WeekDayPlan {

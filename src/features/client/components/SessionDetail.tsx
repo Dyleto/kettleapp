@@ -1,4 +1,4 @@
-import { PerformedValues, Session } from '@/types';
+import { PerformedValues, Session } from '@/shared/types';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import { Box, Skeleton, Text, VStack } from '@chakra-ui/react';
 import { PerformedFields } from './PerformedFields';

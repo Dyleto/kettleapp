@@ -1,4 +1,4 @@
-import { FeedbackTag, SessionMetrics } from '@/types';
+import { FeedbackTag, SessionMetrics } from '@/shared/types';
 
 // ─── Effort ──────────────────────────────────────────────────────────────────
 

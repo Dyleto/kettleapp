@@ -1,8 +1,8 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { TACTILE } from '@/components/hitArea';
+import { TACTILE } from '@/shared/components/hitArea';
 import { Text } from '@chakra-ui/react';
-import { SessionBlock } from '@/types';
+import { SessionBlock } from '@/shared/types';
 import {
   BLOCK_ACCENT_COLOR,
   getBlockAccent,

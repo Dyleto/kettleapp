@@ -1,5 +1,5 @@
-import { CompletedSession, Session } from '@/types';
-import { BlockType } from '@/types';
+import { CompletedSession, Session } from '@/shared/types';
+import { BlockType } from '@/shared/types';
 import { getBlockLabel } from '@/features/program/constants';
 import { getEffortLevel } from './constants';
 

@@ -1,11 +1,11 @@
 ﻿import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toaster } from '@/components/ui/toasterInstance';
+import { toaster } from '@/shared/components/ui/toasterInstance';
 import {
   clientService,
   CompleteSessionPayload,
   UpdateCompletedSessionPayload,
-} from '@/services/clientService';
-import { queryKeys } from '@/config/queryKeys';
+} from '@/features/client/client.service';
+import { queryKeys } from '@/shared/config/queryKeys';
 
 export const useCompleteSession = () => {
   const queryClient = useQueryClient();

@@ -1,6 +1,6 @@
 import { Box, Input, Text } from '@chakra-ui/react';
-import { hitAreaTactile } from '@/components/hitArea';
-import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
+import { hitAreaTactile } from '@/shared/components/hitArea';
+import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
 import { useState } from 'react';
 
 interface InlineValueProps {

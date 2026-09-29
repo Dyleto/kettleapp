@@ -1,7 +1,7 @@
-import { toaster } from '@/components/ui/toasterInstance';
-import api from '@/config/api';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import api from '@/shared/config/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/config/queryKeys';
+import { queryKeys } from '@/shared/config/queryKeys';
 import { invitationLink } from '../invitation';
 
 interface InvitationResponse {

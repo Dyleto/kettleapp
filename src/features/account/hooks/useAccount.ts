@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { accountService } from '@/services/accountService';
-import { queryKeys } from '@/config/queryKeys';
-import { toaster } from '@/components/ui/toasterInstance';
-import { useAuth } from '@/contexts/useAuth';
+import { accountService } from '@/features/account/account.service';
+import { queryKeys } from '@/shared/config/queryKeys';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import { useAuth } from '@/shared/contexts/useAuth';
 
 export const useAccount = () =>
   useQuery({

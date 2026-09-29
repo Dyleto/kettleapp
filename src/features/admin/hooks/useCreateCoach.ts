@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
-import api from '@/config/api';
-import { toaster } from '@/components/ui/toasterInstance';
-import eventEmitter from '@/utils/eventEmitter';
+import api from '@/shared/config/api';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import eventEmitter from '@/shared/utils/eventEmitter';
 import axios from 'axios';
 
 interface CreateCoachData {

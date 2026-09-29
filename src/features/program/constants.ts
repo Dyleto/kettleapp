@@ -1,5 +1,5 @@
-import { BlockExercise, BlockType, SessionBlock } from '@/types';
-import { formatDuration } from '@/utils/duration';
+import { BlockExercise, BlockType, SessionBlock } from '@/shared/types';
+import { formatDuration } from '@/shared/utils/duration';
 
 export const BLOCK_TYPE_CONFIG: Record<BlockType, { label: string }> = {
   warmup: { label: 'Échauffement' },

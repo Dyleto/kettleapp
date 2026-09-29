@@ -1,4 +1,4 @@
-import { CLIENT_ROUTES } from '@/config/routes';
+import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { LuHouse, LuListChecks, LuHistory } from 'react-icons/lu';
 
 export const CLIENT_NAV_ITEMS = [

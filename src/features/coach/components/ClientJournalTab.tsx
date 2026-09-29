@@ -1,8 +1,8 @@
-import { CompletedSession } from '@/types';
+import { CompletedSession } from '@/shared/types';
 import { useEffect, useState } from 'react';
 import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
 import { useMarkHistoryAsViewed } from '@/features/coach/hooks/useMarkHistoryAsViewed';
-import { EmptyState } from '@/components/EmptyState';
+import { EmptyState } from '@/shared/components/EmptyState';
 import {
   CompletedSessionDrawer,
   SessionCalendarFilter,

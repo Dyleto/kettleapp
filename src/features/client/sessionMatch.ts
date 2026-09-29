@@ -3,7 +3,7 @@ import {
   CompletedSession,
   Session,
   SessionBlock,
-} from '@/types';
+} from '@/shared/types';
 
 /**
  * Has this session already been done — this session, not its identifier?

@@ -10,11 +10,11 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { LuExternalLink, LuTrash2, LuVideo, LuX } from 'react-icons/lu';
-import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
-import { Exercise } from '@/types';
-import { parseYouTubeUrl } from '@/utils/videoUtils';
+import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
+import { Exercise } from '@/shared/types';
+import { parseYouTubeUrl } from '@/shared/utils/videoUtils';
 import { useUpdateExercise } from '@/features/exercise/hooks/useExerciseMutations';
-import VideoPlayer from '@/components/VideoPlayer';
+import VideoPlayer from '@/shared/components/VideoPlayer';
 
 type Editable = 'name' | 'description' | 'videoUrl';
 

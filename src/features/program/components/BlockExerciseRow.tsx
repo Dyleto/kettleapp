@@ -1,15 +1,15 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { ReactNode, useState } from 'react';
 import { LuChevronDown, LuVideo } from 'react-icons/lu';
-import { formatDuration } from '@/utils/duration';
-import { BlockExercise, BlockType, SessionBlock } from '@/types';
+import { formatDuration } from '@/shared/utils/duration';
+import { BlockExercise, BlockType, SessionBlock } from '@/shared/types';
 import {
   blockIndexPrefix,
   restBetweenSetsOf,
 } from '@/features/program/constants';
-import { formatExerciseMetric } from '@/utils/formatters';
-import VideoPlayer from '@/components/VideoPlayer';
-import { hitArea } from '@/components/hitArea';
+import { formatExerciseMetric } from '@/shared/utils/formatters';
+import VideoPlayer from '@/shared/components/VideoPlayer';
+import { hitArea } from '@/shared/components/hitArea';
 
 interface BlockExerciseRowProps {
   exercise: BlockExercise;

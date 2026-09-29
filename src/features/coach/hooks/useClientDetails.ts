@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { coachService } from '@/services/coachService';
-import { queryKeys } from '@/config/queryKeys';
+import { coachService } from '@/features/coach/coach.service';
+import { queryKeys } from '@/shared/config/queryKeys';
 
 // The id is passed as a parameter.
 export const useClientDetails = (clientId: string) => {

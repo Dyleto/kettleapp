@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '@/config/api';
-import { queryKeys } from '@/config/queryKeys';
+import api from '@/shared/config/api';
+import { queryKeys } from '@/shared/config/queryKeys';
 
 interface ActiveInvitation {
   token: string;

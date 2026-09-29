@@ -23,7 +23,7 @@ import {
   Exercise,
   Session,
   SessionBlock,
-} from '@/types';
+} from '@/shared/types';
 import {
   WorkshopBlock,
   BlockTypeSelector,
@@ -38,7 +38,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TACTILE, ecartTactile, hitAreaTactile } from '@/components/hitArea';
+import {
+  TACTILE,
+  ecartTactile,
+  hitAreaTactile,
+} from '@/shared/components/hitArea';
 import {
   closestCenter,
   DndContext,
@@ -49,9 +53,9 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { ExerciseSheet } from '@/features/exercise';
-import { useOutsideDismiss } from '@/hooks/useOutsideDismiss';
+import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 import { CopySessionToClient } from './CopySessionToClient';
-import { useBackDismiss } from '@/hooks/useBackDismiss';
+import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 
 interface Props {
   session: Session;

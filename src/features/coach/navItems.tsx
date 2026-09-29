@@ -1,4 +1,4 @@
-import { COACH_ROUTES } from '@/config/routes';
+import { COACH_ROUTES } from '@/shared/config/routes';
 import { LuUsers, LuDumbbell } from 'react-icons/lu';
 
 export const COACH_NAV_ITEMS = [

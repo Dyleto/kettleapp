@@ -19,7 +19,7 @@ import {
   FeedbackTag,
   PerformedEntry,
   PerformedValues,
-} from '@/types';
+} from '@/shared/types';
 import {
   EFFORT_ZONE_COLOR,
   FEEDBACK_TAG_LABELS,
@@ -27,7 +27,7 @@ import {
   LEGACY_METRIC_LABELS,
 } from '@/features/client/constants';
 import { BlockCard } from '@/features/program/components/BlockCard';
-import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
+import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
 import { LuPencil, LuX } from 'react-icons/lu';
 import { useState } from 'react';
 import { EffortScale } from './EffortScale';
@@ -41,9 +41,9 @@ import {
   truncateAtFirstEmpty,
 } from '../performedFormat';
 import { useUpdateCompletedSession } from '../hooks/useCompleteSession';
-import { useAuth } from '@/contexts/useAuth';
+import { useAuth } from '@/shared/contexts/useAuth';
 import { sessionTitle } from '@/features/program/sessionTitle';
-import { initialCapital } from '@/components/typography';
+import { initialCapital } from '@/shared/components/typography';
 
 const toSessionBlock = (
   block: CompletedSession['blocks'][number],

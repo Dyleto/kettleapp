@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ClientProgram, Session } from '@/types';
+import { ClientProgram, Session } from '@/shared/types';
 
 /** What the status line has to say. */
 export type SaveState = 'idle' | 'pending' | 'saving' | 'error';

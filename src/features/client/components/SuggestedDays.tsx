@@ -1,5 +1,5 @@
 import { HStack, Box, Text } from '@chakra-ui/react';
-import { dayChipStyle } from '@/components/dayChip';
+import { dayChipStyle } from '@/shared/components/dayChip';
 import {
   WEEKDAY_FULL,
   WEEKDAY_SHORT,

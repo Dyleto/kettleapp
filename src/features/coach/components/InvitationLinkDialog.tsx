@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useRef, useState } from 'react';
 import { LuCheck, LuCopy } from 'react-icons/lu';
-import { useBackDismiss } from '@/hooks/useBackDismiss';
+import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { linkExpiry } from '../invitation';
 
 interface Props {

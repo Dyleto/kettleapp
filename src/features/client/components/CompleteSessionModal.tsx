@@ -1,4 +1,4 @@
-import { FeedbackTag, SessionFeedback } from '@/types';
+import { FeedbackTag, SessionFeedback } from '@/shared/types';
 import {
   Box,
   Button,
@@ -9,13 +9,13 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { AutoResizeTextarea } from '@/components/AutoResizeTextarea';
-import { DateInput } from '@/components/DateInput';
-import { hitArea } from '@/components/hitArea';
+import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
+import { DateInput } from '@/shared/components/DateInput';
+import { hitArea } from '@/shared/components/hitArea';
 import { LuX } from 'react-icons/lu';
 import { EffortScale } from './EffortScale';
 import { FeedbackTags } from './FeedbackTags';
-import { useAuth } from '@/contexts/useAuth';
+import { useAuth } from '@/shared/contexts/useAuth';
 
 interface CompleteSessionModalProps {
   isOpen: boolean;

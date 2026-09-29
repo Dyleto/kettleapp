@@ -1,6 +1,6 @@
 import { VStack, HStack, Text } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
-import { Header } from '@/components/Header';
+import { Header } from '@/shared/components/Header';
 import { COACH_NAV_ITEMS } from '../navItems';
 
 export const CoachNavRail = () => {

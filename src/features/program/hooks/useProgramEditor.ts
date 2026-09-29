@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { newObjectId } from '@/utils/objectId';
+import { newObjectId } from '@/shared/utils/objectId';
 import {
   BlockExercise,
   BlockType,
@@ -7,7 +7,7 @@ import {
   Exercise,
   Session,
   SessionBlock,
-} from '@/types';
+} from '@/shared/types';
 import { blockSupportsSets } from '@/features/program/constants';
 
 type ExerciseUpdate = Partial<Omit<BlockExercise, 'exercise'>>;

@@ -1,4 +1,9 @@
-import { Session, SessionBlock, BlockExercise, BlockType } from '@/types';
+import {
+  Session,
+  SessionBlock,
+  BlockExercise,
+  BlockType,
+} from '@/shared/types';
 import {
   getBlockLabel,
   blockSupportsRepsOnly,
@@ -6,7 +11,7 @@ import {
   prescribedSetLabels,
   restBetweenSetsOf,
 } from '@/features/program/constants';
-import { formatDuration } from '@/utils/formatters';
+import { formatDuration } from '@/shared/utils/formatters';
 
 /**
  * One set: a thing you do, and that can be done.

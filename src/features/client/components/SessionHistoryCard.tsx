@@ -1,5 +1,5 @@
-import { Card } from '@/components/Card';
-import { CompletedSession } from '@/types';
+import { Card } from '@/shared/components/Card';
+import { CompletedSession } from '@/shared/types';
 import {
   getCompletedSessionBlockTypes,
   getEffortSummary,

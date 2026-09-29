@@ -1,4 +1,4 @@
-import { PerformedSet, PerformedValues, Session } from '@/types';
+import { PerformedSet, PerformedValues, Session } from '@/shared/types';
 import { LastPerformance, performedKey } from './lastPerformance';
 import { GuidedStep, setsOfBlock } from './guidedSteps';
 

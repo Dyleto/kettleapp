@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '@/config/api';
-import { Exercise } from '@/types';
-import { queryKeys } from '@/config/queryKeys';
+import api from '@/shared/config/api';
+import { Exercise } from '@/shared/types';
+import { queryKeys } from '@/shared/config/queryKeys';
 
 /**
  * Fetches one exercise by its id.

@@ -14,13 +14,13 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LuSearch, LuX } from 'react-icons/lu';
 import { useClients } from '@/features/coach/hooks/useClients';
-import { useToastError } from '@/hooks/useToastError';
+import { useToastError } from '@/shared/hooks/useToastError';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/features/client/constants';
-import { Card } from '@/components/Card';
-import { hitArea } from '@/components/hitArea';
-import { COACH_ROUTES } from '@/config/routes';
-import { stripAccents } from '@/utils/formatters';
-import { Client } from '@/types';
+import { Card } from '@/shared/components/Card';
+import { hitArea } from '@/shared/components/hitArea';
+import { COACH_ROUTES } from '@/shared/config/routes';
+import { stripAccents } from '@/shared/utils/formatters';
+import { Client } from '@/shared/types';
 
 const SILENCE_THRESHOLD_DAYS = 14;
 

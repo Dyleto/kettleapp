@@ -1,7 +1,7 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { LuVideo } from 'react-icons/lu';
-import { Exercise } from '@/types';
+import { Exercise } from '@/shared/types';
 
 interface ExerciseRowProps {
   exercise: Exercise;

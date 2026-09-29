@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { LuPencil, LuX } from 'react-icons/lu';
-import { PerformedValues, Session } from '@/types';
+import { PerformedValues, Session } from '@/shared/types';
 import { SessionDetail } from './SessionDetail';
 import { LastPerformance } from '../lastPerformance';
 

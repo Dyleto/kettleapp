@@ -1,7 +1,7 @@
-import { toaster } from '@/components/ui/toasterInstance';
-import api from '@/config/api';
-import { queryKeys } from '@/config/queryKeys';
-import { Session } from '@/types';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import api from '@/shared/config/api';
+import { queryKeys } from '@/shared/config/queryKeys';
+import { Session } from '@/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Options {

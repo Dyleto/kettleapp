@@ -1,6 +1,6 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { useMemo } from 'react';
-import { CompletedSession } from '@/types';
+import { CompletedSession } from '@/shared/types';
 import {
   buildExerciseProgressions,
   isRising,

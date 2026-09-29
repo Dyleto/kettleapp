@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { clientService } from '@/services/clientService';
-import { queryKeys } from '@/config/queryKeys';
-import { CLIENT_ROUTES } from '@/config/routes';
-import { toaster } from '@/components/ui/toasterInstance';
+import { clientService } from '@/features/client/client.service';
+import { queryKeys } from '@/shared/config/queryKeys';
+import { CLIENT_ROUTES } from '@/shared/config/routes';
+import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useCompleteSession } from './useCompleteSession';
-import { PerformedEntry, RoundsDoneEntry, SessionFeedback } from '@/types';
+import {
+  PerformedEntry,
+  RoundsDoneEntry,
+  SessionFeedback,
+} from '@/shared/types';
 import { buildLastPerformanceIndex } from '../lastPerformance';
 import { getSessionForToday } from '../weekPlan';
 import { forgetProgress } from '../sessionProgress';

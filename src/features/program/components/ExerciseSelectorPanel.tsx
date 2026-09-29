@@ -13,8 +13,8 @@ import { LuArrowUpRight, LuPlus, LuSearch, LuX } from 'react-icons/lu';
 import { useCreateExercise } from '@/features/exercise/hooks/useExerciseMutations';
 import { useExercises } from '@/features/exercise/hooks/useExercises';
 import { ExerciseRow } from '@/features/exercise';
-import { Exercise } from '@/types';
-import { stripAccents } from '@/utils/formatters';
+import { Exercise } from '@/shared/types';
+import { stripAccents } from '@/shared/utils/formatters';
 
 const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
 

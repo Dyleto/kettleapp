@@ -1,4 +1,9 @@
-import { BlockExercise, PerformedValues, Session, SessionBlock } from '@/types';
+import {
+  BlockExercise,
+  PerformedValues,
+  Session,
+  SessionBlock,
+} from '@/shared/types';
 import {
   buildGuidedSteps,
   roundDose,
@@ -22,10 +27,10 @@ import {
   performedKey,
 } from '../lastPerformance';
 import { Box, HStack, Button, Input, VStack, Text } from '@chakra-ui/react';
-import VideoPlayer from '@/components/VideoPlayer';
-import { hitArea } from '@/components/hitArea';
-import { formatCountdown } from '@/utils/formatters';
-import { formatDuration } from '@/utils/duration';
+import VideoPlayer from '@/shared/components/VideoPlayer';
+import { hitArea } from '@/shared/components/hitArea';
+import { formatCountdown } from '@/shared/utils/formatters';
+import { formatDuration } from '@/shared/utils/duration';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuCheck, LuInfo, LuTimer, LuX } from 'react-icons/lu';

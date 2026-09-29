@@ -1,11 +1,11 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
-import { CompletedSession } from '@/types';
+import { CompletedSession } from '@/shared/types';
 import { EFFORT_ZONE_COLOR } from '../constants';
 import { getEffortSummary } from '../format';
 import { dayKey } from '../sessionDates';
-import { initialCapital } from '@/components/typography';
+import { initialCapital } from '@/shared/components/typography';
 
 const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
