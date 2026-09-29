@@ -7,24 +7,23 @@ interface Props {
   isPending: boolean;
   /** "Refuser le partage ?" on the way in, "Retirer mon accord ?" after. */
   title: string;
-  /** The action's label, which has to say what it does. */
+  /** Le libellé de l'action, qui doit dire ce qu'elle fait. */
   action: string;
   /** How many wrap-ups still carry a tag or a comment. */
   count: number;
 }
 
 /**
- * What is announced before erasing.
+ * Ce qu'on annonce avant d'effacer.
  *
- * Refusing to share does not only erase the future: what has already been
- * collected goes too, otherwise the refusal would be mere display and the
- * data would stay in the database with nothing to justify it. It cannot be
- * undone, so it is said beforehand — with the real number, not a vague
- * phrase.
+ * Refuser de partager n'efface pas que l'avenir : ce qui a déjà été collecté
+ * part aussi, sans quoi le refus ne serait qu'un affichage et la donnée
+ * resterait en base sans plus rien pour la justifier. C'est sans retour, donc
+ * c'est dit avant — avec le nombre réel, pas une formule vague.
  *
- * The dialog only opens when there is something to lose. On an account that
- * has declared nothing yet, refusing stays a single gesture: putting an
- * obstacle in front of a refusal with no object is discouraging the refusal.
+ * La boîte ne s'ouvre que s'il y a quelque chose à perdre. Sur un compte qui
+ * n'a encore rien déclaré, refuser reste un seul geste : mettre un obstacle
+ * devant un refus sans objet, c'est décourager le refus.
  */
 export const ConfirmHealthOptOut = ({
   open,

@@ -60,26 +60,27 @@ const Carte = ({ children }: { children: React.ReactNode }) => (
 );
 
 interface Props {
-  /** The space we came from: going back returns there. */
+  /** L'espace d'où l'on vient : le retour y ramène. */
   space: 'client' | 'coach';
 }
 
 /**
- * "My account": who I am, who I am attached to, what I share, and how to
- * leave.
+ * « Mon compte » : qui je suis, à qui je suis rattaché, ce que je partage, et
+ * comment partir.
  *
- * The same screen serves the coach and the client — one account can hold
- * both roles. Each section only appears if the matching role exists, and
- * only the client sees the health-data one: a coach declares none.
+ * Le même écran sert le coach et le client — un compte peut porter les deux
+ * rôles. Chaque section n'apparaît que si le rôle correspondant existe, et
+ * seul le client voit celle des données de santé : un coach n'en déclare
+ * aucune.
  *
- * The rule of address: Kettle says "tu" to the client and "vous" to the
- * coach, and it is the space you are in that decides — not the subject of
- * the section. An account holding both roles used to read its "client"
- * sections in "tu" while inside the coach space, because three headings had
- * been hard-coded. Hence the rule: no sentence on this page addresses the
- * reader without going through `tu`. The texts that cannot do so — the ones
- * the consent card shares with the client's home screen — are written in the
- * first person, which is the voice of a consent anyway.
+ * La règle d'adresse : Kettle tutoie le client et vouvoie le coach, et c'est
+ * l'espace où l'on se trouve qui décide — pas le sujet de la section. Un
+ * compte portant les deux rôles lisait ses sections « client » au tutoiement
+ * alors qu'il était dans l'espace coach, parce que trois titres avaient été
+ * écrits en dur. D'où la règle : aucune phrase de cette page ne s'adresse au
+ * lecteur sans passer par `tu`. Les textes qui ne le peuvent pas — ceux que
+ * la carte de consentement partage avec l'accueil du client — sont écrits à
+ * la première personne, qui est de toute façon la voix d'un consentement.
  */
 const Account = ({ space }: Props) => {
   useDocumentTitle('Mon compte');

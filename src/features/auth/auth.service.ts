@@ -1,8 +1,21 @@
 import api from '@/shared/config/api';
-import { User } from '@/shared/types'; // Assurez-vous d'avoir le type User
+import { User } from '@/shared/types';
 
+/**
+ * L'authentification, côté client : trois appels et pas un de plus.
+ *
+ * Aucun jeton ne transite ici. Le serveur pose un cookie `httpOnly` que le
+ * JavaScript ne peut ni lire ni voler ; `getMe` est donc la seule façon de
+ * savoir qui est connecté.
+ */
 export const authService = {
-  // Sign in with Google.
+  /**
+   * Échange le code d'autorisation de Google contre une session.
+   *
+   * `redirectUri` repart avec le code : Google le vérifie une seconde fois,
+   * côté serveur, et refuse si les deux ne coïncident pas. C'est ce qui
+   * empêche un code intercepté d'être utilisé depuis ailleurs.
+   */
   googleLogin: async (
     code: string,
     redirectUri: string,

@@ -18,7 +18,7 @@ import { LEGAL } from '@/shared/config/legal';
 import storage from '@/shared/utils/storage';
 import { toaster } from '@/shared/components/ui/toasterInstance';
 
-/** Minimum wait before redirecting, so the screen does not flash. */
+/** Attente minimale avant la redirection, pour que l'écran ne clignote pas. */
 const MINIMUM_DISPLAY_TIME_MS = 800;
 
 /**
@@ -56,9 +56,9 @@ const MESSAGES: Record<Cause, { titre: string; texte: string }> = {
 };
 
 /**
- * The server returns 401 when Google refused the code, and 5xx when the
- * server itself failed. No response carries no status at all: that is the
- * network. We only report a failure on a response, never on a wait.
+ * Le serveur renvoie 401 quand Google a refusé le code, et 5xx quand c'est
+ * lui qui a échoué. Une absence de réponse ne porte aucun statut : c'est le
+ * réseau. On ne signale un échec que sur une réponse, jamais sur une attente.
  */
 const causeDe = (err: unknown): Cause => {
   const axiosErr = err as AxiosError;
@@ -75,8 +75,8 @@ const AuthCallback = () => {
   const [echec, setEchec] = useState<Cause | null>(null);
 
   const recommencer = useCallback(() => {
-    // The invitation token is only cleared on success, so starting over
-    // keeps the link to the coach.
+    // Le jeton d'invitation n'est effacé qu'en cas de succès : recommencer
+    // garde le lien vers le coach.
     navigate('/login', { replace: true });
   }, [navigate]);
 

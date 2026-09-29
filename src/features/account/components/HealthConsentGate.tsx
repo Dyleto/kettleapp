@@ -17,16 +17,17 @@ import { useAccount, useSetHealthConsent } from '../hooks/useAccount';
 import { ConfirmHealthOptOut } from './ConfirmHealthOptOut';
 
 /**
- * The question put to the client before they come in.
+ * La question posée au client avant qu'il n'entre.
  *
- * What they declare after a session — a pain, an illness, a sleepless night —
- * is health data. We do not collect it without explicit agreement, and that
- * agreement only counts if it is free: refusing takes one click, in the same
- * place and at the same size as accepting, and the app opens either way.
+ * Ce qu'il déclare après une séance — une douleur, une maladie, une nuit sans
+ * sommeil — est une donnée de santé. On ne la collecte pas sans accord
+ * explicite, et cet accord ne vaut que s'il est libre : refuser tient en un
+ * clic, au même endroit et à la même taille qu'accepter, et l'application
+ * s'ouvre dans les deux cas.
  *
- * The screen only shows once. A refusal is recorded as a decision — otherwise
- * we would put the question again at every visit, which would amount to
- * asking until the answer suits.
+ * L'écran ne se montre qu'une fois. Un refus s'enregistre comme une décision
+ * — sinon on reposerait la question à chaque visite, ce qui revient à
+ * demander jusqu'à ce que la réponse convienne.
  */
 export const HealthConsentGate = () => {
   const { user, logout } = useAuth();
@@ -34,11 +35,11 @@ export const HealthConsentGate = () => {
   const { data } = useAccount();
   const [refusOuvert, setRefusOuvert] = useState(false);
 
-  // An account already in use may carry effort ratings collected before the
-  // question was ever put. Refusing erases them — we say so first, with the
-  // number. On a fresh account there is nothing to lose, and refusing stays a
-  // single gesture: an obstacle in front of a refusal with no object would
-  // discourage the refusal.
+  // Un compte déjà en service peut porter des notes d'effort collectées
+  // avant que la question ne soit posée. Refuser les efface — on le dit
+  // d'abord, avec le nombre. Sur un compte neuf il n'y a rien à perdre, et
+  // refuser reste un seul geste : un obstacle devant un refus sans objet
+  // découragerait le refus.
   const aPerdre = data?.asClient?.healthDataCount ?? 0;
 
   const refuser = () => {
@@ -104,9 +105,9 @@ export const HealthConsentGate = () => {
           </Text>
         </VStack>
 
-        {/* Both answers have the same size and the same place. Giving
-            one of them prominence would make refusal a second choice, and the
-            consent would no longer be free. */}
+        {/* Les deux réponses ont la même taille et la même place. En
+            mettre une en avant ferait du refus un second choix, et l'accord
+            ne serait plus libre. */}
         <Stack direction={{ base: 'column', sm: 'row' }} gap={3}>
           <Button
             flex={1}

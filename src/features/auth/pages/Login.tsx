@@ -29,11 +29,12 @@ const FEATURES = [
 ];
 
 /**
- * A named path, folded away.
+ * Un chemin nommé, replié.
  *
- * Neither leads to a button: in both cases what has to be done happens
- * elsewhere — opening your coach's link, or writing to us. Dressing them up
- * as actions would promise a second time what the page cannot deliver.
+ * Ni l'un ni l'autre ne mène à un bouton : dans les deux cas, ce qu'il y a à
+ * faire se passe ailleurs — ouvrir le lien de son coach, ou nous écrire. Les
+ * habiller en actions promettrait une seconde fois ce que la page ne peut
+ * pas tenir.
  */
 const Chemin = ({
   id,
@@ -131,11 +132,10 @@ const Login: React.FC = () => {
     >
       <Container centerContent py={12}>
         <VStack gap={7} w="100%" maxW="380px">
-          {/* Header */}
           <VStack gap={1} textAlign="center">
-            {/* No `h1` on this screen: a screen reader had nothing to
-                announce it with, nor to navigate by. The product name titles
-                it — which is indeed what the page says. */}
+            {/* Pas de `h1` sur cet écran : un lecteur d'écran n'avait rien
+                pour l'annoncer, ni pour s'y repérer. Le nom du produit le
+                titre — et c'est bien ce que la page dit. */}
             <Heading
               as="h1"
               fontSize="42px"
@@ -156,13 +156,13 @@ const Login: React.FC = () => {
             </Text>
           </VStack>
 
-          {/* What the product does — a list, not three buttons. These
-              three lines carried a background, a border and the same radius
-              as the Google button just below, at the same width: three false
-              targets above the only real one, and so three chances to think
-              the app is not responding. With no background or frame, they
-              read for what they are. The icon keeps the accent: it is a
-              bullet, it claims nothing. */}
+          {/* Ce que fait le produit — une liste, pas trois boutons. Ces
+              trois lignes portaient un fond, une bordure et le même rayon que
+              le bouton Google juste en dessous, à la même largeur : trois
+              fausses cibles au-dessus de la seule vraie, donc trois occasions
+              de croire que l'application ne répond pas. Sans fond ni cadre,
+              elles se lisent pour ce qu'elles sont. L'icône garde l'accent :
+              c'est une puce, elle ne promet rien. */}
           <VStack gap={2} w="100%" as="ul" listStyleType="none">
             {FEATURES.map(({ label, icon: FeatureIcon }) => (
               <HStack key={label} as="li" gap={3} w="100%" px={1}>
@@ -179,11 +179,11 @@ const Login: React.FC = () => {
           <VStack gap={3} w="100%">
             <GoogleLoginButton text="Continuer avec Google" />
 
-            {/* Two named paths, because the button really only serves one
-                of the three cases — someone who already has an account. A
-                client with no invitation and a coach with no space both end
-                up with an account attached to nobody. Better to say so
-                here. */}
+            {/* Deux chemins nommés, parce que le bouton ne sert vraiment
+                qu'à l'un des trois cas — quelqu'un qui a déjà un compte. Un
+                client sans invitation et un coach sans espace finissent tous
+                deux avec un compte rattaché à personne. Autant le dire
+                ici. */}
             <Text fontSize="xs" color="fg.muted" textAlign="center" pt={1}>
               Première fois ici&nbsp;?
             </Text>

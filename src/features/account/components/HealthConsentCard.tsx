@@ -37,14 +37,14 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   const [retraitOuvert, setRetraitOuvert] = useState(false);
   const granted = consent?.granted === true;
 
-  // Giving consent takes one gesture. Withdrawing it too — the dialog does
-  // not ask you to confirm an intention, it announces a consequence: what has
-  // already been recorded is erased, and that cannot be undone.
+  // Donner son accord tient en un geste. Le retirer aussi — la boîte ne
+  // demande pas de confirmer une intention, elle annonce une conséquence : ce
+  // qui est déjà enregistré s'efface, et c'est sans retour.
   const basculer = () => {
     if (isPending) return;
-    // Withdrawing consent when nothing is recorded erases nothing: the
-    // dialog would have nothing to announce, and withdrawing must stay as
-    // simple as giving.
+    // Retirer son accord quand rien n'est enregistré n'efface rien : la
+    // boîte n'aurait rien à annoncer, et retirer doit rester aussi simple que
+    // donner.
     if (granted && healthDataCount > 0) {
       setRetraitOuvert(true);
       return;
@@ -78,8 +78,8 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           role="switch"
           aria-checked={granted}
           aria-labelledby="partage-ressenti"
-          // `Box as="button"` does not take `disabled` in Chakra v3: we
-          // announce it and keep the door shut in the handler.
+          // `Box as="button"` ne prend pas `disabled` dans Chakra v3 : on
+          // l'annonce et on garde la porte fermée dans le gestionnaire.
           aria-disabled={isPending}
           onClick={basculer}
           flexShrink={0}

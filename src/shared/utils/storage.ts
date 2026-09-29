@@ -1,14 +1,18 @@
 /**
- * A safe wrapper around localStorage.
- * Handles the errors (private mode, quota exceeded, and so on).
+ * localStorage, mais qui ne fait pas tomber l'application.
+ *
+ * Le simple fait de toucher `localStorage` lève en navigation privée sur
+ * certains navigateurs, et l'écriture lève quand le quota est plein. Ces
+ * accès-là servent à retenir l'état d'un retour OAuth : rien qui vaille un
+ * écran blanc. Chaque appel échoue donc en silence, en disant seulement s'il
+ * a réussi.
+ *
+ * Quatre autres fonctions vivaient ici — `isAvailable`, `setJSON`, `getJSON`,
+ * `clear` — sans qu'aucune ne soit appelée nulle part. Ce qui n'est pas
+ * utilisé ne se maintient pas : on le retire.
  */
 
-/**
- * Save a value to localStorage.
- * @param key - the storage key
- * @param value - the value to store
- * @returns true on success, false on error
- */
+/** Écrire, en disant si c'est passé plutôt qu'en le supposant. */
 export const setItem = (key: string, value: string): boolean => {
   try {
     localStorage.setItem(key, value);
@@ -20,9 +24,8 @@ export const setItem = (key: string, value: string): boolean => {
 };
 
 /**
- * Relire une valeur depuis localStorage.
- * @param key - la clé de rangement
- * @returns la valeur, ou null en cas d'erreur ou d'absence
+ * Relire. `null` ne distingue pas l'absence de l'échec : l'appelant repart de
+ * zéro dans les deux cas.
  */
 export const getItem = (key: string): string | null => {
   try {
@@ -33,11 +36,7 @@ export const getItem = (key: string): string | null => {
   }
 };
 
-/**
- * Remove a value from localStorage.
- * @param key - the storage key
- * @returns true on success, false on error
- */
+/** Effacer une clé — un nettoyage de fin de parcours, jamais critique. */
 export const removeItem = (key: string): boolean => {
   try {
     localStorage.removeItem(key);
@@ -48,74 +47,6 @@ export const removeItem = (key: string): boolean => {
   }
 };
 
-/**
- * Check whether localStorage is available.
- * @returns true when available, false otherwise
- */
-export const isAvailable = (): boolean => {
-  try {
-    const testKey = '__storage_test__';
-    localStorage.setItem(testKey, 'test');
-    localStorage.removeItem(testKey);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Save a JSON object to localStorage.
- * @param key - the storage key
- * @param value - the object to store
- * @returns true on success, false on error
- */
-export const setJSON = <T>(key: string, value: T): boolean => {
-  try {
-    const json = JSON.stringify(value);
-    return setItem(key, json);
-  } catch (error) {
-    console.warn(`[Storage] Impossible de sérialiser "${key}":`, error);
-    return false;
-  }
-};
-
-/**
- * Relire un objet JSON depuis localStorage.
- * @param key - la clé de rangement
- * @returns l'objet analysé, ou null en cas d'erreur
- */
-export const getJSON = <T>(key: string): T | null => {
-  try {
-    const json = getItem(key);
-    if (!json) return null;
-    return JSON.parse(json) as T;
-  } catch (error) {
-    console.warn(`[Storage] Impossible de parser "${key}":`, error);
-    return null;
-  }
-};
-
-/**
- * Clear localStorage entirely.
- * @returns true on success, false on error
- */
-export const clear = (): boolean => {
-  try {
-    localStorage.clear();
-    return true;
-  } catch (error) {
-    console.warn('[Storage] Impossible de vider le localStorage:', error);
-    return false;
-  }
-};
-
-// Default export: one object carrying every method.
-export default {
-  setItem,
-  getItem,
-  removeItem,
-  isAvailable,
-  setJSON,
-  getJSON,
-  clear,
-};
+// Les appelants importent l'objet par défaut (`storage.setItem`) : un seul
+// nom à lire au point d'appel, et il dit d'où vient l'accès.
+export default { setItem, getItem, removeItem };

@@ -5,18 +5,18 @@ import { useDeleteAccount } from '../hooks/useAccount';
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** What disappears, spelled out, with the real numbers. */
+  /** Ce qui disparaît, énoncé, avec les vrais nombres. */
   consequences: string[];
   tutoiement: boolean;
 }
 
 /**
- * The deletion confirmation.
+ * La confirmation de suppression.
  *
- * It lists what goes rather than asking "are you sure": the question informs
- * nobody, the list does. And the destructive button sits above "Annuler" — on
- * a phone the thumb lands at the bottom, and that is where you want the way
- * out.
+ * Elle énumère ce qui part plutôt que de demander « êtes-vous sûr » : la
+ * question n'informe personne, la liste si. Et le bouton destructeur se place
+ * au-dessus d'« Annuler » — sur un téléphone le pouce tombe en bas, et c'est
+ * là qu'on veut la sortie.
  */
 export const DeleteAccountDialog = ({
   open,

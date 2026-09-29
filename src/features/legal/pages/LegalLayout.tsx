@@ -6,9 +6,10 @@ import { A_COMPLETER, LEGAL } from '@/shared/config/legal';
 import { hitArea } from '@/shared/components/hitArea';
 
 /**
- * A legal document is read end to end, often on a phone, and sometimes by
- * someone who does not have an account yet. Hence a narrow column, generous
- * line height, and no dependency on the signed-in state.
+ * Un document légal se lit d'un bout à l'autre, souvent sur un téléphone, et
+ * parfois par quelqu'un qui n'a pas encore de compte. D'où une colonne
+ * étroite, un interligne généreux, et aucune dépendance à l'état de
+ * connexion.
  */
 export const LegalLayout = ({
   title,
@@ -113,12 +114,16 @@ export const Article = ({
   </VStack>
 );
 
+/** Un intitulé de troisième niveau : les documents légaux s'imbriquent, et
+ * un article se subdivise. */
 export const SousTitre = ({ children }: { children: ReactNode }) => (
   <Heading as="h3" size="sm" fontWeight="semibold" color="fg" mt={1}>
     {children}
   </Heading>
 );
 
+/** Un paragraphe de document légal : plus petit que le corps de
+ * l'application, et plus aéré — on le lit longtemps. */
 export const P = ({ children }: { children: ReactNode }) => (
   <Text fontSize="sm" color="fg.muted" lineHeight="1.75">
     {children}
@@ -172,8 +177,8 @@ export const Base = ({
 );
 
 /**
- * A value that is still missing. It shows in red rather than blending into
- * the text: an incomplete legal document has to be visible as such.
+ * Une valeur encore manquante. Elle s'affiche en rouge plutôt que de se
+ * fondre dans le texte : un document légal incomplet doit se voir comme tel.
  */
 export const AComplete = ({ valeur }: { valeur: string }) =>
   valeur === A_COMPLETER ? (

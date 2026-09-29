@@ -1,6 +1,14 @@
 import { useCallback } from 'react';
-import storage from '@/shared/utils/storage'; // ← AJOUT
+import storage from '@/shared/utils/storage';
 
+/**
+ * Le départ vers Google, et ce qu'on laisse derrière soi.
+ *
+ * `state` est tiré au hasard à chaque départ et relu au retour : c'est ce qui
+ * distingue un retour qu'on a déclenché d'un retour fabriqué par un tiers
+ * (CSRF). Le jeton d'invitation part au rangement pour la même raison — le
+ * retour de Google arrive sur une page neuve, qui ne sait rien de l'aller.
+ */
 export function useGoogleOAuth() {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
   const redirectUri = `${window.location.origin}/auth/callback`;
@@ -11,7 +19,7 @@ export function useGoogleOAuth() {
 
       storage.setItem('google_oauth_state', state);
 
-      // Keep the invitation token so it can be read back after the callback.
+      // On garde le jeton d'invitation pour le relire après le retour.
       if (invitationToken) {
         storage.setItem('invitation_token', invitationToken);
       } else {

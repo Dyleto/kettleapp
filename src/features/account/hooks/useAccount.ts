@@ -4,6 +4,8 @@ import { queryKeys } from '@/shared/config/queryKeys';
 import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useAuth } from '@/shared/contexts/useAuth';
 
+/** Le résumé du compte : les rôles portés, les coachs liés, ce qui est
+ * partagé. Une seule requête, l'écran affichant tout d'un coup. */
 export const useAccount = () =>
   useQuery({
     queryKey: queryKeys.account.get(),
@@ -11,11 +13,11 @@ export const useAccount = () =>
   });
 
 /**
- * Records the client's decision about sharing how they felt.
+ * Enregistre la décision du client sur le partage de son ressenti.
  *
- * The response updates the user in memory rather than firing another request:
- * it is what lifts the gate, and a gate that stays shut for the length of a
- * round-trip is visible.
+ * La réponse met à jour l'utilisateur en mémoire plutôt que de déclencher une
+ * seconde requête : c'est elle qui lève la porte, et une porte qui reste
+ * fermée le temps d'un aller-retour se voit.
  */
 export const useSetHealthConsent = () => {
   const queryClient = useQueryClient();
@@ -39,12 +41,19 @@ export const useSetHealthConsent = () => {
   });
 };
 
+/**
+ * La suppression du compte.
+ *
+ * Aucune invalidation de cache au succès : le rechargement complet qui suit
+ * jette tout. L'invalider d'abord ferait repartir des requêtes vers une
+ * session qui n'existe plus, donc une volée de 401 pendant la sortie.
+ */
 export const useDeleteAccount = () =>
   useMutation({
     mutationFn: accountService.remove,
     onSuccess: () => {
-      // The server destroyed the session. We start again from the sign-in
-      // page with a full reload: nothing in memory must survive.
+      // Le serveur a détruit la session. On repart de la page de connexion
+      // par un rechargement complet : rien en mémoire ne doit survivre.
       window.location.href = '/login';
     },
     onError: () => {
