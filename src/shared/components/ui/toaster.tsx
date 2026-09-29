@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Toaster as ChakraToaster,
   Portal,
@@ -9,6 +7,14 @@ import {
 } from '@chakra-ui/react';
 import { toaster } from './toasterInstance';
 
+/**
+ * Où les toasts s'affichent : en bas, et au-dessus de tout.
+ *
+ * En bas, parce que l'application se tient à une main : le haut d'un
+ * téléphone ne se lit pas sans changer de prise. `pointerEvents="none"` sur
+ * le conteneur et non sur les toasts eux-mêmes — il couvre tout l'écran, et
+ * sans cela il avalerait les clics destinés à la page.
+ */
 export const Toaster = () => {
   return (
     <Portal>
@@ -70,9 +76,9 @@ export const Toaster = () => {
                 <Toast.Description>{toast.description}</Toast.Description>
               )}
             </Stack>
-            {/* "Annuler" has to be seen and aimed at: it is the only thing
-                in a toast you press, and it was plain text the size of the
-                message. */}
+            {/* « Annuler » doit se voir et se viser : c'est la seule chose
+                d'un bandeau sur laquelle on appuie, et c'était du texte
+                ordinaire à la taille du message. */}
             {toast.action && (
               <Toast.ActionTrigger
                 color="app.primary"

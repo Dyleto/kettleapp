@@ -9,12 +9,12 @@ import { useAuth } from '@/shared/contexts/useAuth';
 import { getDefaultRoleRoute } from '@/shared/config/routes';
 
 /**
- * Two screens, because these are two situations.
+ * Deux écrans, parce que ce sont deux situations.
  *
- * An address that does not exist is not a breakdown: offering "Recharger la
- * page" there was wrong twice over — it cannot work, and it suggests the app
- * is broken when all you need is to start again from home. A real runtime
- * error, on the other hand, usefully reloads.
+ * Une adresse qui n'existe pas n'est pas une panne : y proposer « Recharger
+ * la page » était faux deux fois — cela ne peut pas marcher, et cela laisse
+ * croire que l'application est cassée alors qu'il suffit de repartir de
+ * l'accueil. Une vraie erreur d'exécution, elle, se recharge utilement.
  */
 export function RouteError() {
   const error = useRouteError();
@@ -23,8 +23,8 @@ export function RouteError() {
 
   const introuvable = isRouteErrorResponse(error) && error.status === 404;
 
-  // An unknown address has nothing to report: only real errors deserve the
-  // console.
+  // Une adresse inconnue n'a rien à signaler : seules les vraies erreurs
+  // méritent la console.
   if (!introuvable) console.error('Route error:', error);
 
   return (

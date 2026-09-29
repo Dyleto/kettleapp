@@ -1,12 +1,13 @@
 /**
- * Reading an exercise's video link.
+ * La lecture du lien vidéo d'un exercice.
  *
- * Only YouTube is read. Vimeo was accepted on input by one function and
- * refused on display by another: the coach saved their link, validation let
- * it through, then the card showed "Lien YouTube non reconnu". Two parsers
- * for the same URL, and they disagreed.
+ * Seul YouTube est lu. Vimeo était accepté à la saisie par une fonction et
+ * refusé à l'affichage par une autre : le coach enregistrait son lien, la
+ * validation le laissait passer, puis la carte affichait « Lien YouTube non
+ * reconnu ». Deux analyseurs pour la même URL, et ils n'étaient pas
+ * d'accord.
  *
- * There is only one now. What is accepted is exactly what is read.
+ * Il n'y en a plus qu'un. Ce qui est accepté est exactement ce qui est lu.
  */
 export interface YouTubeVideo {
   id: string;
@@ -14,11 +15,17 @@ export interface YouTubeVideo {
   isShort: boolean;
 }
 
+/**
+ * L'unique lecture d'une URL YouTube — saisie comme affichage.
+ *
+ * Renvoie `null` plutôt que de lever : un lien invalide est une saisie
+ * ordinaire, et l'appelant en fait un message plutôt qu'un écran d'erreur.
+ */
 export const parseYouTubeUrl = (url: string): YouTubeVideo | null => {
   if (!url?.trim()) return null;
 
-  // Shorts first: their address contains `/shorts/`, which the general
-  // pattern does not recognise.
+  // Les Shorts d'abord : leur adresse contient `/shorts/`, que le motif
+  // général ne reconnaît pas.
   const shorts = url.match(/youtube\.com\/shorts\/([^"&?/\s]+)/);
   if (shorts) return { id: shorts[1], isShort: true };
 

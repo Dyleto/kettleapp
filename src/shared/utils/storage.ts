@@ -20,9 +20,9 @@ export const setItem = (key: string, value: string): boolean => {
 };
 
 /**
- * Read a value back from localStorage.
- * @param key - the storage key
- * @returns the value, or null on error or when not found
+ * Relire une valeur depuis localStorage.
+ * @param key - la clé de rangement
+ * @returns la valeur, ou null en cas d'erreur ou d'absence
  */
 export const getItem = (key: string): string | null => {
   try {
@@ -80,9 +80,9 @@ export const setJSON = <T>(key: string, value: T): boolean => {
 };
 
 /**
- * Read a JSON object back from localStorage.
- * @param key - the storage key
- * @returns the parsed object, or null on error
+ * Relire un objet JSON depuis localStorage.
+ * @param key - la clé de rangement
+ * @returns l'objet analysé, ou null en cas d'erreur
  */
 export const getJSON = <T>(key: string): T | null => {
   try {

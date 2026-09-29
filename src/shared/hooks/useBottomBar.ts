@@ -34,7 +34,7 @@ const subscribe = (notify: () => void) => {
   };
 };
 
-/** For layout: is anyone occupying the bottom of the screen? */
+/** Pour la mise en page : quelqu'un occupe-t-il le bas de l'écran ? */
 export const useBottomBarClaimed = () =>
   useSyncExternalStore(
     subscribe,
@@ -43,9 +43,9 @@ export const useBottomBarClaimed = () =>
   );
 
 /**
- * For the occupant: claims the slot while `active`, and gives it back on the
- * way out. Unmounting releases it too — otherwise leaving the workshop while
- * a save has failed would leave the coach with no navigation.
+ * Pour l'occupant : réclame l'emplacement tant que `active`, et le rend en
+ * sortant. Le démontage le libère aussi — sinon quitter l'atelier alors qu'un
+ * enregistrement a échoué laisserait le coach sans navigation.
  */
 export const useClaimBottomBar = (active: boolean) => {
   useEffect(() => {

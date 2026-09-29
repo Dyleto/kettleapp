@@ -6,6 +6,9 @@ interface ExerciseGridSkeletonProps {
   count?: number;
 }
 
+/**
+ * Une grille d'ombres, au même gabarit que la grille réelle.
+ */
 export const ExerciseGridSkeleton = ({
   count = 4,
 }: ExerciseGridSkeletonProps) => {

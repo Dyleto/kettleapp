@@ -3,15 +3,15 @@ import { Link as RouterLink } from 'react-router-dom';
 import { LEGAL_ROUTES } from '@/shared/config/legal';
 
 /**
- * The two pages you must be able to read before creating an account.
+ * Les deux pages qu'il faut pouvoir lire avant de créer un compte.
  *
- * They sit in the two places where one is created — sign-in and invitation.
- * Signing in with Google is creating an account: you have to be able to read
- * what you accept before, not after.
+ * Elles se placent aux deux endroits où l'on en crée un — la connexion et
+ * l'invitation. Se connecter avec Google, c'est créer un compte : il faut
+ * pouvoir lire ce qu'on accepte avant, pas après.
  *
- * A component rather than a copy-paste: these links will change eventually —
- * one more page, a label made more precise — and two footers written
- * separately always drift apart.
+ * Un composant plutôt qu'un copier-coller : ces liens changeront un jour —
+ * une page de plus, un libellé précisé — et deux pieds de page écrits
+ * séparément finissent toujours par diverger.
  */
 export const LegalFooter = () => (
   <HStack gap={3} justify="center" flexWrap="wrap">

@@ -6,6 +6,9 @@ interface ExerciseSectionSkeletonProps {
   titleWidth?: string;
 }
 
+/**
+ * Une section d'ombres : la lettre d'index, puis sa grille.
+ */
 export const ExerciseSectionSkeleton = ({
   count = 4,
   titleWidth = '250px',

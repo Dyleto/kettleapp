@@ -2,11 +2,11 @@ import { ReactNode } from 'react';
 import { Box, Text, VStack } from '@chakra-ui/react';
 
 interface EmptyStateProps {
-  /** What is missing, in one line. Not "no results": what is missing. */
+  /** Ce qui manque, en une ligne. Pas « aucun résultat » : ce qui manque. */
   title: string;
-  /** Why it is empty, and what will happen. Optional when the title suffices. */
+  /** Pourquoi c'est vide, et ce qui va se passer. Facultatif si le titre suffit. */
   line?: string;
-  /** An action, when there is one to offer. */
+  /** Une action, quand il y en a une à proposer. */
   action?: ReactNode;
 }
 

@@ -45,10 +45,10 @@ const RootLayout: React.FC = () => {
 
   return (
     <>
-      {/* The page's first focusable element: with a keyboard, one tab is
-          enough to skip the navigation. Invisible until it has focus, but
-          never taken out of the flow — display:none would make it
-          unreachable. */}
+      {/* Le premier élément focalisable de la page : au clavier, une
+          tabulation suffit à sauter la navigation. Invisible tant qu'il n'a
+          pas le focus, mais jamais retiré du flux — `display:none` le rendrait
+          inatteignable. */}
       <Link
         href="#contenu"
         position="absolute"
@@ -57,9 +57,9 @@ const RootLayout: React.FC = () => {
         zIndex={100}
         px={4}
         py={2}
-        /* It is reached with a keyboard, but it is also clicked — and
-           nothing requires an accessibility shortcut to be the smallest
-           target on the page. */
+        /* On l'atteint au clavier, mais on le clique aussi — et rien
+                   n'oblige un raccourci d'accessibilité à être la plus petite cible
+                   de la page. */
         minH="44px"
         display="flex"
         alignItems="center"
@@ -76,9 +76,9 @@ const RootLayout: React.FC = () => {
       </Link>
 
       {/*
-        A fixed backdrop against Safari's rubber-band scroll.
-        Guarantees that even when the page bounces, this background shows and
-        not the green GPU layer.
+        Un fond fixe contre le rebond de défilement de Safari.
+        Garantit que même quand la page rebondit, c'est ce fond qui apparaît
+        et non la couche GPU verte.
       */}
       <Box
         position="fixed"

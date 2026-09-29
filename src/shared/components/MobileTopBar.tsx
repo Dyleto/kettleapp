@@ -2,12 +2,12 @@ import { Box, HStack, Text } from '@chakra-ui/react';
 import { Header } from './Header';
 
 /**
- * The top bar, below 768 px.
+ * La barre du haut, en dessous de 768 px.
  *
- * It carried nothing but an avatar, alone and stuck to one edge: seventy
- * pixels of height for a badge anchored to nothing. The bar now takes the
- * structure of the desktop sidebar — the name on the left, the account on
- * the right — and the avatar stops floating.
+ * Elle ne portait qu'un avatar, seul et collé à un bord : soixante-dix pixels
+ * de hauteur pour une pastille accrochée à rien. La barre reprend maintenant
+ * la structure du rail de bureau — le nom à gauche, le compte à droite — et
+ * l'avatar cesse de flotter.
  */
 export const MobileTopBar = () => (
   <Box

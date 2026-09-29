@@ -25,6 +25,17 @@ interface HeaderProps {
   variant?: 'rail' | 'compact';
 }
 
+/**
+ * Le compte connecté, et ce qu'on peut faire depuis lui.
+ *
+ * Deux formes pour un seul composant : `rail` en bas du rail de navigation
+ * de bureau, `compact` dans la barre du haut sur mobile. Les dupliquer avait
+ * déjà laissé le changement d'espace absent d'une des deux.
+ *
+ * Le changement d'espace n'apparaît que pour un compte qui porte plusieurs
+ * rôles : proposer « Vue coach » à quelqu'un qui n'est que client mène à un
+ * écran vide.
+ */
 export const Header = ({ variant = 'compact' }: HeaderProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -104,10 +115,10 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               <LuChevronUp />
             </Button>
           ) : (
-            // `role="group"` set here overrode the menu trigger's role: the
-            // avatar dropped out of the tab order and the menu became
-            // unreachable by keyboard — on mobile it was the only path to
-            // signing out. It is a button, and it carries its name.
+            // `role="group"` posé ici écrasait le rôle du déclencheur de menu :
+            // l'avatar sortait de l'ordre de tabulation et le menu devenait
+            // inatteignable au clavier — sur mobile c'était le seul chemin
+            // vers la déconnexion. C'est un bouton, et il porte son nom.
             <Box
               as="button"
               aria-label={`Menu du compte de ${user?.firstName ?? 'mon compte'}`}
@@ -129,9 +140,9 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               borderRadius="xl"
               padding={1}
             >
-              {/* Read out by the screen reader on opening, via the
-                  trigger's name: repeating it as the menu's first item would
-                  say the same thing twice before the first action. */}
+              {/* Lu par le lecteur d'écran à l'ouverture, via le nom du
+                  déclencheur : le répéter en premier élément du menu dirait
+                  deux fois la même chose avant la première action. */}
               <HStack p={2} aria-hidden="true">
                 {avatar}
                 <VStack align="start" gap={0} ml={2}>

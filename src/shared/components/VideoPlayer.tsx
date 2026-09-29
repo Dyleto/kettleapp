@@ -8,17 +8,18 @@ interface VideoPlayerProps {
 }
 
 /**
- * An exercise's video: a thumbnail, then the player on click.
+ * La vidéo d'un exercice : une vignette, puis le lecteur au clic.
  *
- * The iframe used to be mounted immediately on every card opened — a
- * third-party request, cookies and a full player for a video nobody
- * necessarily watches, and in the editor you open several in a row. Above
- * all, an iframe paints its own white background: until it had loaded, the
- * screen showed a pale slab in the middle of a dark app. Kettle is a PWA used
- * in the gym; a slow network is not a hypothesis there.
+ * L'iframe était montée d'emblée sur chaque carte ouverte — une requête
+ * tierce, des cookies et un lecteur complet pour une vidéo que personne ne
+ * regarde forcément, et dans l'éditeur on en ouvre plusieurs d'affilée.
+ * Surtout, une iframe peint son propre fond blanc : tant qu'elle n'avait pas
+ * chargé, l'écran montrait une dalle pâle au milieu d'une application sombre.
+ * Kettle est une PWA qu'on utilise en salle ; le réseau lent n'y est pas une
+ * hypothèse.
  *
- * `youtube-nocookie` once the player is mounted: nothing is dropped until
- * someone has asked to see the video.
+ * `youtube-nocookie` une fois le lecteur monté : rien n'est déposé tant que
+ * personne n'a demandé à voir la vidéo.
  */
 const VideoPlayer = ({ url }: VideoPlayerProps) => {
   const isMobile = useBreakpointValue({ base: true, md: false });
@@ -98,10 +99,10 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
             bg="bg.canvas"
             cursor="pointer"
           >
-            {/* The thumbnail may never arrive (offline, domain blocked):
-                we then remove it entirely rather than let the browser paint
-                its own broken-image icon. The dark background stays visible,
-                never a white slab. */}
+            {/* La vignette peut ne jamais arriver (hors ligne, domaine
+                bloqué) : on la retire alors entièrement plutôt que de laisser
+                le navigateur peindre sa propre icône d'image cassée. Le fond
+                sombre reste visible, jamais une dalle blanche. */}
             {!thumbFailed && (
               <Image
                 src={`https://img.youtube.com/vi/${id}/hqdefault.jpg`}

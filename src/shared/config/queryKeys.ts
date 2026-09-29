@@ -1,6 +1,9 @@
 /**
- * The single source of truth for React Query cache keys.
- * Avoids typos and makes cache invalidation straightforward.
+ * La source unique des clés de cache de React Query.
+ *
+ * Une clé écrite à la main à deux endroits finit par diverger d'un caractère,
+ * et le symptôme n'est pas une erreur : c'est un écran qui ne se rafraîchit
+ * plus après une modification, sans que rien ne le signale.
  */
 export const queryKeys = {
   auth: {

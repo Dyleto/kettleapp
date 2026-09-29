@@ -10,28 +10,35 @@
  */
 export const A_COMPLETER = 'À COMPLÉTER';
 
+/**
+ * Les informations que les deux documents légaux citent.
+ *
+ * Une seule source pour la politique de confidentialité et les mentions
+ * légales : les deux nomment l'éditeur et l'hébergeur, et deux copies
+ * divergent dès la première correction.
+ */
 export const LEGAL = {
   /** When both documents were last revised. */
   majLe: '14 septembre 2026',
 
   editeur: {
     /**
-     * The publisher's first and last name — a natural person, non-commercial
-     * activity.
+     * Le nom et le prénom de l'éditeur — une personne physique, activité non
+     * commerciale.
      *
-     * French law (LCEN) lets a non-commercial publisher withhold their
-     * identity. The GDPR, on the other hand, requires the data controller to
-     * be identifiable (art. 13.1.a): that is why the name appears here.
+     * La LCEN permet à un éditeur non professionnel de taire son identité.
+     * Le RGPD, lui, exige que le responsable de traitement soit identifiable
+     * (art. 13.1.a) : c'est pour cela que le nom figure ici.
      */
     nom: 'Corentin Le Moullec',
     contactEmail: 'contact@kettleapp.fr',
   },
 
   /**
-   * Every host must be named with its address (LCEN, art. 6 III). The company
-   * names are certain — they come from the code and the dependencies. The
-   * addresses are to be copied from each provider's own legal pages, so that
-   * none is invented.
+   * Tout hébergeur doit être nommé avec son adresse (LCEN, art. 6 III). Les
+   * raisons sociales sont certaines — elles viennent du code et des
+   * dépendances. Les adresses sont à recopier depuis les mentions légales de
+   * chaque prestataire, pour qu'aucune ne soit inventée.
    */
   hebergeurs: {
     site: {
@@ -56,13 +63,13 @@ export const LEGAL = {
     },
   },
 
-  /** Retention periods, to be kept consistent with what the code does. */
+  /** Durées de conservation, à tenir cohérentes avec ce que le code fait. */
   conservation: {
     compteInactif: '3 ans sans connexion',
     /**
-     * What the host actually keeps of the server logs. Announcing a longer
-     * period than theirs would be a promise we do not keep; a shorter one, a
-     * false statement. To be revisited if the plan changes.
+     * Ce que l'hébergeur garde réellement des journaux serveur. Annoncer une
+     * durée plus longue que la sienne serait une promesse qu'on ne tient pas ;
+     * plus courte, une fausse déclaration. À revoir si l'offre change.
      */
     journaux: '7 jours, la durée de rétention de notre hébergeur',
   },

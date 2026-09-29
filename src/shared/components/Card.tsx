@@ -11,6 +11,17 @@ interface CardProps extends Omit<BoxProps, 'onClick'> {
   contentPadding?: number;
 }
 
+/**
+ * La surface de base de l'application : une carte, cliquable ou non.
+ *
+ * Cliquable, c'est un `div` porteur de `role="button"` et non un `<button>`
+ * : les cartes contiennent des boutons — supprimer, ouvrir la vidéo — et un
+ * bouton dans un bouton n'est pas du HTML valide, le navigateur défaisant
+ * l'imbrication à sa façon.
+ *
+ * Ce choix a un prix, payé juste en dessous : l'anneau de focus doit être
+ * redessiné à la main.
+ */
 export const Card = ({
   children,
   withGlow = true,
@@ -59,19 +70,20 @@ export const Card = ({
       position="relative"
       overflow="hidden"
       cursor={onClick ? 'pointer' : 'default'}
-      /* Never `all`: that also animated the focus ring, which took
-         300 ms to appear. A ring you have to wait for is a ring you do not
-         see — which is what made it look absent. */
+      /* Jamais `all` : cela animait aussi l'anneau de focus, qui mettait
+               300 ms à apparaître. Un anneau qu'il faut attendre est un anneau
+               qu'on ne voit pas — ce qui le faisait passer pour absent. */
       transition="transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease"
       onClick={onClick}
       onKeyDown={handleKeyDown}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
-      /* A card is a `div` carrying `role="button"`: `:focus-visible` does
-         reach it — measured — but something resets its width to zero, which
-         happens to no real `<button>`. So the ring is set here, and it reads
-         the theme variables rather than restating their values: changing the
-         ring once changes it on cards too. */
+      /* Une carte est un `div` porteur de `role="button"` :
+         `:focus-visible` l'atteint bien — mesuré — mais quelque chose remet
+         sa largeur à zéro, ce qui n'arrive à aucun vrai `<button>`. L'anneau
+         se pose donc ici, et il lit les variables du thème plutôt que d'en
+         redire les valeurs : changer l'anneau une fois le change aussi sur
+         les cartes. */
       _focusVisible={
         onClick
           ? {

@@ -37,15 +37,15 @@ export const undoable = ({
   toaster.create({
     title: title,
     description,
-    // Longer than an ordinary message: you do not read a banner at the
-    // moment it appears, you read it the second you realise your mistake.
+    // Plus long qu'un message ordinaire : on ne lit pas un bandeau au moment
+    // où il apparaît, on le lit à la seconde où l'on réalise son erreur.
     duration: 8000,
     action: {
       label: 'Annuler',
       onClick: () => {
-        // Chakra closes the banner on click, and a click on the background
-        // closes it too: without this lock, an unlucky finger could replay
-        // the undo and put the removed exercise back twice.
+        // Chakra ferme la bannière au clic, et un clic sur le fond la ferme
+        // aussi : sans ce verrou, un doigt malchanceux pourrait rejouer
+        // l'annulation et remettre deux fois l'exercice retiré.
         if (taken) return;
         taken = true;
         undo();

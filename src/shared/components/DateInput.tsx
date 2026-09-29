@@ -11,6 +11,17 @@ interface DateInputProps {
   onChange: (value: string) => void;
 }
 
+/**
+ * Une date choisie au calendrier, jamais tapée.
+ *
+ * `<input type="date">` rend une interface différente sur chaque navigateur,
+ * et sur iOS un sélecteur qui couvre la moitié de l'écran. Le calendrier de
+ * Chakra s'affiche pareil partout, en français, et il sait refuser une date
+ * future — une séance ne se termine pas demain.
+ *
+ * La valeur circule en `YYYY-MM-DD` et non en `Date` : une `Date` porte une
+ * heure et un fuseau, et un bilan enregistré à 23 h passait au lendemain.
+ */
 export const DateInput = ({
   label,
   ariaLabel,
@@ -41,8 +52,8 @@ export const DateInput = ({
         </Box>
       )}
       <DatePicker.Control>
-        {/* The field carried a visible label tied to nothing: when
-            announced, it was anonymous. */}
+        {/* Le champ portait une étiquette visible rattachée à rien :
+            annoncé, il était anonyme. */}
         <DatePicker.Input aria-label={ariaLabel ?? label} />
         <DatePicker.IndicatorGroup>
           <DatePicker.Trigger
