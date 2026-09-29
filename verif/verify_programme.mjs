@@ -1,20 +1,21 @@
 /**
- * "Mon programme": when did I last do this session?
+ * « Mon programme » : quand ai-je fait cette séance pour la dernière fois ?
  *
- * From the field: "I changed my programme by editing the sessions rather
- * than deleting and recreating them, so they kept the same id, and it marks
- * a session as done that I have never done. I don't think that's a useful
- * thing to show — the last time you did the session would be more useful,
- * but compare the content too, not just the id."
+ * Retour du terrain : « j'ai modifié mon programme en changeant les séances
+ * plutôt qu'en les supprimant et en les recréant, donc elles ont gardé le même
+ * id, et ça me met une séance comme terminée alors que je ne l'ai jamais
+ * faite. Je pense pas que ça soit pertinent comme info, ça serait plus utile
+ * d'avoir la dernière fois qu'on a fait la séance, mais que ça compare le
+ * contenu aussi, pas juste l'id. »
  *
- * The chips were built on `originalSessionId`, and an id outlives an edit.
- * It said "TERMINÉE" about a session that had been rewritten from top to
- * bottom. The same id also fed "7 séances sur 2 déjà faites" — a count of
- * wrap-ups whose sessions no longer all exist, over a programme that has
- * since shrunk.
+ * Les pastilles se fondaient sur `originalSessionId`, et un identifiant
+ * survit à une modification. Il annonçait « TERMINÉE » d'une séance réécrite
+ * de fond en comble. Le même identifiant alimentait aussi « 7 séances sur 2
+ * déjà faites » — un compte de bilans dont les séances n'existent plus toutes,
+ * rapporté à un programme qui a rétréci depuis.
  *
- * So the card carries a date, and the date is earned by comparing what
- * there is to do — not by matching an identifier.
+ * La carte porte donc une date, et cette date se gagne en comparant ce qu'il
+ * y a à faire — pas en faisant correspondre un identifiant.
  */
 import {
   launch,
@@ -30,7 +31,8 @@ import {
 
 const browser = await launch();
 
-/** Every session card, by its title, with the line it carries on the right. */
+/** Chaque carte de séance, par son titre, avec la ligne qu'elle porte à
+ * droite. */
 const cards = async (p) => {
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1800);
@@ -47,66 +49,75 @@ const cards = async (p) => {
   });
 };
 
-// ── The three answers ───────────────────────────────────────────────────
+// ── Les trois réponses ──────────────────────────────────────────────────
 {
-  console.log('\n── each session says when it was last done');
+  console.log(
+    '\n── chaque séance dit quand elle a été faite pour la dernière fois'
+  );
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   const rows = await cards(p);
   const line = (n) => clean(rows[`Séance ${n}`] ?? '(absente)');
 
   ok(
-    'the programme lists its sessions',
+    'le programme liste ses séances',
     Object.keys(rows).length >= 5,
     Object.keys(rows).join(' · ')
   );
 
-  // Sessions 1 and 2 were done with the content they still carry.
+  // Les séances 1 et 2 ont été faites avec le contenu qu'elles portent
+  // encore.
   ok(
-    'a session done as it stands today carries its date',
+    "une séance faite telle qu'elle est aujourd'hui porte sa date",
     /^Faite le \d+ \S+$/.test(line(1)),
     line(1)
   );
-  ok('  → and so does the other one', /^Faite le /.test(line(2)), line(2));
+  ok("  → et l'autre aussi", /^Faite le /.test(line(2)), line(2));
 
-  // Session 3 was done once, then reworked. The id matches, the content no
-  // longer does — and this is the exact case the id-based chip got wrong.
+  // La séance 3 a été faite une fois, puis remaniée. L'identifiant
+  // correspond, le contenu non — et c'est exactement le cas que la pastille
+  // fondée sur l'identifiant se trompait à traiter.
   ok(
-    'a session reworked since it was done says so',
+    "une séance remaniée depuis qu'elle a été faite le dit",
     line(3) === 'Modifiée depuis',
     line(3)
   );
-  ok('  → and is never called "Terminée"', !/Terminée/i.test(line(3)), line(3));
-
-  // Sessions 4 and 5 carry no wrap-up at all.
   ok(
-    'a session never done says it plainly',
+    "  → et ne s'appelle jamais « Terminée »",
+    !/Terminée/i.test(line(3)),
+    line(3)
+  );
+
+  // Les séances 4 et 5 ne portent aucun bilan.
+  ok(
+    'une séance jamais faite le dit simplement',
     line(4) === 'Jamais faite',
     line(4)
   );
-  ok('  → and so does the last one', line(5) === 'Jamais faite', line(5));
+  ok('  → et la dernière aussi', line(5) === 'Jamais faite', line(5));
   await ctx.close();
 }
 
-// ── What the chips used to say is gone ─────────────────────────────────
+// ── Ce que les pastilles disaient a disparu ─────────────────────────────
 {
-  console.log('\n── the status chips and the proportion are gone');
+  console.log("\n── les pastilles d'état et la proportion ont disparu");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1800);
   const text = clean(await p.evaluate(() => document.body.innerText));
 
-  ok('no "TERMINÉE" chip', !/TERMINÉE/i.test(text));
-  ok('  → no "À VENIR" either', !/À VENIR/i.test(text));
+  ok('aucune pastille « TERMINÉE »', !/TERMINÉE/i.test(text));
+  ok('  → aucune « À VENIR » non plus', !/À VENIR/i.test(text));
   ok(
-    '  → and no proportion of the programme',
+    '  → et aucune proportion du programme',
     !/séances? sur \d+ déjà faite/i.test(text),
-    (text.match(/[^\n]*déjà faite[^\n]*/) ?? ['(nothing)'])[0]
+    (text.match(/[^\n]*déjà faite[^\n]*/) ?? ['(rien)'])[0]
   );
 
-  // The next session still stands out — it is the one carrying an action.
-  // It just does it with the card rather than with a badge.
+  // La prochaine séance se distingue toujours — c'est elle qui porte une
+  // action. Elle le fait simplement par la carte plutôt que par une
+  // pastille.
   const nextIsMarked = await p.evaluate(() => {
     const cards = [...document.querySelectorAll('*')].filter((e) =>
       /^Séance \d/.test((e.children[0]?.textContent || '').trim())
@@ -118,32 +129,33 @@ const cards = async (p) => {
     return new Set(surfaces).size > 1;
   });
   ok(
-    'the next session is still set apart from the others',
+    'la prochaine séance se distingue toujours des autres',
     nextIsMarked,
     nextIsMarked ? '' : 'toutes les cartes ont le même fond'
   );
   await ctx.close();
 }
 
-// ── Doing a session makes its date appear ──────────────────────────────
+// ── Faire une séance fait apparaître sa date ────────────────────────────
 //
-// The round trip that matters: a session in "Jamais faite" is done, and the
-// card that was silent now carries today's date. If the comparison were too
-// strict — comparing a coach's note, say — this would stay "Jamais faite"
-// forever, and nothing else would reveal it.
+// L'aller-retour qui compte : une séance en « Jamais faite » est faite, et la
+// carte qui se taisait porte maintenant la date du jour. Si la comparaison
+// était trop stricte — si elle comparait la note du coach, par exemple — elle
+// resterait « Jamais faite » pour toujours, et rien d'autre ne le
+// révélerait.
 {
-  console.log('\n── finishing a session updates its own card');
+  console.log('\n── terminer une séance met à jour sa propre carte');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
 
   const before = await cards(p);
   ok(
-    'session 5 has never been done',
+    "la séance 5 n'a jamais été faite",
     clean(before['Séance 5'] ?? '') === 'Jamais faite',
     clean(before['Séance 5'] ?? '(absente)')
   );
 
-  // Session 5 is a pyramid: one block, seven rungs.
+  // La séance 5 est une pyramide : un bloc, sept paliers.
   await start(p, 'sess5');
   for (let i = 0; i < 7; i++) {
     const f = p.getByRole('button', { name: /^Fait$/ });
@@ -154,8 +166,8 @@ const cards = async (p) => {
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1400);
-  // No load was recorded, so the wrap-up asks about them first. We step past
-  // it: what is under test here is the card, not the form.
+  // Aucune charge n'a été notée, le bilan commence donc par en demander. On
+  // le franchit : ce qui est éprouvé ici est la carte, pas le formulaire.
   const toFeeling = p.getByRole('button', { name: /Passer au ressenti/ });
   if (await toFeeling.count()) {
     await toFeeling.click();
@@ -168,12 +180,12 @@ const cards = async (p) => {
 
   const after = await cards(p);
   ok(
-    '  → and now carries the date it was done',
+    '  → et porte maintenant la date à laquelle elle a été faite',
     /^Faite le /.test(clean(after['Séance 5'] ?? '')),
     clean(after['Séance 5'] ?? '(absente)')
   );
   ok(
-    '  → without disturbing the others',
+    '  → sans déranger les autres',
     clean(after['Séance 4'] ?? '') === 'Jamais faite',
     clean(after['Séance 4'] ?? '(absente)')
   );

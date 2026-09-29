@@ -1,19 +1,21 @@
 /**
- * The end-of-session wrap-up, on a phone held upright.
+ * Le bilan de fin de séance, sur un téléphone tenu droit.
  *
- * From the field: "the modal is a touch too small, and when you tap to set
- * another date there is a little scroll, which is a shame."
+ * Retour du terrain : « la modale est un poil trop petite, et quand on clique
+ * pour mettre une autre date il y a un petit scroll, c'est dommage. »
  *
- * Measured, the complaint was two things, and the second was the one that
- * shows. The body already overflowed by 261 px before anything was tapped —
- * a recap, a scale, the tags, a comment and a date do not fit in 610 px. But
- * unfolding the date then added 48 px, and what you notice is not a
- * scrollbar that was already there: it is the whole wrap-up jumping under
- * your thumb at the exact moment you reach for it.
+ * Mesuré, la plainte portait sur deux choses, et c'est la seconde qui se
+ * voit. Le corps débordait déjà de 261 px avant qu'on ne touche à quoi que ce
+ * soit — un récapitulatif, une échelle, les étiquettes, un commentaire et une
+ * date ne tiennent pas dans 610 px. Mais déplier la date ajoutait ensuite
+ * 48 px, et ce qu'on remarque n'est pas une barre de défilement qui était
+ * déjà là : c'est tout le bilan qui saute sous le pouce à l'instant précis où
+ * on le vise.
  *
- * So the row now keeps its height open or closed, and the footer stops
- * taking rows from the body — a footer does not scroll, so every line it
- * wraps onto is a line the body loses on every session.
+ * La rangée garde donc sa hauteur, ouverte ou fermée, et le pied cesse de
+ * prendre des lignes au corps — un pied ne défile pas, chaque ligne sur
+ * laquelle il se replie est donc une ligne que le corps perd, à chaque
+ * séance.
  */
 import {
   launch,
@@ -27,7 +29,7 @@ import {
 
 const browser = await launch();
 
-/** Finishes session 3's chipper and opens the wrap-up. */
+/** Termine le chipper de la séance 3 et ouvre le bilan. */
 const finishSess3 = async (p) => {
   await start(p, 'sess3');
   for (let i = 0; i < 4; i++) {
@@ -50,7 +52,7 @@ const finishSess3 = async (p) => {
   await p.waitForTimeout(1500);
 };
 
-/** The dialog, its scrolling body, and what sticks out of the screen. */
+/** La boîte, son corps qui défile, et ce qui dépasse de l'écran. */
 const measure = (p) =>
   p.evaluate(() => {
     const content = document.querySelector('[role="dialog"]');
@@ -72,6 +74,8 @@ const measure = (p) =>
     };
   });
 
+/** La géométrie d'un bouton visible, et de combien il sort de l'écran —
+ * en haut comme en bas. */
 const buttonBox = (p, name) =>
   p.evaluate((n) => {
     const el = [...document.querySelectorAll('button')].find(
@@ -87,78 +91,81 @@ const buttonBox = (p, name) =>
     };
   }, name);
 
-// ── Unfolding the date must not move anything ───────────────────────────
+// ── Déplier la date ne doit rien déplacer ───────────────────────────────
 {
-  console.log('\n── setting another date costs no height');
+  console.log('\n── mettre une autre date ne coûte aucune hauteur');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await finishSess3(p);
 
   const before = await measure(p);
-  ok('the wrap-up is open', before !== null);
+  ok('le bilan est ouvert', before !== null);
   ok(
-    '  → and stays inside the screen',
+    "  → et tient dans l'écran",
     before && before.bottom <= before.screen && before.top >= 0,
-    before ? `${before.top} → ${before.bottom} of ${before.screen}` : '(none)'
+    before
+      ? `${before.top} → ${before.bottom} sur ${before.screen}`
+      : '(aucune)'
   );
 
-  // The height has to be what is left once the dialog's own margin is taken
-  // off, not a fraction of the whole screen. `maxH="90dvh"` ignored a 64 px
-  // margin at each end and let the box hang past it — invisible upright,
-  // fatal in landscape, where "Valider" left the viewport. Here we check the
-  // box uses the room it has without spilling out of its margin.
+  // La hauteur doit être ce qu'il reste une fois retirée la marge propre de
+  // la boîte, et non une fraction de tout l'écran. `maxH="90dvh"` ignorait
+  // 64 px de marge à chaque bout et laissait la boîte dépasser — invisible en
+  // portrait, fatal en paysage, où « Valider » sortait de la fenêtre. On
+  // vérifie ici que la boîte prend la place qu'elle a sans déborder de sa
+  // marge.
   const room = before.screen - before.marginTop - before.marginBottom;
   const used = before.bottom - before.top;
   ok(
-    '  → it fills the room its margin leaves, and no more',
+    '  → elle remplit la place que sa marge lui laisse, et pas plus',
     used <= room + 1,
-    `${used} px used for ${room} px of room ` +
+    `${used} px occupés pour ${room} px de place ` +
       `(marge ${before.marginTop}/${before.marginBottom})`
   );
   ok(
-    '  → and it does take that room, rather than leaving it empty',
+    '  → et elle prend bien cette place, au lieu de la laisser vide',
     used >= room - 1 || before.content <= before.seen,
-    `${used} px used for ${room} px of room`
+    `${used} px occupés pour ${room} px de place`
   );
 
   await p.getByRole('button', { name: /Ce n.était pas aujourd/ }).click();
   await p.waitForTimeout(500);
   const after = await measure(p);
 
-  // The point of the whole fix: the content is the same size before and
-  // after, so nothing under the thumb moves.
+  // Tout l'enjeu de la correction : le contenu fait la même taille avant et
+  // après, donc rien ne bouge sous le pouce.
   ok(
-    'the body is exactly as tall once the date is open',
+    'le corps fait exactement la même hauteur une fois la date ouverte',
     before && after && after.content === before.content,
     `${before?.content} → ${after?.content}`
   );
-  // Chakra's date picker renders a text input, not `type="date"`: we find it
-  // by the name it is announced under, which is also what a screen reader
-  // uses.
+  // Le sélecteur de date de Chakra rend un champ de texte et non un
+  // `type="date"` : on le trouve par le nom sous lequel il est annoncé, qui
+  // est aussi celui qu'emploie un lecteur d'écran.
   const field = p.getByRole('textbox', {
     name: 'Date de réalisation de la séance',
   });
   ok(
-    '  → and the field really did open',
+    "  → et le champ s'est bien ouvert",
     (await field.count()) === 1,
     `${await field.count()} champ(s)`
   );
   ok(
-    '  → carrying the date of the day',
+    '  → portant la date du jour',
     /\d{2}\/\d{2}\/\d{4}/.test(await field.inputValue()),
     await field.inputValue()
   );
   ok(
-    '  → the dialog still fits the screen',
+    "  → la boîte tient toujours dans l'écran",
     after && after.bottom <= after.screen && after.top >= 0,
-    after ? `${after.top} → ${after.bottom} of ${after.screen}` : '(none)'
+    after ? `${after.top} → ${after.bottom} sur ${after.screen}` : '(aucune)'
   );
   await ctx.close();
 }
 
-// ── The footer keeps to one row, so the body keeps its height ──────────
+// ── Le pied tient sur une rangée, le corps garde sa hauteur ─────────────
 {
-  console.log('\n── the footer does not take rows from the body');
+  console.log('\n── le pied ne prend pas de lignes au corps');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await finishSess3(p);
@@ -166,18 +173,19 @@ const buttonBox = (p, name) =>
   const submit = await buttonBox(p, 'Valider');
   const cancel = await buttonBox(p, 'Annuler');
   ok(
-    '"Valider" is whole and inside the screen',
+    "« Valider » est entier et dans l'écran",
     submit && submit.belowFold === 0 && submit.aboveFold === 0,
-    submit ? `bottom at ${submit.bottom}` : '(not found)'
+    submit ? `bas à ${submit.bottom}` : '(introuvable)'
   );
   ok(
-    '  → "Annuler" shares its row rather than a row of its own',
+    "  → « Annuler » partage sa rangée plutôt que d'en prendre une",
     submit && cancel && Math.abs(submit.bottom - cancel.bottom) < 4,
-    submit && cancel ? `${cancel.bottom} vs ${submit.bottom}` : '(not found)'
+    submit && cancel ? `${cancel.bottom} vs ${submit.bottom}` : '(introuvable)'
   );
 
-  // Nothing has been chosen yet, so the hint is on screen. It has to sit on
-  // the buttons' row: on its own row it costs the body 30 px, every session.
+  // Rien n'a encore été choisi, l'indication est donc à l'écran. Elle doit
+  // tenir sur la rangée des boutons : sur une rangée à elle, elle coûte 30 px
+  // au corps, à chaque séance.
   const hint = await p.evaluate(() => {
     const el = [...document.querySelectorAll('*')].find(
       (e) => e.children.length === 0 && /Choisis un cran/.test(e.textContent)
@@ -185,16 +193,16 @@ const buttonBox = (p, name) =>
     return el ? Math.round(el.getBoundingClientRect().bottom) : null;
   });
   ok(
-    '  → and the hint shares it too',
+    "  → et l'indication la partage aussi",
     hint !== null && submit && Math.abs(hint - submit.bottom) < 24,
-    hint === null ? '(no hint)' : `${hint} vs ${submit?.bottom}`
+    hint === null ? '(aucune indication)' : `${hint} vs ${submit?.bottom}`
   );
   await ctx.close();
 }
 
-// ── What moved out of the footer is still said ─────────────────────────
+// ── Ce qui a quitté le pied se dit toujours ─────────────────────────────
 {
-  console.log('\n── moving a sentence must not lose it');
+  console.log('\n── déplacer une phrase ne doit pas la perdre');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await finishSess3(p);
@@ -205,14 +213,14 @@ const buttonBox = (p, name) =>
         ?.innerText.replace(/\u00A0/g, ' ') ?? ''
   );
   ok(
-    'the loads already recorded are still announced',
+    'les charges déjà enregistrées sont toujours annoncées',
     /Tes charges sont déjà enregistrées/.test(text),
-    (text.match(/[^\n]*déjà enregistrées[^\n]*/) ?? ['(nothing)'])[0]
+    (text.match(/[^\n]*déjà enregistrées[^\n]*/) ?? ['(rien)'])[0]
   );
   ok(
-    '  → and the statement still opens the wrap-up',
+    '  → et le constat ouvre toujours le bilan',
     /C'est fait\./.test(text),
-    text.split('\n').filter(Boolean)[0] ?? '(nothing)'
+    text.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   await ctx.close();
 }

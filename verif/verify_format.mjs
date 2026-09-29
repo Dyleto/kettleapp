@@ -1,18 +1,20 @@
 /**
- * How a recorded set reads back.
+ * Comment une série notée se relit.
  *
- * The work comes first, the load second — "12 reps · 26 kg", the order it is
- * said out loud. The load used to lead, which read as "26 kg × 12": the
- * number you actually did came last, behind the number you chose.
+ * Le travail d'abord, la charge ensuite — « 12 reps · 26 kg », l'ordre dans
+ * lequel on le dit à voix haute. La charge menait autrefois, ce qui se lisait
+ * « 26 kg × 12 » : le nombre qu'on a réellement fait arrivait en dernier,
+ * derrière le nombre qu'on a choisi.
  *
- * Four shapes, and a tail of cases where one of the two values is missing.
- * They are pure string formatting, so they are checked here rather than
- * through a browser: a suite that drives the app to read one line back would
- * cost thirty seconds to prove what a function call proves in a millisecond.
+ * Quatre formes, et une traîne de cas où l'une des deux valeurs manque. C'est
+ * du formatage de chaîne pur, vérifié ici plutôt qu'à travers un navigateur :
+ * une suite qui mènerait l'application pour relire une ligne coûterait trente
+ * secondes à prouver ce qu'un appel de fonction prouve en une milliseconde.
  *
- * What makes this worth a suite at all: these forms break silently. Nothing
- * crashes when "3 × 26 kg" starts meaning three repetitions instead of three
- * sets — it just quietly says something false.
+ * Ce qui justifie une suite à part entière : ces formes cassent en silence.
+ * Rien ne plante quand « 3 × 26 kg » se met à vouloir dire trois répétitions
+ * au lieu de trois séries — cela dit simplement quelque chose de faux, sans
+ * bruit.
  */
 import { build } from 'esbuild';
 import { mkdtempSync } from 'node:fs';
@@ -20,8 +22,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ok, failureCount } from './common.mjs';
 
-// The formatter is TypeScript, and this bench is plain Node: we bundle the
-// one module rather than drag a whole test runner in for it.
+// Le formateur est en TypeScript, et ce banc est du Node nu : on empaquette
+// le seul module plutôt que de traîner tout un lanceur de tests pour lui.
 const dir = mkdtempSync(join(tmpdir(), 'kettle-format-'));
 const out = join(dir, 'performedFormat.mjs');
 await build({
@@ -33,6 +35,8 @@ await build({
 });
 const { formatPerformedSets: format } = await import(out);
 
+// Compare ce que le formateur écrit à ce qu'on attend, et montre les deux :
+// une assertion qui tombe sans dire ce qu'elle a lu oblige à relancer.
 const reads = (label, sets, expected) =>
   ok(
     label,
@@ -40,11 +44,11 @@ const reads = (label, sets, expected) =>
     JSON.stringify(format(sets)) + ' vs ' + JSON.stringify(expected)
   );
 
-// ── The four shapes ─────────────────────────────────────────────────────
-console.log('\n── the work leads, the load follows');
-reads('one set', [{ weight: 26, reps: 12 }], '12 reps · 26 kg');
+// ── Les quatre formes ───────────────────────────────────────────────────
+console.log('\n── le travail mène, la charge suit');
+reads('une série', [{ weight: 26, reps: 12 }], '12 reps · 26 kg');
 reads(
-  '  → several identical sets: the count leads the work',
+  '  → plusieurs séries identiques : le compte mène le travail',
   [
     { weight: 26, reps: 12 },
     { weight: 26, reps: 12 },
@@ -53,7 +57,7 @@ reads(
   '3 × 12 reps · 26 kg'
 );
 reads(
-  '  → same load, fewer reps each time',
+  '  → même charge, moins de reps à chaque fois',
   [
     { weight: 26, reps: 12 },
     { weight: 26, reps: 10 },
@@ -62,7 +66,7 @@ reads(
   '12 + 10 + 8 reps · 26 kg'
 );
 reads(
-  '  → everything else, set by set',
+  '  → tout le reste, série par série',
   [
     { weight: 26, reps: 12 },
     { weight: 24, reps: 10 },
@@ -70,21 +74,21 @@ reads(
   '12 × 26 kg · 10 × 24 kg'
 );
 
-// ── The count and the reps must never be confused ───────────────────────
+// ── Le compte et les reps ne doivent jamais se confondre ────────────────
 //
-// This is what the word "reps" buys. With the work in front of the load, a
-// bare number before a load means repetitions — so a set count in that
-// position has to name its own unit, or "3 × 26 kg" says three repetitions
-// at 26 kg when three sets were done.
-console.log('\n── a number before a load always means repetitions');
-reads('a load held, one set', [{ weight: 26 }], '26 kg');
+// C'est ce que paie le mot « reps ». Avec le travail devant la charge, un
+// nombre nu avant une charge veut dire des répétitions — un compte de séries
+// à cette place doit donc nommer sa propre unité, sans quoi « 3 × 26 kg »
+// annonce trois répétitions à 26 kg quand trois séries ont été faites.
+console.log('\n── un nombre avant une charge veut toujours dire des reps');
+reads('une charge tenue, une série', [{ weight: 26 }], '26 kg');
 reads(
-  '  → the same load over three sets says "séries"',
+  '  → la même charge sur trois séries dit « séries »',
   [{ weight: 26 }, { weight: 26 }, { weight: 26 }],
   '3 séries · 26 kg'
 );
 reads(
-  '  → and three sets of twelve stays a count of sets',
+  '  → et trois séries de douze reste un compte de séries',
   [
     { weight: 26, reps: 12 },
     { weight: 26, reps: 12 },
@@ -93,32 +97,32 @@ reads(
   '3 × 12 reps · 26 kg'
 );
 
-// ── One of the two missing ──────────────────────────────────────────────
-console.log('\n── what was not recorded is not invented');
-reads('reps with no load', [{ reps: 12 }], '12 reps');
+// ── L'une des deux manque ───────────────────────────────────────────────
+console.log("\n── ce qui n'a pas été noté ne s'invente pas");
+reads('des reps sans charge', [{ reps: 12 }], '12 reps');
 reads(
-  '  → over three sets',
+  '  → sur trois séries',
   [{ reps: 12 }, { reps: 12 }, { reps: 12 }],
   '3 × 12 reps'
 );
-reads('a timed exercise', [{ duration: 45, weight: 16 }], '45s · 16 kg');
+reads('un exercice chronométré', [{ duration: 45, weight: 16 }], '45s · 16 kg');
 reads(
-  '  → timed, with no load',
+  '  → chronométré, sans charge',
   [{ duration: 45 }, { duration: 45 }, { duration: 45 }],
   '3 × 45s'
 );
-reads('nothing at all', [], null);
-reads('  → an empty set says nothing either', [{}], null);
+reads('rien du tout', [], null);
+reads('  → une série vide ne dit rien non plus', [{}], null);
 
-// ── An empty set truncates ──────────────────────────────────────────────
-console.log('\n── an empty set stops the exercise there');
+// ── Une série vide tronque ──────────────────────────────────────────────
+console.log("\n── une série vide arrête là l'exercice");
 reads(
-  'what follows an empty set did not happen',
+  "ce qui suit une série vide n'a pas eu lieu",
   [{ weight: 26, reps: 12 }, {}, { weight: 99, reps: 99 }],
   '12 reps · 26 kg'
 );
 reads(
-  '  → a missing rep count inside a set is held open',
+  '  → un nombre de reps manquant dans une série reste ouvert',
   [{ weight: 26, reps: 12 }, { weight: 26 }],
   '12 + — reps · 26 kg'
 );
