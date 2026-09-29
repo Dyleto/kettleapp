@@ -1,9 +1,9 @@
 /**
- * The invitation link: a single definition of its address, and a single path
- * for getting it out of the application.
+ * Le lien d'invitation : une seule définition de son adresse, et un seul
+ * chemin pour le faire sortir de l'application.
  *
- * Two places used to build it from a token, which only held up as long as
- * one of the two was in use.
+ * Deux endroits le fabriquaient à partir d'un jeton, ce qui ne tenait qu'aussi
+ * longtemps que l'un des deux servait.
  */
 export const invitationLink = (token: string) =>
   `${window.location.origin}/join?token=${token}`;
@@ -21,22 +21,22 @@ export const linkExpiry = (expiresAt?: string) =>
 export type LinkDelivery = 'shared' | 'copied' | 'cancelled' | 'failed';
 
 /**
- * Get the link out of the application, by the best path available.
+ * Faire sortir le lien de l'application, par le meilleur chemin disponible.
  *
- * A coach never needs a link in their clipboard: they need to send it to
- * someone. Where the phone knows how to do that — the Android and iOS share
- * sheet — that is what should open, and the coach ends up in WhatsApp
- * instead of hunting for somewhere to paste.
+ * Un coach n'a jamais besoin d'un lien dans son presse-papiers : il a besoin
+ * de l'envoyer à quelqu'un. Là où le téléphone sait le faire — la feuille de
+ * partage d'Android et d'iOS — c'est elle qui doit s'ouvrir, et le coach
+ * atterrit dans WhatsApp au lieu de chercher où coller.
  *
- * Both paths require "transient activation": the browser allows neither
- * sharing nor writing to the clipboard once too much time has passed since
- * the click. One network round-trip is enough to lose it on Safari. Hence
- * the calling rule: only call this with a link already in hand, never after
- * an `await` on the network — and treat `'failed'` as a normal case, not as
- * an error.
+ * Les deux chemins exigent une « activation transitoire » : le navigateur
+ * n'autorise ni le partage ni l'écriture dans le presse-papiers passé un
+ * certain temps après le clic. Un aller-retour réseau suffit à la perdre sur
+ * Safari. D'où la règle d'appel : n'appeler ceci qu'avec un lien déjà en
+ * main, jamais après un `await` sur le réseau — et traiter `'failed'` comme
+ * un cas normal, pas comme une erreur.
  *
- * `'cancelled'` is not a failure: it is the coach closing the share sheet
- * again, and nothing should hold it against them.
+ * `'cancelled'` n'est pas un échec : c'est le coach qui referme la feuille de
+ * partage, et rien ne doit le lui reprocher.
  */
 export const deliverLink = async (link: string): Promise<LinkDelivery> => {
   if (typeof navigator !== 'undefined' && navigator.share) {
@@ -48,9 +48,9 @@ export const deliverLink = async (link: string): Promise<LinkDelivery> => {
       return 'shared';
     } catch (e) {
       if ((e as DOMException)?.name === 'AbortError') return 'cancelled';
-      // Share refused (activation lost, or a platform that advertises it
-      // without serving it): we fall back to the clipboard rather than
-      // giving up.
+      // Partage refusé (activation perdue, ou une plateforme qui l'annonce
+      // sans le servir) : on se rabat sur le presse-papiers plutôt que
+      // d'abandonner.
     }
   }
   try {

@@ -6,6 +6,14 @@ import {
   Session,
 } from '@/shared/types';
 
+/**
+ * Ce que l'espace coach demande à l'API : ses clients, leur historique, ses
+ * invitations.
+ *
+ * Les exercices n'y sont plus : ils ont leur propre service, dans leur propre
+ * domaine. Ils vivaient ici parce que leurs routes sont sous `/api/coach`,
+ * et c'était confondre l'adresse de l'API avec l'organisation du code.
+ */
 export const coachService = {
   getClients: async () => {
     const { data } = await api.get<Client[]>('/api/coach/clients');
@@ -20,11 +28,11 @@ export const coachService = {
   },
 
   /**
-   * Copy a session to another client.
+   * Copier une séance chez un autre client.
    *
-   * None of the content travels: we name the session, the server reads it
-   * back itself. It returns the copy as it wrote it — the new client gets its
-   * own identifiers.
+   * Rien du contenu ne voyage : on nomme la séance, le serveur la relit
+   * lui-même. Il rend la copie telle qu'il l'a écrite — le nouveau client
+   * reçoit ses propres identifiants.
    */
   copySessionToClient: async (params: {
     targetClientId: string;

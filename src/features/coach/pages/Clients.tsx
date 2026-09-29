@@ -31,9 +31,9 @@ import { toaster } from '@/shared/components/ui/toasterInstance';
 const Clients = () => {
   const { data: clients = [] } = useClients();
   const { mutate: generateInvitation, isPending } = useGenerateInvitation();
-  // Loaded when the list opens: the link has to be in hand *before* the
-  // click, otherwise the network round-trip costs the user activation that
-  // sharing and the clipboard both need.
+  // Chargé à l'ouverture de la liste : le lien doit être en main *avant* le
+  // clic, sinon l'aller-retour réseau coûte l'activation utilisateur dont le
+  // partage et le presse-papiers ont tous deux besoin.
   const { data: pending } = useActiveInvitation();
   const [isCopied, setIsCopied] = useState(false);
   const [toShow, setToShow] = useState<{
@@ -42,26 +42,26 @@ const Clients = () => {
   } | null>(null);
 
   /**
-   * The preview only exists where there is room for it.
+   * L'aperçu n'existe que là où il y a la place.
    *
-   * Below 1280 px the list already takes the whole width: adding a column
-   * would reduce it to a sliver. A click then opens the workshop directly,
-   * as before.
+   * Sous 1280 px la liste prend déjà toute la largeur : ajouter une colonne
+   * la réduirait à un filet. Un clic ouvre alors directement l'atelier, comme
+   * avant.
    */
   const withPreview = useBreakpointValue({ base: false, xl: true }) ?? false;
   const [preview, setPreview] = useState<Client | null>(null);
   useDocumentTitle('Mes clients');
 
   /**
-   * What happens once the link is in hand.
+   * Ce qui se passe une fois le lien en main.
    *
-   * The order follows what the coach actually wants to do: send the link to
-   * someone. Where the phone knows how to open its share sheet, that is what
-   * opens; otherwise we copy; and if the browser refuses both, we write the
-   * link into a window that waits to be closed.
+   * L'ordre suit ce que le coach veut réellement faire : envoyer le lien à
+   * quelqu'un. Là où le téléphone sait ouvrir sa feuille de partage, c'est
+   * elle qui s'ouvre ; sinon on copie ; et si le navigateur refuse les deux,
+   * on écrit le lien dans une fenêtre qui attend qu'on la ferme.
    *
-   * That last case was the one missing. Kettle used to show the link in a
-   * twenty-second banner, after which it was nowhere at all.
+   * C'est ce dernier cas qui manquait. Kettle affichait le lien dans un
+   * bandeau de vingt secondes, après quoi il n'était plus nulle part.
    */
   const sendOut = useCallback(async (link: string, expiresAt?: string) => {
     const outcome = await deliverLink(link);
@@ -93,16 +93,15 @@ const Clients = () => {
   }, []);
 
   /**
-   * Inviting is a single action: get a link and send it out.
+   * Inviter est une seule action : obtenir un lien et le faire sortir.
    *
-   * It used to go through a side drawer whose entire body was one button —
-   * two clicks and a panel for an operation that has no settings at all. The
-   * button now does what it says.
+   * Cela passait par un tiroir latéral dont tout le corps était un bouton —
+   * deux clics et un panneau pour une opération qui n'a aucun réglage. Le
+   * bouton fait maintenant ce qu'il dit.
    *
-   * The short path — a link already cached — waits for nothing: the share
-   * fires straight off the click, its activation intact. The long path only
-   * serves the very first client, and that is where the fallback window
-   * earns its place.
+   * Le chemin court — un lien déjà en cache — n'attend rien : le partage
+   * part du clic même, son activation intacte. Le chemin long ne sert qu'au
+   * tout premier client, et c'est là que la fenêtre de repli gagne sa place.
    */
   const invite = () => {
     if (pending) {
@@ -158,16 +157,16 @@ const Clients = () => {
           </Button>
         </HStack>
 
-        {/* No status row. It permanently took two lines before the first
-            client, for one piece of information — the expiry date — and one
-            action — "Recopier" — that the "Inviter" button already covers:
-            the API recycles a link that is still valid, so clicking again
-            copies the same one. */}
+        {/* Pas de ligne d'état. Elle prenait en permanence deux lignes
+            avant le premier client, pour une information — la date
+            d'expiration — et une action — « Recopier » — que le bouton
+            « Inviter » couvre déjà : l'API recycle un lien encore valide, donc
+            recliquer copie le même. */}
 
-        {/* Between 30 and 55% of the window stayed empty: the list stopped at
-            720 px and the rest served no purpose. The coach had to open the
-            workshop — and so lose the list — to find out what was waiting at
-            one client, then come back to move on to the next. */}
+        {/* Entre 30 et 55 % de la fenêtre restait vide : la liste s'arrêtait
+            à 720 px et le reste ne servait à rien. Le coach devait ouvrir
+            l'atelier — et donc perdre la liste — pour savoir ce qui attendait
+            chez un client, puis revenir pour passer au suivant. */}
         {withPreview ? (
           <Grid
             templateColumns="minmax(0, 1fr) 420px"

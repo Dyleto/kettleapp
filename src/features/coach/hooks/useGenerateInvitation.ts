@@ -6,7 +6,8 @@ import { invitationLink } from '../invitation';
 
 interface InvitationResponse {
   token: string;
-  /** The link is only valid for a few days: we say so as it is copied. */
+  /** Le lien ne vaut que quelques jours : on le dit au moment où il est
+   * copié. */
   expiresAt: string;
 }
 
@@ -26,8 +27,8 @@ export const useGenerateInvitation = () => {
         expiresAt: response.data.expiresAt,
       };
     },
-    // The freshly created token is the one the API will recycle: we put it
-    // in the cache so the next click has nothing left to wait for.
+    // Le jeton qu'on vient de créer est celui que l'API recyclera : on le
+    // met en cache pour que le clic suivant n'ait plus rien à attendre.
     onSuccess: ({ token, expiresAt }) => {
       queryClient.setQueryData(queryKeys.coach.invitation(), {
         token,

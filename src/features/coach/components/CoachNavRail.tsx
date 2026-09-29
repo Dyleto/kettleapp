@@ -3,6 +3,12 @@ import { NavLink } from 'react-router-dom';
 import { Header } from '@/shared/components/Header';
 import { COACH_NAV_ITEMS } from '../navItems';
 
+/**
+ * La navigation du coach sur écran large : une colonne à gauche.
+ *
+ * Elle porte le compte en pied plutôt qu'en tête : on y va rarement, et ce
+ * qui sert souvent doit se trouver là où le regard entre.
+ */
 export const CoachNavRail = () => {
   return (
     <VStack
@@ -34,8 +40,9 @@ export const CoachNavRail = () => {
                   gap={3}
                   px={3}
                   py={2.5}
-                  /* 41 px tall: navigation was the only thing on screen
-                     that fell below the touch-target floor. */
+                  /* 41 px de haut : la navigation était la seule chose à
+                                       l'écran qui tombait sous le plancher de cible
+                                       tactile. */
                   minH="44px"
                   borderRadius="md"
                   color={isActive ? 'app.primary' : 'fg.muted'}

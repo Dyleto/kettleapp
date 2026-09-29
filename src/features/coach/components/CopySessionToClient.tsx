@@ -63,17 +63,17 @@ export const CopySessionToClient = ({
       const destinataire = clients.find(
         (c) => c._id === variables.targetClientId
       );
-      // The destination program changed underneath the cache: the next
-      // visit to that client has to re-read it, otherwise the copied session
-      // only appears after a full reload.
+      // Le programme de destination a changé sous le cache : la prochaine
+      // visite chez ce client doit le relire, sinon la séance copiée
+      // n'apparaît qu'après un rechargement complet.
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.clients.detail(variables.targetClientId),
       });
       toaster.create({
         type: 'success',
-        // The whole name, not the first name: two clients can share it, and
-        // a message that leaves the recipient of a copy in doubt is of no
-        // use.
+        // Le nom entier, pas le prénom : deux clients peuvent le partager, et
+        // un message qui laisse un doute sur le destinataire d'une copie ne
+        // sert à rien.
         title: `Séance copiée chez ${
           destinataire
             ? `${destinataire.firstName} ${destinataire.lastName}`
@@ -143,8 +143,8 @@ export const CopySessionToClient = ({
                         minH="52px"
                         px={2}
                         borderRadius="md"
-                        // A copy in flight locks the list: two quick clicks
-                        // would place two sessions.
+                        // Une copie en vol verrouille la liste : deux clics
+                        // rapides poseraient deux séances.
                         aria-disabled={copier.isPending}
                         opacity={copier.isPending && !occupe ? 0.5 : 1}
                         cursor={copier.isPending ? 'default' : 'pointer'}

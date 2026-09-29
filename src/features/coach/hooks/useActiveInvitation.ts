@@ -8,17 +8,18 @@ interface ActiveInvitation {
 }
 
 /**
- * The invitation link currently in force, if there is one.
+ * Le lien d'invitation en vigueur, s'il y en a un.
  *
- * This is not a display convenience: it is what allows sharing or copying
- * **without a network round-trip**. Sharing and writing to the clipboard both
- * require "transient activation", which the browser withdraws moments after
- * the click — one request is enough to lose it on Safari, and the coach then
- * saw "link copied" over an empty clipboard.
+ * Ce n'est pas un confort d'affichage : c'est ce qui permet de partager ou de
+ * copier **sans aller-retour réseau**. Le partage comme l'écriture dans le
+ * presse-papiers exigent une « activation transitoire », que le navigateur
+ * retire quelques instants après le clic — une requête suffit à la perdre sur
+ * Safari, et le coach lisait alors « lien copié » au-dessus d'un
+ * presse-papiers vide.
  *
- * Loaded when the list opens, the link is already there when you click. Since
- * the API recycles the token while it is valid, it is exactly the one
- * "Inviter" would have produced.
+ * Chargé à l'ouverture de la liste, le lien est déjà là au moment du clic.
+ * Comme l'API recycle le jeton tant qu'il est valide, c'est exactement celui
+ * qu'« Inviter » aurait produit.
  */
 export const useActiveInvitation = () =>
   useQuery({

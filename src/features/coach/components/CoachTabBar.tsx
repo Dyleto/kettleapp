@@ -2,6 +2,14 @@ import { HStack, VStack, Text } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
 import { COACH_NAV_ITEMS } from '../navItems';
 
+/**
+ * La navigation du coach sur mobile : en bas, là où tombe le pouce.
+ *
+ * `env(safe-area-inset-bottom)` et non une marge fixe : sur un iPhone à
+ * encoche, la barre de gestes du système mange les derniers pixels, et les
+ * cibles y devenaient inatteignables sans que rien ne le montre en
+ * simulateur.
+ */
 export const CoachTabBar = () => {
   return (
     <HStack

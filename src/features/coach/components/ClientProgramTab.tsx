@@ -59,9 +59,10 @@ import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 
 interface Props {
   session: Session;
-  /** The client whose programme is being edited — the source of a copy. */
+  /** Le client dont on édite le programme — la source d'une copie. */
   clientId: string;
-  /** Exercises already placed elsewhere in the programme, for the selector. */
+  /** Les exercices déjà placés ailleurs dans le programme, pour le
+   * sélecteur. */
   inProgram: Exercise[];
   onRemoveSession: () => void;
   onDuplicateSession: () => void;
@@ -110,6 +111,15 @@ const SortableBlock = ({
   );
 };
 
+/**
+ * L'atelier : là où le coach écrit le programme de son client.
+ *
+ * Tout s'édite sur place, sans formulaire ni bouton d'enregistrement :
+ * l'écran est dense parce qu'on y corrige trois mots vingt fois, et un
+ * aller-retour vers une page de saisie pour chacun rendait le travail
+ * impraticable. L'enregistrement automatique en est la contrepartie — d'où
+ * les filets d'annulation, qui remplacent les confirmations.
+ */
 export const ClientProgramTab = ({
   session,
   clientId,
@@ -141,9 +151,10 @@ export const ClientProgramTab = ({
 
   const isMobile = useBreakpointValue({ base: true, md: false });
 
-  // The phone's back button closes whatever is open over the editor, instead
-  // of leaving the session. Four layers, four landmarks — the topmost closes
-  // first, since each pushed its own on opening.
+  // Le bouton retour du téléphone ferme ce qui est ouvert par-dessus
+  // l'éditeur, au lieu de quitter la séance. Quatre couches, quatre repères —
+  // la plus haute se ferme d'abord, chacune ayant posé le sien à
+  // l'ouverture.
   useBackDismiss(showBlockSelector, closeBlockSelector);
   useBackDismiss(!!selectorBlockId, () => setSelectorBlockId(null));
   useBackDismiss(!!sheetExercise, () => setSheetExercise(null));
@@ -186,14 +197,14 @@ export const ClientProgramTab = ({
               />
             </Box>
           )}
-          {/* The day chips are 44 px under a finger, the note button carries
-              44 invisible ones around its 24: without this gap its zone would
-              bite into Sunday's chip. */}
+          {/* Les pastilles de jour font 44 px sous un doigt, le bouton de
+              note en porte 44 invisibles autour de ses 24 : sans cet écart,
+              sa zone mordrait sur la pastille de dimanche. */}
           <HStack gap={2} css={ecartTactile} align="center">
-            {/* The suggested day is an attribute of the session, of the same
-                rank as its note: the coach sets it, once, here. The client's
-                week is derived from it at display time — there is no separate
-                schedule to keep consistent. */}
+            {/* Le jour conseillé est un attribut de la séance, du même rang
+                que sa note : le coach le pose, une fois, ici. La semaine du
+                client s'en déduit à l'affichage — il n'y a pas d'agenda
+                séparé à tenir cohérent. */}
             <SuggestedDaysPicker
               value={session.suggestedDays}
               onChange={onUpdateSessionDays}
@@ -310,35 +321,36 @@ export const ClientProgramTab = ({
           </Text>
         )}
 
-        {/* The session chrome.
+        {/* La barre de la séance.
 
-            The two controls sat side by side, the same size, the same grey
-            and the same icon style, four pixels apart. One is harmless — you
-            can duplicate ten times without damage — the other destroys a
-            whole session's work. The confirmation already exists; it is the
-            gesture *before* the confirmation that has to be made less easy,
-            and two twin buttons make it easy by mistake.
+            Les deux commandes se tenaient côte à côte, même taille, même
+            gris, même style d'icône, à quatre pixels l'une de l'autre. L'une
+            est sans conséquence — on peut dupliquer dix fois sans dégât —
+            l'autre détruit le travail d'une séance entière. La confirmation
+            existe déjà ; c'est le geste *avant* la confirmation qu'il faut
+            rendre moins facile, et deux boutons jumeaux le rendent facile par
+            erreur.
 
-            So "Supprimer" goes alone to the right, in red, with the column's
-            whole width between it and its neighbour. */}
+            « Supprimer » part donc seul à droite, en rouge, avec toute la
+            largeur de la colonne entre lui et son voisin. */}
         <HStack justify="flex-start" gap={4} rowGap={2} wrap="wrap" pt={2}>
           <Button
             size="xs"
             variant="ghost"
             color="fg.muted"
-            /* Wide enough, too short: 32 px tall under a finger. They are
-               alone on their row, so the height can grow without covering
-               anything. */
+            /* Assez larges, trop courts : 32 px de haut sous un doigt. Ils
+                           sont seuls sur leur ligne, la hauteur peut donc croître sans
+                           rien recouvrir. */
             css={{ [TACTILE]: { minHeight: '44px' } }}
             onClick={onDuplicateSession}
           >
             <LuCopy size={13} />
             Dupliquer la séance
           </Button>
-          {/* Duplicating and copying are alike enough to sit side by side,
-              and unalike enough not to be confused: one stays with this
-              client, the other goes to another — and its label says so before
-              the click, through the ellipsis that announces a choice. */}
+          {/* Dupliquer et copier se ressemblent assez pour voisiner, et
+              assez peu pour ne pas se confondre : l'un reste chez ce client,
+              l'autre part chez un autre — et son libellé le dit avant le
+              clic, par les points de suspension qui annoncent un choix. */}
           <Button
             size="xs"
             variant="ghost"
@@ -352,10 +364,11 @@ export const ClientProgramTab = ({
           <Button
             size="xs"
             variant="ghost"
-            /* `ml="auto"` rather than `space-between`: the maximum gap when
-               both fit on one line, and "Supprimer" staying on the right when
-               they wrap. `space-between` on a row that does not wrap pushed
-               the page 51 px wide at 768. */
+            /* `ml="auto"` plutôt que `space-between` : l'écart maximal quand
+                           les deux tiennent sur une ligne, et « Supprimer » qui reste à
+                           droite quand elles passent à la ligne. `space-between` sur une
+                           rangée qui ne se replie pas poussait la page 51 px trop large à
+                           768. */
             ml="auto"
             color="app.error"
             _hover={{ bg: 'app.error/12' }}
@@ -389,8 +402,9 @@ export const ClientProgramTab = ({
         />
       )}
 
-      {/* The card over the editor: you fix an instruction or paste a video
-          without navigating, and so without losing the programme in hand. */}
+      {/* La fiche par-dessus l'éditeur : on corrige une consigne ou on
+          colle une vidéo sans naviguer, donc sans perdre le programme en
+          main. */}
       <Drawer.Root
         open={!!sheetExercise}
         onOpenChange={(e) => !e.open && setSheetExercise(null)}

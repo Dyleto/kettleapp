@@ -19,17 +19,18 @@ interface Props {
 }
 
 /**
- * The link, spelled out, when nothing else worked.
+ * Le lien, écrit en toutes lettres, quand rien d'autre n'a marché.
  *
- * The clipboard refuses more often than people think: insecure context,
- * permission withdrawn, activation lost to a network round-trip. Kettle then
- * showed the link in a twenty-second toast — the one place in the app where
- * information you cannot reconstruct vanished by itself. Past the delay the
- * coach had nothing, and nothing told them they had just lost something.
+ * Le presse-papiers refuse plus souvent qu'on ne le croit : contexte non
+ * sécurisé, permission retirée, activation perdue dans un aller-retour
+ * réseau. Kettle affichait alors le lien dans un toast de vingt secondes — le
+ * seul endroit de l'application où une information qu'on ne peut pas
+ * reconstituer disparaissait d'elle-même. Passé le délai le coach n'avait
+ * plus rien, et rien ne lui disait qu'il venait de perdre quelque chose.
  *
- * A dialog, then, that waits to be closed. The link there is selectable and
- * selected in one gesture: on a phone, "select all" is safer than aiming at
- * the start of a sixty-character address.
+ * Une boîte, donc, qui attend qu'on la ferme. Le lien y est sélectionnable et
+ * sélectionné d'un geste : sur un téléphone, « tout sélectionner » est plus
+ * sûr que viser le début d'une adresse de soixante caractères.
  */
 export const InvitationLinkDialog = ({ link, expiresAt, onClose }: Props) => {
   const field = useRef<HTMLParagraphElement>(null);
@@ -48,8 +49,8 @@ export const InvitationLinkDialog = ({ link, expiresAt, onClose }: Props) => {
     sel?.addRange(range);
   };
 
-  // Here the click is brand new: this is the attempt most likely to succeed,
-  // and it costs nothing if it fails again.
+  // Ici le clic est tout neuf : c'est la tentative qui a le plus de chances
+  // d'aboutir, et elle ne coûte rien si elle échoue encore.
   const copyAgain = async () => {
     if (!link) return;
     try {

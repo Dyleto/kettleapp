@@ -8,8 +8,8 @@ import { EffortTrend } from './EffortTrend';
 interface SessionFeedbackStripProps {
   // Already filtered by the calling page on originalSessionId === session._id.
   history: CompletedSession[];
-  // 'strip': a banner above the session (narrow screens)
-  // 'panel': a context column on the right (from 2xl up)
+  // 'strip' : un bandeau au-dessus de la séance (écrans étroits)
+  // 'panel' : une colonne de contexte à droite (à partir de 2xl)
   variant?: 'strip' | 'panel';
 }
 
@@ -18,16 +18,17 @@ interface PerformedLine {
   value: string;
 }
 
-// Beyond this it is no longer feedback you read: it is a table you open in
-// the full journal.
+// Au-delà, ce n'est plus un ressenti qu'on lit : c'est un tableau qu'on
+// ouvre dans le journal complet.
 const MAX_LINES = 4;
 
 /**
- * What the client actually recorded that day, exercise by exercise.
+ * Ce que le client a réellement noté ce jour-là, exercice par exercice.
  *
- * The coach wrote "4 × 10" and never learned what had been done: only the
- * client, in their own history, saw their 26 kg. The data already existed in
- * the session's snapshot, it was simply displayed nowhere on this side.
+ * Le coach écrivait « 4 × 10 » et n'apprenait jamais ce qui avait été fait :
+ * seul le client, dans son propre historique, voyait ses 26 kg. La donnée
+ * existait déjà dans l'instantané de la séance, elle n'était simplement
+ * affichée nulle part de ce côté-ci.
  */
 const performedLines = (completed: CompletedSession): PerformedLine[] => {
   const lines: PerformedLine[] = [];
@@ -60,10 +61,10 @@ const PerformedList = ({ completed }: { completed: CompletedSession }) => {
 
   return (
     <VStack align="stretch" gap={1.5} mt={1.5}>
-      {/* The name above, the value below: a detailed entry reads "26 kg ×
-          12 · 26 kg × 10 · 24 kg × 8", which fits on no shared line. On the
-          same line it was the name that gave — and an exercise reduced to
-          "G." can no longer be read. */}
+      {/* Le nom au-dessus, la valeur en dessous : une entrée détaillée
+          se lit « 26 kg × 12 · 26 kg × 10 · 24 kg × 8 », ce qui ne tient sur
+          aucune ligne partagée. Sur la même ligne, c'était le nom qui cédait
+          — et un exercice réduit à « G. » ne se lit plus. */}
       {shown.map((line, i) => (
         <Box key={`${line.name}-${i}`}>
           <Text fontSize="xs" color="fg.muted" lineClamp={1}>
@@ -83,6 +84,13 @@ const PerformedList = ({ completed }: { completed: CompletedSession }) => {
   );
 };
 
+/**
+ * Ce que le client a dit de sa séance, à côté de la séance.
+ *
+ * Bandeau sous 2xl, colonne au-delà : le même contenu, jamais un second
+ * écran. Le ressenti ne sert que lu en face du programme qu'il commente —
+ * séparé de lui, il faut se souvenir de ce qui était demandé.
+ */
 export const SessionFeedbackStrip = ({
   history,
   variant = 'strip',
@@ -117,9 +125,9 @@ export const SessionFeedbackStrip = ({
           </Text>
         ) : (
           <VStack align="stretch" gap={4}>
-            {/* The axis stays: it answers "is this drifting?" at a glance.
-                The table that accompanied it for a while has gone — too dense
-                for what the coach was looking for there. */}
+            {/* L'axe reste : il répond d'un coup d'œil à « est-ce que ça
+                dérive ? ». Le tableau qui l'accompagnait un temps a disparu —
+                trop dense pour ce que le coach venait y chercher. */}
             <EffortTrend history={recent} />
 
             <VStack align="stretch" gap={3}>
@@ -168,11 +176,11 @@ export const SessionFeedbackStrip = ({
   const level = getEffortLevel(last.feedback?.effort);
 
   return (
-    // Neutral, not turquoise. It was the only occurrence of that hue in a
-    // grey and red editor — and turquoise is otherwise used to qualify an
-    // easy effort rating, which this panel does not say. It already stands
-    // out by its position and its background; it does not need to borrow a
-    // colour that means something else.
+    // Neutre, et non turquoise. C'était la seule occurrence de cette teinte
+    // dans un éditeur gris et rouge — et le turquoise sert par ailleurs à
+    // qualifier un effort facile, ce que ce panneau ne dit pas. Il se
+    // distingue déjà par sa place et son fond ; il n'a pas besoin
+    // d'emprunter une couleur qui veut dire autre chose.
     <Box
       bg="whiteAlpha.50"
       borderLeftWidth="2px"
