@@ -1,19 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '@/shared/config/api';
-
+import { exerciseService } from '@/features/exercise/exercise.service';
 import { toaster } from '@/shared/components/ui/toasterInstance';
 import { Exercise } from '@/shared/types';
 import { queryKeys } from '@/shared/config/queryKeys';
 
 /**
- * Creates an exercise.
+ * Créer un exercice.
+ *
+ * Invalide toute la branche `exercises` et pas seulement la liste : un
+ * exercice neuf n'a pas de fiche en cache, mais le sélecteur de l'atelier et
+ * la bibliothèque lisent la même branche, et l'un des deux restait en retard.
  */
 export const useCreateExercise = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Exercise>) =>
-      api.post('/api/coach/exercises', data),
+    mutationFn: (exercise: Partial<Exercise>) =>
+      exerciseService.create(exercise),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -33,16 +36,20 @@ export const useCreateExercise = () => {
 };
 
 /**
- * Updates an exercise.
+ * Modifier un exercice.
+ *
+ * Deux invalidations et non une : la liste porte le nom et le compteur, la
+ * fiche porte la consigne et la vidéo. Ne rafraîchir que la liste laissait la
+ * fiche ouverte afficher la valeur d'avant.
  */
 export const useUpdateExercise = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Exercise> }) =>
-      api.put(`/api/coach/exercises/${id}`, data),
+      exerciseService.update(id, data),
 
-    onSuccess: (response, variables) => {
+    onSuccess: (_response, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.exercises.lists(),
       });
@@ -63,16 +70,19 @@ export const useUpdateExercise = () => {
 };
 
 /**
- * Deletes an exercise.
+ * Supprimer un exercice.
+ *
+ * Le serveur refuse tant que l'exercice est placé dans un programme : c'est
+ * lui qui décide, pas la fiche. Le message d'erreur qu'il renvoie explique
+ * pourquoi, et il remonte tel quel.
  */
 export const useDeleteExercise = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => api.delete(`/api/coach/exercises/${id}`),
+    mutationFn: (id: string) => exerciseService.remove(id),
 
     onSuccess: () => {
-      // Invalide le cache
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.exercises.all(),
       });

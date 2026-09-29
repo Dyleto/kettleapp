@@ -1,22 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '@/shared/config/api';
-import { Exercise } from '@/shared/types';
+import { exerciseService } from '@/features/exercise/exercise.service';
 import { queryKeys } from '@/shared/config/queryKeys';
 
 /**
- * Fetches one exercise by its id.
+ * Un exercice, par son identifiant.
  *
- * @param id - the exercise's id
+ * `enabled` plutôt qu'un appel conditionnel : le hook est appelé depuis la
+ * bibliothèque, où l'identifiant vient de l'URL et n'existe que lorsqu'une
+ * fiche est ouverte. Sans lui, refermer la fiche relancerait une requête sans
+ * identifiant — React interdisant d'appeler un hook selon une condition.
  */
-export const useExercise = (id?: string) => {
-  return useQuery({
-    queryKey: queryKeys.coach.exercises.detail(id || ''),
-    queryFn: async () => {
-      if (!id) throw new Error('No exercise ID provided');
-      const response = await api.get<Exercise>(`/api/coach/exercises/${id}`);
-      return response.data;
-    },
+export const useExercise = (id?: string) =>
+  useQuery({
+    queryKey: queryKeys.coach.exercises.detail(id ?? ''),
+    queryFn: () => exerciseService.get(id as string),
     enabled: !!id,
-    initialData: undefined,
   });
-};

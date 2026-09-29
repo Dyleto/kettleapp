@@ -104,8 +104,8 @@ export const InlineExercisePicker = ({
       createMutation.mutate(
         { name: trimmed },
         {
-          onSuccess: (response) => {
-            onSelect(response.data);
+          onSuccess: (exercice) => {
+            onSelect(exercice);
             setQuery('');
             onClose();
           },

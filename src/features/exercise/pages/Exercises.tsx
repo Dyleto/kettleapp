@@ -32,31 +32,32 @@ import { stripAccents } from '@/shared/utils/formatters';
 const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
 
 /**
- * The library's columns, at a single address.
+ * Les colonnes de la bibliothèque, à une seule adresse.
  *
- * The search field stretched the full width — measured at 1,620 px — while
- * the results it filters stopped at 660. A filter wider than what it filters
- * looks like it is searching somewhere else.
+ * Le champ de recherche s'étirait sur toute la largeur — mesuré à 1 620 px —
+ * alors que les résultats qu'il filtre s'arrêtaient à 660. Un filtre plus
+ * large que ce qu'il filtre a l'air de chercher ailleurs.
  *
- * The header and the list therefore take their template from the same place:
- * they can no longer drift apart.
+ * L'en-tête et la liste prennent donc leur gabarit au même endroit : ils ne
+ * peuvent plus diverger.
  */
 const COLONNES = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
 
 /**
- * From how many exercises an alphabetical index starts being useful.
+ * À partir de combien d'exercices un index alphabétique commence à servir.
  *
- * Nine letter headers for ten exercises: the structure cost more height than
- * it saved, and a nine-letter index over ten rows shortens no journey. It
- * should appear when it serves, not on principle.
+ * Neuf en-têtes de lettres pour dix exercices : la structure coûtait plus de
+ * hauteur qu'elle n'en faisait gagner, et un index de neuf lettres sur dix
+ * lignes ne raccourcit aucun trajet. Il doit apparaître quand il sert, pas
+ * par principe.
  */
 const SEUIL_INDEX = 25;
 const GOUTTIERE = { base: 0, lg: 8 };
 
 const Exercises = () => {
   useDocumentTitle('Bibliothèque');
-  // The open exercise lives in the URL, not in state: a link to a card can
-  // be sent, and the browser's back button closes the card.
+  // L'exercice ouvert vit dans l'URL et non dans un état : un lien vers une
+  // fiche s'envoie, et le bouton retour du navigateur la referme.
   const { exerciseId } = useParams();
   const navigate = useNavigate();
 
@@ -74,8 +75,8 @@ const Exercises = () => {
 
   const isDesktop = useBreakpointValue({ base: false, lg: true });
 
-  // We read the exercise back from the list rather than keeping a copy:
-  // after an edit, the card must show the saved value.
+  // On relit l'exercice depuis la liste plutôt que d'en garder une copie :
+  // après une modification, la fiche doit montrer la valeur enregistrée.
   const selected = exercises.find((e) => e._id === exerciseId) ?? null;
 
   const filtered = useMemo(() => {
@@ -104,10 +105,10 @@ const Exercises = () => {
   }, [filtered]);
 
   /**
-   * What the right pane shows when no card is open.
+   * Ce que le panneau de droite montre quand aucune fiche n'est ouverte.
    *
-   * An exercise never placed in a programme does not appear there: that would
-   * be filling the space with what serves least.
+   * Un exercice jamais placé dans un programme n'y figure pas : ce serait
+   * remplir l'espace avec ce qui sert le moins.
    */
   const lesPlusUtilises = useMemo(
     () =>
@@ -118,8 +119,8 @@ const Exercises = () => {
     [exercises]
   );
 
-  // Below the threshold, a plain dense list: the groups still exist, but
-  // they carry neither heading nor index.
+  // Sous le seuil, une liste dense et sans façon : les groupes existent
+  // toujours, mais ils ne portent ni titre ni index.
   const indexe = filtered.length >= SEUIL_INDEX;
   const letters = indexe ? grouped.map((g) => g.letter) : [];
 
@@ -135,21 +136,21 @@ const Exercises = () => {
     createMutation.mutate(
       { name: trimmed },
       {
-        onSuccess: (response) => {
+        onSuccess: (exercice) => {
           setQuery('');
-          openSheet(response.data._id);
+          openSheet(exercice._id);
         },
       }
     );
   };
 
   /**
-   * Creating from the header.
+   * Créer depuis l'en-tête.
    *
-   * You had to type a name that does not exist to discover you could create:
-   * the only way in was an accident of search. The button names it. It does
-   * not make a nameless exercise for all that — if a name is already there it
-   * creates; otherwise it takes the cursor to where you write one.
+   * Il fallait taper un nom qui n'existe pas pour découvrir qu'on pouvait
+   * créer : la seule entrée était un accident de recherche. Le bouton la
+   * nomme. Il ne fabrique pas pour autant un exercice sans nom — si un nom
+   * est déjà là il crée, sinon il emmène le curseur là où on l'écrit.
    */
   const champRecherche = useRef<HTMLInputElement>(null);
   const nouveau = () => {
@@ -184,10 +185,10 @@ const Exercises = () => {
             sectionRefs.current[letter] = el;
           }}
         >
-          {/* The letter marker read as a one-letter exercise: same type,
-              same column, same colour. So it moves into the margin, with a
-              rule running to the edge — it is a separator, not a list
-              entry. */}
+          {/* Le repère de lettre se lisait comme un exercice d'une lettre :
+              même type, même colonne, même couleur. Il passe donc dans la
+              marge, avec un filet qui court jusqu'au bord — c'est un
+              séparateur, pas une entrée de liste. */}
           {indexe && (
             <Box
               position="sticky"
@@ -198,9 +199,10 @@ const Exercises = () => {
               pb={1}
             >
               <HStack gap={2} align="center">
-                {/* An index letter is neither an action nor a place you are:
-                  it has no business being amber. Nine gold headers for ten
-                  exercises was also nine false invitations to click. */}
+                {/* Une lettre d'index n'est ni une action ni un endroit où l'on
+                  se trouve : elle n'a rien à faire en ambre. Neuf titres dorés
+                  pour dix exercices, c'était aussi neuf fausses invitations à
+                  cliquer. */}
                 <Text
                   fontSize="xs"
                   fontWeight="bold"
@@ -258,8 +260,9 @@ const Exercises = () => {
   return (
     <Container maxW="container.xl" py={6}>
       <VStack gap={4} align="stretch">
-        {/* The header and search live in the same column as the list: the
-            filter is exactly as wide as what it filters. */}
+        {/* L'en-tête et la recherche vivent dans la même colonne que la
+            liste : le filtre fait exactement la largeur de ce qu'il
+            filtre. */}
         <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
           <VStack gap={4} align="stretch" minW={0}>
             {/* `space-between` on a row that does not wrap pushed the page
@@ -286,8 +289,9 @@ const Exercises = () => {
                   {filtered.length} exercice{filtered.length !== 1 ? 's' : ''}
                   {query && ` · « ${query} »`}
                 </Text>
-                {/* Creation's only way in was an accident of search: typing
-                    a name that does not exist. The button names it. */}
+                {/* La seule entrée vers la création était un accident de
+                    recherche : taper un nom qui n'existe pas. Le bouton la
+                    nomme. */}
                 <Box
                   as="button"
                   onClick={nouveau}
@@ -372,9 +376,10 @@ const Exercises = () => {
                   {selected ? (
                     sheet
                   ) : (
-                    /* Half a desktop screen cannot stay a waiting sentence. For
-                       want of a card, the pane shows what serves most — which
-                       is also what gets reopened most often. */
+                    /* La moitié d'un écran de bureau ne peut pas rester une phrase
+                                           d'attente. Faute de fiche, le panneau montre ce qui sert
+                                           le plus — qui est aussi ce qu'on rouvre le plus
+                                           souvent. */
                     <VStack align="stretch" gap={3}>
                       <Text
                         fontSize="xs"
@@ -426,10 +431,10 @@ const Exercises = () => {
                   py={2}
                   px={1}
                 >
-                  {/* An A–Z index cannot give 44 px per letter: twenty-six
-                      letters would be 1,144 px tall. 28 px is the compromise
-                      — above the WCAG 2.5.8 floor, and the index stays a
-                      shortcut you run a thumb down. */}
+                  {/* Un index A–Z ne peut pas donner 44 px par lettre :
+                      vingt-six lettres feraient 1 144 px de haut. 28 px est le
+                      compromis — au-dessus du plancher WCAG 2.5.8, et l'index
+                      reste un raccourci qu'on parcourt du pouce. */}
                   <VStack gap={0}>
                     {letters.map((letter) => (
                       <Box
@@ -437,10 +442,10 @@ const Exercises = () => {
                         as="button"
                         aria-label={`Aller à la lettre ${letter}`}
                         onClick={() => scrollToLetter(letter)}
-                        // 10 px for a target aimed at with a thumb was
-                        // below any legibility threshold. 12 px in a 28 px
-                        // cell, so 24 px genuinely reachable once the
-                        // neighbours are deducted.
+                        // 10 px pour une cible visée au pouce était sous tout seuil
+                        // de lisibilité. 12 px dans une cellule de 28 px, donc
+                        // 24 px réellement atteignables une fois les voisines
+                        // déduites.
                         fontSize="xs"
                         fontWeight="bold"
                         color="whiteAlpha.800"
@@ -466,8 +471,8 @@ const Exercises = () => {
         )}
       </VStack>
 
-      {/* Below 1024 px the card opens in a drawer: the same card, not a
-          second screen with its own rules. */}
+      {/* Sous 1024 px la fiche s'ouvre dans un tiroir : la même fiche, et
+          non un second écran avec ses propres règles. */}
       <Drawer.Root
         open={!isDesktop && !!selected}
         onOpenChange={(e) => !e.open && closeSheet()}

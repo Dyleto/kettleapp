@@ -7,20 +7,20 @@ interface ExerciseRowProps {
   exercise: Exercise;
   onClick?: () => void;
   selected?: boolean;
-  /** Controls revealed on hover, at the right of the row. */
+  /** Les commandes révélées au survol, à droite de la ligne. */
   extra?: ReactNode;
   /** Replaces the description: "déjà 3 fois dans ce programme", etc. */
   subtitle?: string;
 }
 
 /**
- * An exercise row: text on a rule, nothing more.
+ * Une ligne d'exercice : du texte sur un filet, rien de plus.
  *
- * The library used to show a rounded card per exercise, with an identical
- * dumbbell on every row and a chevron that said nothing. Ten exercises
- * filled the screen for ten words. The same law as the workshop applies
- * here: typography and a rule, and the ornament only shows when it carries
- * information — a video, a counter.
+ * La bibliothèque affichait une carte arrondie par exercice, avec un haltère
+ * identique sur chaque ligne et un chevron qui ne disait rien. Dix exercices
+ * remplissaient l'écran pour dix mots. La même loi qu'à l'atelier s'applique
+ * ici : la typographie et un filet, et l'ornement ne se montre que s'il porte
+ * une information — une vidéo, un compteur.
  */
 export const ExerciseRow = ({
   exercise,
@@ -32,9 +32,9 @@ export const ExerciseRow = ({
   const secondary = subtitle ?? exercise.description;
   const usage = exercise.usageCount ?? 0;
 
-  // The two marks on the right are mute to a screen reader: "7" on its own
-  // means nothing. We describe them in the row's name and remove them from
-  // the accessibility tree.
+  // Les deux marques de droite sont muettes pour un lecteur d'écran : « 7 »
+  // tout seul ne veut rien dire. On les décrit dans le nom de la ligne et on
+  // les retire de l'arbre d'accessibilité.
   const label = [
     exercise.name,
     usage > 0
@@ -87,13 +87,13 @@ export const ExerciseRow = ({
         )}
       </VStack>
 
-      {/* The count carries a suffix: "12" next to a video icon read as
-          twelve videos.
+      {/* Le compteur porte un suffixe : « 12 » à côté d'une icône de
+          vidéo se lisait comme douze vidéos.
 
-          And absence is spelled out. Two exercises with no number among
-          eight that carry one asked a question with no answer — zero, or
-          missing data? It is in fact the most useful information in the
-          list: those are the exercises you can delete. */}
+          Et l'absence est écrite. Deux exercices sans nombre parmi huit qui
+          en portent posaient une question sans réponse — zéro, ou donnée
+          manquante ? C'est en fait l'information la plus utile de la liste :
+          ce sont les exercices qu'on peut supprimer. */}
       <HStack gap={2.5} flexShrink={0} color="fg.muted" aria-hidden>
         {exercise.videoUrl && <LuVideo size={12} />}
         <Text as="span" fontSize="xs" whiteSpace="nowrap">

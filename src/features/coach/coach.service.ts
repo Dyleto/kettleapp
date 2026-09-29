@@ -3,7 +3,6 @@ import {
   Client,
   ClientWithDetails,
   CompletedSession,
-  Exercise,
   Session,
 } from '@/shared/types';
 
@@ -51,19 +50,6 @@ export const coachService = {
 
   markClientHistoryAsViewed: async (clientId: string) => {
     await api.patch(`/api/coach/clients/${clientId}/history/mark-viewed`);
-  },
-
-  getExercises: async () => {
-    const { data } = await api.get<Exercise[]>('/api/coach/exercises');
-    return data;
-  },
-
-  createExercise: async (exerciseData: Partial<Exercise>) => {
-    const { data } = await api.post<Exercise>(
-      '/api/coach/exercises',
-      exerciseData
-    );
-    return data;
   },
 
   generateInvitation: async (expiresIn = 7) => {
