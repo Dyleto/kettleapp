@@ -16,19 +16,27 @@ interface SessionHistoryCardProps {
   completed: CompletedSession;
   showUnseenIndicator?: boolean;
   /**
-   * `journal` on the history: the exact date, and the comment if there is one
-   * — you came to read. `accueil` on the day's page: the date in relative
-   * form, because there you answer "when was that", and no comment, because
-   * you are only passing through.
+   * `journal` sur l'historique : la date exacte, et le commentaire s'il y en
+   * a un — on est venu lire. `accueil` sur la page du jour : la date en forme
+   * relative, parce qu'on y répond à « c'était quand », et pas de
+   * commentaire, parce qu'on ne fait que passer.
    *
-   * The rest does not change, and that is the point: home used to render its
-   * own card, with no chevron and no action label, next to a card that had
-   * one. Two neighbouring cards that do not follow the same convention turn
-   * the missing arrow into a sign — when it meant nothing.
+   * Le reste ne change pas, et c'est tout l'intérêt : l'accueil dessinait sa
+   * propre carte, sans chevron ni libellé d'action, à côté d'une carte qui en
+   * avait un. Deux cartes voisines qui ne suivent pas la même convention font
+   * de la flèche absente un signe — alors qu'elle ne voulait rien dire.
    */
   variant?: 'journal' | 'accueil';
 }
 
+/**
+ * Une séance terminée, en carte. Deux variantes, une seule convention.
+ *
+ * `journal` sur l'historique, `accueil` sur la page du jour : ce qui change
+ * est ce qui se lit, jamais la forme. L'accueil dessinait autrefois sa propre
+ * carte, sans chevron, à côté d'une carte qui en avait un — et la flèche
+ * absente devenait un signe alors qu'elle ne voulait rien dire.
+ */
 export const SessionHistoryCard = ({
   completed,
   showUnseenIndicator = false,
@@ -45,8 +53,8 @@ export const SessionHistoryCard = ({
           month: 'short',
         }).format(new Date(completed.completedAt));
 
-  // A word the client and the coach read the same way, instead of a number
-  // neither can interpret.
+  // Un mot que le client et le coach lisent de la même façon, au lieu d'un
+  // nombre que ni l'un ni l'autre ne peut interpréter.
   const effort = getEffortSummary(completed);
 
   return (

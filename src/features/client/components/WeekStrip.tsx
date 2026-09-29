@@ -15,18 +15,19 @@ interface WeekStripProps {
 }
 
 /**
- * The current week, Monday to Sunday: what is planned, what is done.
+ * La semaine en cours, du lundi au dimanche : ce qui est prévu, ce qui est
+ * fait.
  *
- * Home said what was left to do and what had just been done, never where you
- * stood in your week. "I went twice" counts differently when you can see it —
- * and an empty Monday at the end of the day is not the same information as an
- * empty Monday in the morning.
+ * L'accueil disait ce qu'il restait à faire et ce qui venait d'être fait,
+ * jamais où l'on en était de sa semaine. « J'y suis allé deux fois » ne se
+ * compte pas pareil quand on le voit — et un lundi vide en fin de journée
+ * n'est pas la même information qu'un lundi vide le matin.
  *
- * Every day that carries something is a button: the strip looked clickable
- * and was not. It filters nothing — filtering three recent sessions across
- * seven days empties the screen five times out of seven, and the history
- * already does that over a whole month. It leads to what the day contains:
- * the detail for a day done, the session for a suggested day.
+ * Chaque jour qui porte quelque chose est un bouton : la bande avait l'air
+ * cliquable et ne l'était pas. Elle ne filtre rien — filtrer trois séances
+ * récentes sur sept jours vide l'écran cinq fois sur sept, et l'historique le
+ * fait déjà sur un mois entier. Elle mène à ce que le jour contient : le
+ * détail pour un jour fait, la séance pour un jour conseillé.
  */
 export const WeekStrip = ({
   days,
@@ -35,15 +36,16 @@ export const WeekStrip = ({
 }: WeekStripProps) => {
   const todayKey = dayKey(new Date());
   /**
-   * What is left to do, computed once for the strip and for its count.
+   * Ce qu'il reste à faire, calculé une fois pour la bande et pour son
+   * compte.
    *
-   * A suggested session whose equivalent was already done that day does not
-   * stay "planned"; but another session suggested the same day does — a
-   * Sunday on which you did number 4 does not make number 3 nonexistent.
+   * Une séance conseillée dont l'équivalent a déjà été fait ce jour-là ne
+   * reste pas « prévue » ; mais une autre séance conseillée le même jour, si
+   * — un dimanche où l'on a fait la 4 ne rend pas la 3 inexistante.
    *
-   * The rule lived in the chips' rendering, and the header's count applied
-   * another, coarser one: it announced three planned sessions where the strip
-   * drew six.
+   * La règle vivait dans le rendu des pastilles, et le compte de l'en-tête en
+   * appliquait une autre, plus grossière : il annonçait trois séances prévues
+   * là où la bande en dessinait six.
    */
   const jours = days.map((d) => ({
     ...d,
@@ -82,11 +84,11 @@ export const WeekStrip = ({
         </Text>
       </HStack>
 
-      {/* Capped: seven cells of one letter and two digits do not need
-          600 px. Beyond that, the strip reads as an empty ribbon. */}
-      {/* `role="group"` and not `list`: the days that carry something are
-          buttons, and a `role="listitem"` placed on them would strip their
-          command semantics. */}
+      {/* Plafonnée : sept cellules d'une lettre et deux chiffres n'ont pas
+          besoin de 600 px. Au-delà, la bande se lit comme un ruban vide. */}
+      {/* `role="group"` et non `list` : les jours qui portent quelque chose
+          sont des boutons, et un `role="listitem"` posé dessus leur retirerait
+          leur sémantique de commande. */}
       <HStack
         gap={1}
         maxW="420px"
@@ -99,8 +101,8 @@ export const WeekStrip = ({
           const effort = done.length > 0 ? getEffortSummary(done[0]) : null;
           const letter = WEEKDAY_LETTERS[mondayIndex(date)];
 
-          // A suggested session already done that day no longer needs to
-          // announce itself. But another, suggested the same day and not yet
+          // Une séance conseillée déjà faite ce jour-là n'a plus besoin de
+          // s'annoncer. Mais une autre, conseillée le même jour et pas encore
           const target =
             done.length > 0
               ? 'completed'
@@ -129,14 +131,15 @@ export const WeekStrip = ({
               >
                 {date.getDate()}
               </Text>
-              {/* Three states on the same row of chips: solid for what is
-                  done — the effort colour, like the history calendar —
-                  hollow for what is suggested and not yet done, nothing at
-                  all otherwise.
+              {/* Trois états sur la même rangée de pastilles : plein pour ce
+                  qui est fait — la couleur de l'effort, comme au calendrier de
+                  l'historique — creux pour ce qui est conseillé et pas encore
+                  fait, rien du tout sinon.
 
-                  Neither is amber: a week chip is not clicked and does not
-                  say where you are. It is solid against hollow that tells
-                  done from planned — colour never added anything there. */}
+                  Ni l'un ni l'autre n'est ambre : une pastille de semaine ne
+                  se clique pas et ne dit pas où l'on est. C'est le plein
+                  contre le creux qui distingue fait de prévu — la couleur n'y
+                  ajoutait jamais rien. */}
               <HStack gap="2px" h="5px" justify="center" aria-hidden>
                 {done.map((s) => (
                   <Box
@@ -172,9 +175,9 @@ export const WeekStrip = ({
             bg: done.length > 0 ? 'whiteAlpha.50' : 'transparent',
           } as const;
 
-          // An empty day does not pretend to be a control: no button, no
-          // hover, no tab stop. An honest disabled state beats a click that
-          // does nothing.
+          // Un jour vide ne se fait pas passer pour une commande : pas de
+          // bouton, pas de survol, pas d'arrêt de tabulation. Un état
+          // désactivé honnête vaut mieux qu'un clic qui ne fait rien.
           if (!target) {
             return (
               <VStack

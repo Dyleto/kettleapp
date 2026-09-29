@@ -8,7 +8,8 @@ import {
 
 interface SuggestedDaysProps {
   days?: number[];
-  /** Recalls what the chips are for, where nothing else announces it. */
+  /** Rappelle à quoi servent les pastilles, là où rien d'autre ne
+   * l'annonce. */
   withLabel?: boolean;
 }
 
@@ -30,8 +31,9 @@ export const SuggestedDays = ({ days, withLabel }: SuggestedDaysProps) => {
   if (valid.length === 0) return null;
 
   return (
-    // A session can carry all seven days: at 390 px, seven chips and their
-    // label overflow by 23 px. They wrap rather than push the page sideways.
+    // Une séance peut porter les sept jours : à 390 px, sept pastilles et leur
+    // étiquette débordent de 23 px. Elles se replient plutôt que de pousser la
+    // page de côté.
     <HStack
       gap={1.5}
       wrap="wrap"

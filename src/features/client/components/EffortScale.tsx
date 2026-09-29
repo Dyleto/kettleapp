@@ -9,6 +9,15 @@ interface EffortScaleProps {
   onChange: (value: number) => void;
 }
 
+/**
+ * Les cinq crans du ressenti, du plus dur au plus facile.
+ *
+ * Une échelle à cible centrale : « Juste » est au milieu et il est nommé. Ce
+ * n'est pas une note — 1 et 5 sont deux problèmes différents, pas les deux
+ * bouts d'une échelle de qualité — et rien n'est présélectionné, parce
+ * qu'une valeur que le client n'a pas choisie irait nourrir la tendance que
+ * son coach lit.
+ */
 export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
   const refs = useRef<(HTMLDivElement | null)[]>([]);
   const selected = getEffortLevel(value);
@@ -39,8 +48,8 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
               role="radio"
               aria-checked={isSelected}
               aria-label={`${level.label} — ${level.description}`}
-              // One keyboard entry point: you tab to the scale, then move
-              // through it with the arrow keys.
+              // Une seule entrée au clavier : on tabule jusqu'à l'échelle, puis
+              // on la parcourt aux flèches.
               tabIndex={isSelected || (!value && i === 0) ? 0 : -1}
               flex={1}
               minH="56px"
@@ -76,9 +85,9 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
                 <Text fontSize="lg" fontWeight="800" fontFamily="mono">
                   {level.rank}
                 </Text>
-                {/* The name of every step, and not just the two ends: the
-                    target is "Juste", in the middle, and nothing on screen
-                    said where it was until you had tapped. */}
+                {/* Le nom de chaque cran, et pas seulement des deux bouts : la
+                    cible est « Juste », au milieu, et rien à l'écran ne disait
+                    où elle se trouvait avant qu'on ait tapé. */}
                 <Text
                   fontSize="10px"
                   lineHeight="1.2"
@@ -93,9 +102,10 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
         })}
       </HStack>
 
-      {/* Height reserved: choosing a level must not make the dialog jump at
-          the moment of the tap. The step's name is now on the step itself —
-          all that remains here is what it adds: the description. */}
+      {/* Hauteur réservée : choisir un niveau ne doit pas faire sauter la
+          boîte au moment de la touche. Le nom du cran est maintenant sur le
+          cran lui-même — il ne reste ici que ce qu'il ajoute : la
+          description. */}
       <Box minH="20px" textAlign="center">
         {selected && (
           <Text fontSize="xs" color={EFFORT_ZONE_COLOR[selected.zone]}>

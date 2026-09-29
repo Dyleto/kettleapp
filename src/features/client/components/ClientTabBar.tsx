@@ -2,6 +2,14 @@ import { HStack, VStack, Text } from '@chakra-ui/react';
 import { NavLink } from 'react-router-dom';
 import { CLIENT_NAV_ITEMS } from '../navItems';
 
+/**
+ * La navigation du client sur mobile : en bas, là où tombe le pouce.
+ *
+ * C'est la barre par excellence de cette application — on l'atteint d'une
+ * main, en salle, entre deux séries. `env(safe-area-inset-bottom)` et non une
+ * marge fixe : sur un iPhone à encoche, la barre de gestes du système mange
+ * les derniers pixels.
+ */
 export const ClientTabBar = () => {
   return (
     <HStack

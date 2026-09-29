@@ -9,7 +9,8 @@ import {
   performedKey,
 } from '../lastPerformance';
 
-/** The parent block and the exercise: both decide how many passes there are. */
+/** Le bloc parent et l'exercice : tous deux décident du nombre de
+ * passages. */
 const findExercise = (
   session: Session,
   blockOrder: number,
@@ -25,12 +26,21 @@ const findExercise = (
 interface SessionDetailProps {
   session: Session;
   isLoading?: boolean;
-  /** Recording what was performed. Absent = read-only, rendering unchanged. */
+  /** La saisie de ce qui a été réalisé. Absente = lecture seule, rendu
+   * inchangé. */
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
 }
 
+/**
+ * Le contenu d'une séance, bloc par bloc — le même rendu que celui du coach.
+ *
+ * Une seule définition pour les deux côtés : le coach ne peut pas se fier à
+ * ce qu'il voit s'il ne voit pas ce que son client verra. Ce que cet écran
+ * ajoute est ce qui n'a de sens qu'en faisant la séance : la saisie, et le
+ * rappel de ce qu'on a mis la dernière fois.
+ */
 export const SessionDetail = ({
   session,
   isLoading,
@@ -99,14 +109,16 @@ export const SessionDetail = ({
               );
             }
 
-            // In read mode: no field, but what was used last time. Guided
-            // mode already recalled it — not everyone uses guided mode, and
-            // loading the bar is exactly the moment you look for that.
+            // En lecture : pas de champ, mais ce qu'on a mis la dernière fois.
+            // Le mode guidé le rappelait déjà — tout le monde n'utilise pas
+            // le mode guidé, et charger sa barre est exactement le moment où
+            // l'on cherche cela.
             //
-            // Its height is reserved even when empty. Present on three
-            // exercises out of seven, it shifted the neighbouring lines: the
-            // list became irregular and the absence read as missing data,
-            // when it only means "nothing has been recorded here yet".
+            // Sa hauteur est réservée même vide. Présent sur trois exercices
+            // sur sept, il décalait les lignes voisines : la liste devenait
+            // irrégulière et l'absence se lisait comme une donnée manquante,
+            // alors qu'elle veut seulement dire « rien n'a encore été noté
+            // ici ».
             return (
               <Text
                 fontSize="xs"

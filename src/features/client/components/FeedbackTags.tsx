@@ -7,8 +7,9 @@ interface FeedbackTagsProps {
   onChange: (tags: FeedbackTag[]) => void;
 }
 
-// No tag ticked by default: a tag only exists when it is true, so every tag
-// present is signal. The normal case — nothing to report — costs zero taps.
+// Aucune étiquette cochée par défaut : une étiquette n'existe que si elle
+// est vraie, donc chaque étiquette présente est du signal. Le cas normal —
+// rien à signaler — coûte zéro touche.
 export const FeedbackTags = ({ value, onChange }: FeedbackTagsProps) => {
   const toggle = (tag: FeedbackTag) =>
     onChange(

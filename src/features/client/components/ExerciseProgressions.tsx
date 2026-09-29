@@ -13,6 +13,13 @@ interface ExerciseProgressionsProps {
   limit?: number;
 }
 
+/**
+ * « Goblet Squat : 20 → 24 → 26 kg », pour les mouvements récemment
+ * travaillés.
+ *
+ * Calculé depuis l'historique déjà chargé : aucune requête. Le client voyait
+ * ses séances une à une et devait se souvenir pour savoir s'il progressait.
+ */
 export const ExerciseProgressions = ({
   history,
   limit = 6,

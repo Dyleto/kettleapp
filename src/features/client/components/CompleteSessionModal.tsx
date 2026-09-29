@@ -21,17 +21,18 @@ interface CompleteSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   /**
-   * The statement of fact that precedes the question.
+   * Le constat qui précède la question.
    *
-   * Absent when the session was not run in guided mode — there is then
-   * nothing to state, and an empty recap would be worth less than no recap.
+   * Absent quand la séance n'a pas été menée en mode guidé — il n'y a alors
+   * rien à constater, et un récapitulatif vide vaudrait moins que pas de
+   * récapitulatif.
    */
   recap?: React.ReactNode;
   /**
-   * True when the client recorded their loads during the session.
+   * Vrai quand le client a noté ses charges pendant la séance.
    *
-   * We then did not put the question again at the end — and a screen that is
-   * skipped without a word suggests the entry has been lost.
+   * On ne lui reposait alors pas la question à la fin — et un écran qu'on
+   * saute sans un mot laisse croire que la saisie a été perdue.
    */
   chargesDejaNotees?: boolean;
   onSubmit: (
@@ -44,6 +45,14 @@ interface CompleteSessionModalProps {
 
 const toDateInputValue = (d: Date) => d.toISOString().slice(0, 10);
 
+/**
+ * Le bilan de fin de séance : le constat, puis la question.
+ *
+ * Une seule question obligatoire — comment c'était — parce que c'est la seule
+ * chose que l'application ne peut pas trouver seule. Les étiquettes et le
+ * commentaire sont facultatifs, et ne sont même pas proposés à qui a refusé
+ * de partager ses données de santé.
+ */
 export const CompleteSessionModal = ({
   isOpen,
   onClose,
@@ -52,9 +61,10 @@ export const CompleteSessionModal = ({
   onSubmit,
   isLoading,
 }: CompleteSessionModalProps) => {
-  // Anyone who refused to share their health data is not offered the tags or
-  // the comment: we do not ask for what we have no right to record. The
-  // effort rating stays — it is a training measure.
+  // À qui a refusé de partager ses données de santé, on ne propose ni les
+  // étiquettes ni le commentaire : on ne demande pas ce qu'on n'a pas le
+  // droit d'enregistrer. La note d'effort reste — c'est une mesure
+  // d'entraînement.
   const { user } = useAuth();
   const partageSante = user?.healthConsent?.granted === true;
 
@@ -88,19 +98,20 @@ export const CompleteSessionModal = ({
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && handleClose()}>
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        {/* The statement, the scale, the tags and the comment in one box:
-            on a small screen it overflows, and it is "Valider" you lose at
-            the bottom. The body scrolls, the header and footer hold.
+        {/* Le constat, l'échelle, les étiquettes et le commentaire dans une
+            seule boîte : sur un petit écran elle déborde, et c'est
+            « Valider » qu'on perd en bas. Le corps défile, l'en-tête et le
+            pied tiennent.
 
-            The dialog carries a 64 px margin top and bottom by default, and
-            `maxH="90dvh"` knew nothing about it: the box was allowed 760 px
-            inside 716 px of room, so it hung 44 px past its own margin — and
-            in landscape, where those 128 px are a third of the screen,
-            "Valider" left the viewport altogether.
+            La boîte porte 64 px de marge en haut et en bas par défaut, et
+            `maxH="90dvh"` n'en savait rien : on lui autorisait 760 px dans
+            716 px de place, elle dépassait donc de 44 px sa propre marge — et
+            en paysage, où ces 128 px font un tiers de l'écran, « Valider »
+            sortait carrément de la fenêtre.
 
-            So the margin shrinks to 16 px where the screen is small, and the
-            height is what is actually left rather than a fraction of the
-            whole. A phone held upright gains 52 px of body from it. */}
+            La marge tombe donc à 16 px là où l'écran est petit, et la hauteur
+            est ce qu'il reste réellement plutôt qu'une fraction du tout. Un
+            téléphone tenu droit y gagne 52 px de corps. */}
         <Dialog.Content
           bg="bg.canvas"
           borderColor="whiteAlpha.100"
@@ -113,11 +124,12 @@ export const CompleteSessionModal = ({
           display="flex"
           flexDirection="column"
         >
-          {/* The statement comes before the question — but in the body, not
-              in the header. A header is chrome: it does not shrink. The recap
-              took all its room, and on a phone lying flat the body fell to
-              32 px while "Valider" ended 162 px below the screen. What is
-              long belongs to what scrolls. */}
+          {/* Le constat vient avant la question — mais dans le corps, pas
+              dans l'en-tête. Un en-tête est du décor : il ne rétrécit pas. Le
+              récapitulatif y prenait toute sa place, et sur un téléphone posé
+              à plat le corps tombait à 32 px pendant que « Valider »
+              terminait 162 px sous l'écran. Ce qui est long appartient à ce
+              qui défile. */}
           {!recap && (
             <Dialog.Header>
               <VStack align="start" gap={1}>
@@ -145,11 +157,11 @@ export const CompleteSessionModal = ({
               {recap && (
                 <>
                   {recap}
-                  {/* This sentence belongs beside the statement it comments
-                      on, and it belongs to what scrolls. In the footer it
-                      claimed a line of its own — `flexBasis="100%"` — on a
-                      surface that never shrinks, and so took that line from
-                      the body on every single session. */}
+                  {/* Cette phrase appartient à côté du constat qu'elle commente,
+                      et elle appartient à ce qui défile. Dans le pied, elle
+                      réclamait une ligne à elle — `flexBasis="100%"` — sur
+                      une surface qui ne rétrécit jamais, et prenait donc
+                      cette ligne au corps à chaque séance. */}
                   {chargesDejaNotees && (
                     <Text fontSize="xs" color="fg.muted" textAlign="center">
                       Tes charges sont déjà enregistrées&nbsp;— rien à
@@ -195,16 +207,17 @@ export const CompleteSessionModal = ({
 
               <Separator borderColor="whiteAlpha.100" />
 
-              {/* Folded away: nine times out of ten the session happened
-                  today, and the field sat between the comment and the confirm
-                  button for a rare case. */}
-              {/* The row keeps its height open or closed, so unfolding costs
-                  nothing. Two things make that true: the label sits beside
-                  the field rather than above it, and the row reserves the
-                  field's height while still folded. Stacked and unreserved,
-                  one tap added 48 px to a body that already scrolled — the
-                  whole wrap-up jumped under your thumb, which is what you
-                  notice, far more than the scrollbar itself. */}
+              {/* Replié : neuf fois sur dix la séance a eu lieu aujourd'hui, et
+                  le champ se tenait entre le commentaire et le bouton de
+                  validation pour un cas rare. */}
+              {/* La rangée garde sa hauteur, ouverte ou fermée, si bien que
+                  déplier ne coûte rien. Deux choses le permettent :
+                  l'étiquette se place à côté du champ plutôt qu'au-dessus, et
+                  la rangée réserve la hauteur du champ alors qu'elle est
+                  encore repliée. Empilée et non réservée, une touche ajoutait
+                  48 px à un corps qui défilait déjà — tout le bilan sautait
+                  sous le pouce, ce qui se remarque bien plus que la barre de
+                  défilement elle-même. */}
               <HStack justify="center" gap={2} flexWrap="wrap" minH="44px">
                 {isDateOpen ? (
                   <>
@@ -257,9 +270,10 @@ export const CompleteSessionModal = ({
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
               Annuler
             </Button>
-            {/* The form's only required field, and genuinely so:
-                preselecting "3" would record a value the client never chose,
-                and it would feed the trend the coach reads. */}
+            {/* Le seul champ requis du formulaire, et il l'est
+                réellement : présélectionner « 3 » enregistrerait une valeur
+                que le client n'a jamais choisie, et elle nourrirait la
+                tendance que le coach lit. */}
             <Button
               bg="app.primary"
               color="bg.canvas"

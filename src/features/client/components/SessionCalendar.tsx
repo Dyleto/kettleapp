@@ -14,10 +14,11 @@ const monthLabel = (d: Date) =>
     d
   );
 
-/** Monday = 0: the French week does not start on Sunday. */
+/** Lundi = 0 : la semaine française ne commence pas le dimanche. */
 const mondayIndex = (date: Date) => (date.getDay() + 6) % 7;
 
-/** The month's weeks, each of seven cells, padded with `null`. */
+/** Les semaines du mois, de sept cellules chacune, complétées par
+ * `null`. */
 const buildWeeks = (cursor: Date): (Date | null)[][] => {
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const daysInMonth = new Date(
@@ -39,12 +40,12 @@ const buildWeeks = (cursor: Date): (Date | null)[][] => {
 
 interface SessionCalendarProps {
   history: CompletedSession[];
-  /** The day shown in detail, or `null` for "the whole month". */
+  /** Le jour affiché en détail, ou `null` pour « tout le mois ». */
   selectedDay: string | null;
   onSelectDay: (day: string | null) => void;
   /**
-   * How many months show side by side. Two months give the depth needed to
-   * read a rhythm — one month alone cuts the momentum in half.
+   * Combien de mois s'affichent côte à côte. Deux mois donnent la profondeur
+   * qu'il faut pour lire un rythme — un mois seul coupe l'élan en deux.
    */
   months?: 1 | 2;
 }
@@ -120,17 +121,17 @@ const MonthGrid = ({
               const isSelected = selectedDay === key;
               const isToday = key === todayKey;
 
-              // The chip takes the effort colour. Several sessions on the
-              // same day: the one from the last recorded wrap-up.
+              // La pastille prend la couleur de l'effort. Plusieurs séances le
+              // même jour : celle du dernier bilan enregistré.
               const effort =
                 sessions.length > 0 ? getEffortSummary(sessions[0]) : null;
               const dotColor = effort
                 ? EFFORT_ZONE_COLOR[effort.zone]
                 : 'app.primary';
 
-              // A day with no session is not a disabled control: it is not a
-              // control at all. So it does not go in the tab order, and a
-              // screen reader does not announce it.
+              // Un jour sans séance n'est pas une commande désactivée : ce n'est
+              // pas une commande du tout. Il ne va donc pas dans l'ordre de
+              // tabulation, et un lecteur d'écran ne l'annonce pas.
               const isActionable = sessions.length > 0;
 
               return (
@@ -178,7 +179,7 @@ const MonthGrid = ({
                     >
                       {date.getDate()}
                     </Text>
-                    {/* One chip per session: two on the same day are visible. */}
+                    {/* Une pastille par séance : deux le même jour se voient. */}
                     <HStack gap="2px" h="5px" justify="center">
                       {sessions.map((s) => (
                         <Box
@@ -202,16 +203,16 @@ const MonthGrid = ({
 };
 
 /**
- * The month, with a chip on the days the client trained.
+ * Le mois, avec une pastille sur les jours où le client s'est entraîné.
  *
- * A list answers "what did they do?", not "at what rhythm?". Two sessions
- * back to back then ten days of nothing shows on a calendar and is counted
- * painfully on a list. The chip's colour takes the declared effort: you read
- * a workload at a glance.
+ * Une liste répond à « qu'a-t-il fait ? », pas à « à quel rythme ? ». Deux
+ * séances coup sur coup puis dix jours de rien se voit sur un calendrier et
+ * se compte péniblement sur une liste. La couleur de la pastille reprend
+ * l'effort déclaré : on lit une charge de travail d'un coup d'œil.
  *
- * Each week carries its count on the left, and a dash when it is empty: a
- * skipped week is what you are looking for, and nothing distinguished it from
- * the empty cells at the start and end of a month.
+ * Chaque semaine porte son compte à gauche, et un tiret quand elle est vide :
+ * une semaine sautée est ce qu'on cherche, et rien ne la distinguait des
+ * cellules vides de début et de fin de mois.
  */
 export const SessionCalendar = ({
   history,
@@ -219,9 +220,9 @@ export const SessionCalendar = ({
   onSelectDay,
   months = 1,
 }: SessionCalendarProps) => {
-  // We open on the month of the most recent session, not on the current
-  // month: a client idle for six weeks would show an empty grid, and you
-  // would think the journal was broken.
+  // On ouvre sur le mois de la séance la plus récente, et non sur le mois
+  // courant : un client inactif depuis six semaines verrait une grille vide,
+  // et croirait le journal cassé.
   const [cursor, setCursor] = useState(() => {
     const latest = history[0]?.completedAt;
     const base = latest ? new Date(latest) : new Date();
@@ -239,8 +240,8 @@ export const SessionCalendar = ({
     return map;
   }, [history]);
 
-  // The cursor is the most recent month; earlier ones show to its left, so
-  // you read left to right in the direction of time.
+  // Le curseur est le mois le plus récent ; les précédents s'affichent à sa
+  // gauche, si bien qu'on lit de gauche à droite dans le sens du temps.
   const shownMonths = useMemo(
     () =>
       Array.from(

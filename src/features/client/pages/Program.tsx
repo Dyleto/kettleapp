@@ -69,10 +69,10 @@ const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
           {matchLabel(match)}
         </Text>
       </HStack>
-      {/* The suggested day reads here because here is where you choose
-            what to do — and in the exact form the coach set it. A session
-            with no day renders nothing: the absence of a suggestion is not
-            information worth showing. */}
+      {/* Le jour conseillé se lit ici parce que c'est ici qu'on choisit
+            quoi faire — et sous la forme exacte que le coach lui a donnée.
+            Une séance sans jour ne rend rien : l'absence de conseil n'est pas
+            une information qui mérite d'être affichée. */}
       <SuggestedDays days={session.suggestedDays} withLabel />
       {session.blocks.length === 0 ? (
         <Text fontSize="xs" color="fg.muted">
@@ -98,8 +98,9 @@ const Program = () => {
   const { sessions, nextSession, history } =
     useOutletContext<ClientSessionsData>();
 
-  // One pass over the history per session: the comparison walks the blocks,
-  // so it is not free, and the list re-renders on every navigation.
+  // Un passage sur l'historique par séance : la comparaison parcourt les
+  // blocs, elle n'est donc pas gratuite, et la liste se redessine à chaque
+  // navigation.
   const matches = useMemo(
     () => new Map(sessions.map((s) => [s._id, matchSession(s, history)])),
     [sessions, history]

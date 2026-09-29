@@ -3,6 +3,12 @@ import { NavLink } from 'react-router-dom';
 import { Header } from '@/shared/components/Header';
 import { CLIENT_NAV_ITEMS } from '../navItems';
 
+/**
+ * La navigation du client sur écran large : une colonne à gauche.
+ *
+ * Le même gabarit que celui du coach, et pour la même raison : un compte qui
+ * porte les deux rôles change d'espace sans changer de repères.
+ */
 export const ClientNavRail = () => {
   return (
     <VStack
@@ -33,8 +39,9 @@ export const ClientNavRail = () => {
                   gap={3}
                   px={3}
                   py={2.5}
-                  /* 41 px tall: navigation was the only thing on screen
-                     that fell below the touch-target floor. */
+                  /* 41 px de haut : la navigation était la seule chose à
+                                       l'écran qui tombait sous le plancher de cible
+                                       tactile. */
                   minH="44px"
                   borderRadius="md"
                   color={isActive ? 'app.primary' : 'fg.muted'}

@@ -20,8 +20,8 @@ const History = () => {
   const { history } = useOutletContext<ClientSessionsData>();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
-  // The calendar filters, it does not replace: with no day picked, you read
-  // everything.
+  // Le calendrier filtre, il ne remplace pas : sans jour choisi, on lit
+  // tout.
   const visible = selectedDay
     ? history.filter((c) => dayKey(new Date(c.completedAt)) === selectedDay)
     : history;
@@ -58,9 +58,9 @@ const History = () => {
                   selectedDay={selectedDay}
                   onSelectDay={setSelectedDay}
                 />
-                {/* The calendar says at what rhythm, this says in which
-                    direction. Both cover the whole history, not the selected
-                    day: this is the context column. */}
+                {/* Le calendrier dit à quel rythme, ceci dit dans quelle
+                    direction. Les deux portent sur tout l'historique et non
+                    sur le jour sélectionné : c'est la colonne de contexte. */}
                 <ExerciseProgressions history={history} />
               </VStack>
             </Box>

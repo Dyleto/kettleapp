@@ -40,16 +40,16 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { hitArea } from '@/shared/components/hitArea';
 import { sessionTitle } from '@/features/program/sessionTitle';
 
-// What was performed is entered exercise by exercise during the session,
-// then leaves all at once with the wrap-up. The key is "block order :
-// exercise order", exactly the addressing the API expects. An exercise
-// without a single filled-in set is not sent at all: nothing to say is not a
-// value.
+// Ce qui a été réalisé se saisit exercice par exercice pendant la séance,
+// puis part d'un coup avec le bilan. La clé est « rang du bloc : rang de
+// l'exercice », exactement l'adressage qu'attend l'API. Un exercice dont
+// aucune série n'est renseignée n'est pas envoyé du tout : ne rien avoir à
+// dire n'est pas une valeur.
 /**
- * Rounds completed, as the API expects them.
+ * Les tours bouclés, tels que l'API les attend.
  *
- * Zero goes with the rest: a client who completed no round lived that, and
- * sending nothing would amount to saying they did not do the block.
+ * Zéro part avec le reste : un client qui n'a bouclé aucun tour l'a vécu, et
+ * ne rien envoyer reviendrait à dire qu'il n'a pas fait le bloc.
  */
 const toRoundsDone = (tours?: Record<string, number>): RoundsDoneEntry[] =>
   Object.entries(tours ?? {}).map(([blockOrder, rounds]) => ({
@@ -86,25 +86,25 @@ const SessionScreen = () => {
   const [isGuidedOpen, setIsGuidedOpen] = useState(false);
   useDocumentTitle(activeSession ? `Séance ${activeSession.order}` : undefined);
 
-  // Finishing a session happens in two steps: "do you want to record your
-  // loads?", then the wrap-up. `idle` covers reading, where the screen asks
-  // nothing.
+  // Terminer une séance se fait en deux temps : « veux-tu noter tes
+  // charges ? », puis le bilan. `idle` couvre la lecture, où l'écran ne
+  // demande rien.
   const [flow, setFlow] = useState<'idle' | 'record' | 'review'>('idle');
 
-  // What has been recorded no longer lives in memory alone.
+  // Ce qui a été noté ne vit plus dans la seule mémoire.
   //
-  // It was a bare `useState`: one reload, one incoming call killing the tab,
-  // and forty minutes of loads were gone. The app nonetheless scrupulously
-  // remembered which step you were on. It kept what can be found again and
-  // lost what cannot.
+  // C'était un `useState` nu : un rechargement, un appel entrant qui tue
+  // l'onglet, et quarante minutes de charges disparaissaient. L'application
+  // retenait pourtant scrupuleusement à quelle étape on en était. Elle
+  // gardait ce qui se retrouve et perdait ce qui ne se retrouve pas.
   const [performed, setPerformed] = useState<Record<string, PerformedValues>>(
     () =>
       activeSession ? (readProgress(activeSession._id)?.performed ?? {}) : {}
   );
 
-  // Input belongs to one precise session: moving to another from the
-  // programme must not drag the previous one's loads into the wrap-up. Each
-  // finds its own, where it left them.
+  // La saisie appartient à une séance précise : passer à une autre depuis
+  // le programme ne doit pas traîner les charges de la précédente dans le
+  // bilan. Chacune retrouve les siennes, là où elle les a laissées.
   const [performedFor, setPerformedFor] = useState(activeSession?._id);
   if (activeSession?._id !== performedFor) {
     setPerformedFor(activeSession?._id);
@@ -115,11 +115,11 @@ const SessionScreen = () => {
   }
 
   /**
-   * The recap, computed as the wrap-up opens.
+   * Le récapitulatif, calculé à l'ouverture du bilan.
    *
-   * It only exists if the session was run in guided mode: with no saved
-   * state there is nothing to state, and an empty recap would be worth less
-   * than no recap.
+   * Il n'existe que si la séance a été menée en mode guidé : sans état
+   * enregistré il n'y a rien à constater, et un récapitulatif vide vaudrait
+   * moins que pas de récapitulatif.
    */
   const recap = useMemo(() => {
     if (!activeSession || flow === 'idle') return undefined;
@@ -142,8 +142,8 @@ const SessionScreen = () => {
     (key: string, next: PerformedValues) =>
       setPerformed((prev) => {
         const suivant = { ...prev, [key]: next };
-        // On keystroke rather than on blur: what we want to cover is the app
-        // disappearing without warning.
+        // À la frappe plutôt qu'à la perte du focus : ce qu'on cherche à
+        // couvrir, c'est l'application qui disparaît sans prévenir.
         if (activeSession)
           writeProgress(activeSession._id, { performed: suivant });
         return suivant;
@@ -227,9 +227,9 @@ const SessionScreen = () => {
       pb={{ base: '220px', md: 8 }}
     >
       <VStack align="stretch" gap={1} mb={4}>
-        {/* You go back where you came from nine times out of ten: home.
-            The programme stays one tab away. A real button, not a clickable
-            HStack: it has to be reachable from the keyboard. */}
+        {/* On repart d'où l'on vient neuf fois sur dix : l'accueil. Le
+            programme reste à un onglet. Un vrai bouton, et non un HStack
+            cliquable : il doit être atteignable au clavier. */}
         <Box
           as="button"
           aria-label="Revenir à Aujourd'hui"
@@ -265,11 +265,11 @@ const SessionScreen = () => {
             {pillLabel}
           </Box>
         </HStack>
-        {/* The day reminder, where you decide whether to start: the
-            programme said it, the card did not. With its caption — you
-            arrive here from home without necessarily having gone through the
-            programme, and two bare chips would read "you did it Monday and
-            Thursday". `wrap` because a session can carry seven. */}
+        {/* Le rappel du jour, là où l'on décide de commencer : le
+            programme le disait, la carte non. Avec sa légende — on arrive ici
+            depuis l'accueil sans être forcément passé par le programme, et
+            deux pastilles nues se liraient « tu l'as faite lundi et jeudi ».
+            `wrap` parce qu'une séance peut en porter sept. */}
         <HStack justify="space-between" align="center" gap={3} wrap="wrap">
           <Text fontSize="xs" color="fg.muted">
             {summary}
@@ -278,10 +278,10 @@ const SessionScreen = () => {
         </HStack>
       </VStack>
 
-      {/* In read mode a session is read: no empty field under every
-          exercise before it has even been started. Input comes at the end, in
-          RecordPerformed — but what was used last time shows right now,
-          because that is where it is needed. */}
+      {/* En lecture, une séance se lit : pas de champ vide sous chaque
+          exercice avant même d'avoir commencé. La saisie vient à la fin, dans
+          RecordPerformed — mais ce qu'on a mis la dernière fois s'affiche dès
+          maintenant, parce que c'est là qu'on en a besoin. */}
       <SessionDetail
         session={activeSession}
         lastPerformance={lastPerformance}
@@ -292,10 +292,10 @@ const SessionScreen = () => {
         gap={2}
         mt={5}
         position={{ base: 'fixed', md: 'static' }}
-        // Anchored to the bottom of the screen rather than at 70 px: the tab
-        // bar is not exactly 70 px — it depends on the phone's safe area —
-        // and the gap let a thread of page through between the two. The
-        // background now runs down behind the bar.
+        // Ancré au bas de l'écran plutôt qu'à 70 px : la barre d'onglets ne
+        // fait pas exactement 70 px — cela dépend de la zone sûre du
+        // téléphone — et l'écart laissait passer un filet de page entre les
+        // deux. Le fond court maintenant derrière la barre.
         bottom={{ base: 0, md: 'auto' }}
         left={{ base: 0, md: 'auto' }}
         right={{ base: 0, md: 'auto' }}
@@ -341,10 +341,9 @@ const SessionScreen = () => {
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
-            // Anyone who recorded during the session has already answered
-            // the question: asking it again at the end, in front of fields
-            // they have just filled in, is asking the same thing twice. The
-            // wrap-up tells them so.
+            // Qui a noté pendant la séance a déjà répondu à la question : la
+            // reposer à la fin, devant des champs qu'il vient de remplir,
+            // c'est demander deux fois la même chose. Le bilan le lui dit.
             setFlow(countRecorded(performed) > 0 ? 'review' : 'record');
           }}
           lastPerformance={lastPerformance}
@@ -353,8 +352,8 @@ const SessionScreen = () => {
         />
       )}
 
-      {/* Remounted on every opening: the question starts from scratch
-          rather than reopening on the already-unfolded input. */}
+      {/* Remonté à chaque ouverture : la question repart de zéro plutôt
+          que de rouvrir sur la saisie déjà dépliée. */}
       <RecordPerformed
         key={flow === 'record' ? 'record-open' : 'record-closed'}
         session={activeSession}

@@ -3,16 +3,17 @@ import { LuArrowUp, LuArrowDown, LuCheck } from 'react-icons/lu';
 import { Recap } from '../recap';
 
 /**
- * The statement of fact, before the question.
+ * Le constat, avant la question.
  *
- * Forty minutes of effort led to a form, then a second one, then a toast. We
- * asked twice before giving anything. Here we reward first: what follows —
- * how it felt — is the only thing the app cannot work out on its own.
+ * Quarante minutes d'effort menaient à un formulaire, puis à un second, puis
+ * à un toast. On demandait deux fois avant de donner quoi que ce soit. Ici on
+ * récompense d'abord : ce qui suit — le ressenti — est la seule chose que
+ * l'application ne peut pas trouver seule.
  *
- * Four figures at most, and only the ones the session actually produced:
- * tonnage means nothing on a bodyweight AMRAP, rounds mean nothing on
- * classic work. A fixed grid would show zeros, and a displayed zero reads as
- * a failure.
+ * Quatre chiffres au plus, et seulement ceux que la séance a réellement
+ * produits : le tonnage ne veut rien dire sur un AMRAP au poids du corps, les
+ * tours ne veulent rien dire sur du travail classique. Une grille fixe
+ * afficherait des zéros, et un zéro affiché se lit comme un échec.
  */
 export const SessionRecap = ({
   recap,
@@ -102,9 +103,10 @@ export const SessionRecap = ({
         </Grid>
       )}
 
-      {/* The engine, by far. `lastPerformance` is already loaded on the
-          client: "↑ +2 kg" costs nothing to compute, and no generic app can
-          say it as well — it does not know what the coach had prescribed. */}
+      {/* Le moteur, et de loin. `lastPerformance` est déjà chargé côté
+          client : « ↑ +2 kg » ne coûte rien à calculer, et aucune application
+          générique ne saurait le dire aussi bien — elle ne sait pas ce que le
+          coach avait prescrit. */}
       {recap.comparisons.length > 0 && (
         <VStack align="stretch" gap={2.5}>
           <Text

@@ -115,7 +115,6 @@ const CoachRow = ({ coach }: { coach: AdminCoach }) => {
       _hover={{ bg: 'whiteAlpha.50' }}
       transition="background 0.15s"
     >
-      {/* Avatar */}
       <Box
         w="36px"
         h="36px"
@@ -150,7 +149,6 @@ const CoachRow = ({ coach }: { coach: AdminCoach }) => {
         </Text>
       </VStack>
 
-      {/* Stats */}
       <HStack gap={{ base: 3, sm: 5 }} flexShrink={0}>
         <HStack gap={1.5} color="fg.muted" fontSize="xs">
           <LuUsers size={13} />
@@ -315,7 +313,6 @@ const AdminDashboard = () => {
   return (
     <Container as="main" id="contenu" maxW="container.xl" py={8} px={4}>
       <VStack gap={8} align="stretch">
-        {/* Header */}
         <HStack justify="space-between" align="start">
           <VStack align="start" gap={0.5}>
             <HStack gap={2}>
@@ -337,7 +334,6 @@ const AdminDashboard = () => {
           <Header />
         </HStack>
 
-        {/* KPI */}
         <Grid
           templateColumns={{
             base: '1fr',

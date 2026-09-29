@@ -92,10 +92,11 @@ const collectPerformed = (
   return map;
 };
 
-// Only returns the exercises whose recorded values changed. The list of sets
-// goes whole: it replaces the stored one, and `[]` clears it. Nothing left to
-// tell apart between "clear it" and "leave it alone" — the exercise being
-// absent from the body is what means "leave it alone".
+// Ne rend que les exercices dont les valeurs notées ont changé. La liste
+// des séries part entière : elle remplace celle qui est enregistrée, et `[]`
+// l'efface. Plus rien à distinguer entre « efface-la » et « n'y touche pas »
+// — c'est l'absence de l'exercice dans le corps qui veut dire « n'y touche
+// pas ».
 const diffPerformed = (
   original: Record<string, PerformedValues>,
   edited: Record<string, PerformedValues>
@@ -135,18 +136,25 @@ interface CompletedSessionDrawerProps {
   completed: CompletedSession;
   isOpen: boolean;
   onClose: () => void;
-  /** Only the client who owns the report may correct it. */
+  /** Seul le client à qui appartient le bilan peut le corriger. */
   editable?: boolean;
 }
 
+/**
+ * Un bilan déjà envoyé, relu — et corrigé par celui à qui il appartient.
+ *
+ * Le coach le lit, il ne le modifie pas : ce qui s'est passé pendant la
+ * séance appartient à celui qui l'a faite. Un chiffre tapé de travers en
+ * plein effort doit pouvoir se réparer, et c'est ici.
+ */
 export const CompletedSessionDrawer = ({
   completed,
   isOpen,
   onClose,
   editable = false,
 }: CompletedSessionDrawerProps) => {
-  // Same rule as in the end-of-session form: without consent we do not offer
-  // to enter what we have no right to store.
+  // Même règle que dans le formulaire de fin de séance : sans consentement,
+  // on ne propose pas de saisir ce qu'on n'a pas le droit de conserver.
   const { user } = useAuth();
   const partageSante = user?.healthConsent?.granted === true;
 
@@ -295,9 +303,9 @@ export const CompletedSessionDrawer = ({
                           )}
                       </VStack>
                     ) : (
-                      // A report from before the rework: the difficulty
-                      // question was never put to them. We say so, we do not
-                      // invent a level, and we re-average nothing.
+                      // Un bilan d'avant la refonte : la question de la difficulté ne
+                      // lui a jamais été posée. On le dit, on n'invente pas de
+                      // niveau, et on ne recalcule aucune moyenne.
                       <VStack align="stretch" gap={2}>
                         <Text fontSize="sm" color="fg.muted">
                           Ressenti non comparable
@@ -421,9 +429,10 @@ export const CompletedSessionDrawer = ({
                                 );
                               }
                               const done = formatPerformed(original[key]);
-                              // Nothing recorded: we write nothing. A column
-                              // of "Fait : —" over ten exercises does not say
-                              // it is empty, it clutters to say it.
+                              // Rien de noté : on n'écrit rien. Une colonne de
+                              // « Fait : — » sur dix exercices ne dit pas
+                              // qu'elle est vide, elle encombre pour le
+                              // dire.
                               if (!done) return null;
                               return (
                                 <Text fontSize="xs" color="fg.muted" pl={4}>
