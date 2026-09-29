@@ -9,4 +9,6 @@
  * plus large que ce qu'il filtre a l'air de chercher ailleurs.
  */
 export const COACH_CONTENT_MAX_W = '720px';
+/** Une grille, elle, remplit ce qu'on lui donne : on la balaye, on ne la lit
+ * pas ligne à ligne. */
 export const COACH_GRID_MAX_W = '6xl';

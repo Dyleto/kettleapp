@@ -38,8 +38,9 @@ export const SuggestedDaysPicker = ({
     );
 
   return (
-    // Seven buttons do not always fit the width they are given — measured at
-    // 768 px, "Dim" overflowed by 22 px. They wrap rather than push the page.
+    // Sept boutons ne tiennent pas toujours dans la largeur qu'on leur donne
+    // — mesuré à 768 px, « Dim » débordait de 22 px. Ils se replient plutôt
+    // que de pousser la page.
     <HStack
       gap={1}
       rowGap={1}
@@ -57,11 +58,12 @@ export const SuggestedDaysPicker = ({
             aria-label={WEEKDAY_FULL[day]}
             onClick={() => toggle(day)}
             {...dayChipStyle(active)}
-            /* Under a finger the chip genuinely grows rather than being
-               doubled by an invisible zone: seven of them follow each other
-               4 px apart, and seven 44 px zones would all overlap. Seven
-               44 px chips fit across a phone — and if they do not, the row
-               wraps, which it already knows how to do. */
+            /* Sous un doigt, la pastille grandit réellement au lieu d'être
+                           doublée d'une zone invisible : sept d'entre elles se suivent à
+                           4 px, et sept zones de 44 px se recouvriraient toutes. Sept
+                           pastilles de 44 px tiennent en travers d'un téléphone — et si
+                           elles ne tiennent pas, la rangée se replie, ce qu'elle sait
+                           déjà faire. */
             css={{
               ...hitArea(32),
               [TACTILE]: { minWidth: '44px', minHeight: '44px' },

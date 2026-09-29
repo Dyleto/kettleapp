@@ -9,12 +9,13 @@ interface BlockConfigInlineProps {
 }
 
 /**
- * Block settings are written like the card's durations.
+ * Les réglages d'un bloc s'écrivent comme les durées de la carte.
  *
- * These fields carried their unit joined by an ordinary space — "5 s",
- * "12 min" — which is one more convention for the same quantity. The coach
- * still edits in the unit they think in, but reads back in the product's
- * spelling: "90 s" entered reads back as "1 min 30 s", as everywhere else.
+ * Ces champs portaient leur unité collée par une espace ordinaire — « 5 s »,
+ * « 12 min » — ce qui fait une convention de plus pour la même quantité. Le
+ * coach édite toujours dans l'unité dans laquelle il pense, mais relit dans
+ * l'orthographe du produit : « 90 s » saisi se relit « 1 min 30 s », comme
+ * partout ailleurs.
  */
 const enMinutes = (minutes: number) => formatDuration(minutes * 60);
 
@@ -25,11 +26,11 @@ const Sep = ({ children }: { children: string }) => (
 );
 
 /**
- * A block's settings, editable where they are read — in the header.
+ * Les réglages d'un bloc, éditables là où ils se lisent — dans l'en-tête.
  *
- * Four shapes only: nothing · one value · composed values · a sequence. The
- * editing state uses exactly the words of the reading state; only the numbers
- * get a frame. Never a popover, never a modal.
+ * Quatre formes seulement : rien · une valeur · des valeurs composées · une
+ * suite. L'état d'édition reprend exactement les mots de l'état de lecture ;
+ * seuls les nombres prennent un cadre. Jamais de popover, jamais de modale.
  */
 export const BlockConfigInline = ({
   block,
@@ -43,16 +44,16 @@ export const BlockConfigInline = ({
 
     // ── Une valeur ──
     /*
-     * The EMOM carries its interval, and that is what makes it an E2MOM.
+     * L'EMOM porte son intervalle, et c'est ce qui en fait un E2MOM.
      *
-     * From the field: "when I do EMOMs or E2MOMs, I cannot set a duration."
-     * That was accurate — the interval only existed on the "Every" type,
-     * folded behind the seven rare formats, while the EMOM was offered up
-     * front. A coach looking for an E2MOM therefore lands on the EMOM and
-     * gets stuck there.
+     * Retour du terrain : « quand je fais des EMOM ou des E2MOM, je ne peux
+     * pas régler de durée. » C'était juste — l'intervalle n'existait que sur
+     * le type « Every », replié derrière les sept formats rares, alors que
+     * l'EMOM était proposé d'emblée. Un coach qui cherche un E2MOM atterrit
+     * donc sur l'EMOM et s'y trouve coincé.
      *
-     * Guided mode already reads `intervalMinutes` for every round-based
-     * block, EMOM included: only the setting had to be opened.
+     * Le mode guidé lit déjà `intervalMinutes` pour tout bloc à tours, EMOM
+     * compris : il n'y avait que le réglage à ouvrir.
      */
     case 'every':
     case 'emom':
@@ -122,8 +123,8 @@ export const BlockConfigInline = ({
             min={1}
           />
           <Sep>×</Sep>
-          {/* Seconds, not minutes: that is what guided mode's timer reads,
-              and that is what p11-8 fixes. */}
+          {/* Des secondes, pas des minutes : c'est ce que lit le minuteur
+              du mode guidé, et c'est ce que p11-8 corrige. */}
           <InlineValue
             value={block.workDuration}
             onChange={(v) => onUpdate({ workDuration: v })}
@@ -149,8 +150,8 @@ export const BlockConfigInline = ({
     case 'pyramid':
     case 'ladder':
       return (
-        // A pyramid can have thirteen rungs: the sequence has to be able to
-        // wrap instead of widening the header.
+        // Une pyramide peut avoir treize paliers : la suite doit pouvoir se
+        // replier plutôt qu'élargir l'en-tête.
         <Flex gap={2} align="baseline" wrap="wrap" rowGap={1} minW={0}>
           <Box minW={0}>
             <InlineSequence
@@ -160,8 +161,8 @@ export const BlockConfigInline = ({
             />
           </Box>
           <HStack gap={1} flexShrink={0}>
-            {/* "repos aucun" is not something you say: when the setting is
-                empty, the value carries the whole phrase. */}
+            {/* « repos aucun » ne se dit pas : quand le réglage est vide,
+                c'est la valeur qui porte toute la phrase. */}
             {block.restBetweenRounds !== undefined && <Sep>repos</Sep>}
             <InlineValue
               value={block.restBetweenRounds}

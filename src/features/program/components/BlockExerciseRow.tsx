@@ -14,20 +14,22 @@ import { hitArea } from '@/shared/components/hitArea';
 interface BlockExerciseRowProps {
   exercise: BlockExercise;
   blockType: BlockType;
-  /** The parent block: in Tabata and On-Off it defines the work, not the exercise. */
+  /** Le bloc parent : en Tabata et On-Off, c'est lui qui définit le travail,
+   * pas l'exercice. */
   block?: Pick<SessionBlock, 'workDuration' | 'repsScheme'>;
   index: number;
-  /** Slotted under the row: what was performed, or last time's reminder. */
+  /** Inséré sous la ligne : ce qui a été réalisé, ou le rappel de la
+   * dernière fois. */
   extra?: ReactNode;
 }
 
 /**
- * An exercise row in read mode — the exact twin of the editor's.
+ * Une ligne d'exercice en lecture — le jumeau exact de celle de l'éditeur.
  *
- * Same left column for the name, same right column in tabular figures for
- * the prescription, same separating rule. The one thing it has in addition:
- * the exercise's instruction and video unfold on click, which only makes
- * sense while doing the session.
+ * Même colonne de gauche pour le nom, même colonne de droite en chiffres
+ * tabulaires pour la prescription, même filet de séparation. La seule chose
+ * qu'elle a en plus : la consigne et la vidéo de l'exercice se déplient au
+ * clic, ce qui n'a de sens qu'en faisant la séance.
  */
 export const BlockExerciseRow = ({
   exercise,
@@ -43,22 +45,22 @@ export const BlockExerciseRow = ({
   const rest = restSeconds ? `${formatDuration(restSeconds)} repos` : null;
 
   const ex = exercise.exercise;
-  // Two levels of instruction, which must not be stacked without being told
-  // apart. `exercise.note` is what the coach wrote for this placement, in
-  // this session; `ex.description` describes the movement in general and
-  // comes from the library, shared by all their clients.
+  // Deux niveaux de consigne, qu'il ne faut pas empiler sans les
+  // distinguer. `exercise.note` est ce que le coach a écrit pour ce
+  // placement, dans cette séance ; `ex.description` décrit le mouvement en
+  // général et vient de la bibliothèque, partagée par tous ses clients.
   const consigne = exercise.note?.trim();
   const hasNote = !!consigne;
   const hasDescription = !!ex.description?.trim();
   const hasVideo = !!ex.videoUrl?.trim();
   const hasDetail = hasNote || hasDescription || hasVideo;
 
-  // Every row unfolds, even an empty one.
+  // Toute ligne se déplie, même vide.
   //
-  // Making only documented exercises clickable created an ambiguous silence:
-  // you tap a name, nothing moves, and nothing says whether you missed,
-  // whether the screen is broken, or whether there is simply nothing to read.
-  // Unfolding answers in all three cases.
+  // N'ouvrir que les exercices documentés créait un silence ambigu : on tape
+  // un nom, rien ne bouge, et rien ne dit si on a manqué la cible, si l'écran
+  // est cassé, ou s'il n'y a simplement rien à lire. Le dépliement répond
+  // dans les trois cas.
 
   return (
     <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
@@ -93,10 +95,10 @@ export const BlockExerciseRow = ({
           <Text fontSize="sm" color="fg.muted" lineClamp={2}>
             {ex.name}
           </Text>
-          {/* A pictogram the size of a character, in the text colour: a
-              client who never noticed it does not know the app contains
-              videos. One exercise in seven carries one — there is room to say
-              so. */}
+          {/* Un pictogramme de la taille d'un caractère, dans la couleur du
+              texte : un client qui ne l'a jamais remarqué ne sait pas que
+              l'application contient des vidéos. Un exercice sur sept en porte
+              une — il y a la place de le dire. */}
           {hasVideo && (
             <HStack gap={1} color="app.primary" flexShrink={0}>
               <LuVideo size={13} />
@@ -107,9 +109,9 @@ export const BlockExerciseRow = ({
           )}
         </HStack>
 
-        {/* The prescription and the chevron form a single flex element:
-            separated, they wrapped independently and the chevron ended up
-            alone on the line below. */}
+        {/* La prescription et le chevron ne font qu'un élément flexible :
+            séparés, ils se repliaient indépendamment et le chevron se
+            retrouvait seul sur la ligne du dessous. */}
         <HStack gap={3} flexShrink={0} ml="auto" align="center">
           {(metric || rest) && (
             <VStack gap={0} align="end" flexShrink={0}>
@@ -131,12 +133,12 @@ export const BlockExerciseRow = ({
             </VStack>
           )}
 
-          {/* No chevron when there is nothing below: its absence becomes
-              accurate information, instead of a disappointment on every
-              opening. The row stays clickable all the same — tapping a name
-              and getting no response does not say whether you missed, whether
-              the screen is broken, or whether there is nothing to read;
-              unfolding answers "your coach left no instruction". */}
+          {/* Pas de chevron quand il n'y a rien en dessous : son absence
+              devient une information juste, au lieu d'une déception à chaque
+              ouverture. La ligne reste cliquable pour autant — taper un nom
+              sans réponse ne dit pas si on a manqué la cible, si l'écran est
+              cassé, ou s'il n'y a rien à lire ; le dépliement répond « ton
+              coach n'a pas laissé de consigne ». */}
           {hasDetail && (
             <Box
               color="fg.muted"
@@ -154,9 +156,10 @@ export const BlockExerciseRow = ({
 
       {isOpen && (
         <VStack align="stretch" gap={3} pb={3}>
-          {/* What the coach wrote for you comes first, recognisable by the
-              amber bar — the same as their session note. What comes from the
-              library stays plain text, below. */}
+          {/* Ce que le coach a écrit pour toi vient en premier,
+              reconnaissable à la barre ambre — la même que sa note de séance.
+              Ce qui vient de la bibliothèque reste du texte simple, en
+              dessous. */}
           {hasNote && (
             <Box
               p={3}
@@ -187,9 +190,9 @@ export const BlockExerciseRow = ({
           )}
           {hasDescription && (
             <Box>
-              {/* The heading only appears when there are two texts to tell
-                  apart: on its own, the library's does not need us to say
-                  where it comes from. */}
+              {/* Le titre n'apparaît que lorsqu'il y a deux textes à
+                  distinguer : seule, celle de la bibliothèque n'a pas besoin
+                  qu'on dise d'où elle vient. */}
               {hasNote && (
                 <Text
                   fontSize="2xs"

@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ClientProgram, Session } from '@/shared/types';
 
-/** What the status line has to say. */
+/** Ce que la ligne d'état a à dire. */
 export type SaveState = 'idle' | 'pending' | 'saving' | 'error';
 
 /**
- * Delay before sending a value change. Short enough that closing the tab
- * right after a keystroke loses nothing, long enough that we do not send the
- * whole programme on every character.
+ * Délai avant d'envoyer un changement de valeur. Assez court pour que fermer
+ * l'onglet juste après une frappe ne perde rien, assez long pour ne pas
+ * envoyer tout le programme à chaque caractère.
  */
 const DELAI_VALEUR = 800;
 
 /**
- * A fingerprint of the programme's structure: the identifiers and the number
- * of exercises, nothing of the values.
+ * Une empreinte de la structure du programme : les identifiants et le nombre
+ * d'exercices, rien des valeurs.
  *
- * It tells apart two gestures the coach does not experience the same way.
- * Adding a block or deleting an exercise is a decisive action, saved at once.
- * Retyping "12 reps" produces one per character: that one waits until they
- * have finished.
+ * Elle distingue deux gestes que le coach ne vit pas de la même façon.
+ * Ajouter un bloc ou supprimer un exercice est une action décidée, enregistrée
+ * aussitôt. Retaper « 12 reps » en produit une par caractère : celle-là
+ * attend qu'il ait fini.
  */
 const empreinte = (sessions: Session[]): string =>
   sessions
@@ -31,19 +31,20 @@ const empreinte = (sessions: Session[]): string =>
     .join('|');
 
 interface Params {
-  /** The editor's local state, the one the coach manipulates. */
+  /** L'état local de l'éditeur, celui que le coach manipule. */
   program: ClientProgram | null;
-  /** The programme as the server sent it, or `undefined` while it loads. */
+  /** Le programme tel que le serveur l'a envoyé, ou `undefined` pendant le
+   * chargement. */
   serverProgram: ClientProgram | undefined;
-  /** Replaces the local state — first arrival, and adopting the response. */
+  /** Remplace l'état local — première arrivée, et adoption de la réponse. */
   initialize: (data: ClientProgram) => void;
-  /** Sends the programme and returns what the server actually recorded. */
+  /** Envoie le programme et rend ce que le serveur a réellement enregistré. */
   save: (sessions: Session[]) => Promise<Session[]>;
 }
 
 interface Retour {
   state: SaveState;
-  /** True while a change has not left, or has not been confirmed. */
+  /** Vrai tant qu'un changement n'est pas parti, ou pas confirmé. */
   isDirty: boolean;
   savedAt: Date | null;
   /** Forces an immediate send: the retry button after a failure. */
@@ -51,23 +52,23 @@ interface Retour {
 }
 
 /**
- * Saves the programme as you go.
+ * Enregistre le programme au fil de l'écriture.
  *
- * Three things to hold together, and it is their combination that is
- * delicate:
+ * Trois choses à tenir ensemble, et c'est leur combinaison qui est délicate :
  *
- * 1. A background refetch must never overwrite a change in progress. React
- *    Query refreshes on window focus once the data is stale; the editor then
- *    reset itself silently and unsaved work disappeared without a word. That
- *    is the defect this hook fixes first.
+ * 1. Une relecture d'arrière-plan ne doit jamais écraser un changement en
+ *    cours. React Query rafraîchit au retour du focus dès que la donnée est
+ *    périmée ; l'éditeur se réinitialisait alors en silence et le travail non
+ *    enregistré disparaissait sans un mot. C'est le défaut que ce hook
+ *    répare en premier.
  *
- * 2. One send at a time. Two concurrent requests on the same programme means
- *    last one wins — and we do not know which that is. Anything that happens
- *    during a send waits for the response.
+ * 2. Un envoi à la fois. Deux requêtes concurrentes sur le même programme,
+ *    c'est le dernier qui gagne — et on ne sait pas lequel c'est. Ce qui
+ *    survient pendant un envoi attend la réponse.
  *
- * 3. The response is authoritative, but only if nothing moved meanwhile.
- *    Otherwise we drop it: the next send, which carries the same
- *    identifiers, will replace it.
+ * 3. La réponse fait foi, mais seulement si rien n'a bougé entre-temps.
+ *    Sinon on la jette : l'envoi suivant, qui porte les mêmes identifiants,
+ *    la remplacera.
  */
 export const useProgramAutoSave = ({
   program,
@@ -78,9 +79,9 @@ export const useProgramAutoSave = ({
   const [state, setState] = useState<SaveState>('idle');
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   /**
-   * What the server has, as far as we know, and `null` before the first load.
-   * It is state and not a ref: `isDirty` derives from it, and so it has to
-   * trigger a render.
+   * Ce que le serveur a, pour autant qu'on sache, et `null` avant le premier
+   * chargement. C'est un état et non une ref : `isDirty` en dérive, il doit
+   * donc déclencher un rendu.
    */
   const [enregistre, setEnregistre] = useState<string | null>(null);
 
@@ -88,9 +89,9 @@ export const useProgramAutoSave = ({
   const isDirty =
     courant !== null && enregistre !== null && courant !== enregistre;
 
-  /** The same content, readable from `send` which runs outside render. */
+  /** Le même contenu, lisible depuis `send` qui s'exécute hors du rendu. */
   const refEnregistre = useRef<string | null>(null);
-  /** The content of the send in flight, or `null` when there is none. */
+  /** Le contenu de l'envoi en vol, ou `null` quand il n'y en a pas. */
   const enVol = useRef<string | null>(null);
   /** The last known state, read by the deferred send without re-triggering it. */
   const dernier = useRef<Session[] | null>(null);
@@ -116,12 +117,12 @@ export const useProgramAutoSave = ({
     const contenu = JSON.stringify(sessions);
 
     if (contenu === refEnregistre.current) {
-      // The coach went back to the saved version themselves during the
-      // wait: there is nothing left to send.
+      // Le coach est revenu de lui-même à la version enregistrée pendant
+      // l'attente : il n'y a plus rien à envoyer.
       if (enVol.current === null) setState('idle');
       return;
     }
-    // A send has already gone: this one will happen when it returns.
+    // Un envoi est déjà parti : celui-ci se fera à son retour.
     if (enVol.current !== null) return;
 
     enVol.current = contenu;
@@ -134,18 +135,18 @@ export const useProgramAutoSave = ({
         setSavedAt(new Date());
 
         if (inchange) {
-          // The server is authoritative: it set the orders, the dates and
-          // the final identifiers. We adopt its version so the next
-          // comparison is against the same shape.
+          // Le serveur fait foi : c'est lui qui a posé les rangs, les dates et
+          // les identifiants définitifs. On adopte sa version pour que la
+          // comparaison suivante porte sur la même forme.
           adopter(renvoye, JSON.stringify(renvoye));
           initialize({ sessions: renvoye });
           setState('idle');
           return;
         }
 
-        // The coach carried on during the send. We touch nothing and go
-        // again: the request carries the same identifiers, so it is safe to
-        // replay.
+        // Le coach a continué pendant l'envoi. On ne touche à rien et on
+        // repart : la requête porte les mêmes identifiants, elle est donc
+        // sûre à rejouer.
         setState('pending');
         relancer.current();
       })
@@ -170,18 +171,18 @@ export const useProgramAutoSave = ({
       return;
     }
 
-    // Everything that arrives afterwards is a background refetch. It only
-    // replaces the editor when there is nothing to lose: no pending change,
-    // no send in flight, no failure to retry.
+    // Tout ce qui arrive ensuite est une relecture d'arrière-plan. Elle ne
+    // remplace l'éditeur que lorsqu'il n'y a rien à perdre : aucun changement
+    // en attente, aucun envoi en vol, aucun échec à reprendre.
     if (isDirty || enVol.current !== null || state === 'error') return;
     if (recu === refEnregistre.current) return;
 
     adopter(serverProgram.sessions, recu);
     initialize(serverProgram);
-    // `isDirty` and `state` are read to decide whether to ignore, not to
-    // trigger: listing them as dependencies would rerun the effect on every
-    // keystroke without changing the result. And writing state here is the
-    // work itself: copying an external source into local state.
+    // `isDirty` et `state` sont lus pour décider d'ignorer, pas pour
+    // déclencher : les lister en dépendances relancerait l'effet à chaque
+    // frappe sans changer le résultat. Et écrire l'état ici est le travail
+    // lui-même : recopier une source externe dans un état local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverProgram, adopter, initialize]);
 
@@ -200,17 +201,18 @@ export const useProgramAutoSave = ({
     return () => {
       if (minuteur.current) clearTimeout(minuteur.current);
     };
-    // `program` is only read for its fingerprint, which `current` already
-    // triggers on: adding it would run the effect twice per keystroke.
+    // `program` n'est lu que pour son empreinte, sur laquelle `current`
+    // déclenche déjà : l'ajouter ferait tourner l'effet deux fois par frappe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courant, enregistre, envoyer]);
 
-  // A scheduled send is not yet a send: say so, so the status line does not
-  // stay mute during the wait.
+  // Un envoi programmé n'est pas encore un envoi : on le dit, pour que la
+  // ligne d'état ne reste pas muette pendant l'attente.
   useEffect(() => {
     if (!isDirty) return;
-    // Copying information the render already knows, and nothing else: no
-    // cascade to fear, the state converges on the first pass.
+    // On recopie une information que le rendu connaît déjà, et rien
+    // d'autre : aucune cascade à craindre, l'état converge dès la première
+    // passe.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setState((precedent) => (precedent === 'idle' ? 'pending' : precedent));
   }, [isDirty]);
@@ -228,16 +230,17 @@ export const useProgramAutoSave = ({
     return () => window.removeEventListener('beforeunload', avertir);
   }, [isDirty, state]);
 
-  // ── Leaving the editor is not giving up ──────────────────────────────────
+  // ── Quitter l'éditeur n'est pas renoncer ─────────────────────────────────
   //
-  // `beforeunload` only covers closing the tab. An internal navigation — the
-  // phone's back button, a link — unmounted the editor without a word, and
-  // the 800 ms wait on a value in progress went with it. A coach experienced
-  // that as "the app cancelled my session".
+  // `beforeunload` ne couvre que la fermeture de l'onglet. Une navigation
+  // interne — le bouton retour du téléphone, un lien — démontait l'éditeur
+  // sans un mot, et l'attente de 800 ms sur une valeur en cours partait avec.
+  // Un coach vivait cela comme « l'application a annulé ma séance ».
   //
-  // The send is safe to fire for nothing: it compares against the last saved
-  // state and only goes when there is something to say. Declared last so the
-  // scheduling cleanup above has already released its timer.
+  // L'envoi est sans danger s'il part pour rien : il se compare au dernier
+  // état enregistré et ne part que s'il y a quelque chose à dire. Déclaré en
+  // dernier pour que le nettoyage de programmation ci-dessus ait déjà libéré
+  // son minuteur.
   useEffect(
     () => () => {
       relancer.current();

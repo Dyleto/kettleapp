@@ -8,22 +8,23 @@ interface InlineValueProps {
   onChange: (value?: number) => void;
   /** The word glued to the value: "reps", "s", "min", "tours"… */
   suffix?: string;
-  /** What reads when the value is absent. Never "0". */
+  /** Ce qui se lit quand la valeur est absente. Jamais « 0 ». */
   emptyLabel?: string;
   ariaLabel: string;
   min?: number;
-  /** The field's width while editing — the resting footprint does not move. */
+  /** La largeur du champ pendant l'édition — l'empreinte au repos ne bouge
+   * pas. */
   width?: string;
   /** Allows clearing entirely (an optional setting). */
   clearable?: boolean;
   /**
-   * How the value reads once set.
+   * Comment la valeur se lit une fois posée.
    *
-   * We edit in seconds — that is the unit the coach thinks and types in — but
-   * we read back in the product's own spelling. Without this, a 120 s
-   * duration read "120 s" for the coach and "2 min" for their client: the
-   * same data, two conventions, and no way to check from one what the other
-   * will see.
+   * On édite en secondes — c'est l'unité dans laquelle le coach pense et
+   * tape — mais on relit dans l'orthographe du produit. Sans cela, une durée
+   * de 120 s se lisait « 120 s » pour le coach et « 2 min » pour son client :
+   * la même donnée, deux conventions, et aucun moyen de vérifier depuis l'une
+   * ce que l'autre verra.
    */
   format?: (value: number) => string;
 }
@@ -36,9 +37,9 @@ const parse = (raw: string): number | undefined => {
 };
 
 /**
- * At rest it is text, on click it is a field — in the same footprint, without
- * shifting the line. That is what lets a programme read as a programme rather
- * than as a form.
+ * Au repos c'est du texte, au clic c'est un champ — dans la même empreinte,
+ * sans décaler la ligne. C'est ce qui permet à un programme de se lire comme
+ * un programme plutôt que comme un formulaire.
  */
 export const InlineValue = ({
   value,
@@ -53,7 +54,7 @@ export const InlineValue = ({
 }: InlineValueProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
-  /** What was there before opening — what Escape has to give back. */
+  /** Ce qu'il y avait avant l'ouverture — ce qu'Échap doit rendre. */
   const [initiale, setInitiale] = useState<number | undefined>(undefined);
 
   const open = () => {
@@ -63,17 +64,19 @@ export const InlineValue = ({
   };
 
   /**
-   * Every keystroke leaves at once — and that is what saves the work.
+   * Chaque frappe part aussitôt — et c'est ce qui sauve le travail.
    *
-   * The field kept its value to itself until a click outside or the Enter
-   * key. A coach who typed "12" then pressed their phone's back button lost
-   * both characters: they had never left the field, so autosave had nothing
-   * to save.
+   * Le champ gardait sa valeur pour lui jusqu'à un clic à l'extérieur ou la
+   * touche Entrée. Un coach qui tapait « 12 » puis appuyait sur le bouton
+   * retour de son téléphone perdait les deux caractères : il n'était jamais
+   * sorti du champ, l'enregistrement automatique n'avait donc rien à
+   * enregistrer.
    *
-   * Sending as you type costs nothing: the save already waits 800 ms before
-   * leaving, precisely to absorb a value typed character by character. A
-   * momentarily empty field, on the other hand, is not a cleared value: we
-   * only send it on validation, which alone knows what "empty" means here.
+   * Envoyer au fil de la frappe ne coûte rien : l'enregistrement attend déjà
+   * 800 ms avant de partir, précisément pour absorber une valeur tapée
+   * caractère par caractère. Un champ momentanément vide, en revanche, n'est
+   * pas une valeur effacée : on ne l'envoie qu'à la validation, seule à
+   * savoir ce que « vide » veut dire ici.
    */
   const saisir = (raw: string) => {
     setDraft(raw);
@@ -91,7 +94,8 @@ export const InlineValue = ({
     setIsEditing(false);
   };
 
-  // Escape cancels, as before — but it now has something to undo.
+  // Échap annule, comme avant — mais il a maintenant quelque chose à
+  // défaire.
   const annuler = () => {
     if (value !== initiale) onChange(initiale);
     setIsEditing(false);
@@ -139,8 +143,9 @@ export const InlineValue = ({
       onClick={open}
       px={1}
       borderRadius="sm"
-      // The underline is not decorative: without it, nothing distinguishes
-      // an editable value from fixed text. On focus too, not hover alone.
+      // Le soulignement n'est pas décoratif : sans lui, rien ne distingue
+      // une valeur éditable d'un texte fixe. Au focus aussi, pas au seul
+      // survol.
       textDecoration="underline"
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
@@ -179,9 +184,9 @@ const parseSequence = (raw: string): number[] =>
     .filter((n) => Number.isFinite(n) && n > 0);
 
 /**
- * A seven-rung pyramid used to take seven steppers and six "add" clicks. Here
- * it is one field, with the parsed result echoed just below — and it is that
- * echo which makes free text safe.
+ * Une pyramide de sept paliers demandait sept compteurs et six clics sur
+ * « ajouter ». Ici c'est un champ, avec le résultat analysé rappelé juste en
+ * dessous — et c'est ce rappel qui rend le texte libre sans danger.
  */
 export const InlineSequence = ({
   value,
@@ -194,8 +199,8 @@ export const InlineSequence = ({
 
   const parsed = isEditing ? parseSequence(draft) : (value ?? []);
 
-  // Same reason as above: a sequence typed but not validated existed
-  // nowhere, and leaving the page took it.
+  // Même raison que plus haut : une suite tapée mais non validée
+  // n'existait nulle part, et quitter la page l'emportait.
   const saisir = (raw: string) => {
     setDraft(raw);
     onChange(parseSequence(raw));
@@ -285,34 +290,35 @@ export const InlineSequence = ({
 interface InlineTextProps {
   value?: string;
   onChange: (value?: string) => void;
-  /** What we offer when it is empty — revealed on hover only. */
+  /** Ce qu'on propose quand c'est vide — révélé au seul survol. */
   addLabel: string;
   ariaLabel: string;
   fontSize?: string;
   width?: string;
   /**
-   * Text that may run to several lines: a session note, a block instruction.
-   * The field becomes an area that grows with the text, and Enter inserts a
-   * line break there instead of closing.
+   * Un texte qui peut courir sur plusieurs lignes : une note de séance, une
+   * consigne de bloc. Le champ devient une zone qui grandit avec le texte, et
+   * Entrée y insère un saut de ligne au lieu de fermer.
    *
-   * A block's name stays on one line: it fits in a label.
+   * Le nom d'un bloc reste sur une ligne : il tient dans une étiquette.
    */
   multiline?: boolean;
   /**
-   * Mounts the field already open. Useful when the invitation to write lives
-   * elsewhere — a gutter control, say — and asking for a second click on a
-   * "+ consigne" just requested would be absurd.
+   * Monte le champ déjà ouvert. Utile quand l'invitation à écrire vit
+   * ailleurs — une commande de gouttière, par exemple — et que demander un
+   * second clic sur une « + consigne » qu'on vient de réclamer serait
+   * absurde.
    */
   startOpen?: boolean;
 }
 
 /**
- * Optional text that leaves no trace when empty.
+ * Un texte facultatif qui ne laisse aucune trace quand il est vide.
  *
- * A permanent placeholder on every block — "nom libre", "consigne…" — turns
- * the page into a form: you read ten invitations to fill things in before you
- * read the programme. Here, empty means absent; the invitation only appears
- * on hover or keyboard focus.
+ * Un texte d'invite permanent sur chaque bloc — « nom libre », « consigne… »
+ * — transforme la page en formulaire : on lit dix invitations à remplir avant
+ * de lire le programme. Ici, vide veut dire absent ; l'invitation
+ * n'apparaît qu'au survol ou au focus clavier.
  */
 export const InlineText = ({
   value,
@@ -328,21 +334,21 @@ export const InlineText = ({
   const hasValue = !!value?.trim();
 
   /**
-   * Escape closes, it does not cancel — and that is deliberate.
+   * Échap ferme, il n'annule pas — et c'est voulu.
    *
-   * This field had been aligned on the number one, where Escape returns the
-   * previous value. That conflated two gestures: you replace a number, and
-   * you may want to abandon the replacement; you write text, and it saves as
-   * you type. Here Escape means "I am done", just as Ctrl+Enter does.
-   * Thirteen controls already said so.
+   * Ce champ avait été aligné sur celui des nombres, où Échap rend la valeur
+   * précédente. Cela confondait deux gestes : on remplace un nombre, et l'on
+   * peut vouloir abandonner le remplacement ; on écrit un texte, et il
+   * s'enregistre au fil de la frappe. Ici Échap veut dire « j'ai fini »,
+   * comme Ctrl+Entrée. Treize commandes le disaient déjà.
    */
   const ouvrir = () => setIsEditing(true);
 
   if (!hasValue && !isEditing) {
     return (
-      // Under a finger there is no hover: the invitation stayed invisible
-      // AND out of reach on mobile. It shows there permanently, and only
-      // fades beyond 768 px, where hover brings it back.
+      // Sous un doigt il n'y a pas de survol : l'invitation restait invisible
+      // ET hors d'atteinte sur mobile. Elle s'y affiche en permanence, et ne
+      // s'efface qu'au-delà de 768 px, où le survol la ramène.
       <Box
         as="button"
         aria-label={ariaLabel}
@@ -388,8 +394,8 @@ export const InlineText = ({
           lineHeight="1.6"
           onChange={(e) => onChange(e.target.value || undefined)}
           onKeyDown={(e) => {
-            // Enter belongs to the text. Escape closes, and Ctrl/⌘+Enter
-            // too — for anyone used to confirming from the keyboard.
+            // Entrée appartient au texte. Échap ferme, et Ctrl/⌘+Entrée
+            // aussi — pour qui a l'habitude de valider au clavier.
             if (
               e.key === 'Escape' ||
               (e.key === 'Enter' && (e.metaKey || e.ctrlKey))
@@ -431,9 +437,9 @@ export const InlineText = ({
       css={hitAreaTactile()}
       transition="text-decoration-color 0.15s"
     >
-      {/* Without `pre-wrap`, typed line breaks would be flattened on
-          reading back: the text would run onto one line, with nothing to say
-          so. */}
+      {/* Sans `pre-wrap`, les sauts de ligne tapés seraient aplatis à la
+          relecture : le texte courrait sur une seule ligne, sans que rien ne
+          le dise. */}
       <Text
         as="span"
         fontSize={fontSize}

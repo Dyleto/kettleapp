@@ -1,4 +1,5 @@
 import { Box, Text } from '@chakra-ui/react';
+import { ReactNode } from 'react';
 import { SessionBlock } from '@/shared/types';
 import {
   getBlockConfigSummary,
@@ -6,22 +7,35 @@ import {
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
 import { BlockExerciseRow } from './BlockExerciseRow';
-import { BlockProps } from './blocks/shared/types';
 
 interface BlockCardProps {
   block: SessionBlock;
-  renderExerciseExtra?: BlockProps['renderExerciseExtra'];
+  /**
+   * Contenu inséré sous chaque exercice, en lecture seule.
+   *
+   * Permet au client de noter ce qu'il a réellement fait sans que le rendu
+   * partagé avec le coach ne bouge d'un pixel quand la propriété est absente.
+   *
+   * Vivait dans un `BlockProps` de onze champs, dans `blocks/shared/` : le
+   * reste décrivait l'édition, que ces composants ne font plus depuis
+   * longtemps. C'était le dernier champ encore lu.
+   */
+  renderExerciseExtra?: (ctx: {
+    blockOrder: number;
+    exerciseOrder: number;
+    exerciseId?: string;
+  }) => ReactNode;
 }
 
 /**
- * A block in read mode — on the client side, and in the wrap-up the coach
- * reads back.
+ * Un bloc en lecture — côté client, et dans le bilan que le coach relit.
  *
- * It went through eleven components, one per type, all delegating to a shell
- * that also knew how to edit. Editing moved to the editor long ago: what
- * remained was a rounded card and a lot of dead code. Each type's settings
- * already summarise in one sentence — that is all reading needs, and so one
- * more type no longer calls for one more component.
+ * Il passait par onze composants, un par type, tous délégant à une coquille
+ * qui savait aussi éditer. L'édition est partie dans l'éditeur depuis
+ * longtemps : il ne restait qu'une carte arrondie et beaucoup de code mort.
+ * Les réglages de chaque type se résument déjà en une phrase — c'est tout ce
+ * dont la lecture a besoin, et un type de plus ne réclame donc plus un
+ * composant de plus.
  */
 export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
   const summary = getBlockConfigSummary(block);
@@ -31,10 +45,10 @@ export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
     <BlockFrame
       block={block}
       name={
-        /* The em dash separates: without it the type and the name ran
-           together into mush — "AMRAP AMRAP 12". The rule lives in
-           `getBlockFreeName`, not here: the coach's editor shows the name as
-           typed, since that is where it gets changed. */
+        /* Le tiret cadratin sépare : sans lui, le type et le nom se
+                   collaient en bouillie — « AMRAP AMRAP 12 ». La règle vit dans
+                   `getBlockFreeName`, pas ici : l'éditeur du coach montre le nom tel
+                   qu'il est tapé, puisque c'est là qu'on le change. */
         nomLibre ? (
           <Text fontSize="xs" color="fg.muted">
             — {nomLibre}

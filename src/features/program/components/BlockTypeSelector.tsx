@@ -15,7 +15,8 @@ interface BlockTypeSelectorProps {
   onSelect: (type: BlockType) => void;
 }
 
-/** One format tile: the name, its family colour, what it does. */
+/** Une tuile de format : le nom, la couleur de sa famille, ce qu'il
+ * fait. */
 const Tuile = ({
   type,
   onSelect,
@@ -76,21 +77,28 @@ const Grille = ({
   </Grid>
 );
 
+/**
+ * Le choix d'un format : quatre tuiles, et le reste replié.
+ *
+ * Onze tuiles d'un coup, c'est un catalogue à lire là où il faut décider. Le
+ * repli ne cache pas : il met les sept formats rares à un clic, et rend les
+ * quatre courants lisibles d'un coup d'œil.
+ */
 export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
   const [toutVoir, setToutVoir] = useState(false);
 
-  // The families, once the formats already offered above are removed: a
-  // family that is entirely common disappears from the fold rather than
-  // sitting there empty.
+  // Les familles, une fois retirés les formats déjà proposés au-dessus :
+  // une famille entièrement courante disparaît du repli plutôt que d'y
+  // figurer vide.
   const restantes = BLOCK_FAMILIES.map((f) => ({
     ...f,
     types: f.types.filter((t) => !BLOCK_TYPES_COURANTS.includes(t)),
   })).filter((f) => f.types.length > 0);
 
   return (
-    /* A stable anchor for measurements, like `data-block-type` on a block:
-       a probe that recognised tiles by their size also caught the rail's rows
-       as soon as they grew. */
+    /* Un point d'ancrage stable pour les mesures, comme `data-block-type`
+           sur un bloc : une sonde qui reconnaissait les tuiles à leur taille
+           attrapait aussi les lignes du rail dès qu'elles grandissaient. */
     <VStack align="stretch" gap={4} data-block-picker>
       <Box>
         <Text

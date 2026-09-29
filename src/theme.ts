@@ -172,4 +172,12 @@ const customConfig = defineConfig({
   },
 });
 
+/**
+ * Le thème, prêt à être posé par `<Provider>`.
+ *
+ * `createSystem(defaultConfig, …)` et non un système nu : Kettle étend les
+ * jetons de Chakra, il ne les remplace pas. Partir de zéro obligerait à
+ * redéfinir des échelles entières — espacements, rayons, tailles de police —
+ * qui n'ont aucune raison de différer.
+ */
 export const system = createSystem(defaultConfig, customConfig);

@@ -15,7 +15,7 @@ interface BlockFrameProps {
   name?: ReactNode;
   /** Settings: a summary in read mode, controls in edit mode. */
   config?: ReactNode;
-  /** Block controls, to the right of the header. Absent in read mode. */
+  /** Les commandes du bloc, à droite de l'en-tête. Absentes en lecture. */
   gutter?: ReactNode;
   /** The exercise rows. */
   children: ReactNode;
@@ -26,17 +26,18 @@ interface BlockFrameProps {
 }
 
 /**
- * A block's frame, identical whether the coach writes it or the client reads
- * it.
+ * Le cadre d'un bloc, identique que le coach l'écrive ou que le client le
+ * lise.
  *
- * The same object used to carry two dressings: a rounded card with background
- * and borders on the client side, a rule and typography in the editor. The
- * coach could not rely on what they saw to know what their client would see,
- * and every new block type was drawn twice.
+ * Le même objet portait deux habillages : une carte arrondie avec fond et
+ * bordures côté client, un filet et de la typographie dans l'éditeur. Le
+ * coach ne pouvait pas se fier à ce qu'il voyait pour savoir ce que son
+ * client verrait, et chaque nouveau type de bloc se dessinait deux fois.
  *
- * The law kept is the editor's: a rule in the block's accent, typography, and
- * nothing that looks like a box. What changes between the two modes is the
- * content slotted into the placeholders — never the geometry.
+ * La loi retenue est celle de l'éditeur : un filet dans l'accent du bloc, de
+ * la typographie, et rien qui ressemble à une boîte. Ce qui change entre les
+ * deux modes, c'est le contenu glissé dans les emplacements — jamais la
+ * géométrie.
  */
 export const BlockFrame = ({
   block,
@@ -49,9 +50,9 @@ export const BlockFrame = ({
 }: BlockFrameProps) => (
   <Box
     className="group"
-    /* A stable anchor for measurements, just like `data-exercise-row` on
-       rows: without it a probe has to guess a block's frame by walking up
-       the DOM from its title. */
+    /* Un point d'ancrage stable pour les mesures, comme
+           `data-exercise-row` sur les lignes : sans lui, une sonde doit deviner
+           le cadre d'un bloc en remontant le DOM depuis son titre. */
     data-block-type={block.type}
     borderLeftWidth="2px"
     borderLeftColor={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
@@ -59,24 +60,26 @@ export const BlockFrame = ({
     py={1}
   >
     {/* ── Header: type · free name · settings ── */}
-    {/* Its gutter carries 44 px zones, like the one on the first row
-        just below: without this spacing the two overlapped by 5 px. */}
+    {/* Sa gouttière porte des zones de 44 px, comme celle de la
+        première ligne juste en dessous : sans cet espacement, les deux se
+        recouvraient de 5 px. */}
     <HStack
       justify="space-between"
       align="flex-start"
       gap={3}
       pb={1}
-      /* The 44 px spacing also applies between the header's last row and
-         the first exercise row: 4 px separated them, and their zones
-         overlapped by 5. */
+      /* L'espacement de 44 px vaut aussi entre la dernière ligne de
+               l'en-tête et la première ligne d'exercice : 4 px les séparaient, et
+               leurs zones se recouvraient de 5. */
       css={{ [TACTILE]: { minHeight: '44px', paddingBottom: '12px' } }}
     >
-      {/* Title and settings share a flexible column: the settings wrap
-          when they no longer fit, rather than push the gutter off screen. */}
-      {/* When the title, the name and the settings wrap, two rows of
-          controls follow each other 4 px apart — and their 44 px zones
-          overlap. Same rule as the gutter: 20 px of gap puts 44 px between
-          two centres. */}
+      {/* Le titre et les réglages partagent une colonne flexible : les
+          réglages se replient quand ils ne tiennent plus, plutôt que de
+          pousser la gouttière hors de l'écran. */}
+      {/* Quand le titre, le nom et les réglages se replient, deux rangées
+          de commandes se suivent à 4 px — et leurs zones de 44 px se
+          recouvrent. Même règle que pour la gouttière : 20 px d'écart mettent
+          44 px entre deux centres. */}
       <Flex
         flex={1}
         minW={0}
@@ -112,9 +115,9 @@ export const BlockFrame = ({
     </VStack>
 
     {footer && <Box pt={1.5}>{footer}</Box>}
-    {/* 4 px is enough for the eye, not for a finger: the instruction
-        carries a 44 px zone on touch, which bit 6 px into "+ exercice" just
-        above — and the last one in the DOM would have won. */}
+    {/* 4 px suffisent à l'œil, pas à un doigt : la consigne porte une
+        zone de 44 px au tactile, qui mordait de 6 px sur « + exercice » juste
+        au-dessus — et la dernière du DOM l'aurait emporté. */}
     {notes && (
       <Box mt={1} css={{ [TACTILE]: { marginTop: '10px' } }}>
         {notes}

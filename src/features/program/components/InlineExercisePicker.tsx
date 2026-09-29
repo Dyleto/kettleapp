@@ -17,11 +17,11 @@ interface Option {
 interface InlineExercisePickerProps {
   onSelect: (exercise: Exercise) => void;
   onClose: () => void;
-  /** Exercises already placed elsewhere in this program — free, it is in
-   *  memory, and it is by far the most useful group. */
+  /** Les exercices déjà placés ailleurs dans ce programme — gratuit, c'est en
+   *  mémoire, et c'est de loin le groupe le plus utile. */
   inProgram: Exercise[];
-  /** Opens the exercise sheet over the workshop. We do not navigate: leaving
-   *  the page would lose the unsaved changes. */
+  /** Ouvre la fiche de l'exercice par-dessus l'atelier. On ne navigue pas :
+   *  quitter la page perdrait les modifications non enregistrées. */
   onOpenSheet?: (exercise: Exercise) => void;
 }
 
@@ -30,6 +30,17 @@ const GROUP_MOST_USED = 'Vos plus utilisés';
 const GROUP_ALL = 'Toute la bibliothèque';
 const GROUP_RESULTS = 'Résultats';
 
+/**
+ * Choisir un exercice sans quitter l'atelier.
+ *
+ * Un menu déroulant sous la ligne, et non une page : le coach place un
+ * exercice au milieu d'une séance qu'il est en train d'écrire, et naviguer
+ * lui ferait perdre le fil autant que les modifications en attente d'envoi.
+ *
+ * Sous 768 px il cède la place à un tiroir plein écran — le même contenu,
+ * mais un menu déroulant sur un téléphone se retrouve à l'étroit entre le
+ * clavier et le bord.
+ */
 export const InlineExercisePicker = ({
   onSelect,
   onClose,
@@ -48,8 +59,8 @@ export const InlineExercisePicker = ({
     const q = normalize(query);
 
     if (q.length > 0) {
-      // Matches on the start of the name first, then the usage counter
-      // breaks the tie. The counter orders, it is never displayed.
+      // Les correspondances en début de nom d'abord, puis le compteur d'usage
+      // départage. Le compteur ordonne, il n'est jamais affiché.
       const matches = exercises.filter((e) => normalize(e.name).includes(q));
       matches.sort((a, b) => {
         const aStarts = normalize(a.name).startsWith(q);
@@ -84,8 +95,8 @@ export const InlineExercisePicker = ({
     ];
   }, [exercises, inProgram, query]);
 
-  // The list changes on every keystroke: the active index has to stay in
-  // bounds without going through an effect.
+  // La liste change à chaque frappe : l'index actif doit rester dans les
+  // bornes sans passer par un effet.
   const [prevLength, setPrevLength] = useState(options.length);
   if (options.length !== prevLength) {
     setPrevLength(options.length);
@@ -229,9 +240,9 @@ export const InlineExercisePicker = ({
                   >
                     {option.exercise.name}
                   </Box>
-                  {/* The sheet opens over the workshop: you can fix an
-                      instruction or paste a video without losing the
-                      program being edited. */}
+                  {/* La fiche s'ouvre par-dessus l'atelier : on corrige une
+                      consigne ou on colle une vidéo sans perdre le programme
+                      en cours d'édition. */}
                   {onOpenSheet && (
                     <Box
                       as="button"

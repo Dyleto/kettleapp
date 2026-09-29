@@ -30,10 +30,10 @@ const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
 };
 
 const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
-  // The warm-up accepts sets but sets none: the common case is still a
-  // single pass. Defaulting to three sets would also take guided mode from
-  // one page to three on every new warm-up. So this test comes before the
-  // set-based blocks test.
+  // L'échauffement accepte des séries mais n'en pose aucune : le cas courant
+  // reste un passage unique. En poser trois par défaut ferait aussi passer le
+  // mode guidé d'une page à trois à chaque nouvel échauffement. Ce test vient
+  // donc avant celui des blocs à séries.
   if (blockType === 'warmup') return { reps: 10 };
   if (blockSupportsSets(blockType))
     return { sets: 3, reps: 10, restBetweenSets: 60 };
@@ -42,6 +42,18 @@ const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
   return { reps: 10 };
 };
 
+/**
+ * L'état du programme pendant que le coach l'écrit.
+ *
+ * Tout vit en mémoire : ajouter un bloc, déplacer un exercice, dupliquer une
+ * séance ne coûtent aucune requête. C'est `useProgramAutoSave` qui décide
+ * quand envoyer, et lui seul — séparer les deux est ce qui permet au coach de
+ * faire dix gestes d'affilée sans dix allers-retours.
+ *
+ * Les fonctions de retour (`restoreBlock`, `restoreExercise`) sont le chemin
+ * inverse des filets d'annulation : elles remettent à leur rang, pas à la
+ * fin.
+ */
 export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   const [program, setProgram] = useState<ClientProgram | null>(initialProgram);
 
@@ -93,9 +105,10 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * "Session 4 is session 2, heavier" is the central gesture of building a
-   * programme. Zero server cost: the whole programme is already in memory and
-   * the batched save handles it, exactly as for an empty session.
+   * « La séance 4, c'est la 2 en plus lourd » est le geste central de la
+   * construction d'un programme. Coût serveur nul : tout le programme est
+   * déjà en mémoire et l'enregistrement groupé s'en charge, exactement comme
+   * pour une séance vide.
    */
   const duplicateSession = useCallback((sessionId: string) => {
     setProgram((prev) => {
@@ -107,8 +120,8 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       const copy: Session = {
         ...source,
         _id: newObjectId(),
-        // Fresh identifiers down to the blocks: two sessions cannot share
-        // one block's key, drag and drop would lose its way.
+        // Des identifiants neufs jusqu'aux blocs : deux séances ne peuvent pas
+        // partager la clé d'un bloc, le glisser-déposer s'y perdrait.
         blocks: source.blocks.map((block) => ({
           ...block,
           _id: newObjectId(),
@@ -141,12 +154,12 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * The session's free name.
+   * Le nom libre de la séance.
    *
-   * Without trimming whitespace: the field sends as you type, and cutting the
-   * trailing space on every character made it impossible to type one. "Full
-   * body A" became "FullbodyA". Cleaning belongs at the boundary — at the
-   * send to the server — not at the keystroke.
+   * Sans rognage des espaces : le champ envoie au fil de la frappe, et couper
+   * l'espace final à chaque caractère rendait impossible d'en taper un.
+   * « Full body A » devenait « FullbodyA ». Le nettoyage appartient à la
+   * frontière — à l'envoi vers le serveur — pas à la frappe.
    */
   const updateSessionName = useCallback((sessionId: string, name?: string) => {
     setProgram((prev) => {
@@ -235,11 +248,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * Puts a block back in its place — the undo safety net's return path.
+   * Remet un bloc à sa place — le chemin de retour du filet d'annulation.
    *
-   * A block takes its exercises with it when it goes: so it comes back whole,
-   * as it was, and at its rank. Putting it back last would move the warm-up
-   * after the AMRAP.
+   * Un bloc emporte ses exercices en partant : il revient donc entier, tel
+   * qu'il était, et à son rang. Le remettre en dernier déplacerait
+   * l'échauffement après l'AMRAP.
    */
   const insertBlock = useCallback(
     (sessionId: string, index: number, block: SessionBlock) => {
@@ -350,11 +363,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   );
 
   /**
-   * Puts an exercise back in its place — the undo safety net's return path.
+   * Remet un exercice à sa place — le chemin de retour du filet d'annulation.
    *
-   * In its place, not at the end: an exercise removed by mistake from the
-   * middle of a block has not changed its mind about its rank, and seeing it
-   * reappear last would force another move.
+   * À sa place, pas à la fin : un exercice retiré par erreur du milieu d'un
+   * bloc n'a pas changé d'avis sur son rang, et le voir réapparaître en
+   * dernier obligerait à un déplacement de plus.
    */
   const insertExercise = useCallback(
     (

@@ -6,13 +6,21 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface Options {
   /**
-   * The workshop saves itself: it owns its own state and has no use for a
-   * confirmation message on every keystroke, nor for a background request
-   * that would replace what the coach is in the middle of writing.
+   * L'atelier s'enregistre lui-même : il possède son propre état et n'a que
+   * faire d'un message de confirmation à chaque frappe, ni d'une requête
+   * d'arrière-plan qui remplacerait ce que le coach est en train d'écrire.
    */
   silent?: boolean;
 }
 
+/**
+ * Envoie le programme entier au serveur.
+ *
+ * L'état complet et non une liste de modifications : ce qui n'y figure plus a
+ * été supprimé. C'est ce qui rend l'envoi rejouable — deux envois identiques
+ * donnent le même résultat — et c'est ce dont l'enregistrement automatique a
+ * besoin, lui qui peut partir deux fois avant la première réponse.
+ */
 export const useUpdateProgramSessions = (
   clientId: string,
   { silent = false }: Options = {}
@@ -28,15 +36,16 @@ export const useUpdateProgramSessions = (
         notes: session.notes?.trim(),
         suggestedDays: session.suggestedDays ?? [],
         blocks: session.blocks.map((block, bi) => ({
-          // The block id makes the round-trip: without it the API recreated
-          // one on every save and the whole session was rebuilt on screen —
-          // unbearable when you save on every edit.
+          // L'identifiant du bloc fait l'aller-retour : sans lui, l'API en
+          // recréait un à chaque enregistrement et toute la séance se
+          // reconstruisait à l'écran — insupportable quand on enregistre à
+          // chaque modification.
           _id: block._id,
-          // "Every" and EMOM name the same format now that an EMOM carries
-          // its interval. Rather than a migration, the conversion happens on
-          // the first save: the two have exactly the same fields and the
-          // same rendering, so it goes unseen. The data converges at the
-          // pace the coach touches their sessions.
+          // « Every » et EMOM nomment le même format depuis qu'un EMOM porte
+          // son intervalle. Plutôt qu'une migration, la conversion se fait au
+          // premier enregistrement : les deux ont exactement les mêmes champs
+          // et le même rendu, elle passe donc inaperçue. La donnée converge
+          // au rythme où le coach touche à ses séances.
           type: block.type === 'every' ? 'emom' : block.type,
           label: block.label || undefined,
           order: bi + 1,
@@ -70,9 +79,9 @@ export const useUpdateProgramSessions = (
       return data;
     },
     onSuccess: () => {
-      // In silent mode the caller adopts the response itself: invalidating
-      // the client detail would fire a request whose only effect would be to
-      // rewrite the workshop over the typing in progress.
+      // En mode silencieux, l'appelant adopte lui-même la réponse :
+      // invalider la fiche du client déclencherait une requête dont le seul
+      // effet serait de réécrire l'atelier par-dessus la frappe en cours.
       if (!silent) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.coach.clients.detail(clientId),
@@ -80,7 +89,7 @@ export const useUpdateProgramSessions = (
         toaster.create({ title: 'Programme sauvegardé', type: 'success' });
       }
 
-      // The program as the client sees it, on the other hand, did change.
+      // Le programme tel que le client le voit, en revanche, a bien changé.
       queryClient.invalidateQueries({
         queryKey: queryKeys.client.program.get(),
       });

@@ -21,8 +21,8 @@ export const sessionTitle = (order: number, name?: string): string => {
 };
 
 /**
- * The two halves, when a screen wants to draw them separately — the rank in
- * bold, the name set back, like a block and its free name.
+ * Les deux moitiés, quand un écran veut les dessiner séparément — le rang en
+ * gras, le nom en retrait, comme un bloc et son nom libre.
  */
 export const sessionTitleParts = (
   order: number,

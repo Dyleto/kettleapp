@@ -79,10 +79,10 @@ const ExerciseRow = ({
   onUpdate,
   onRemove,
 }: ExerciseRowProps) => {
-  // An exercise's instruction has no permanent invitation under every row:
-  // five exercises would mean five "+ consigne" to read before reading the
-  // programme. It opens from the gutter, where the row's controls already
-  // live, and afterwards only shows when it exists.
+  // La consigne d'un exercice n'a pas d'invitation permanente sous chaque
+  // ligne : cinq exercices, ce seraient cinq « + consigne » à lire avant de
+  // lire le programme. Elle s'ouvre depuis la gouttière, où vivent déjà les
+  // commandes de la ligne, et ne s'affiche ensuite que si elle existe.
   const [noteOpen, setNoteOpen] = useState(false);
   const hasNote = !!exercise.note?.trim();
 
@@ -106,24 +106,25 @@ const ExerciseRow = ({
   };
 
   const row = (
-    // The row splits over two levels by itself when the name runs out of
-    // room. No guessed breakpoint: the width actually available decides, and
-    // it does not depend on the screen alone — at 768 px the session rail
-    // appears and leaves the name only 116 px, less than at 390 px. The
-    // metric keeps its `ml="auto"`: right-aligned whether it is on the same
-    // line or the next.
+    // La ligne se répartit d'elle-même sur deux niveaux quand le nom n'a plus
+    // la place. Aucun point de rupture deviné : c'est la largeur réellement
+    // disponible qui décide, et elle ne dépend pas du seul écran — à 768 px
+    // le rail des séances apparaît et ne laisse au nom que 116 px, moins qu'à
+    // 390 px. La mesure garde son `ml="auto"` : alignée à droite qu'elle soit
+    // sur la même ligne ou sur la suivante.
     //
-    // It all rests on the name's `flex-basis`, left at `auto`: the basis is
-    // then the width of the name written in one go. A short name fits beside
-    // the metric and the row does not break; a long name does not fit, and
-    // that is what triggers the wrap. `flex={1}` — a zero basis — never
-    // broke, and a percentage `min-width` is circular here: the container's
-    // width depends on the rows, the rows on the minimum, the minimum on the
-    // container. Chromium then treats it as zero at wrap time.
+    // Tout repose sur le `flex-basis` du nom, laissé à `auto` : la base est
+    // alors la largeur du nom écrit d'un trait. Un nom court tient à côté de
+    // la mesure et la ligne ne casse pas ; un nom long ne tient pas, et c'est
+    // ce qui déclenche le repli. `flex={1}` — une base nulle — ne cassait
+    // jamais, et un `min-width` en pourcentage est circulaire ici : la
+    // largeur du conteneur dépend des lignes, les lignes du minimum, le
+    // minimum du conteneur. Chromium le traite alors comme nul au moment du
+    // repli.
     <HStack
-      // A stable anchor for layout measurements: without it a probe has to
-      // walk up the DOM counting levels, and the slightest regrouping breaks
-      // it without breaking anything in the app.
+      // Un point d'ancrage stable pour les mesures de mise en page : sans lui,
+      // une sonde doit remonter le DOM en comptant les niveaux, et le moindre
+      // regroupement la casse sans rien casser dans l'application.
       data-exercise-row
       py={1.5}
       gap={3}
@@ -132,9 +133,9 @@ const ExerciseRow = ({
       align="center"
       css={{
         ...pasTactile,
-        // Permanently visible, set back: at zero opacity, a coach
-        // discovering the editor could not guess a block can be moved or
-        // deleted — the control only existed after hovering over it.
+        // Visibles en permanence, en retrait : à opacité nulle, un coach qui
+        // découvrait l'éditeur ne pouvait pas deviner qu'un bloc se déplace
+        // ou se supprime — la commande n'existait qu'une fois survolée.
         '&:hover [data-row-gutter], &:focus-within [data-row-gutter]': {
           opacity: 1,
         },
@@ -153,19 +154,20 @@ const ExerciseRow = ({
         </Text>
       </HStack>
 
-      {/* The prescription, right-aligned in tabular figures: it is what
-          you scan vertically when rereading a session. */}
-      {/* The prescription and the controls form one element: without this
-          group they wrapped independently and the controls ended up alone on
-          the line below, to the left, orphaned. */}
+      {/* La prescription, alignée à droite en chiffres tabulaires : c'est
+          ce qu'on balaye verticalement en relisant une séance. */}
+      {/* La prescription et les commandes ne font qu'un : sans ce
+          groupe, elles se repliaient indépendamment et les commandes se
+          retrouvaient seules sur la ligne du dessous, à gauche,
+          orphelines. */}
       <HStack gap={3} flexShrink={0} ml="auto" align="center">
         {!ownMetrics && (
           <HStack gap={1} flexShrink={0}>
             {supportsSets && (
               <>
-                {/* With no number written, the exercise happens once: "1" is
-                  the correct reading, and it is also the target to click to
-                  ask for several. */}
+                {/* Sans nombre écrit, l'exercice se fait une fois : « 1 » est
+                  la lecture juste, et c'est aussi la cible à cliquer pour en
+                  demander plusieurs. */}
                 <InlineValue
                   value={exercise.sets}
                   onChange={(v) => onUpdate({ sets: v })}
@@ -285,11 +287,11 @@ const ExerciseRow = ({
             <LuMessageSquare size={11} />
           </IconButton>
           {!ownMetrics && (
-            /* "⇄" said neither that it replaces, nor that it swaps, nor
-               that it reverses — a pictogram its author has to explain is not
-               one. The word carries two pieces of information the arrow
-               carried neither of: what this row measures today, and that it
-               can be changed. */
+            /* « ⇄ » ne disait ni qu'il remplace, ni qu'il échange, ni
+                           qu'il inverse — un pictogramme que son auteur doit expliquer
+                           n'en est pas un. Le mot porte deux informations dont la flèche
+                           ne portait aucune : ce que cette ligne mesure aujourd'hui, et
+                           qu'on peut en changer. */
             <Box
               as="button"
               aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
@@ -327,9 +329,9 @@ const ExerciseRow = ({
   return (
     <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
       {row}
-      {/* The instruction sits under its row, outside that row's wrapping
-          calculation, and only appears when it exists or has just been
-          asked for. */}
+      {/* La consigne se place sous sa ligne, hors du calcul de repli de
+          cette ligne, et n'apparaît que lorsqu'elle existe ou vient d'être
+          demandée. */}
       {(hasNote || noteOpen) && (
         <Box pb={1.5} pl={1}>
           <InlineText
@@ -356,20 +358,21 @@ interface WorkshopBlockProps {
   onAddExercise: (exercise: Exercise) => void;
   onRemoveExercise: (index: number) => void;
   onUpdateExercise: (index: number, updates: ExerciseUpdate) => void;
-  /** Provided below 768 px: choosing an exercise then goes through the
-   *  full-screen drawer rather than the dropdown, which is too cramped. */
+  /** Fourni en dessous de 768 px : choisir un exercice passe alors par le
+   *  tiroir plein écran plutôt que par le menu déroulant, trop à l'étroit. */
   onRequestExercisePicker?: () => void;
   /** Opens an exercise's card over the editor. */
   onOpenExerciseSheet?: (exercise: Exercise) => void;
 }
 
 /**
- * A block in the coach's editor: the same rendering the client sees, but
- * where every value becomes a field on click.
+ * Un bloc dans l'éditeur du coach : le rendu même que voit le client, mais où
+ * chaque valeur devient un champ au clic.
  *
- * The principle everything follows from: a programme reads as a programme,
- * not as a form. No grey box per value, no card inside a card — typography, a
- * rule per block, and controls that only show when you come close.
+ * Le principe dont tout découle : un programme se lit comme un programme, pas
+ * comme un formulaire. Aucune boîte grise par valeur, aucune carte dans une
+ * carte — de la typographie, un filet par bloc, et des commandes qui ne se
+ * montrent qu'en s'approchant.
  */
 export const WorkshopBlock = ({
   block,
@@ -401,13 +404,13 @@ export const WorkshopBlock = ({
     null
   );
   /**
-   * Opens an optional field — once the menu has really gone.
+   * Ouvre un champ facultatif — une fois le menu réellement parti.
    *
-   * The menu returns focus to its trigger as it closes. Mounting the field in
-   * the same breath means watching it close at once on its own blur:
-   * measured, it appeared and disappeared in under a hundred milliseconds,
-   * and the coach landed back on the invitation they had just chosen. So we
-   * wait until the close has returned focus before mounting the field.
+   * Le menu rend le focus à son déclencheur en se fermant. Monter le champ
+   * dans la foulée, c'est le voir se refermer aussitôt sur son propre blur :
+   * mesuré, il apparaissait et disparaissait en moins de cent millisecondes,
+   * et le coach retombait sur l'invitation qu'il venait de choisir. On attend
+   * donc que la fermeture ait rendu le focus avant de monter le champ.
    */
   const openField = (field: 'name' | 'instruction') =>
     requestAnimationFrame(() =>
@@ -423,9 +426,9 @@ export const WorkshopBlock = ({
     <BlockFrame
       block={block}
       name={
-        /* Neither a description of the type — the label already says it —
-           nor a permanent placeholder: a block with no free name leaves no
-           trace. */
+        /* Ni une description du type — l'étiquette le dit déjà — ni un
+                   texte d'invite permanent : un bloc sans nom libre ne laisse aucune
+                   trace. */
         nameVisible ? (
           <InlineText
             value={block.label}
@@ -447,9 +450,9 @@ export const WorkshopBlock = ({
           _groupFocusWithin={{ opacity: 1 }}
           transition="opacity 0.15s"
         >
-          {/* One control for everything optional. A "⋯" promises nothing
-              and calls for nothing: exactly what you want for a field most
-              blocks do without. */}
+          {/* Une seule commande pour tout ce qui est facultatif. Un « ⋯ »
+              ne promet rien et ne réclame rien : exactement ce qu'on veut
+              pour un champ dont la plupart des blocs se passent. */}
           <Menu.Root>
             <Menu.Trigger asChild>
               <IconButton

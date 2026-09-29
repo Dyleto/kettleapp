@@ -14,17 +14,18 @@ interface Props {
 const CONFIRMATION_DURATION = 2500;
 
 /**
- * The state of the autosave, in one line.
+ * L'état de l'enregistrement automatique, en une ligne.
  *
- * The stance: show nothing when all has been well for a while. The coach
- * should not have to watch a bar to feel safe — that is precisely what
- * autosave spares them. The line only appears during a save, briefly after
- * it to confirm, and it settles in for good if something fails.
+ * Le parti pris : ne rien montrer quand tout va bien depuis un moment. Le
+ * coach n'a pas à surveiller une barre pour se sentir en sécurité — c'est
+ * précisément ce que l'enregistrement automatique lui épargne. La ligne
+ * n'apparaît que pendant un enregistrement, brièvement après pour confirmer,
+ * et elle s'installe pour de bon si quelque chose échoue.
  */
 export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
-  // We hold on to the last *expired* save rather than a boolean: the state
-  // is then only written from the timer, never during a render nor when the
-  // effect mounts.
+  // On retient le dernier enregistrement *expiré* plutôt qu'un booléen :
+  // l'état n'est alors écrit que depuis le minuteur, jamais pendant un rendu
+  // ni au montage de l'effet.
   const [cleared, setCleared] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -35,16 +36,16 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
 
   const confirmed = savedAt !== null && cleared !== savedAt;
 
-  // "Pending" and "in flight" are a single state to whoever is looking:
-  // distinguishing them would make the line flicker on every keystroke.
+  // « En attente » et « en vol » sont un seul état pour qui regarde : les
+  // distinguer ferait clignoter la ligne à chaque frappe.
   const inFlight = state === 'pending' || state === 'saving';
   const failed = state === 'error';
   const visible = inFlight || failed || confirmed;
 
-  // Only a failure claims the bottom of the screen. A save that goes well
-  // takes nothing from the coach: what they just wrote is on its way, and
-  // navigating elsewhere costs them nothing. A failure is the one that
-  // lasts, and that has no elsewhere to offer.
+  // Seul un échec réclame le bas de l'écran. Un enregistrement qui se passe
+  // bien ne prend rien au coach : ce qu'il vient d'écrire est en route, et
+  // naviguer ailleurs ne lui coûte rien. L'échec est celui qui dure, et qui
+  // n'a pas d'ailleurs à offrir.
   useClaimBottomBar(failed);
 
   if (!visible) return null;
@@ -59,9 +60,10 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
       borderTop="1px solid"
       borderColor="whiteAlpha.100"
     >
-      {/* On failure the line has taken the tab bar's place, so it sits
-          flush with the bottom of the screen. During a save that is going
-          well the tabs are still there and it has to sit above them. */}
+      {/* En cas d'échec la ligne a pris la place de la barre d'onglets,
+          elle se pose donc au ras du bas de l'écran. Pendant un
+          enregistrement qui se passe bien, les onglets sont encore là et elle
+          doit se poser au-dessus. */}
       <HStack
         gap={2}
         pt={2.5}
