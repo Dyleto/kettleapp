@@ -226,7 +226,7 @@ const startOver = async (p) => {
         getComputedStyle(e).position === 'fixed' &&
         /Reprendre|Commencer/.test(e.innerText)
     );
-    return (d[d.length - 1]?.innerText ?? '').replace(/ /g, ' ');
+    return (d[d.length - 1]?.innerText ?? '').replace(/\u00A0/g, ' ');
   });
   ok(
     'we offer to resume a session stored in the old format',

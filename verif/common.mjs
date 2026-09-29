@@ -1,49 +1,84 @@
 /**
- * What every suite redoes: open a browser, sign in, start a guided session,
- * read the screen.
+ * Ce que chaque suite refait : ouvrir un navigateur, se connecter, lancer une
+ * séance guidée, lire l'écran.
  */
 import { existsSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
+/** L'adresse du front. `KETTLE_BASE` la remplace — pour viser un aperçu de
+ * déploiement plutôt que le serveur de développement. */
 export const BASE = process.env.KETTLE_BASE ?? 'http://localhost:5173';
 
 /**
- * Where Chromium is, when we have to say.
+ * Où se trouve Chromium, quand il faut le dire.
  *
- * This container ships one at a fixed path and forbids downloading another,
- * so the path was hard-coded. That made the bench unrunnable anywhere else —
- * including on a CI runner, which is the one place it has to run without
- * anyone asking.
+ * Ce conteneur en embarque un à un chemin fixe et interdit d'en télécharger
+ * un autre, si bien que le chemin était écrit en dur. Le banc devenait alors
+ * inexécutable partout ailleurs — y compris sur un exécuteur de CI, qui est
+ * précisément l'endroit où il doit tourner sans que personne ne le demande.
  *
- * So: an explicit `CHROME_PATH` wins, the container's copy is used when it is
- * there, and otherwise we say nothing and let Playwright resolve its own
- * install. Three cases, no configuration to remember.
+ * Donc : un `CHROME_PATH` explicite l'emporte, l'exemplaire du conteneur sert
+ * quand il est là, et sinon on ne dit rien et l'on laisse Playwright résoudre
+ * sa propre installation. Trois cas, aucune configuration à retenir.
  */
 const CONTAINER_CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 export const CHROME =
   process.env.CHROME_PATH ??
   (existsSync(CONTAINER_CHROME) ? CONTAINER_CHROME : undefined);
+/** Un téléphone : 390 × 844, c'est-à-dire un iPhone 14. La plupart des
+ * défauts que ce banc a trouvés n'existent qu'à cette taille. */
 export const MOBILE = {
   viewport: { width: 390, height: 844 },
   isMobile: true,
   hasTouch: true,
 };
 
+/** Ouvre un navigateur, en laissant Playwright trouver le sien quand on n'a
+ * rien à lui dire. */
 export const launch = () =>
   chromium.launch(CHROME ? { executablePath: CHROME } : {});
 
 let failures = 0;
+/**
+ * Une assertion, et sa ligne de sortie.
+ *
+ * `OK` et `FAIL` sont lus par le lanceur : il compte les uns et cherche les
+ * autres. Ce sont des marqueurs, pas du texte — d'où l'anglais. Ce qui suit
+ * est une phrase, et se lit en français.
+ *
+ * `extra` porte ce qu'on a réellement lu à l'écran : une assertion qui tombe
+ * sans dire ce qu'elle a vu oblige à relancer le banc pour le savoir.
+ */
 export const ok = (label, cond, extra = '') => {
   if (!cond) failures++;
   console.log(
     `${cond ? 'OK  ' : 'FAIL'}  ${label}${extra ? ' — ' + extra : ''}`
   );
 };
+/** Le compte des assertions tombées : c'est lui qui décide du code de
+ * sortie de la suite. */
 export const failureCount = () => failures;
 
-/** Non-breaking spaces break hand-written expressions. */
+/**
+ * Les espaces insécables cassent les expressions écrites à la main.
+ *
+ * L'application en pose partout — « 45 s », « 12 min » — et une assertion qui
+ * cherche « 45 s » avec une espace ordinaire tombe sans que rien ne soit
+ * cassé. On les ramène donc toutes à l'espace ordinaire avant de comparer.
+ */
 export const clean = (t) => (t ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
 
+/**
+ * Se connecter, par la porte de développement du serveur d'essai.
+ *
+ * La connexion passe par Google en production : la rejouer demanderait un
+ * compte réel et un consentement à chaque exécution. Le serveur d'essai pose
+ * donc le cookie de session directement, et c'est la seule chose que ce banc
+ * simule.
+ *
+ * Les erreurs de page sont relayées dans la sortie : sans cela, une exception
+ * React rend l'écran vide et les assertions tombent en accusant l'assertion.
+ */
 export const signIn = async (ctx) => {
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('[pageerror]', e.message));
@@ -59,6 +94,13 @@ export const signIn = async (ctx) => {
   return p;
 };
 
+/**
+ * Ouvrir une séance et entrer en mode guidé.
+ *
+ * Les attentes sont des durées et non des sélecteurs : la séance charge son
+ * programme, puis monte son plein écran, et attendre l'apparition d'un
+ * élément précis ferait de chaque changement de maquette une panne du banc.
+ */
 export const start = async (p, sess) => {
   await p.goto(`${BASE}/client/session/${sess}`, {
     waitUntil: 'domcontentloaded',
@@ -66,8 +108,8 @@ export const start = async (p, sess) => {
   await p.waitForTimeout(1700);
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(800);
-  // The opening screen carries the coach's note: we step past it to reach
-  // the session itself.
+  // L'écran d'ouverture porte la note du coach : on le franchit pour
+  // atteindre la séance elle-même.
   const c = p.getByRole('button', { name: /^Commencer$/ });
   if (await c.count()) {
     await c.click();
@@ -76,11 +118,10 @@ export const start = async (p, sess) => {
 };
 
 /**
- * Where we are, read off the progress bar.
+ * Où l'on en est, lu sur la barre de progression.
  *
- * It is the only reliable marker: the screen's text announces the next block
- * from the last round onwards, which makes it look as though we are already
- * there.
+ * C'est le seul repère fiable : le texte de l'écran annonce le bloc suivant
+ * dès le dernier tour, ce qui donne l'impression qu'on y est déjà.
  */
 export const where = (p) =>
   p.evaluate(
@@ -90,6 +131,8 @@ export const where = (p) =>
         ?.getAttribute('aria-valuetext') ?? ''
   );
 
+/** Tout ce que le plein écran affiche, en texte : c'est là-dessus que la
+ * plupart des assertions portent. */
 export const guidedScreen = (p) =>
   p
     .evaluate(
@@ -98,6 +141,7 @@ export const guidedScreen = (p) =>
     )
     .then(clean);
 
+/** Le texte de toutes les boîtes ouvertes — le bilan, les confirmations. */
 export const dialogs = (p) =>
   p
     .evaluate(() =>
@@ -108,8 +152,9 @@ export const dialogs = (p) =>
     .then(clean);
 
 /**
- * The rest between two sets sits in the list, not full screen: its button
- * says "Passer", and nothing else carries that exact name.
+ * Le repos entre deux séries se pose dans la liste et non en plein écran :
+ * son bouton s'appelle « Passer », et rien d'autre ne porte exactement ce
+ * nom.
  */
 export const skipRest = async (p) => {
   const r = p.getByRole('button', { name: 'Passer', exact: true });

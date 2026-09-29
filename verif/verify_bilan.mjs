@@ -200,8 +200,9 @@ const buttonBox = (p, name) =>
   await finishSess3(p);
   const text = await p.evaluate(
     () =>
-      document.querySelector('[role="dialog"]')?.innerText.replace(/ /g, ' ') ??
-      ''
+      document
+        .querySelector('[role="dialog"]')
+        ?.innerText.replace(/\u00A0/g, ' ') ?? ''
   );
   ok(
     'the loads already recorded are still announced',

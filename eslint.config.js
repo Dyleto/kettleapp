@@ -7,7 +7,10 @@ import globals from 'globals';
 import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'src/components/ui/**'] },
+  // `src/components/ui/**` figurait ici : ce chemin n'existe plus depuis que
+  // le front est rangé par domaine, et l'exception ne portait donc plus sur
+  // rien. Les extraits de Chakra passent le lint comme le reste.
+  { ignores: ['dist', 'verif/node_modules'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -32,6 +35,14 @@ export default tseslint.config(
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+    },
+  },
+  // Le banc est du code, et rien ne le gardait : ni lint ni formateur ne le
+  // regardaient. Il tourne sous Node, d'où ses propres variables globales.
+  {
+    files: ['verif/**/*.mjs'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
     },
   },
   prettierConfig

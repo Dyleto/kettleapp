@@ -8,10 +8,10 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "eslint src --max-warnings=0",
-    "lint:fix": "eslint src --fix",
-    "format": "prettier --write src",
-    "format:check": "prettier --check src",
+    "lint": "eslint src verif --max-warnings=0",
+    "lint:fix": "eslint src verif --fix",
+    "format": "prettier --write src verif/*.mjs",
+    "format:check": "prettier --check src verif/*.mjs",
     "verify": "node verif/runner.mjs --all"
   },
   "dependencies": {

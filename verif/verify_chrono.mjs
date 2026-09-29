@@ -34,7 +34,10 @@ const clock = (p) =>
     const btn = [...r.querySelectorAll('button')].find((e) =>
       /décompte|pause/i.test(e.getAttribute('aria-label') || '')
     );
-    const clean = (x) => (x ?? '').replace(/[   ]/g, ' ');
+    // Le `clean` de common.mjs tourne ici, dans la page : il ne peut pas
+    // être importé, il est donc réécrit. Les espaces sont échappées —
+    // écrites telles quelles, elles sont invisibles à la relecture.
+    const clean = (x) => (x ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
     return {
       time: clean(t?.textContent.trim()) || null,
       name: clean(btn?.getAttribute('aria-label')) || null,

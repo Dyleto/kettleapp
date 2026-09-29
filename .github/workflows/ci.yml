@@ -1,12 +1,13 @@
-# What has to hold before anything is merged.
+# Ce qui doit tenir avant toute fusion.
 #
-# Nothing guarded this repository until now: the bench under `verif/` — ten
-# suites, 169 assertions — only ever ran when someone remembered to run it,
-# and two regressions reached `develop` in a single week for want of it.
+# Rien ne gardait ce dépôt jusqu'ici : le banc de `verif/` — dix suites,
+# 169 assertions — ne tournait que lorsque quelqu'un pensait à le lancer, et
+# deux régressions ont atteint `develop` en une seule semaine faute de lui.
 #
-# The bench is the reason this file exists. Typecheck, lint and format are
-# cheap and catch typos; the bench is what catches a session that stops
-# recording, a button that leaves the screen, or a rest that hides the block.
+# Le banc est la raison d'être de ce fichier. Le typage, le lint et le
+# formateur coûtent peu et attrapent des fautes de frappe ; le banc est ce qui
+# attrape une séance qui cesse d'enregistrer, un bouton qui sort de l'écran,
+# ou un repos qui cache le bloc.
 name: CI
 
 on:
@@ -14,8 +15,8 @@ on:
     branches: [develop, main]
   pull_request:
 
-# A new push makes the previous run pointless: the only interesting answer is
-# about the current head.
+# Une nouvelle poussée rend l'exécution précédente sans objet : la seule
+# réponse intéressante porte sur la tête courante.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -37,7 +38,7 @@ jobs:
       - run: npm run build
 
   bench:
-    name: The bench (10 suites)
+    name: Le banc (10 suites)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -47,28 +48,30 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - name: Install the bench's own dependencies
+      - name: Installer les dépendances propres au banc
         working-directory: verif
         run: npm ci
 
-      # `playwright-core` ships no browser of its own. We install the one its
-      # installed version expects — read from the lockfile rather than
-      # pinned here, so the two can never drift apart. The bench then finds
-      # it by itself: `CHROME_PATH` stays unset and Playwright resolves.
-      - name: Install Chromium
+      # `playwright-core` n'embarque aucun navigateur. On installe celui
+      # qu'attend la version installée — lue dans le fichier de verrouillage
+      # plutôt qu'épinglée ici, pour que les deux ne puissent jamais diverger.
+      # Le banc le trouve ensuite seul : `CHROME_PATH` reste vide et
+      # Playwright résout.
+      - name: Installer Chromium
         working-directory: verif
         run: |
           VERSION=$(node -p "require('playwright-core/package.json').version")
           npx --yes "playwright@$VERSION" install --with-deps chromium
 
-      # The bench drives the real front end against the in-memory API that
-      # `verif/mock-server.mjs` serves on 3001. No database anywhere.
-      - name: Point the front end at the test API
+      # Le banc mène le vrai front contre l'API en mémoire que
+      # `verif/mock-server.mjs` sert sur le port 3001. Aucune base de données
+      # nulle part.
+      - name: Pointer le front vers l'API d'essai
         run: |
           echo 'VITE_API_URL=http://localhost:3001' > .env
           echo 'VITE_GOOGLE_CLIENT_ID=test' >> .env
 
-      - name: Start the front end
+      - name: Démarrer le front
         run: |
           npx vite --port 5173 > vite.log 2>&1 &
           for i in $(seq 1 60); do
@@ -77,9 +80,9 @@ jobs:
           done
           curl -sf -o /dev/null http://localhost:5173
 
-      - name: Run every suite
+      - name: Lancer toutes les suites
         run: npm run verify
 
-      - name: The front end's log, when something failed
+      - name: Le journal du front, quand quelque chose a échoué
         if: failure()
         run: tail -60 vite.log

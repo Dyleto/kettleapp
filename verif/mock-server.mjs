@@ -1,15 +1,15 @@
 /**
- * The test server: an in-memory Kettle API, with no database.
+ * Le serveur d'essai : une API Kettle en mémoire, sans base de données.
  *
- * It exists to drive the application for real in a browser — clicking,
- * typing, finishing a session — and to read what it shows. The test data
- * covers the cases that break: an EMOM, a Tabata, an AMRAP, a chipper, a
- * pyramid, an "Every" block from before the merge, and a history that gives
- * something to compare against.
+ * Il existe pour mener l'application pour de vrai dans un navigateur —
+ * cliquer, taper, terminer une séance — et pour lire ce qu'elle affiche. Le
+ * jeu de données couvre les cas qui cassent : un EMOM, un Tabata, un AMRAP,
+ * un chipper, une pyramide, un bloc « Every » d'avant la fusion, et un
+ * historique qui donne de quoi comparer.
  *
- * It lives in the repository, not in a temporary directory: the first version
- * was erased along with its container, and with it everything that made it
- * possible to verify anything at all.
+ * Il vit dans le dépôt et non dans un dossier temporaire : la première
+ * version a été effacée avec son conteneur, et avec elle tout ce qui
+ * permettait de vérifier quoi que ce soit.
  */
 import http from 'node:http';
 
@@ -29,9 +29,9 @@ const ex = (id, name, videoUrl, usageCount = 0, description = '') => ({
 });
 
 const EXERCISES = [
-  // Two exercises carry a library description: it is the only way to check
-  // that a session's instruction and the movement's general technique read as
-  // distinct. "Pompes" has none.
+  // Deux exercices portent une description de bibliothèque : c'est le seul
+  // moyen de vérifier que la consigne d'une séance et la technique générale du
+  // mouvement se lisent bien comme distinctes. « Pompes » n'en a pas.
   ex(
     'ex1',
     'Kettlebell Swing',
@@ -52,7 +52,7 @@ const EXERCISES = [
   ex('ex6', 'Pompes', '', 6),
   ex('ex7', 'Mountain Climbers', '', 1),
   ex('ex8', 'Corde à sauter', '', 0),
-  // Outside this client's program: feeds "Vos plus utilisés".
+  // Hors du programme de ce client : alimente « Vos plus utilisés ».
   ex('ex9', 'Turkish Get-Up', '', 5),
   ex('ex10', 'Planche', '', 0),
 ];
@@ -184,8 +184,8 @@ const SESSIONS = [
         restDuration: 20,
         exercises: [blockExercise(EXERCISES[0], 1, {})],
       },
-      // An "Every" block from before the merge with EMOM: no new one can be
-      // created, but those in existing programs have to display.
+      // Un bloc « Every » d'avant la fusion avec l'EMOM : on n'en crée plus,
+      // mais ceux des programmes existants doivent s'afficher.
       {
         _id: 'blk9',
         type: 'every',
@@ -227,23 +227,25 @@ const program = () => ({
   sessions: EMPTY_PROGRAM ? [] : SESSIONS,
 });
 
-// Deep clone of the blocks so `performed` can be placed on them without
-// altering the program itself.
+// Copie profonde des blocs, pour pouvoir y poser `performed` sans altérer le
+// programme lui-même.
 const snapshot = (session) => JSON.parse(JSON.stringify(session.blocks));
 
 /**
- * A snapshot of a session as it stood BEFORE the coach reworked it.
+ * L'instantané d'une séance telle qu'elle était AVANT que le coach ne la
+ * remanie.
  *
- * This is the case the programme screen used to get wrong: the coach edits a
- * session instead of deleting and recreating it, so the id survives and the
- * client is told they have already done something that did not exist last
- * week. A wrap-up whose blocks no longer match the session that bears its id
- * is the only way to reproduce it.
+ * C'est le cas que l'écran du programme se trompait à traiter : le coach
+ * modifie une séance au lieu de la supprimer et de la recréer, donc
+ * l'identifiant survit et l'on annonce au client qu'il a déjà fait quelque
+ * chose qui n'existait pas la semaine dernière. Un bilan dont les blocs ne
+ * correspondent plus à la séance qui porte son identifiant est la seule façon
+ * de le reproduire.
  */
 const reworkedSnapshot = (session) => {
   const blocks = snapshot(session);
-  // The first exercise asked for something else that day. Nothing else
-  // differs, so the comparison has to catch this alone.
+  // Le premier exercice demandait autre chose ce jour-là. Rien d'autre ne
+  // diffère : la comparaison doit donc attraper cela seul.
   if (blocks[0]?.exercises?.[0]) {
     const ex = blocks[0].exercises[0];
     if (ex.reps !== undefined) ex.reps += 5;
@@ -257,7 +259,7 @@ const isEmptySet = (set) =>
   set.reps === undefined &&
   set.duration === undefined;
 
-// Mirrors `normalize` on the API side: an empty set stops the exercise there.
+// Reproduit `normalize` côté API : une série vide arrête là l'exercice.
 const normalizeSets = (sets) => {
   const kept = [];
   for (const set of sets || []) {
@@ -326,12 +328,13 @@ let HISTORY = EMPTY_PROGRAM
         sessionName: 'Full body A',
         blocks: snapshot(SESSIONS[0]),
         coachNotes: '',
-        // A report from before the rework: five axes, no effort rating.
+        // Un bilan d'avant la refonte : cinq axes, aucune note d'effort.
         metrics: { stress: 1, mood: 5, energy: 4, sleep: 5, soreness: 1 },
         clientNotes: 'Très bonne séance, forme du jour excellente.',
         viewedByCoach: true,
       },
-      // Three recorded attempts at session 1, harder each time.
+      // Trois tentatives enregistrées de la séance 1, plus dures à chaque
+      // fois.
       {
         _id: 'cs4',
         completedAt: '2026-08-22T18:00:00.000Z',
@@ -379,7 +382,8 @@ let HISTORY = EMPTY_PROGRAM
         viewedByCoach: false,
       },
       {
-        // Session 3 was done once, then reworked: same id, other content.
+        // La séance 3 a été faite une fois, puis remaniée : même
+        // identifiant, autre contenu.
         _id: 'cs7',
         completedAt: '2026-08-12T17:30:00.000Z',
         originalSessionId: 'sess3',
@@ -530,9 +534,11 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { completed });
   }
 
-  // The rest of the API is not covered by this reconstruction: we answer
-  // with nothing rather than pretend the test data is complete.
+  // Le reste de l'API n'est pas couvert par cette reconstitution : on répond
+  // vide plutôt que de faire croire que le jeu de données est complet.
   return sendJson(res, 200, {});
 });
 
-server.listen(3001, () => console.log('mock sur http://localhost:3001'));
+server.listen(3001, () =>
+  console.log("serveur d'essai sur http://localhost:3001")
+);

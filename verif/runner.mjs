@@ -1,22 +1,22 @@
 /**
- * Runs each suite with a fresh test server.
+ * Lance chaque suite avec un serveur d'essai neuf.
  *
- * A server left behind by an earlier run would hold the port, ours would
- * silently fail to bind to it, and every suite would run against state that
- * has already been mutated. That is exactly the false failure we want to
- * avoid.
+ * Un serveur laissé par une exécution précédente garderait le port, le nôtre
+ * échouerait en silence à s'y attacher, et chaque suite tournerait contre un
+ * état déjà modifié. C'est exactement le faux échec qu'on cherche à éviter.
  */
 import { execSync, spawn } from 'node:child_process';
 import { readdirSync } from 'node:fs';
 import { setTimeout as wait } from 'node:timers/promises';
 
 /**
- * `--all` runs every suite in the directory.
+ * `--all` lance toutes les suites du dossier.
  *
- * Naming them explicitly is right when you are working on one, and wrong for
- * CI: a suite added and forgotten in a hand-written list is a suite that
- * never runs again, and nothing says so. Reading the directory means a new
- * `verify_*.mjs` file is covered the moment it exists.
+ * Les nommer explicitement est juste quand on travaille sur l'une d'elles, et
+ * faux pour la CI : une suite ajoutée puis oubliée dans une liste écrite à la
+ * main est une suite qui ne tourne plus jamais, et rien ne le dit. Lire le
+ * dossier fait qu'un nouveau fichier `verify_*.mjs` est couvert dès qu'il
+ * existe.
  */
 const asked = process.argv.slice(2);
 const suites = asked.includes('--all')
@@ -26,6 +26,8 @@ const suites = asked.includes('--all')
   : asked;
 const results = [];
 
+/** Le serveur d'essai répond-il ? Un statut, quel qu'il soit, suffit : on
+ * demande s'il y a quelqu'un, pas s'il est content. */
 const ping = async () => {
   try {
     const r = await fetch('http://localhost:3001/api/auth/me', {
@@ -38,18 +40,20 @@ const ping = async () => {
 };
 
 /**
- * A server left behind by an earlier run would hold the port, ours would
- * silently fail to bind to it, and every suite would run against state that
- * has already been mutated. That is the false failure we want to avoid.
+ * Libère le port 3001, en tuant s'il le faut ce qui l'occupe.
  *
- * We end it rather than give up: it is our own server, it belongs to nobody
- * else, and failing on it only meant asking for the same command a second
- * time.
+ * Un serveur laissé par une exécution précédente garderait le port, le nôtre
+ * échouerait en silence à s'y attacher, et chaque suite tournerait contre un
+ * état déjà modifié. C'est le faux échec qu'on cherche à éviter.
+ *
+ * On y met fin plutôt que d'abandonner : c'est notre propre serveur, il
+ * n'appartient à personne d'autre, et échouer dessus ne faisait que redemander
+ * la même commande une seconde fois.
  */
 const ensureFree = async () => {
   if (!(await ping())) return;
-  // The pattern is anchored on the whole command line: a loose pattern
-  // recognises itself in the shell that invokes it, and kills its own caller.
+  // Le motif est ancré sur toute la ligne de commande : un motif relâché se
+  // reconnaît dans le shell qui l'invoque, et tue son propre appelant.
   try {
     const pids = execSync('pgrep -f "^node mock-server\\.mjs$" || true', {
       encoding: 'utf8',
@@ -61,19 +65,21 @@ const ensureFree = async () => {
       try {
         process.kill(Number(pid), 'SIGKILL');
       } catch {
-        // Already gone between the listing and the signal.
+        // Déjà parti entre le relevé et le signal.
       }
     });
   } catch {
-    // No pgrep: we fall back on waiting.
+    // Pas de pgrep : on se rabat sur l'attente.
   }
   for (let i = 0; i < 20; i++) {
     await wait(300);
     if (!(await ping())) return;
   }
-  throw new Error('port 3001 stays busy and refuses to give way');
+  throw new Error('le port 3001 reste occupé et refuse de céder');
 };
 
+/** Démarre le serveur d'essai et attend qu'il réponde : le lancer sans
+ * attendre ferait échouer la première requête de la suite. */
 const startMock = async () => {
   await ensureFree();
   const p = spawn('node', ['mock-server.mjs'], {
@@ -84,24 +90,25 @@ const startMock = async () => {
     await wait(150);
     if (await ping()) return p;
   }
-  throw new Error('the mock does not answer');
+  throw new Error("le serveur d'essai ne répond pas");
 };
 
 /**
- * The front end has to be up, and saying so once beats failing ten times.
+ * Le front doit tourner, et le dire une fois vaut mieux qu'échouer dix fois.
  *
- * Without it every suite dies in `signIn` on a navigation timeout, and the
- * output is ten stack traces that name Playwright rather than the missing
- * server. The cause is one line long; it should read as one line.
+ * Sans cela, chaque suite meurt dans `signIn` sur un délai de navigation
+ * dépassé, et la sortie est faite de dix traces d'appels qui nomment
+ * Playwright plutôt que le serveur absent. La cause tient en une ligne ; elle
+ * doit se lire en une ligne.
  */
 const FRONT = process.env.KETTLE_BASE ?? 'http://localhost:5173';
 try {
   const r = await fetch(FRONT, { redirect: 'manual' });
-  if (!(r.status > 0)) throw new Error('no answer');
+  if (!(r.status > 0)) throw new Error('pas de réponse');
 } catch {
   console.log(
-    `\nThe front end does not answer on ${FRONT}.\n` +
-      'Start it first (npx vite), or set KETTLE_BASE.'
+    `\nLe front ne répond pas sur ${FRONT}.\n` +
+      "Lance-le d'abord (npx vite), ou définis KETTLE_BASE."
   );
   process.exit(2);
 }
@@ -126,20 +133,21 @@ for (const suite of suites) {
     `${failLines.length === 0 && out.code === 0 ? '✓' : '✗'} ${suite.padEnd(22)} ${summary}`
   );
   failLines.forEach((l) => console.log('    ' + l));
-  // A non-zero code with not a single FAIL line is a crash: the suite stopped
-  // on the way and the summary does not say why. We show it.
+  // Un code non nul sans une seule ligne FAIL est un plantage : la suite
+  // s'est arrêtée en chemin et le résumé ne dit pas pourquoi. On le montre.
   if (out.code !== 0 && failLines.length === 0) {
     const lines = out.buf.trimEnd().split('\n');
-    console.log(`    ─ crashed (code ${out.code}), end of output:`);
+    console.log(`    ─ planté (code ${out.code}), fin de la sortie :`);
     lines.slice(-12).forEach((l) => console.log('    │ ' + l));
   }
 }
 
-// Running the runner with no suite names runs nothing at all, and printing
-// "all green" for zero suites is the one result that must never be trusted.
+// Lancer le lanceur sans nommer de suite ne lance rien du tout, et annoncer
+// « tout est vert » pour zéro suite est le seul résultat auquel il ne faut
+// jamais se fier.
 if (suites.length === 0) {
   console.log(
-    '\nNo suite named. Usage: node runner.mjs --all | verify_recap.mjs [...]'
+    '\nAucune suite nommée. Usage : node runner.mjs --all | verify_recap.mjs [...]'
   );
   process.exit(2);
 }
@@ -147,7 +155,7 @@ if (suites.length === 0) {
 const bad = results.filter((r) => r.failLines.length > 0 || r.code !== 0);
 console.log(
   bad.length === 0
-    ? `\nAll ${results.length} suite(s) green.`
-    : `\n${bad.length} suite(s) failing.`
+    ? `\nLes ${results.length} suite(s) sont vertes.`
+    : `\n${bad.length} suite(s) en échec.`
 );
 process.exit(bad.length ? 1 : 0);
