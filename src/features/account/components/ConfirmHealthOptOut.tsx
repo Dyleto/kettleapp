@@ -5,7 +5,7 @@ interface Props {
   onClose: () => void;
   onConfirm: () => void;
   isPending: boolean;
-  /** "Refuser le partage ?" on the way in, "Retirer mon accord ?" after. */
+  /** « Refuser le partage ? » à l'aller, « Retirer mon accord ? » ensuite. */
   title: string;
   /** Le libellé de l'action, qui doit dire ce qu'elle fait. */
   action: string;

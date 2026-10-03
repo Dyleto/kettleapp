@@ -203,13 +203,13 @@ const SessionScreen = () => {
     );
   }
 
-  // "Séance choisie" said "you got here by choosing" — information that
-  // interests nobody, the client knowing they clicked. It nonetheless took
-  // the place, the shape and the colour of a session status, and so
-  // prevented reading what the session itself has to say.
+  // « Séance choisie » disait « tu es arrivé ici en choisissant » — une
+  // information qui n'intéresse personne, le client sachant qu'il a cliqué.
+  // Elle prenait pourtant la place, la forme et la couleur d'un état de
+  // séance, et empêchait donc de lire ce que la séance a à dire.
   //
-  // "À faire" is a state, not an alert. Red says "problem" everywhere else in
-  // the app — it stays with effort and with error.
+  // « À faire » est un état, pas une alerte. Le rouge dit « problème » partout
+  // ailleurs dans l'application — il reste à l'effort et à l'erreur.
   const pillLabel = 'À faire';
   const pillColor = 'app.primary';
   const pillTextColor = 'app.primary';

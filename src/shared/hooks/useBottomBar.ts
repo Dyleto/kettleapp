@@ -1,22 +1,22 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
 /**
- * The bottom of the screen has one slot, and it is claimed.
+ * Le bas de l'écran n'a qu'un emplacement, et il se réclame.
  *
- * Below 768 px the tab bar is fixed to the bottom. When the editor failed to
- * save, its "Modifications non enregistrées" line stacked on top: two fixed
- * bars on 390 px, and an invitation to navigate elsewhere while work is
- * unsaved.
+ * En dessous de 768 px, la barre d'onglets est fixée en bas. Quand l'éditeur
+ * échouait à enregistrer, sa ligne « Modifications non enregistrées »
+ * s'empilait par-dessus : deux barres fixes sur 390 px, et une invitation à
+ * naviguer ailleurs alors que du travail n'est pas enregistré.
  *
- * Rather than offsetting one above the other, the failure line takes the tab
- * bar's place for as long as it lasts. That is also truer on the substance:
- * there is nothing to go and see elsewhere while what you just wrote has not
- * left.
+ * Plutôt que de décaler l'une au-dessus de l'autre, la ligne d'échec prend la
+ * place de la barre d'onglets le temps qu'elle dure. C'est aussi plus juste sur
+ * le fond : il n'y a rien à aller voir ailleurs tant que ce qu'on vient
+ * d'écrire n'est pas parti.
  *
- * A module registry rather than a context: the slot is unique in the app, the
- * tab bar lives in the layout and its potential occupant five levels below.
- * Making them talk through a provider would mean crossing the whole tree for
- * one boolean.
+ * Un registre de module plutôt qu'un contexte : l'emplacement est unique dans
+ * l'application, la barre d'onglets vit dans la mise en page et son occupant
+ * éventuel cinq niveaux plus bas. Les faire parler par un fournisseur
+ * obligerait à traverser tout l'arbre pour un booléen.
  */
 let claimed = false;
 const subscribers = new Set<() => void>();

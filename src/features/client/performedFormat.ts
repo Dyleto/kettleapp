@@ -39,25 +39,26 @@ const loadOf = (set: PerformedSet): string | null =>
   set.weight !== undefined ? `${set.weight} kg` : null;
 
 /**
- * What was performed, on one line. `null` when there is nothing to say.
+ * Ce qui a été réalisé, en une ligne. `null` quand il n'y a rien à dire.
  *
- * The work comes first, the load second — « 9 reps · 12 kg », the way it is
- * said out loud. The load used to lead, which read as « 12 kg × 9 »: the
- * number you actually did came last, behind the number you chose.
+ * Le travail d'abord, la charge ensuite — « 9 reps · 12 kg », comme on le dit
+ * à voix haute. La charge menait, ce qui se lisait « 12 kg × 9 » : le nombre
+ * qu'on a réellement fait arrivait en dernier, derrière celui qu'on a choisi.
  *
- * Four shapes, from the most common to the rarest:
- *   one set                      « 12 reps · 26 kg »
- *   several identical sets       « 3 × 12 reps · 26 kg »
- *   same load, fewer reps        « 12 + 10 + 8 reps · 26 kg »
- *   everything else              « 12 × 26 kg · 10 × 24 kg »
+ * Quatre formes, de la plus courante à la plus rare :
+ *   une série                      « 12 reps · 26 kg »
+ *   plusieurs séries identiques    « 3 × 12 reps · 26 kg »
+ *   même charge, moins de reps     « 12 + 10 + 8 reps · 26 kg »
+ *   tout le reste                  « 12 × 26 kg · 10 × 24 kg »
  *
- * The first three cover what people usually write; the last does not try to
- * be short, it tries to stay unambiguous.
+ * Les trois premières couvrent ce qu'on note d'habitude ; la dernière ne
+ * cherche pas à être courte, elle cherche à rester sans ambiguïté.
  *
- * The word « reps » is what keeps it so. Now that a number before the load
- * means repetitions, a bare count before it would collide with the set count:
- * « 3 × 26 kg » could be three sets or three repetitions. Spelling the unit
- * costs five characters and removes the doubt everywhere at once.
+ * C'est le mot « reps » qui l'y tient. Maintenant qu'un nombre devant la
+ * charge veut dire des répétitions, un compte nu devant elle entrerait en
+ * collision avec le compte de séries : « 3 × 26 kg » pourrait être trois
+ * séries ou trois répétitions. Écrire l'unité coûte cinq caractères et lève le
+ * doute partout d'un coup.
  */
 export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
   const kept = truncateAtFirstEmpty(sets);
@@ -69,8 +70,9 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
     const load = loadOf(uniform);
     if (!work && !load) return null;
     if (kept.length === 1) return [work, load].filter(Boolean).join(' · ');
-    // With no work to count, the count has to name its own unit: « 3 × 26 kg »
-    // would read as three repetitions at 26 kg, which is not what happened.
+    // Sans travail à compter, le compte doit nommer sa propre unité :
+    // « 3 × 26 kg » se lirait trois répétitions à 26 kg, ce qui n'est pas ce
+    // qui s'est passé.
     if (!work) return `${kept.length} séries · ${load}`;
     return [`${kept.length} × ${work}`, load].filter(Boolean).join(' · ');
   }
@@ -83,8 +85,8 @@ export const formatPerformedSets = (sets: PerformedSet[]): string | null => {
     return `${reps.join(' + ')} reps · ${weights[0]} kg`;
   }
 
-  // In a list of sets the « × » already says these are repetitions:
-  // repeating the word on every set adds nothing and lengthens everything.
+  // Dans une liste de séries, le « × » dit déjà qu'il s'agit de répétitions :
+  // répéter le mot sur chacune n'ajoute rien et allonge tout.
   return kept
     .map((set) => {
       const work = [

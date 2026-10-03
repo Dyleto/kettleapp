@@ -63,8 +63,8 @@ export const buildLastPerformanceIndex = (
 };
 
 /**
- * « 3 × 12 reps · 26 kg » — only the sets actually filled in, never a padding
- * zero. `null` when there is nothing to say.
+ * « 3 × 12 reps · 26 kg » — seulement les séries réellement renseignées,
+ * jamais un zéro de remplissage. `null` quand il n'y a rien à dire.
  */
 export const formatLastPerformance = (
   last: LastPerformance | undefined

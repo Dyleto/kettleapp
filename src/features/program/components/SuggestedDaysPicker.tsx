@@ -9,20 +9,20 @@ interface SuggestedDaysPickerProps {
 }
 
 /**
- * The days the coach suggests for this session. Monday = 0.
+ * Les jours que le coach conseille pour cette séance. Lundi = 0.
  *
- * The row stays put, even when empty. It first lived behind a "+ jour
- * conseillé" revealed on hover, like the session note: nobody would have
- * found it, and seven buttons on one line do not cost what an undiscoverable
- * control costs.
+ * La rangée reste en place, même vide. Elle a d'abord vécu derrière un « + jour
+ * conseillé » révélé au survol, comme la note de séance : personne ne l'aurait
+ * trouvée, et sept boutons sur une ligne ne coûtent pas ce que coûte une
+ * commande introuvable.
  *
- * What the ticked days mean reads from the buttons themselves —
- * `aria-pressed` for screen readers, the accent for everyone else. The
- * sentence that doubled the row said nothing more.
+ * Ce que les jours cochés veulent dire se lit sur les boutons eux-mêmes —
+ * `aria-pressed` pour les lecteurs d'écran, l'accent pour tout le monde. La
+ * phrase qui doublait la rangée ne disait rien de plus.
  *
- * Several days are allowed, and that is the common case: a full body happens
- * Monday, Wednesday and Friday. Nothing stops two sessions on the same day
- * either — that is not a conflict to arbitrate, just two suggestions.
+ * Plusieurs jours sont permis, et c'est le cas courant : un full body se fait
+ * le lundi, le mercredi et le vendredi. Rien n'empêche non plus deux séances
+ * le même jour — ce n'est pas un conflit à arbitrer, juste deux conseils.
  */
 export const SuggestedDaysPicker = ({
   value,

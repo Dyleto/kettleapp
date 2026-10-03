@@ -17,6 +17,13 @@ des personnes qui s'en servent. Kettle s'adresse à des francophones.
 Un commentaire peut donc citer un libellé français sans que cela pose de
 question, et un identifiant ne porte jamais d'accent.
 
+`npm run lint:langue` vérifie la règle plutôt que de la surveiller, et la CI
+l'appelle. Elle a été annoncée tenue trois fois sans l'être, à cause de trois
+angles morts du détecteur : « on » qui compte comme un mot français, un seuil
+de trois mots anglais qui laissait passer les commentaires d'une ligne, et un
+commentaire anglais citant un libellé français — dont l'accent concluait au
+français. Le script retire ce qui est cité avant de juger.
+
 ## Les commentaires
 
 Chaque fonction, méthode, composant et hook exporté porte un commentaire qui

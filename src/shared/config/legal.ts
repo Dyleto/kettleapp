@@ -1,12 +1,12 @@
 /**
- * The identifying details that appear in the legal documents.
+ * Les informations d'identité qui figurent dans les documents légaux.
  *
- * They live here rather than in the body of the pages: a host's address
- * changes, a company name evolves, and nobody should have to reread a privacy
- * policy to correct one line.
+ * Elles vivent ici plutôt que dans le corps des pages : l'adresse d'un
+ * hébergeur change, une raison sociale évolue, et personne ne devrait avoir à
+ * relire une politique de confidentialité pour corriger une ligne.
  *
- * `À COMPLÉTER` shows prominently on the page. That is deliberate: an
- * incomplete legal document must be visible, not guessed at.
+ * `À COMPLÉTER` s'affiche en évidence sur la page. C'est délibéré : un
+ * document légal incomplet doit se voir, pas se deviner.
  */
 export const A_COMPLETER = 'À COMPLÉTER';
 
@@ -58,7 +58,7 @@ export const LEGAL = {
       role: 'Hébergement de la base de données',
       nom: 'MongoDB, Inc. — MongoDB Atlas',
       adresse: '1633 Broadway, 38th Floor, New York, NY 10019, États-Unis',
-      /** The cluster runs on AWS in Paris: the data rests in France. */
+      /** Le cluster tourne sur AWS à Paris : la donnée repose en France. */
       region: 'Amazon Web Services, région Paris (France)',
     },
   },

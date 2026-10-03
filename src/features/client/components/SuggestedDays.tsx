@@ -14,15 +14,15 @@ interface SuggestedDaysProps {
 }
 
 /**
- * The suggested days, as the coach ticked them.
+ * Les jours conseillés, tels que le coach les a cochés.
  *
- * The client read "Conseillée le lundi et le jeudi" where the coach saw
- * chips: the same data in two forms, which you do not connect at a glance.
- * They are the same chips on both sides, only inert here — the client does
- * not choose their days.
+ * Le client lisait « Conseillée le lundi et le jeudi » là où le coach voyait
+ * des pastilles : la même donnée sous deux formes, qu'on ne rapproche pas d'un
+ * coup d'œil. Ce sont les mêmes pastilles des deux côtés, simplement inertes
+ * ici — le client ne choisit pas ses jours.
  *
- * Only the suggested days appear: showing all seven, five of them off, would
- * be a control that controls nothing.
+ * Seuls les jours conseillés apparaissent : en montrer sept, dont cinq
+ * éteints, serait une commande qui ne commande rien.
  */
 export const SuggestedDays = ({ days, withLabel }: SuggestedDaysProps) => {
   const valid = [...new Set(days ?? [])]

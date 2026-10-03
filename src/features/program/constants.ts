@@ -265,8 +265,8 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
     // mêmes champs, même rotation, même mode guidé.
     case 'every':
     case 'emom': {
-      // An EMOM is on the minute by definition: we only say so when it is
-      // not — "12 tours, toutes les 2 min", the E2MOM.
+      // Un EMOM est à la minute par définition : on ne le dit que lorsqu'il
+      // ne l'est pas — « 12 tours, toutes les 2 min », l'E2MOM.
       const tours = block.rounds ? `${block.rounds}\u00A0tours` : '';
       const intervalle =
         (block.intervalMinutes ?? 1) > 1

@@ -155,7 +155,7 @@ export const GuidedSession = ({
       ),
     [steps]
   );
-  // Read once, on opening: it is the previous state we announce.
+  // Lu une fois, à l'ouverture : c'est l'état précédent qu'on annonce.
   const [notesGardees] = useState(() =>
     countRecorded(readProgress(session._id)?.performed ?? {})
   );
@@ -190,12 +190,12 @@ export const GuidedSession = ({
   const [armedBlock, setArmedBlock] = useState<number | null>(null);
 
   /**
-   * Rounds completed, by block.
+   * Les tours bouclés, par bloc.
    *
-   * An AMRAP is not ticked off, it is counted — and that count is the
-   * session's score. The coach in the test data asks for it in prose, in a
-   * free note ("Rythme régulier, viser 5-6 tours"), for want of a field to
-   * hold it.
+   * Un AMRAP ne se coche pas, il se compte — et ce compte est le score de la
+   * séance. Le coach du jeu de test le réclame en prose, dans une note libre
+   * (« Rythme régulier, viser 5-6 tours »), faute d'un champ pour le
+   * recevoir.
    */
   const [rounds, setRounds] = useState<Record<string, number>>(
     () => readProgress(session._id)?.rounds ?? {}
@@ -233,16 +233,16 @@ export const GuidedSession = ({
     writeProgress(session._id, { done: next });
     navigator.vibrate?.(40);
 
-    // The last set of a list block leaves nothing to do.
+    // La dernière série d'un bloc en liste ne laisse rien à faire.
     //
-    // The block stayed there, every line ticked, waiting for a tap on « Bloc
-    // suivant » that said nothing the screen did not already say. A dead end
-    // between two blocks, and one more gesture in the middle of a session.
-    // Ticking the last set IS moving on.
+    // Le bloc restait là, toutes ses lignes cochées, à attendre une touche sur
+    // « Bloc suivant » qui ne disait rien que l'écran ne disait déjà. Un
+    // cul-de-sac entre deux blocs, et un geste de plus au milieu d'une séance.
+    // Cocher la dernière série EST passer au suivant.
     //
-    // Only when there is somewhere to go. On the last block of the session,
-    // « Terminer » stays a deliberate act: finishing a session is a decision,
-    // not a side effect of a checkbox.
+    // Seulement quand il y a où aller. Au dernier bloc de la séance,
+    // « Terminer » reste un acte délibéré : finir une séance est une décision,
+    // pas l'effet de bord d'une case cochée.
     if (next.length === sets.length && !isLast) {
       goNext();
       return;
@@ -310,10 +310,10 @@ export const GuidedSession = ({
   // doigt, c'est voir disparaître la séance qu'on croyait avoir commencée.
   const handleExitClick = () => setShowExitConfirm(true);
 
-  // Leaving erases nothing any more. Stepping out to answer the phone, or
-  // because a finger slipped, must not cost the session: you find your place
-  // and your loads on coming back. To start from scratch, the resume screen
-  // offers "Recommencer depuis le début".
+  // Quitter n'efface plus rien. Sortir pour répondre au téléphone, ou parce
+  // qu'un doigt a glissé, ne doit pas coûter la séance : on retrouve sa place
+  // et ses charges en revenant. Pour repartir de zéro, l'écran de reprise
+  // propose « Recommencer depuis le début ».
   const confirmExit = () => onExit();
 
   // Le plein écran se posait par-dessus la page sans la neutraliser :
@@ -1173,12 +1173,13 @@ export const GuidedSession = ({
             touche les mains moites. C'est la marge qui cède, pas le
             bouton. */}
         <HStack p={4} gap={3} css={{ [PAYSAGE]: { padding: '8px 12px' } }}>
-          {/* An outline, like the one on "J'ai terminé cette séance". Grey
-              text with no frame, next to a solid amber "Suivant" twice as
-              wide, reads as "unavailable": the contrast was compliant, the
-              hierarchy lied. Secondary and unavailable must stay two distinct
-              things — so the button carries its frame, and only truly fades
-              on the first step, where it really is disabled. */}
+          {/* Un contour, comme celui de « J'ai terminé cette séance ». Du
+              texte gris sans cadre, à côté d'un « Suivant » ambre plein deux
+              fois plus large, se lit « indisponible » : le contraste était
+              conforme, la hiérarchie mentait. Secondaire et indisponible
+              doivent rester deux choses distinctes — le bouton porte donc son
+              cadre, et ne s'efface vraiment qu'à la première étape, où il est
+              réellement désactivé. */}
           <Button
             variant="outline"
             borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}

@@ -1,33 +1,35 @@
 import { toaster } from '@/shared/components/ui/toasterInstance';
 
 /**
- * The undo safety net: the action goes through, and can be taken back.
+ * Le filet d'annulation : l'action passe, et peut être reprise.
  *
- * Kettle protected its deletions by asking first — "Supprimer la séance 3 ?".
- * That is a question asked a hundred times for the two occasions someone got
- * it wrong, and it only covers what was thought of: removing an exercise, the
- * editor's most frequent gesture, asked nothing at all.
+ * Kettle protégeait ses suppressions en demandant d'abord — « Supprimer la
+ * séance 3 ? ». C'est une question posée cent fois pour les deux occasions où
+ * quelqu'un s'est trompé, et elle ne couvre que ce à quoi on a pensé : retirer
+ * un exercice, le geste le plus fréquent de l'éditeur, ne demandait rien du
+ * tout.
  *
- * The net reverses the logic. The action happens at once, and a banner stays
- * a few seconds with the means to take it back. Free when you were right,
- * recoverable when you were wrong.
+ * Le filet inverse la logique. L'action a lieu aussitôt, et une bannière reste
+ * quelques secondes avec de quoi la reprendre. Gratuit quand on avait raison,
+ * rattrapable quand on avait tort.
  *
- * This is not a pending deletion, and the difference matters: in the editor a
- * deletion is a structural change, so it goes to the server within the
- * second. Closing the app leaves nothing hanging — the deletion holds, which
- * is what the gesture said. "Annuler" does not wait, it puts the previous
- * state back, and autosave sends it like any other change.
+ * Ce n'est pas une suppression en attente, et la différence compte : dans
+ * l'éditeur, une suppression est un changement structurel, elle part donc au
+ * serveur dans la seconde. Fermer l'application ne laisse rien en suspens — la
+ * suppression tient, ce que le geste disait. « Annuler » n'attend pas, il
+ * remet l'état précédent, et l'enregistrement automatique l'envoie comme tout
+ * autre changement.
  *
- * Hence the only rule to respect when using it: do the action first, call
- * this second, and provide the means to rebuild — never the means to
- * "confirm".
+ * D'où la seule règle à respecter en s'en servant : faire l'action d'abord,
+ * appeler ceci ensuite, et fournir de quoi reconstruire — jamais de quoi
+ * « confirmer ».
  */
 export const undoable = ({
   title,
   description,
   undo,
 }: {
-  /** What has just happened, in the past tense: "Corde à sauter retiré". */
+  /** Ce qui vient de se passer, au passé : « Corde à sauter retiré ». */
   title: string;
   description?: string;
   /** Remet l'état précédent. Appelé au plus une fois. */

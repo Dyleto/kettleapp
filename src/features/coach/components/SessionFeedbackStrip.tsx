@@ -6,7 +6,7 @@ import { formatPerformed } from '@/features/client/performedFormat';
 import { EffortTrend } from './EffortTrend';
 
 interface SessionFeedbackStripProps {
-  // Already filtered by the calling page on originalSessionId === session._id.
+  // Déjà filtré par la page appelante sur originalSessionId === session._id.
   history: CompletedSession[];
   // 'strip' : un bandeau au-dessus de la séance (écrans étroits)
   // 'panel' : une colonne de contexte à droite (à partir de 2xl)

@@ -16,9 +16,9 @@ const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
   warmup: {},
   classic: {},
   chipper: {},
-  // An EMOM is set in rounds and interval — never in total duration, which
-  // neither its settings nor its summary read. A new block therefore showed
-  // "sans limite" although a default had just been set on it.
+  // Un EMOM se règle en tours et en intervalle — jamais en durée totale, que
+  // ni ses réglages ni son résumé ne lisent. Un bloc neuf affichait donc
+  // « sans limite » alors qu'un défaut venait d'être posé dessus.
   emom: { rounds: 10, intervalMinutes: 1 },
   amrap: { durationMinutes: 8 },
   timecap: { durationMinutes: 15 },

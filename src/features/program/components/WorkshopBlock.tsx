@@ -147,8 +147,9 @@ const ExerciseRow = ({
             {index + 1} ·
           </Text>
         )}
-        {/* Two lines rather than one: "Soulevé de terre jambes tendues à
-            la barre" needs two even across a whole phone's width. */}
+        {/* Deux lignes plutôt qu'une : « Soulevé de terre jambes tendues
+            à la barre » en demande deux même sur toute la largeur d'un
+            téléphone. */}
         <Text fontSize="sm" color="fg.muted" lineClamp={2}>
           {exercise.exercise.name}
         </Text>
@@ -261,8 +262,8 @@ const ExerciseRow = ({
           </HStack>
         )}
 
-        {/* Gutter: revealed on hover or keyboard focus, always visible on
-          touch where hover does not exist. */}
+        {/* La gouttière : révélée au survol ou au focus clavier, visible
+          en permanence au tactile, où le survol n'existe pas. */}
         <HStack
           data-row-gutter
           gap={2}
@@ -389,16 +390,16 @@ export const WorkshopBlock = ({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   /**
-   * The optional field just requested.
+   * Le champ facultatif qu'on vient de demander.
    *
-   * Block name and instruction each announced themselves with a permanently
-   * placed "+ something". At three blocks, with "+ exercice" and "+ note de
-   * séance", that made seven simultaneous invitations on one screen, all the
-   * same grey and the same size: the programme read as a form to fill in
-   * rather than as a session to read.
+   * Le nom et la consigne d'un bloc s'annonçaient chacun par un « + quelque
+   * chose » posé en permanence. À trois blocs, avec « + exercice » et « + note
+   * de séance », cela faisait sept invitations simultanées sur un écran, toutes
+   * du même gris et de la même taille : le programme se lisait comme un
+   * formulaire à remplir plutôt que comme une séance à lire.
    *
-   * They now only show when they carry something — or when they have just
-   * been asked for through the block's "⋯".
+   * Ils ne s'affichent plus que lorsqu'ils portent quelque chose — ou qu'on
+   * vient de les demander par le « ⋯ » du bloc.
    */
   const [fieldAsked, setFieldAsked] = useState<'name' | 'instruction' | null>(
     null

@@ -78,9 +78,9 @@ const SetInputs = ({
   isTimed: boolean;
   onChange: (next: PerformedSet) => void;
 }) => (
-  // The work first, the load second — « 9 reps · 12 kg », the order it is
-  // said in. A timed exercise has no repetitions to ask for, so the load
-  // stands alone.
+  // Le travail d'abord, la charge ensuite — « 9 reps · 12 kg », l'ordre dans
+  // lequel on le dit. Un exercice chronométré n'a pas de répétitions à
+  // demander : la charge y reste seule.
   <HStack gap={3} align="center" flexWrap="wrap">
     {!isTimed && (
       <Field

@@ -63,7 +63,7 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
           <Text fontWeight="bold" fontSize="sm">
             {sessionTitle(completed.sessionOrder, completed.sessionName)}
           </Text>
-          {/* Gold: the red on this row belongs to how it felt. */}
+          {/* De l'or : le rouge de cette ligne appartient au ressenti. */}
           {isUnseen && (
             <Box w="6px" h="6px" borderRadius="full" bg="app.primary" />
           )}

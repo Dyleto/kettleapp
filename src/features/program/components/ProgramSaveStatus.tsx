@@ -10,7 +10,7 @@ interface Props {
   onRetry: () => void;
 }
 
-/** How long "Enregistré" stays on screen before fading out. */
+/** Combien de temps « Enregistré » reste à l'écran avant de s'effacer. */
 const CONFIRMATION_DURATION = 2500;
 
 /**

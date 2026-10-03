@@ -40,17 +40,18 @@ const inactivityDays = (client: Client): number =>
   daysSince(client.lastCompletedAt ?? client.linkedAt);
 
 /**
- * One client row, in fixed cells.
+ * Une ligne de client, en cellules fixes.
  *
- * Four row anatomies coexisted: "Trop dure · il y a 3 jours", "rien depuis 3
- * sem.", "nouveau client", "jamais fait de séance" — plus an amber "3" with
- * no caption on the right. Scanning a column was impossible: you had to read
- * the seven rows one by one, and the "À traiter" sort order could be
- * reconstructed from none of them.
+ * Quatre anatomies de ligne cohabitaient : « Trop dure · il y a 3 jours »,
+ * « rien depuis 3 sem. », « nouveau client », « jamais fait de séance » — plus
+ * un « 3 » ambre sans légende à droite. Balayer une colonne était impossible :
+ * il fallait lire les sept lignes une à une, et l'ordre du tri « À traiter »
+ * ne se reconstituait depuis aucune d'elles.
  *
- * The grammar is now fixed — status · age · what is waiting — and empty cells
- * stay empty in their place. What awaits the coach is spelled out: that is
- * what makes each client's rank self-explanatory.
+ * La grammaire est maintenant fixe — état · ancienneté · ce qui attend — et
+ * les cellules vides restent vides à leur place. Ce qui attend le coach est
+ * écrit en toutes lettres : c'est ce qui rend le rang de chaque client
+ * évident.
  */
 interface LigneClient {
   /** L'état en un mot : la dernière note d'effort, ou « Nouveau ». */
@@ -59,7 +60,7 @@ interface LigneClient {
   anciennete: string | null;
   /** Ce qui attend le coach, ou rien. */
   attente: string | null;
-  /** An unread session calls for action; a silence merely goes on. */
+  /** Une séance non lue appelle une action ; un silence ne fait que durer. */
   attenteEstAction: boolean;
 }
 
@@ -81,8 +82,8 @@ const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
     const days = daysSince(client.linkedAt);
     return days >= SILENCE_THRESHOLD_DAYS
       ? {
-          // Age counts from when they were linked: it is what separates two
-          // never-started clients in the "À traiter" sort.
+          // L'ancienneté se compte depuis le rattachement : c'est ce qui
+          // sépare deux clients jamais commencés dans le tri « À traiter ».
           etat: null,
           anciennete: depuis(days),
           attente: 'jamais démarré',
@@ -206,8 +207,8 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
         rowGap={0}
         templateColumns={{
           base: '32px auto minmax(0, 1fr) auto',
-          // 152 px: "rien depuis 3 semaines" is the longest sentence in
-          // this column, and it truncated at 136.
+          // 152 px : « rien depuis 3 semaines » est la plus longue phrase de
+          // cette colonne, et elle se tronquait à 136.
           md: '32px minmax(0, 1fr) 84px 108px 152px',
         }}
         templateAreas={{

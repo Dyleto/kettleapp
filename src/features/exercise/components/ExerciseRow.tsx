@@ -9,7 +9,7 @@ interface ExerciseRowProps {
   selected?: boolean;
   /** Les commandes révélées au survol, à droite de la ligne. */
   extra?: ReactNode;
-  /** Replaces the description: "déjà 3 fois dans ce programme", etc. */
+  /** Remplace la description : « déjà 3 fois dans ce programme », etc. */
   subtitle?: string;
 }
 

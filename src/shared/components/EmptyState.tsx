@@ -11,16 +11,16 @@ interface EmptyStateProps {
 }
 
 /**
- * An empty screen, written one way.
+ * Un écran vide, écrit d'une seule façon.
  *
- * The same state — "your coach has not written a programme yet" — was said
- * three ways depending on the screen, one of them curt: "Aucune séance dans
- * le programme." Three wordings suggest three different situations, and the
- * curt one suggests an error.
+ * Le même état — « ton coach n'a pas encore écrit de programme » — se disait
+ * de trois façons selon l'écran, dont une sèche : « Aucune séance dans le
+ * programme. » Trois formulations laissent croire à trois situations
+ * différentes, et la sèche laisse croire à une erreur.
  *
- * The warm tone is the right one: an empty programme is not a breakdown, it
- * is a normal moment in the relationship with a coach. It was the curt
- * version that had to go.
+ * Le ton chaleureux est le bon : un programme vide n'est pas une panne, c'est
+ * un moment normal de la relation avec un coach. C'est la version sèche qui
+ * devait partir.
  */
 export const EmptyState = ({ title, line, action }: EmptyStateProps) => (
   <Box

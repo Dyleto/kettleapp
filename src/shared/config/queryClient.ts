@@ -21,7 +21,7 @@ export const queryClient = new QueryClient({
       // Relecture automatique au retour du focus sur la fenêtre.
       refetchOnWindowFocus: true,
 
-      // No refetch on mount when the data is fresh.
+      // Pas de relecture au montage quand la donnée est fraîche.
       refetchOnMount: true,
     },
     mutations: {

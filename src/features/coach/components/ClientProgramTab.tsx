@@ -180,10 +180,10 @@ export const ClientProgramTab = ({
     <>
       <VStack align="stretch" gap={4}>
         <VStack align="stretch" gap={1}>
-          {/* The note only shows when it exists, or when it has just been
-              asked for. A permanently placed "+ note de séance" was the
-              screen's seventh invitation, and the only one most sessions do
-              without. */}
+          {/* La note ne s'affiche que lorsqu'elle existe, ou qu'elle vient
+              d'être demandée. Un « + note de séance » posé en permanence était
+              la septième invitation de l'écran, et la seule dont la plupart
+              des séances se passent. */}
           {noteVisible && (
             <Box className="group" w="fit-content" maxW="full">
               <InlineText

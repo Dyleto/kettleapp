@@ -22,13 +22,13 @@ import { toaster } from '@/shared/components/ui/toasterInstance';
 const MINIMUM_DISPLAY_TIME_MS = 800;
 
 /**
- * Why signing in did not go through.
+ * Pourquoi la connexion n'est pas passée.
  *
- * The distinction is not cosmetic: it decides what the person can do. A
- * silent network is worth retrying, a refusal from Google is not worth
- * retrying identically, an outage on our side does not depend on them at
- * all. All three used to say "Impossible de vous connecter. Veuillez
- * réessayer."
+ * La distinction n'est pas cosmétique : elle décide de ce que la personne
+ * peut faire. Un réseau muet vaut la peine d'être réessayé, un refus de
+ * Google ne vaut pas la peine d'être réessayé à l'identique, une panne de
+ * notre côté ne dépend pas d'elle du tout. Les trois disaient « Impossible de
+ * vous connecter. Veuillez réessayer. »
  */
 type Cause = 'reseau' | 'refus' | 'serveur' | 'lien';
 

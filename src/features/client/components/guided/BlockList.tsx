@@ -394,8 +394,9 @@ export const BlockList = ({
                   />
                 )}
               </Box>
-              {/* The name may be truncated, the rank may not: the rank is what
-                says where you are, and "Fentes marchées · série…" teaches nothing. */}
+              {/* Le nom peut être tronqué, le rang non : c'est le rang qui dit
+                où l'on en est, et « Fentes marchées · série… » n'apprend
+                rien. */}
               <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1}>
                 {e.name}
               </Text>

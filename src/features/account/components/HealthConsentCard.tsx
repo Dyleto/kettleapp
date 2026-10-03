@@ -17,20 +17,19 @@ const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
 });
 
 /**
- * The switch for sharing how you felt, and the trace of the last decision.
+ * L'interrupteur du partage du ressenti, et la trace de la dernière décision.
  *
- * Withdrawing consent must be as simple as giving it: the same gesture, in
- * the same place, with no confirmation. A consent you cannot take back with
- * one finger is not one.
+ * Retirer son accord doit être aussi simple que le donner : le même geste, au
+ * même endroit, sans confirmation. Un consentement qu'on ne peut pas retirer
+ * d'un doigt n'en est pas un.
  *
- * Everything here is written in the first person, and not out of taste: this
- * card appears in both areas, where Kettle does not use the same form of
- * address — it says "tu" to the client and "vous" to the coach. An account
- * holding both roles therefore read "Ton coach voit ce que tu déclares" in
- * the middle of a page that said "vous" everywhere else. The first person
- * escapes the problem without dragging a boolean through every sentence, and
- * it is the voice of a consent anyway: you declare what you accept, you are
- * not told it.
+ * Tout y est écrit à la première personne, et non par goût : cette carte
+ * apparaît dans les deux espaces, où Kettle n'emploie pas la même adresse —
+ * elle tutoie le client et vouvoie le coach. Un compte portant les deux rôles
+ * lisait donc « Ton coach voit ce que tu déclares » au milieu d'une page qui
+ * vouvoyait partout ailleurs. La première personne échappe au problème sans
+ * traîner un booléen dans chaque phrase, et c'est de toute façon la voix d'un
+ * consentement : on déclare ce qu'on accepte, on ne se l'entend pas dire.
  */
 export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   const { mutate, isPending } = useSetHealthConsent();

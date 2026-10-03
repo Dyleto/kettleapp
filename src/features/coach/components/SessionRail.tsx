@@ -120,10 +120,9 @@ const RailRow = ({
       touchAction="none"
     >
       <HStack justify="space-between" align="baseline" gap={2}>
-        {/* The rank and the name on two lines, not one: "Séance 1 — Full
-            body A" does not fit in 220 px, and broke in the middle of the
-            name. Stacked, the rank keeps its place and the name keeps its
-            own. */}
+        {/* Le rang et le nom sur deux lignes, pas une : « Séance 1 — Full
+            body A » ne tient pas dans 220 px, et se cassait au milieu du nom.
+            Empilés, le rang garde sa place et le nom la sienne. */}
         <VStack align="start" gap={0} minW={0} flex={1}>
           <Text
             fontSize="sm"

@@ -51,7 +51,7 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
   }
 
   const { id, isShort } = parsed;
-  // Vertical format for Shorts, on mobile only.
+  // Format vertical pour les Shorts, sur mobile seulement.
   const ratio = isShort && isMobile ? '177.78%' : '56.25%';
   const maxW = isShort && isMobile ? '400px' : undefined;
 

@@ -222,7 +222,7 @@ export const useProgramAutoSave = ({
     envoyer();
   }, [envoyer]);
 
-  // ── Safety net on close ──────────────────────────────────────────────────
+  // ── Le filet à la fermeture ──────────────────────────────────────────────
   useEffect(() => {
     if (!isDirty && state !== 'saving') return;
     const avertir = (e: BeforeUnloadEvent) => e.preventDefault();

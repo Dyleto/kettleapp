@@ -61,9 +61,9 @@ export const startOfWeek = (from: Date): Date => {
 };
 
 /**
- * "le lundi", "le lundi et le jeudi", "le lundi, le mercredi et le vendredi".
- * Nothing at all when no day is suggested — the absence of a suggestion does
- * not announce itself, it stays silent.
+ * « le lundi », « le lundi et le jeudi », « le lundi, le mercredi et le
+ * vendredi ». Rien du tout quand aucun jour n'est conseillé — l'absence de
+ * conseil ne s'annonce pas, elle se tait.
  */
 export const formatSuggestedDays = (days?: number[]): string => {
   const valid = [...new Set(days ?? [])]

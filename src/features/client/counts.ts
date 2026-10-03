@@ -1,21 +1,22 @@
 /**
- * Counting sessions, and saying what is being counted.
+ * Compter des séances, et dire ce qu'on compte.
  *
- * Two screens used to show a number of sessions done, with the same word and
- * two different meanings: "Mon programme" counted how many of the
- * programme's sessions had been done at least once, "Mon journal" counted
- * occurrences. A programme repeats every week, so from the second week the
- * two numbers diverge for everyone, and a client reading "3" then "12"
- * concludes one of the screens is lying.
+ * Deux écrans affichaient un nombre de séances faites, avec le même mot et
+ * deux sens différents : « Mon programme » comptait combien des séances du
+ * programme avaient été faites au moins une fois, « Mon journal » comptait des
+ * occurrences. Un programme se répète chaque semaine : dès la deuxième, les
+ * deux nombres divergent pour tout le monde, et un client qui lit « 3 » puis
+ * « 12 » en conclut qu'un des deux écrans ment.
  *
- * The programme's proportion is gone — it answered a question nobody asked,
- * and it was built on an id that survives an edit, so it could read "7
- * séances sur 2 déjà faites" once the coach had reworked the programme. Each
- * session now says when it was last done. Only the running total is left,
- * and it names what it covers.
+ * La proportion du programme a disparu — elle répondait à une question que
+ * personne ne posait, et elle se fondait sur un identifiant qui survit à une
+ * modification, si bien qu'elle pouvait annoncer « 7 séances sur 2 déjà
+ * faites » dès que le coach avait remanié le programme. Chaque séance dit
+ * maintenant quand elle a été faite pour la dernière fois. Il ne reste que le
+ * total courant, et il nomme ce qu'il couvre.
  */
 
-/** "12 séances faites depuis le début" — the journal's running total. */
+/** « 12 séances faites depuis le début » — le total courant du journal. */
 export const lifetimeTotal = (completions: number): string =>
   `${completions} séance${completions > 1 ? 's' : ''} faite${
     completions > 1 ? 's' : ''

@@ -8,7 +8,7 @@
 export const invitationLink = (token: string) =>
   `${window.location.origin}/join?token=${token}`;
 
-/** "Valable jusqu'au 24 septembre". Empty when the expiry is unknown. */
+/** « Valable jusqu'au 24 septembre ». Vide quand l'échéance est inconnue. */
 export const linkExpiry = (expiresAt?: string) =>
   expiresAt
     ? `Valable jusqu'au ${new Intl.DateTimeFormat('fr-FR', {

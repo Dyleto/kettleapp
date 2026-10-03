@@ -1,17 +1,19 @@
 /**
- * What a session is called, at a single address.
+ * Comment s'appelle une séance, à une seule adresse.
  *
- * A session repeats, and its rank repeated with it: a client read "Séance 1 ·
- * Séance 1 · Séance 1" in their history, the coach the same in the journal,
- * and the editor's rail lined up five anonymous S1…S5. The rank says where
- * the session sits in the programme, never what it contains.
+ * Une séance se répète, et son rang se répétait avec elle : un client lisait
+ * « Séance 1 · Séance 1 · Séance 1 » dans son historique, le coach la même
+ * chose dans le journal, et le rail de l'éditeur alignait cinq S1…S5
+ * anonymes. Le rang dit où la séance se trouve dans le programme, jamais ce
+ * qu'elle contient.
  *
- * The name does not replace the rank, it adds to it: "Séance 2 — Haut du
- * corps". Order still matters — it is the session you do after the first —
- * and a coach who named nothing loses nothing.
+ * Le nom ne remplace pas le rang, il s'y ajoute : « Séance 2 — Haut du
+ * corps ». L'ordre compte toujours — c'est la séance qu'on fait après la
+ * première — et un coach qui n'a rien nommé ne perd rien.
  *
- * Eight screens wrote this title each on their own. They now all write it
- * here, so that the day the rule changes, it changes once.
+ * Huit écrans écrivaient ce titre chacun de leur côté. Ils l'écrivent
+ * maintenant tous ici, pour que le jour où la règle change, elle change une
+ * fois.
  */
 
 /** "Séance 2" or "Séance 2 — Haut du corps". */

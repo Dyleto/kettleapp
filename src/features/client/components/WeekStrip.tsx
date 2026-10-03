@@ -68,10 +68,10 @@ export const WeekStrip = ({
         >
           Cette semaine
         </Text>
-        {/* The count stops contradicting what is drawn just below: the
-            header announced "aucune séance" while the strip showed three
-            rings. It counted only what was done; the strip also shows what is
-            planned. */}
+        {/* Le compte cesse de contredire ce qui est dessiné juste en
+            dessous : l'en-tête annonçait « aucune séance » quand la bande
+            montrait trois anneaux. Il ne comptait que ce qui est fait ; la
+            bande montre aussi ce qui est prévu. */}
         <Text fontSize="xs" color="fg.muted">
           {faites === 0 && prevues === 0
             ? 'rien de prévu'

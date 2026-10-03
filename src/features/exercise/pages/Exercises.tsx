@@ -265,11 +265,11 @@ const Exercises = () => {
             filtre. */}
         <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
           <VStack gap={4} align="stretch" minW={0}>
-            {/* `space-between` on a row that does not wrap pushed the page
-                27 px wide at 360: "Bibliothèque", the count and "Nouvel
-                exercice" do not fit in one line there. `ml="auto"` gives the
-                same maximum gap when they do fit, and lets the count wrap
-                when they do not. */}
+            {/* `space-between` sur une rangée qui ne se replie pas poussait
+                la page 27 px trop large à 360 : « Bibliothèque », le compte et
+                « Nouvel exercice » n'y tiennent pas sur une ligne. `ml="auto"`
+                donne le même écart maximal quand ils tiennent, et laisse le
+                compte passer à la ligne quand ils ne tiennent pas. */}
             <HStack
               justify="flex-start"
               align="baseline"
@@ -277,10 +277,10 @@ const Exercises = () => {
               rowGap={1}
               wrap="wrap"
             >
-              {/* The same name as in the navigation and in the tab. The screen
-              was called "Mes exercices" while you reached it through
-              "Bibliothèque": three names for one place, two of them one
-              click apart. */}
+              {/* Le même nom que dans la navigation et dans l'onglet. L'écran
+              s'appelait « Mes exercices » alors qu'on y arrivait par
+              « Bibliothèque » : trois noms pour un seul endroit, dont deux à
+              un clic l'un de l'autre. */}
               <Text as="h1" fontSize="lg" fontWeight="bold">
                 Bibliothèque
               </Text>

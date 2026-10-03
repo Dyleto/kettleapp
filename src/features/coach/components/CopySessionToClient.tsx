@@ -21,26 +21,26 @@ import { hitArea } from '@/shared/components/hitArea';
 interface CopySessionToClientProps {
   sourceClientId: string;
   sourceSessionId: string;
-  /** The session's displayed number — "Séance 3". */
+  /** Le numéro affiché de la séance — « Séance 3 ». */
   sessionOrder: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
 /**
- * Placing a session with another client.
+ * Poser une séance chez un autre client.
  *
- * From the field: "a shame not to be able to copy the session and paste it
- * to another client. That would be more useful than duplicating it."
+ * Retour du terrain : « dommage de ne pas pouvoir copier la séance et la
+ * coller chez un autre client. Ce serait plus utile que le dupliquer. »
  *
- * A list of names, one per line, and that is all: there is nothing to set.
- * The current client is not on it — for a copy onto oneself, "Dupliquer la
- * séance" already exists two buttons away, and offering both paths for the
- * same thing would force a choice between them.
+ * Une liste de noms, un par ligne, et c'est tout : il n'y a rien à régler. Le
+ * client courant n'y figure pas — pour une copie sur soi-même, « Dupliquer la
+ * séance » existe déjà à deux boutons, et proposer les deux chemins pour la
+ * même chose obligerait à choisir entre eux.
  *
- * The copy lands at the end of the destination program rather than at a
- * chosen place: when copying, you know who you are placing it with, rarely
- * where. The session rail then serves to move it, and already knows how.
+ * La copie arrive en fin de programme de destination plutôt qu'à une place
+ * choisie : au moment de copier, on sait chez qui l'on pose, rarement où. Le
+ * rail de séances sert ensuite à la déplacer, et il sait déjà le faire.
  */
 export const CopySessionToClient = ({
   sourceClientId,

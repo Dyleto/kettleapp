@@ -34,12 +34,12 @@ interface ExerciseSelectorPanelProps {
 }
 
 /**
- * Choosing an exercise below 768 px.
+ * Choisir un exercice en dessous de 768 px.
  *
- * It is the same selector as on desktop, in a drawer: same groups, same
- * create-from-search, same rows. It used to offer "Récemment ajoutés" and
- * then "Tous les exercices", so the same exercises appeared twice in one list
- * of cards.
+ * C'est le même sélecteur que sur bureau, dans un tiroir : mêmes groupes, même
+ * création depuis la recherche, mêmes lignes. Il proposait « Récemment
+ * ajoutés » puis « Tous les exercices », si bien que les mêmes exercices
+ * apparaissaient deux fois dans une seule liste de cartes.
  */
 export const ExerciseSelectorPanel = ({
   isOpen,

@@ -72,17 +72,17 @@ export const hitAreaTactile = (souris = 32): SystemStyleObject => ({
 });
 
 /**
- * The gap to put between two controls whose zones are 44 px.
+ * L'écart à mettre entre deux commandes dont les zones font 44 px.
  *
- * Three 24 px pictograms spaced 8 apart cannot carry three 44 px zones: they
- * overlap, and the last one in the DOM receives the finger — so "Supprimer"
- * instead of "Changer l'unité". 24 + 20 puts 44 px between two centres: the
- * zones touch without ever crossing.
+ * Trois pictogrammes de 24 px espacés de 8 ne peuvent pas porter trois zones
+ * de 44 px : elles se recouvrent, et la dernière du DOM reçoit le doigt — donc
+ * « Supprimer » au lieu de « Changer l'unité ». 24 + 20 met 44 px entre deux
+ * centres : les zones se touchent sans jamais se croiser.
  *
- * We push apart rather than enlarge, and that is a measured choice: with
- * 40 px boxes the gutter went from 103 to 136 px wide, the editor's row broke
- * into two levels and doubled in height — 36 px to 77. The spacing costs 9 px
- * of width and keeps the editor readable.
+ * On écarte plutôt qu'on agrandit, et c'est un choix mesuré : avec des boîtes
+ * de 40 px, la gouttière passait de 103 à 136 px de large, la ligne de
+ * l'éditeur se cassait sur deux niveaux et doublait de hauteur — de 36 px à
+ * 77. L'espacement coûte 9 px de largeur et garde l'éditeur lisible.
  */
 export const ecartTactile: SystemStyleObject = {
   [TACTILE]: { gap: '20px' },

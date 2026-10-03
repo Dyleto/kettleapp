@@ -15,7 +15,7 @@ interface TimerProps {
    */
   onComplete?: () => void;
   couleur: string;
-  /** The track under the gauge — darker on a light background. */
+  /** La piste sous la jauge — plus sombre sur un fond clair. */
   track?: string;
   /** Ce qui se lit à gauche du temps : le bloc et le tour, « Repos »… */
   title?: React.ReactNode;
@@ -32,7 +32,7 @@ interface TimerProps {
    * série. Un tour non : le client doit d'abord reprendre sa kettlebell.
    */
   autoStart?: boolean;
-  /** Called on the very first start, never on a resume. */
+  /** Appelé au tout premier départ, jamais à une reprise. */
   onStart?: () => void;
 }
 
@@ -60,9 +60,9 @@ export const Timer = ({
     autoStart,
   });
   const isDone = remaining === 0;
-  // Never started, as opposed to started and paused: the two look alike on a
-  // stopped clock but do not say the same thing, and what has to be said
-  // first is « this is waiting for you ».
+  // Jamais lancé, par opposition à lancé puis mis en pause : les deux se
+  // ressemblent sur une horloge arrêtée mais ne disent pas la même chose, et
+  // ce qu'il faut dire d'abord est « elle vous attend ».
   const [started, setStarted] = useState(autoStart);
 
   useEffect(() => {

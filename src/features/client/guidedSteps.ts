@@ -39,7 +39,7 @@ export interface GuidedSet {
   /** Combien l'exercice en porte — le « / 4 ». */
   total: number;
   name: string;
-  /** What there is to do: "10 reps", or "8 reps" on a rung. */
+  /** Ce qu'il y a à faire : « 10 reps », ou « 8 reps » sur un palier. */
   dose: string;
   /**
    * Les répétitions prescrites, sous forme de nombre — quand il y en a.
@@ -131,7 +131,7 @@ export type GuidedStep =
       block: SessionBlock;
       /** `list` se coche, `loop` se compte. Jamais `timed` ici. */
       shape: Exclude<BlockShape, 'timed'>;
-      /** Empty on a loop: an AMRAP is not ticked off, it is counted. */
+      /** Vide sur une boucle : un AMRAP ne se coche pas, il se compte. */
       sets: GuidedSet[];
     }
   | {

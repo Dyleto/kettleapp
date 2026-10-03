@@ -32,7 +32,7 @@ export const Round = ({
   onArm,
 }: {
   step: Extract<GuidedStep, { type: 'round' }>;
-  /** The round is over: we move on. */
+  /** Le tour est fini : on passe au suivant. */
   onDone: () => void;
   lastPerformance?: Map<string, LastPerformance>;
   onOuvrirDetail: (ex: BlockExercise) => void;

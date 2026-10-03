@@ -256,12 +256,12 @@ export const CompleteSessionModal = ({
           </Dialog.Body>
 
           <Dialog.Footer gap={3} flexWrap="wrap" flexShrink={0}>
-            {/* A greyed-out button with no explanation looks broken. We say
-                what is missing, next to what will not go — and short enough
-                to share the line with it. "Choisis un cran pour valider."
-                wrapped the footer onto a second row at 390 px, and a footer
-                does not scroll: that row came straight out of the body. The
-                greyed "Valider" beside it carries the rest of the sentence. */}
+            {/* Un bouton grisé sans explication a l'air cassé. On dit ce qui
+                manque, à côté de ce qui ne partira pas — et assez court pour
+                partager la ligne avec lui. « Choisis un cran pour valider. »
+                faisait passer le pied sur une seconde rangée à 390 px, et un
+                pied ne défile pas : cette rangée était prise au corps. Le
+                « Valider » grisé à côté porte le reste de la phrase. */}
             {effort === undefined && (
               <Text fontSize="xs" color="fg.muted" mr="auto" flexShrink={0}>
                 Choisis un cran.

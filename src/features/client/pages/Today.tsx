@@ -119,15 +119,16 @@ const Today = () => {
                 textTransform="uppercase"
                 letterSpacing="wider"
               >
-                {/* "À FAIRE MAINTENANT" was an order, and an order Kettle is
-                    in no position to give: the programme is a cycle, so this
-                    card always points at something — including a Sunday at
-                    11 pm, and including right after a session just finished.
-                    "La prochaine" says where you are in the programme, which
-                    is true at any hour.
+                {/* « À FAIRE MAINTENANT » était un ordre, et un ordre que
+                    Kettle n'est pas en position de donner : le programme est
+                    un cycle, cette carte pointe donc toujours quelque chose —
+                    y compris un dimanche à 23 h, y compris juste après une
+                    séance qu'on vient de terminer. « La prochaine » dit où
+                    l'on en est du programme, ce qui est vrai à toute heure.
 
-                    On the suggested day the app knows something more, and
-                    only there does it allow itself to speak of timing. */}
+                    Le jour conseillé, l'application sait quelque chose de
+                    plus, et c'est seulement là qu'elle se permet de parler de
+                    moment. */}
                 {isSuggestedToday ? "Aujourd'hui" : 'La prochaine'}
               </Text>
               {/* La carte est le bouton. Les gens cliquent instinctivement la
@@ -154,11 +155,11 @@ const Today = () => {
                     <Text fontWeight="bold" fontSize="sm">
                       {sessionTitle(nextSession.order, nextSession.name)}
                     </Text>
-                    {/* The chip only appears on the suggested day. The rest of
-                        the time it said "À faire" forty pixels from a label
-                        that said "À faire maintenant": the same word twice,
-                        neither of which taught anything. "Conseillée" adds
-                        the coach to the reading. */}
+                    {/* La pastille n'apparaît que le jour conseillé. Le reste
+                        du temps elle disait « À faire » à quarante pixels d'un
+                        libellé qui disait « À faire maintenant » : le même mot
+                        deux fois, dont aucun n'apprenait rien. « Conseillée »
+                        ajoute le coach à la lecture. */}
                     {isSuggestedToday && (
                       <Box
                         px={2}

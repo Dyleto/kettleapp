@@ -13,7 +13,8 @@
     "format": "prettier --write src verif/*.mjs scripts/*.mjs",
     "format:check": "prettier --check src verif/*.mjs scripts/*.mjs",
     "verify": "node verif/runner.mjs --all",
-    "contract:check": "node scripts/contract-check.mjs"
+    "contract:check": "node scripts/contract-check.mjs",
+    "lint:langue": "node scripts/audit-langue.mjs"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.35.0",
@@ -49,6 +50,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.67.0",
     "vite": "^5.2.0",
-    "vite-plugin-pwa": "^1.2.0"
+    "vite-plugin-pwa": "^1.2.0",
+    "vitest": "^3.2.7"
   }
 }

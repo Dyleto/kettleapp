@@ -35,10 +35,11 @@ export const Toaster = () => {
         padding={{ base: '0 0 20px 0', md: '0 20px 20px 0' }}
       >
         {(toast) => (
-          /* The theme tokens, not Chakra's default palette: an
-             "Exercice créé" message came out in saturated green at the very
-             moment the button beside it turned `app.success` teal. Two greens
-             for the same event, side by side. */
+          /* Les jetons du thème, et non la palette par défaut de
+             Chakra : un message « Exercice créé » sortait en vert saturé à
+             l'instant même où le bouton d'à côté passait au sarcelle
+             `app.success`. Deux verts pour le même événement, côte à
+             côte. */
           <Toast.Root
             width={{ base: '90vw', md: 'sm' }}
             style={{ pointerEvents: 'auto', marginBottom: '8px' }}

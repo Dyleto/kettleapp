@@ -52,9 +52,10 @@ const ClientDetails = () => {
   const { data: client, isLoading } = useClientDetails(clientId!);
   const { data: history = [] } = useClientHistory(clientId!);
 
-  // The client's name, not "Séance 1": that is what distinguishes two tabs
-  // open side by side, and it is the finding being fixed. While it loads, the
-  // tab keeps the product name rather than showing a blank.
+  // Le nom du client, et non « Séance 1 » : c'est ce qui distingue deux
+  // onglets ouverts côte à côte, et c'est le constat qu'on corrige. Pendant le
+  // chargement, l'onglet garde le nom du produit plutôt que d'afficher un
+  // blanc.
   useDocumentTitle(
     client ? `${client.firstName} ${client.lastName}` : undefined
   );
@@ -487,15 +488,15 @@ const ClientDetails = () => {
               />
             ) : (
               /*
-               * The programme is not empty: it is this session that does not
-               * exist.
+               * Le programme n'est pas vide : c'est cette séance qui n'existe
+               * pas.
                *
-               * Both states said "Ce programme est vide", with a rail full of
-               * S1…S5 beside it. That is false and it is alarming: a coach
-               * who lands on it believes they have lost their client's work.
-               * You get here through a bookmarked address that has aged,
-               * through a shared link, or by deleting the last session while
-               * standing on it.
+               * Les deux états disaient « Ce programme est vide », avec un
+               * rail plein de S1…S5 à côté. C'est faux et c'est alarmant : un
+               * coach qui tombe dessus croit avoir perdu le travail de son
+               * client. On y arrive par une adresse mise en favori qui a
+               * vieilli, par un lien partagé, ou en supprimant la dernière
+               * séance alors qu'on est dessus.
                */
               <EmptyState
                 title={`La séance ${currentIndex + 1} n'existe pas`}

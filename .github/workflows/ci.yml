@@ -37,6 +37,11 @@ jobs:
       - run: npm run format:check
       - run: npm run build
 
+      # La règle de langue, vérifiée plutôt que surveillée. Je l'ai annoncée
+      # tenue trois fois sans qu'elle le soit : le détecteur que j'improvisais
+      # avait chaque fois un angle mort. Voir scripts/audit-langue.mjs.
+      - run: npm run lint:langue
+
   bench:
     name: Le banc (10 suites)
     runs-on: ubuntu-latest

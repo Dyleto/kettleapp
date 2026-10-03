@@ -23,15 +23,16 @@ import {
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
 /**
- * The next session is the one carrying an action, and it is the card that
- * says so — a lighter surface and a coloured edge. Everything else reads
- * the same, because everything else is just as available.
+ * La prochaine séance est celle qui porte une action, et c'est la carte qui le
+ * dit — une surface plus claire et une tranche colorée. Tout le reste se lit
+ * pareil, parce que tout le reste est tout aussi disponible.
  *
- * The status chips that used to sit here — "TERMINÉE", "À FAIRE", "À VENIR"
- * — said nothing you could act on. Worse, "TERMINÉE" was a claim about the
- * past drawn from an id that outlives an edit, so it was wrong as soon as
- * the coach rewrote a session. The card now carries the one fact that is
- * worth reading: when you last did this session, as it stands today.
+ * Les pastilles d'état qui vivaient ici — « TERMINÉE », « À FAIRE », « À
+ * VENIR » — ne disaient rien sur quoi agir. Pire, « TERMINÉE » était une
+ * affirmation sur le passé tirée d'un identifiant qui survit à une
+ * modification : elle devenait fausse dès que le coach réécrivait une séance.
+ * La carte porte maintenant le seul fait qui vaille d'être lu : quand on a
+ * fait cette séance pour la dernière fois, telle qu'elle est aujourd'hui.
  */
 const NEXT_ACCENT = 'app.primary';
 const PLAIN_ACCENT = 'fg.muted';
@@ -57,9 +58,9 @@ const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
         <Text fontWeight="bold" fontSize="sm">
           {sessionTitle(session.order, session.name)}
         </Text>
-        {/* A date, not a badge. "Faite le 12 sept." is read once and tells
-            you what a chip never could: whether it is time to come back to
-            this one. */}
+        {/* Une date, pas une pastille. « Faite le 12 sept. » se lit une
+            fois et dit ce qu'une pastille ne pouvait pas : s'il est temps de
+            revenir à celle-là. */}
         <Text
           fontSize="xs"
           color={match.state === 'done' ? 'fg.muted' : 'fg.subtle'}
