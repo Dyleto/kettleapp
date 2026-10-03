@@ -47,8 +47,12 @@ export const buildWeekPlan = (
   [...sessions]
     .sort((a, b) => a.order - b.order)
     .forEach((session) => {
+      // Aucune validation du jour, et ce n'est pas un oubli : la semaine ne
+      // lit que les rangs 0 à 6, donc un -1, un 7 ou un 2,5 qui se glisserait
+      // dans cette table n'en sortirait jamais. Le garde qui vivait ici était
+      // invérifiable — le retirer ne faisait tomber aucun test, et pour une
+      // bonne raison : il ne changeait rien d'observable.
       new Set(session.suggestedDays ?? []).forEach((day) => {
-        if (!Number.isInteger(day) || day < 0 || day > 6) return;
         const list = suggestedByIndex.get(day);
         if (list) list.push(session);
         else suggestedByIndex.set(day, [session]);

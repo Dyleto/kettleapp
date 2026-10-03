@@ -30,5 +30,18 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     environment: 'node',
     reporters: ['dot'],
+    // Les tests tournent à Paris, et c'est indispensable.
+    //
+    // Tout le module des dates existe pour une raison : `toISOString()`
+    // bascule en UTC, et une séance enregistrée à 0 h 30 à Paris tomberait la
+    // veille dans la grille. Dans un conteneur réglé sur UTC, local et UTC
+    // sont la même chose : la garantie devient invérifiable, et deux
+    // sabotages — remettre `toISOString()` dans la clé du jour, lire une clé
+    // comme une date UTC — ne faisaient tomber aucun test.
+    //
+    // Paris plutôt qu'un fuseau quelconque parce que c'est celui des
+    // utilisateurs de Kettle, et parce que son heure d'été fait de la
+    // frontière des jours un cas qui bouge dans l'année.
+    env: { TZ: 'Europe/Paris' },
   },
 });
