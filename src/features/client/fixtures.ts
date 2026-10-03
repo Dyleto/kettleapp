@@ -1,0 +1,135 @@
+/**
+ * De quoi écrire un cas de bord en trois lignes.
+ *
+ * Les tests de cette logique manipulent des séances et des bilans entiers :
+ * une séance porte des blocs, qui portent des exercices, qui portent un
+ * exercice de bibliothèque. Écrire cela à la main par cas rendrait chaque
+ * test illisible — et c'est le test qui doit se lire, pas la construction de
+ * son décor.
+ *
+ * Chaque fabrique part d'un objet valide et n'accepte que les écarts. Un test
+ * dit donc ce qui change, et rien de plus : `bloc({ reps: 12 })` se lit comme
+ * sa propre intention.
+ *
+ * Vit dans le dossier du domaine et non sous `__fixtures__` : c'est du code
+ * du domaine, et le ranger ailleurs le ferait échapper au typage de celui-ci.
+ */
+import type {
+  BlockExercise,
+  BlockSnapshot,
+  CompletedSession,
+  Exercise,
+  Session,
+  SessionBlock,
+} from '@/shared/types';
+
+/**
+ * Tout est déterminé, et il a fallu s'y reprendre.
+ *
+ * Les identifiants étaient d'abord engendrés par un compteur : `exercice()`
+ * rendait `ex-1`, puis `ex-2`, puis `ex-3`. Deux décors « identiques »
+ * n'avaient donc jamais le même exercice, et toute assertion de la forme
+ * « ces deux doses diffèrent » passait sans rien prouver — elle constatait un
+ * écart d'identifiant, pas celui qu'elle visait. Un sabotage l'a montré :
+ * retirer la distinction entre zéro et absent ne faisait tomber aucun test.
+ *
+ * Un décor par défaut est donc le même à chaque appel. Un test qui a besoin
+ * de deux choses distinctes le dit — `exercice({ _id: 'ex-autre' })` — et
+ * cela se lit comme son intention.
+ */
+export const exercice = (ecarts: Partial<Exercise> = {}): Exercise => ({
+  _id: 'ex-goblet',
+  name: 'Goblet Squat',
+  createdBy: 'coach-1',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  ...ecarts,
+});
+
+export const pose = (ecarts: Partial<BlockExercise> = {}): BlockExercise => ({
+  exercise: exercice(),
+  order: 1,
+  ...ecarts,
+});
+
+export const bloc = (ecarts: Partial<SessionBlock> = {}): SessionBlock => ({
+  _id: 'bloc-1',
+  type: 'classic',
+  order: 1,
+  exercises: [pose()],
+  ...ecarts,
+});
+
+export const seance = (ecarts: Partial<Session> = {}): Session => ({
+  _id: 'seance-1',
+  order: 1,
+  blocks: [bloc()],
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  ...ecarts,
+});
+
+/**
+ * L'instantané d'un bloc, tel qu'un bilan le porte.
+ *
+ * Distinct d'un `SessionBlock` par deux choses : son `type` est une chaîne
+ * libre — un bilan ancien peut porter un format qui n'existe plus — et il n'a
+ * pas de `_id`.
+ */
+export const blocFige = (
+  ecarts: Partial<BlockSnapshot> = {}
+): BlockSnapshot => ({
+  type: 'classic',
+  order: 1,
+  exercises: [
+    { exercise: { _id: 'ex-goblet', name: 'Goblet Squat' }, order: 1 },
+  ],
+  ...ecarts,
+});
+
+/**
+ * Un bilan. `completedAt` est explicite partout dans les tests : une date
+ * par défaut qui dépend de l'heure d'exécution ferait passer ou tomber un
+ * test selon le moment de la journée.
+ */
+export const bilan = (
+  ecarts: Partial<CompletedSession> = {}
+): CompletedSession => ({
+  _id: 'bilan-1',
+  originalSessionId: 'seance-1',
+  sessionOrder: 1,
+  blocks: [blocFige()],
+  viewedByCoach: false,
+  completedAt: '2026-09-01T10:00:00.000Z',
+  ...ecarts,
+});
+
+/**
+ * Le même contenu des deux côtés, à l'écart près.
+ *
+ * `matchSession` compare une séance vivante à des instantanés : construire
+ * les deux séparément dans chaque test laisserait la porte ouverte à une
+ * différence accidentelle, et un test qui échoue pour une raison qu'il
+ * n'avait pas prévue ne dit rien.
+ */
+export const figer = (b: SessionBlock): BlockSnapshot => ({
+  type: b.type,
+  order: b.order,
+  durationMinutes: b.durationMinutes,
+  intervalMinutes: b.intervalMinutes,
+  rounds: b.rounds,
+  restBetweenRounds: b.restBetweenRounds,
+  workDuration: b.workDuration,
+  restDuration: b.restDuration,
+  repsScheme: b.repsScheme,
+  exercises: b.exercises.map((ex) => ({
+    exercise: ex.exercise as unknown as Record<string, unknown>,
+    order: ex.order,
+    sets: ex.sets,
+    restBetweenSets: ex.restBetweenSets,
+    reps: ex.reps,
+    duration: ex.duration,
+    customMetric: ex.customMetric,
+    note: ex.note,
+  })),
+});

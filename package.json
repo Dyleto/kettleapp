@@ -14,7 +14,9 @@
     "format:check": "prettier --check src verif/*.mjs scripts/*.mjs",
     "verify": "node verif/runner.mjs --all",
     "contract:check": "node scripts/contract-check.mjs",
-    "lint:langue": "node scripts/audit-langue.mjs"
+    "lint:langue": "node scripts/audit-langue.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.35.0",

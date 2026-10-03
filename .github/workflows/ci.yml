@@ -42,6 +42,21 @@ jobs:
       # avait chaque fois un angle mort. Voir scripts/audit-langue.mjs.
       - run: npm run lint:langue
 
+  # La logique pure, sans navigateur : quelques secondes, et c'est là que se
+  # décrivent les cas de bord qu'un écran n'atteint pas — une séance sans
+  # bloc, deux bilans à la seconde près, une pyramide de treize paliers.
+  unites:
+    name: Les tests unitaires
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
   bench:
     name: Le banc (10 suites)
     runs-on: ubuntu-latest

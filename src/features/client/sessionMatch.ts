@@ -52,6 +52,14 @@ export type SessionMatch =
  * séance exprès.
  */
 const doseOf = (block: SessionBlock | BlockSnapshot): string => {
+  // C'est le tri qui porte la suite, et non le numéro.
+  //
+  // Le numéro y figurait aussi. Il n'ajoutait rien — l'atelier renumérote
+  // de 1 à n à chaque retrait et à chaque déplacement, si bien que le numéro
+  // est entièrement déterminé par la position — et il pouvait nuire : des
+  // rangs devenus non contigus auraient fait lire « modifiée depuis » sur une
+  // séance dont le travail n'a pas changé d'un gramme. Un sabotage l'a
+  // montré, en retirant le champ sans qu'aucun test ne tombe.
   const exercises = [...block.exercises]
     .sort((a, b) => a.order - b.order)
     .map((ex) => {
@@ -63,7 +71,6 @@ const doseOf = (block: SessionBlock | BlockSnapshot): string => {
           : String(ex.exercise ?? '');
       return [
         id,
-        ex.order,
         ex.sets ?? '',
         ex.restBetweenSets ?? '',
         ex.reps ?? '',
@@ -77,7 +84,6 @@ const doseOf = (block: SessionBlock | BlockSnapshot): string => {
 
   return [
     block.type,
-    block.order,
     block.durationMinutes ?? '',
     block.intervalMinutes ?? '',
     block.rounds ?? '',

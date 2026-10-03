@@ -70,6 +70,26 @@ Un script de sabotage doit vérifier qu'il a bien saboté quelque chose. Un
 motif qui ne correspond plus — parce que le formateur est passé, par exemple —
 laisse croire que l'assertion est creuse alors que rien n'a été cassé.
 
+## Les deux niveaux de vérification
+
+`npm test` (Vitest) éprouve la logique pure, sans navigateur : quelques
+secondes. `npm run verify` mène l'application dans un vrai navigateur :
+quelques minutes.
+
+Ils ne se remplacent pas. Le banc attrape ce que l'écran fait — un bouton
+sorti de l'écran, un repos qui cache un bloc, une séance qui cesse
+d'enregistrer. Vitest attrape ce que les fonctions décident, sur des cas qui
+ne se construisent pas par l'écran : une séance sans bloc, deux bilans à la
+seconde près, une renumérotation de rangs.
+
+Aucun test unitaire ne monte de composant : ce serait reconstituer un
+navigateur en moins fidèle, et le banc est là pour cela.
+
+Les décors de test (`fixtures.ts`) sont déterminés : deux décors par défaut
+sont identiques. Un identifiant engendré par un compteur avait rendu vaines
+des assertions entières — elles constataient un écart d'identifiant, pas
+celui qu'elles visaient, et un sabotage ne les faisait pas tomber.
+
 ## Le banc d'essai
 
 `verif/` mène l'application dans un vrai navigateur et lit ce qu'elle affiche.
