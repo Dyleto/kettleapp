@@ -15,7 +15,8 @@ interface InlineValueProps {
   /** La largeur du champ pendant l'édition — l'empreinte au repos ne bouge
    * pas. */
   width?: string;
-  /** Allows clearing entirely (an optional setting). */
+  /** Autorise l'effacement complet : le réglage est optionnel, et le vider
+   * doit se distinguer de le mettre à zéro. */
   clearable?: boolean;
   /**
    * Comment la valeur se lit une fois posée.
@@ -176,7 +177,9 @@ interface InlineSequenceProps {
   ariaLabel: string;
 }
 
-// Lenient parsing: dash, comma, space or middle dot, as you like.
+// Lecture indulgente : tiret, virgule, espace ou point médian, comme on
+// veut. Le coach tape « 21-15-9 » ou « 21 15 9 » selon l'humeur, et lui
+// refuser l'un des deux ne protège de rien.
 const parseSequence = (raw: string): number[] =>
   raw
     .split(/[^0-9]+/)

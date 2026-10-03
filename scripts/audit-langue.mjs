@@ -61,6 +61,37 @@ const ANGLAIS =
 const FRANCAIS =
   /[àâäçéèêëîïôöûùüœÀÂÇÉÈÊËÎÏÔÛÙ]|[«»]|\b(le|les|une|des|du|aux|cette|qui|que|pas|pour|dans|avec|sans|donc|mais|toute|elle|leur|ne|est|ces|deux|rien|quand|parce|son|sa|ses|au|ce|il|et|ou|un|la|se)\b|\b[ldqsjnmct]'/;
 
+/**
+ * La seconde règle, et la plus solide : de la prose sans aucune marque de
+ * français.
+ *
+ * `ANGLAIS` est une liste, donc incomplète par construction — quatrième angle
+ * mort, trouvé en relisant `ClientsList.tsx`. Le commentaire
+ * « "il y a 3 semaines", in a single grammar. » ne contient, citation retirée,
+ * aucun mot de la liste : ni « in », ni « a », ni « single », ni « grammar ».
+ * Il passait, et le script annonçait la règle tenue.
+ *
+ * La règle du projet n'est pas « pas d'anglais », c'est « en français ». On
+ * vérifie donc le français, qui est ce qu'on exige — et un bloc de prose
+ * française porte toujours quelque chose : un accent, un guillemet, une
+ * élision, un mot courant.
+ *
+ * Le seuil de six mots épargne ce qui n'est pas de la prose : une directive,
+ * une adresse, un nom de fichier, une commande à copier.
+ */
+const PROSE_MINIMALE = 6;
+
+/** Ce qui n'est pas de la prose et n'a pas à l'être. */
+const TECHNIQUE =
+  /eslint|ts-(expect|ignore|nocheck)|prettier-ignore|https?:\/\/|^\s*[\w./@-]+\s*$/;
+
+const motsDeProse = (nu) =>
+  (
+    nu
+      .replace(/^[ \t]*(?:\/\*+|\*+\/?|\/\/)/gm, ' ')
+      .match(/[A-Za-zÀ-ÿ]{2,}/g) ?? []
+  ).length;
+
 /** Ce qui est cité n'est pas de la prose : on le retire avant de juger. */
 const sansCitations = (bloc) =>
   bloc
@@ -88,7 +119,10 @@ for (const fichier of fichiers) {
   const contenu = readFileSync(fichier, 'utf8');
   for (const trouve of contenu.matchAll(BLOC)) {
     const nu = sansCitations(trouve[0]);
-    if (ANGLAIS.test(nu) && !FRANCAIS.test(nu)) {
+    const suspect =
+      (ANGLAIS.test(nu) || motsDeProse(nu) >= PROSE_MINIMALE) &&
+      !TECHNIQUE.test(nu);
+    if (suspect && !FRANCAIS.test(nu)) {
       trouves.push({
         fichier: relative(RACINE, fichier),
         ligne: contenu.slice(0, trouve.index).split('\n').length,

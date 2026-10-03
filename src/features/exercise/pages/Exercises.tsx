@@ -415,7 +415,9 @@ const Exercises = () => {
               )}
             </Grid>
 
-            {/* Mobile alphabetical index — a fixed portal, always visible */}
+            {/* L'index alphabétique du mobile — une couche fixe, toujours
+                visible. Dans le flux, il défilait avec la liste et n'était
+                donc plus là quand on en avait besoin. */}
             {!isDesktop &&
               letters.length > 1 &&
               createPortal(

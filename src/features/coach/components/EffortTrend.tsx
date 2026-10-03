@@ -9,8 +9,8 @@ import {
 } from '@/features/client/constants';
 
 interface EffortTrendProps {
-  /** Already filtered to a single session: comparing a Tabata's effort to a
-   *  warm-up's means nothing. */
+  /** Déjà filtré sur une seule séance : comparer l'effort d'un Tabata à
+   * celui d'un échauffement ne veut rien dire. */
   history: CompletedSession[];
   /** Combien de tentatives sont retenues pour la lecture. */
   limit?: number;

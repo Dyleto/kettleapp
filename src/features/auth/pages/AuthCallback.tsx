@@ -81,7 +81,9 @@ const AuthCallback = () => {
   }, [navigate]);
 
   useEffect(() => {
-    // Guards against strict mode's double call in development.
+    // Garde contre le double appel du mode strict en développement : sans
+    // lui, l'échange du code part deux fois et le second part sur un code
+    // déjà consommé — donc un échec affiché sur une connexion réussie.
     let monte = true;
 
     const traiter = async () => {

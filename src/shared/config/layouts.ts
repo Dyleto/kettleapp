@@ -1,10 +1,12 @@
 /**
- * Reusable grid templates, so layouts stay consistent.
+ * Les gabarits de grille, à une seule adresse.
+ *
+ * Réécrits dans chaque écran, ils divergeaient : deux listes de cartes
+ * n'avaient pas le même nombre de colonnes à la même largeur.
  */
 export const GRID_LAYOUTS = {
-  /**
-   * Grid 4 colonnes responsive (cards, exercices, etc.)
-   */
+  /** Quatre colonnes qui s'adaptent : cartes, exercices, tout ce qui se
+   * lit en vignettes. */
   fourColumns: {
     base: 'repeat(2, 1fr)',
     sm: 'repeat(3, 1fr)',
