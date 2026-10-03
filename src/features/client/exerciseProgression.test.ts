@@ -18,7 +18,11 @@ import {
   sessionTotals,
 } from './exerciseProgression';
 import type { ExerciseProgression } from './exerciseProgression';
-import { bilan, blocFige, poseFigee } from './fixtures';
+import {
+  makeCompleted,
+  makeBlockSnapshot,
+  makeExerciseSnapshot,
+} from './fixtures';
 import type { PerformedSet } from '@/shared/types';
 
 describe('ce qu’une séance retient d’un exercice', () => {
@@ -69,9 +73,9 @@ describe('ce qu’une séance retient d’un exercice', () => {
   });
 
   it('n’invente pas la quantité qui n’a pas été notée', () => {
-    const totaux = sessionTotals([{ weight: 20 }]);
-    expect(totaux).toEqual({ weight: 20 });
-    expect(totaux?.reps).toBeUndefined();
+    const totals = sessionTotals([{ weight: 20 }]);
+    expect(totals).toEqual({ weight: 20 });
+    expect(totals?.reps).toBeUndefined();
   });
 });
 
@@ -89,34 +93,36 @@ describe('le libellé de la quantité suivie', () => {
 });
 
 /** Un bilan daté portant un exercice et ses séries. */
-const fait = (
+const completedWith = (
   at: string,
   sets: PerformedSet[],
   exercise: Record<string, unknown> = { _id: 'ex-goblet', name: 'Goblet Squat' }
 ) =>
-  bilan({
+  makeCompleted({
     _id: `bilan-${at}`,
     completedAt: at,
     blocks: [
-      blocFige({ exercises: [poseFigee({ exercise, performed: { sets } })] }),
+      makeBlockSnapshot({
+        exercises: [makeExerciseSnapshot({ exercise, performed: { sets } })],
+      }),
     ],
   });
 
 /** Le jour `n` de septembre 2026, à 10 h UTC. */
-const jour = (n: number) =>
+const day = (n: number) =>
   `2026-09-${String(n).padStart(2, '0')}T10:00:00.000Z`;
 
 describe('la courbe d’un exercice', () => {
   it('se tait sur un seul point : une valeur n’est pas une progression', () => {
     expect(
-      buildExerciseProgressions([fait(jour(1), [{ weight: 20 }])])
+      buildExerciseProgressions([completedWith(day(1), [{ weight: 20 }])])
     ).toEqual([]);
   });
 
   it('se lit de gauche à droite, du plus ancien au plus récent', () => {
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ weight: 20 }]),
-      fait(jour(8), [{ weight: 24 }]),
+      completedWith(day(1), [{ weight: 20 }]),
+      completedWith(day(8), [{ weight: 24 }]),
     ]);
     expect(p.points.map((pt) => pt.value)).toEqual([20, 24]);
     expect(p.exerciseId).toBe('ex-goblet');
@@ -126,8 +132,8 @@ describe('la courbe d’un exercice', () => {
 
   it('même si l’historique arrive en désordre', () => {
     const [p] = buildExerciseProgressions([
-      fait(jour(8), [{ weight: 24 }]),
-      fait(jour(1), [{ weight: 20 }]),
+      completedWith(day(8), [{ weight: 24 }]),
+      completedWith(day(1), [{ weight: 20 }]),
     ]);
     expect(p.points.map((pt) => pt.value)).toEqual([20, 24]);
   });
@@ -137,7 +143,7 @@ describe('la courbe d’un exercice', () => {
     // une courbe de cinq, et ce sont les récentes qui restent.
     const [p] = buildExerciseProgressions(
       [20, 22, 24, 26, 28, 30, 32].map((w, i) =>
-        fait(jour(i + 1), [{ weight: w }])
+        completedWith(day(i + 1), [{ weight: w }])
       )
     );
     expect(p.points.map((pt) => pt.value)).toEqual([24, 26, 28, 30, 32]);
@@ -145,11 +151,11 @@ describe('la courbe d’un exercice', () => {
 
   it('porte la date de son dernier point', () => {
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ weight: 20 }]),
-      fait(jour(8), [{ weight: 24 }]),
+      completedWith(day(1), [{ weight: 20 }]),
+      completedWith(day(8), [{ weight: 24 }]),
     ]);
-    expect(p.lastAt.toISOString()).toBe(jour(8));
-    expect(p.points[1].completedAt.toISOString()).toBe(jour(8));
+    expect(p.lastAt.toISOString()).toBe(day(8));
+    expect(p.points[1].completedAt.toISOString()).toBe(day(8));
   });
 
   it('met devant l’exercice travaillé le plus récemment', () => {
@@ -157,10 +163,10 @@ describe('la courbe d’un exercice', () => {
     // fois ? ».
     const swing = { _id: 'ex-swing', name: 'Swing' };
     const progressions = buildExerciseProgressions([
-      fait(jour(1), [{ weight: 20 }]),
-      fait(jour(2), [{ weight: 24 }]),
-      fait(jour(3), [{ reps: 15 }], swing),
-      fait(jour(4), [{ reps: 20 }], swing),
+      completedWith(day(1), [{ weight: 20 }]),
+      completedWith(day(2), [{ weight: 24 }]),
+      completedWith(day(3), [{ reps: 15 }], swing),
+      completedWith(day(4), [{ reps: 20 }], swing),
     ]);
     expect(progressions.map((p) => p.exerciseId)).toEqual([
       'ex-swing',
@@ -174,8 +180,8 @@ describe('la quantité suivie se décide sur la tentative la plus récente', () 
     // Mêler des kilos et des répétitions sur la même flèche ne voudrait rien
     // dire : une seule quantité par exercice.
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ weight: 20, reps: 12 }]),
-      fait(jour(8), [{ weight: 24, reps: 10 }]),
+      completedWith(day(1), [{ weight: 20, reps: 12 }]),
+      completedWith(day(8), [{ weight: 24, reps: 10 }]),
     ]);
     expect(p.metric).toBe('weight');
     expect(p.points.map((pt) => pt.value)).toEqual([20, 24]);
@@ -183,8 +189,8 @@ describe('la quantité suivie se décide sur la tentative la plus récente', () 
 
   it('des répétitions seules imposent les répétitions', () => {
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ reps: 12 }, { reps: 10 }]),
-      fait(jour(8), [{ reps: 15 }, { reps: 15 }]),
+      completedWith(day(1), [{ reps: 12 }, { reps: 10 }]),
+      completedWith(day(8), [{ reps: 15 }, { reps: 15 }]),
     ]);
     expect(p.metric).toBe('reps');
     expect(p.points.map((pt) => pt.value)).toEqual([22, 30]);
@@ -192,8 +198,8 @@ describe('la quantité suivie se décide sur la tentative la plus récente', () 
 
   it('du temps seul impose les secondes', () => {
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ duration: 40 }]),
-      fait(jour(8), [{ duration: 60 }]),
+      completedWith(day(1), [{ duration: 40 }]),
+      completedWith(day(8), [{ duration: 60 }]),
     ]);
     expect(p.metric).toBe('duration');
   });
@@ -202,9 +208,9 @@ describe('la quantité suivie se décide sur la tentative la plus récente', () 
     // Un mouvement travaillé au poids de corps pendant un mois, puis chargé :
     // les semaines sans kilos n'ont pas de point sur une flèche en kilos.
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ reps: 12 }]),
-      fait(jour(8), [{ weight: 20 }]),
-      fait(jour(15), [{ weight: 24 }]),
+      completedWith(day(1), [{ reps: 12 }]),
+      completedWith(day(8), [{ weight: 20 }]),
+      completedWith(day(15), [{ weight: 24 }]),
     ]);
     expect(p.metric).toBe('weight');
     expect(p.points.map((pt) => pt.value)).toEqual([20, 24]);
@@ -212,9 +218,9 @@ describe('la quantité suivie se décide sur la tentative la plus récente', () 
 
   it('et s’il n’en reste qu’un, il n’y a plus de courbe', () => {
     const progressions = buildExerciseProgressions([
-      fait(jour(1), [{ reps: 12 }]),
-      fait(jour(8), [{ reps: 10 }]),
-      fait(jour(15), [{ weight: 20 }]),
+      completedWith(day(1), [{ reps: 12 }]),
+      completedWith(day(8), [{ reps: 10 }]),
+      completedWith(day(15), [{ weight: 20 }]),
     ]);
     expect(progressions).toEqual([]);
   });
@@ -224,11 +230,13 @@ describe('ce que la courbe laisse de côté', () => {
   it('un exercice que personne n’a noté', () => {
     expect(
       buildExerciseProgressions([
-        bilan({ blocks: [blocFige({ exercises: [poseFigee()] })] }),
-        bilan({
+        makeCompleted({
+          blocks: [makeBlockSnapshot({ exercises: [makeExerciseSnapshot()] })],
+        }),
+        makeCompleted({
           _id: 'bilan-2',
-          completedAt: jour(8),
-          blocks: [blocFige({ exercises: [poseFigee()] })],
+          completedAt: day(8),
+          blocks: [makeBlockSnapshot({ exercises: [makeExerciseSnapshot()] })],
         }),
       ])
     ).toEqual([]);
@@ -237,8 +245,8 @@ describe('ce que la courbe laisse de côté', () => {
   it('un exercice figé sans identifiant lisible', () => {
     expect(
       buildExerciseProgressions([
-        fait(jour(1), [{ weight: 20 }], {}),
-        fait(jour(8), [{ weight: 24 }], {}),
+        completedWith(day(1), [{ weight: 20 }], {}),
+        completedWith(day(8), [{ weight: 24 }], {}),
       ])
     ).toEqual([]);
   });
@@ -249,8 +257,8 @@ describe('ce que la courbe laisse de côté', () => {
     // accidentel — la courbe porterait alors « [object Object] ».
     expect(
       buildExerciseProgressions([
-        fait(jour(1), [{ weight: 20 }], { _id: { $oid: 'ex-goblet' } }),
-        fait(jour(8), [{ weight: 24 }], { _id: { $oid: 'ex-goblet' } }),
+        completedWith(day(1), [{ weight: 20 }], { _id: { $oid: 'ex-goblet' } }),
+        completedWith(day(8), [{ weight: 24 }], { _id: { $oid: 'ex-goblet' } }),
       ])
     ).toEqual([]);
   });
@@ -266,11 +274,11 @@ describe('ce que la courbe laisse de côté', () => {
     // ferait disparaître toute la page de progression.
     expect(
       buildExerciseProgressions([
-        bilan({
+        makeCompleted({
           blocks: [
-            blocFige({
+            makeBlockSnapshot({
               exercises: [
-                poseFigee({
+                makeExerciseSnapshot({
                   performed: {} as unknown as { sets: PerformedSet[] },
                 }),
               ],
@@ -288,8 +296,11 @@ describe('le nom affiché', () => {
     // celui d'il y a trois mois ne se retrouve nulle part dans la
     // bibliothèque.
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ weight: 20 }], { _id: 'ex-goblet', name: 'Squat' }),
-      fait(jour(8), [{ weight: 24 }], {
+      completedWith(day(1), [{ weight: 20 }], {
+        _id: 'ex-goblet',
+        name: 'Squat',
+      }),
+      completedWith(day(8), [{ weight: 24 }], {
         _id: 'ex-goblet',
         name: 'Goblet Squat',
       }),
@@ -299,40 +310,40 @@ describe('le nom affiché', () => {
 
   it('tient un libellé de repli quand l’instantané n’en porte pas', () => {
     const [p] = buildExerciseProgressions([
-      fait(jour(1), [{ weight: 20 }], { _id: 'ex-goblet' }),
-      fait(jour(8), [{ weight: 24 }], { _id: 'ex-goblet' }),
+      completedWith(day(1), [{ weight: 20 }], { _id: 'ex-goblet' }),
+      completedWith(day(8), [{ weight: 24 }], { _id: 'ex-goblet' }),
     ]);
     expect(p.name).toBe('Exercice');
   });
 });
 
 describe('la flèche monte-t-elle ?', () => {
-  const courbe = (...valeurs: number[]): ExerciseProgression => ({
+  const curve = (...valeurs: number[]): ExerciseProgression => ({
     exerciseId: 'ex-goblet',
     name: 'Goblet Squat',
     metric: 'weight',
     points: valeurs.map((value, i) => ({
       value,
-      completedAt: new Date(jour(i + 1)),
+      completedAt: new Date(day(i + 1)),
     })),
-    lastAt: new Date(jour(valeurs.length)),
+    lastAt: new Date(day(valeurs.length)),
   });
 
   it('oui quand le dernier point dépasse le précédent', () => {
-    expect(isRising(courbe(20, 24))).toBe(true);
+    expect(isRising(curve(20, 24))).toBe(true);
   });
 
   it('non quand il l’égale : tenir n’est pas monter', () => {
-    expect(isRising(courbe(24, 24))).toBe(false);
+    expect(isRising(curve(24, 24))).toBe(false);
   });
 
   it('non quand il descend', () => {
-    expect(isRising(courbe(24, 20))).toBe(false);
+    expect(isRising(curve(24, 20))).toBe(false);
   });
 
   it('ne regarde que les deux derniers points', () => {
     // Trois semaines de hausse puis une baisse ne monte pas : la flèche dit
     // la dernière séance, pas la tendance du mois.
-    expect(isRising(courbe(20, 22, 24, 22))).toBe(false);
+    expect(isRising(curve(20, 22, 24, 22))).toBe(false);
   });
 });

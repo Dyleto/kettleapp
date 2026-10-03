@@ -155,13 +155,13 @@ if (suites.length === 0) {
 const bad = results.filter((r) => r.failLines.length > 0 || r.code !== 0);
 // Le pluriel s'accorde : « Les 10 suites sont vertes » et « La suite est
 // verte » se lisent, « Les 1 suite(s) sont vertes » non.
-const vert =
+const green =
   results.length === 1
     ? 'La suite est verte.'
     : `Les ${results.length} suites sont vertes.`;
-const rouge =
+const red =
   bad.length === 1
     ? 'Une suite est en échec.'
     : `${bad.length} suites sont en échec.`;
-console.log('\n' + (bad.length === 0 ? vert : rouge));
+console.log('\n' + (bad.length === 0 ? green : red));
 process.exit(bad.length ? 1 : 0);

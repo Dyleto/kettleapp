@@ -8,7 +8,7 @@
  * son décor.
  *
  * Chaque fabrique part d'un objet valide et n'accepte que les écarts. Un test
- * dit donc ce qui change, et rien de plus : `bloc({ reps: 12 })` se lit comme
+ * dit donc ce qui change, et rien de plus : `makeBlock({ reps: 12 })` se lit comme
  * sa propre intention.
  *
  * Vit dans le dossier du domaine et non sous `__fixtures__` : c'est du code
@@ -30,7 +30,7 @@ type ExerciseSnapshot = BlockSnapshot['exercises'][number];
 /**
  * Tout est déterminé, et il a fallu s'y reprendre.
  *
- * Les identifiants étaient d'abord engendrés par un compteur : `exercice()`
+ * Les identifiants étaient d'abord engendrés par un compteur : `makeExercise()`
  * rendait `ex-1`, puis `ex-2`, puis `ex-3`. Deux décors « identiques »
  * n'avaient donc jamais le même exercice, et toute assertion de la forme
  * « ces deux doses diffèrent » passait sans rien prouver — elle constatait un
@@ -38,39 +38,43 @@ type ExerciseSnapshot = BlockSnapshot['exercises'][number];
  * retirer la distinction entre zéro et absent ne faisait tomber aucun test.
  *
  * Un décor par défaut est donc le même à chaque appel. Un test qui a besoin
- * de deux choses distinctes le dit — `exercice({ _id: 'ex-autre' })` — et
+ * de deux choses distinctes le dit — `makeExercise({ _id: 'ex-other' })` — et
  * cela se lit comme son intention.
  */
-export const exercice = (ecarts: Partial<Exercise> = {}): Exercise => ({
+export const makeExercise = (overrides: Partial<Exercise> = {}): Exercise => ({
   _id: 'ex-goblet',
   name: 'Goblet Squat',
   createdBy: 'coach-1',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
-  ...ecarts,
+  ...overrides,
 });
 
-export const pose = (ecarts: Partial<BlockExercise> = {}): BlockExercise => ({
-  exercise: exercice(),
+export const makeBlockExercise = (
+  overrides: Partial<BlockExercise> = {}
+): BlockExercise => ({
+  exercise: makeExercise(),
   order: 1,
-  ...ecarts,
+  ...overrides,
 });
 
-export const bloc = (ecarts: Partial<SessionBlock> = {}): SessionBlock => ({
+export const makeBlock = (
+  overrides: Partial<SessionBlock> = {}
+): SessionBlock => ({
   _id: 'bloc-1',
   type: 'classic',
   order: 1,
-  exercises: [pose()],
-  ...ecarts,
+  exercises: [makeBlockExercise()],
+  ...overrides,
 });
 
-export const seance = (ecarts: Partial<Session> = {}): Session => ({
+export const makeSession = (overrides: Partial<Session> = {}): Session => ({
   _id: 'seance-1',
   order: 1,
-  blocks: [bloc()],
+  blocks: [makeBlock()],
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
-  ...ecarts,
+  ...overrides,
 });
 
 /**
@@ -80,13 +84,13 @@ export const seance = (ecarts: Partial<Session> = {}): Session => ({
  * libre — un bilan ancien peut porter un format qui n'existe plus — et il n'a
  * pas de `_id`.
  */
-export const blocFige = (
-  ecarts: Partial<BlockSnapshot> = {}
+export const makeBlockSnapshot = (
+  overrides: Partial<BlockSnapshot> = {}
 ): BlockSnapshot => ({
   type: 'classic',
   order: 1,
-  exercises: [poseFigee()],
-  ...ecarts,
+  exercises: [makeExerciseSnapshot()],
+  ...overrides,
 });
 
 /**
@@ -97,14 +101,14 @@ export const blocFige = (
  * d'il y a un an peut porter un exercice dont la forme a changé depuis.
  * C'est pour cela que les modules qui le lisent vérifient le type de `_id`
  * plutôt que de le supposer — et c'est un cas que les tests construisent,
- * `poseFigee({ exercise: {} })`.
+ * `makeExerciseSnapshot({ exercise: {} })`.
  */
-export const poseFigee = (
-  ecarts: Partial<ExerciseSnapshot> = {}
+export const makeExerciseSnapshot = (
+  overrides: Partial<ExerciseSnapshot> = {}
 ): ExerciseSnapshot => ({
   exercise: { _id: 'ex-goblet', name: 'Goblet Squat' },
   order: 1,
-  ...ecarts,
+  ...overrides,
 });
 
 /**
@@ -112,16 +116,16 @@ export const poseFigee = (
  * par défaut qui dépend de l'heure d'exécution ferait passer ou tomber un
  * test selon le moment de la journée.
  */
-export const bilan = (
-  ecarts: Partial<CompletedSession> = {}
+export const makeCompleted = (
+  overrides: Partial<CompletedSession> = {}
 ): CompletedSession => ({
   _id: 'bilan-1',
   originalSessionId: 'seance-1',
   sessionOrder: 1,
-  blocks: [blocFige()],
+  blocks: [makeBlockSnapshot()],
   viewedByCoach: false,
   completedAt: '2026-09-01T10:00:00.000Z',
-  ...ecarts,
+  ...overrides,
 });
 
 /**
@@ -132,7 +136,7 @@ export const bilan = (
  * différence accidentelle, et un test qui échoue pour une raison qu'il
  * n'avait pas prévue ne dit rien.
  */
-export const figer = (b: SessionBlock): BlockSnapshot => ({
+export const freeze = (b: SessionBlock): BlockSnapshot => ({
   type: b.type,
   order: b.order,
   durationMinutes: b.durationMinutes,

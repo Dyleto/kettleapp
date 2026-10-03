@@ -16,7 +16,11 @@ import {
   formatLastPerformance,
   performedKey,
 } from './lastPerformance';
-import { bilan, blocFige, poseFigee } from './fixtures';
+import {
+  makeCompleted,
+  makeBlockSnapshot,
+  makeExerciseSnapshot,
+} from './fixtures';
 import type { PerformedValues } from '@/shared/types';
 
 describe('l’adresse d’un exercice dans l’instantané', () => {
@@ -32,18 +36,18 @@ describe('l’adresse d’un exercice dans l’instantané', () => {
 });
 
 /** Un bilan avec un seul exercice noté, daté. */
-const fait = (
+const completedWith = (
   at: string,
   sets: { weight?: number; reps?: number; duration?: number }[],
   id = 'ex-goblet'
 ) =>
-  bilan({
+  makeCompleted({
     _id: `bilan-${at}`,
     completedAt: at,
     blocks: [
-      blocFige({
+      makeBlockSnapshot({
         exercises: [
-          poseFigee({
+          makeExerciseSnapshot({
             exercise: { _id: id, name: 'Goblet Squat' },
             performed: { sets },
           }),
@@ -55,15 +59,15 @@ const fait = (
 describe('le dernier `performed` de chaque exercice', () => {
   it('retient ce qui a été noté', () => {
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{ weight: 20, reps: 12 }]),
+      completedWith('2026-09-01T10:00:00.000Z', [{ weight: 20, reps: 12 }]),
     ]);
     expect(index.get('ex-goblet')?.sets).toEqual([{ weight: 20, reps: 12 }]);
   });
 
   it('garde la tentative la plus récente', () => {
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
-      fait('2026-09-08T10:00:00.000Z', [{ weight: 24 }]),
+      completedWith('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
+      completedWith('2026-09-08T10:00:00.000Z', [{ weight: 24 }]),
     ]);
     expect(index.get('ex-goblet')?.sets).toEqual([{ weight: 24 }]);
   });
@@ -72,15 +76,15 @@ describe('le dernier `performed` de chaque exercice', () => {
     // L'API ne garantit pas d'ordre, et le tri est ce qui décide quelle
     // tentative gagne. Un historique déjà trié ne le vérifierait pas.
     const index = buildLastPerformanceIndex([
-      fait('2026-09-08T10:00:00.000Z', [{ weight: 24 }]),
-      fait('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
+      completedWith('2026-09-08T10:00:00.000Z', [{ weight: 24 }]),
+      completedWith('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
     ]);
     expect(index.get('ex-goblet')?.sets).toEqual([{ weight: 24 }]);
   });
 
   it('porte la date de la séance, en `Date`', () => {
     const index = buildLastPerformanceIndex([
-      fait('2026-09-08T10:00:00.000Z', [{ weight: 24 }]),
+      completedWith('2026-09-08T10:00:00.000Z', [{ weight: 24 }]),
     ]);
     const at = index.get('ex-goblet')?.completedAt;
     expect(at).toBeInstanceOf(Date);
@@ -92,15 +96,18 @@ describe('le dernier `performed` de chaque exercice', () => {
     // mouvement, pas sur la place qu'il occupait ce jour-là. Le même exercice
     // au bloc 3 en quatrième position est le même exercice.
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
-      bilan({
+      completedWith('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
+      makeCompleted({
         _id: 'bilan-2',
         completedAt: '2026-09-08T10:00:00.000Z',
         blocks: [
-          blocFige({
+          makeBlockSnapshot({
             order: 3,
             exercises: [
-              poseFigee({ order: 4, performed: { sets: [{ weight: 24 }] } }),
+              makeExerciseSnapshot({
+                order: 4,
+                performed: { sets: [{ weight: 24 }] },
+              }),
             ],
           }),
         ],
@@ -112,8 +119,8 @@ describe('le dernier `performed` de chaque exercice', () => {
 
   it('tient plusieurs exercices à part', () => {
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{ weight: 20 }], 'ex-goblet'),
-      fait('2026-09-02T10:00:00.000Z', [{ reps: 10 }], 'ex-swing'),
+      completedWith('2026-09-01T10:00:00.000Z', [{ weight: 20 }], 'ex-goblet'),
+      completedWith('2026-09-02T10:00:00.000Z', [{ reps: 10 }], 'ex-swing'),
     ]);
     expect(index.size).toBe(2);
     expect(index.get('ex-swing')?.sets).toEqual([{ reps: 10 }]);
@@ -121,16 +128,18 @@ describe('le dernier `performed` de chaque exercice', () => {
 
   it('parcourt tous les blocs d’une même séance', () => {
     const index = buildLastPerformanceIndex([
-      bilan({
+      makeCompleted({
         blocks: [
-          blocFige({
+          makeBlockSnapshot({
             order: 1,
-            exercises: [poseFigee({ performed: { sets: [{ weight: 20 }] } })],
+            exercises: [
+              makeExerciseSnapshot({ performed: { sets: [{ weight: 20 }] } }),
+            ],
           }),
-          blocFige({
+          makeBlockSnapshot({
             order: 2,
             exercises: [
-              poseFigee({
+              makeExerciseSnapshot({
                 exercise: { _id: 'ex-swing', name: 'Swing' },
                 performed: { sets: [{ reps: 15 }] },
               }),
@@ -150,21 +159,23 @@ describe('le dernier `performed` de chaque exercice', () => {
 describe('ce que l’index laisse de côté', () => {
   it('un exercice que personne n’a noté', () => {
     const index = buildLastPerformanceIndex([
-      bilan({ blocks: [blocFige({ exercises: [poseFigee()] })] }),
+      makeCompleted({
+        blocks: [makeBlockSnapshot({ exercises: [makeExerciseSnapshot()] })],
+      }),
     ]);
     expect(index.size).toBe(0);
   });
 
   it('un exercice dont toutes les séries sont vides', () => {
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{}, {}]),
+      completedWith('2026-09-01T10:00:00.000Z', [{}, {}]),
     ]);
     expect(index.size).toBe(0);
   });
 
   it('un exercice sans aucune série', () => {
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', []),
+      completedWith('2026-09-01T10:00:00.000Z', []),
     ]);
     expect(index.size).toBe(0);
   });
@@ -174,18 +185,18 @@ describe('ce que l’index laisse de côté', () => {
     // `performed` qui ne commence que par du vide ne dit donc rien, même s'il
     // porte des valeurs ensuite — la même règle que celle du serveur.
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{}, { weight: 24 }]),
+      completedWith('2026-09-01T10:00:00.000Z', [{}, { weight: 24 }]),
     ]);
     expect(index.size).toBe(0);
   });
 
   it('un exercice figé sans identifiant lisible', () => {
     const index = buildLastPerformanceIndex([
-      bilan({
+      makeCompleted({
         blocks: [
-          blocFige({
+          makeBlockSnapshot({
             exercises: [
-              poseFigee({
+              makeExerciseSnapshot({
                 exercise: {},
                 performed: { sets: [{ weight: 24 }] },
               }),
@@ -202,11 +213,11 @@ describe('ce que l’index laisse de côté', () => {
     // `_id` objet. Il ne sert pas de clé, et surtout il ne doit pas en
     // devenir une par `String(...)` accidentel.
     const index = buildLastPerformanceIndex([
-      bilan({
+      makeCompleted({
         blocks: [
-          blocFige({
+          makeBlockSnapshot({
             exercises: [
-              poseFigee({
+              makeExerciseSnapshot({
                 exercise: { _id: { $oid: 'ex-goblet' } },
                 performed: { sets: [{ weight: 24 }] },
               }),
@@ -225,10 +236,12 @@ describe('ce que l’index laisse de côté', () => {
     // `findIndex` sur `undefined` lèverait, et c'est tout l'historique qui
     // disparaîtrait au lieu d'une ligne. C'est ce que garde le `?? []`.
     const index = buildLastPerformanceIndex([
-      bilan({
+      makeCompleted({
         blocks: [
-          blocFige({
-            exercises: [poseFigee({ performed: {} as PerformedValues })],
+          makeBlockSnapshot({
+            exercises: [
+              makeExerciseSnapshot({ performed: {} as PerformedValues }),
+            ],
           }),
         ],
       }),
@@ -241,8 +254,8 @@ describe('ce que l’index laisse de côté', () => {
     // avait mis la semaine d'avant : l'entrée n'est écrite que s'il y a
     // quelque chose à écrire.
     const index = buildLastPerformanceIndex([
-      fait('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
-      fait('2026-09-08T10:00:00.000Z', []),
+      completedWith('2026-09-01T10:00:00.000Z', [{ weight: 20 }]),
+      completedWith('2026-09-08T10:00:00.000Z', []),
     ]);
     expect(index.get('ex-goblet')?.sets).toEqual([{ weight: 20 }]);
   });

@@ -75,19 +75,19 @@ describe('un tick manqué ne coûte rien', () => {
     // passe en arrière-plan, le navigateur ralentit ses minuteurs, et le
     // chrono prend du retard. Lu sur une échéance, le temps écoulé est le
     // même qu'on ait battu quarante fois ou deux.
-    const echeance = T0 + 60_000;
-    const lectures = [0, 250, 500, 30_000, 59_000].map((d) =>
-      secondsLeft(echeance, T0 + d)
+    const deadline = T0 + 60_000;
+    const readings = [0, 250, 500, 30_000, 59_000].map((d) =>
+      secondsLeft(deadline, T0 + d)
     );
-    expect(lectures).toEqual([60, 60, 60, 30, 1]);
+    expect(readings).toEqual([60, 60, 60, 30, 1]);
   });
 
   it('et une reprise après pause repart de ce qui restait', () => {
-    // `resume` repose l'échéance à `maintenant + restant`. Les secondes
+    // `resume` repose l'échéance à `freezeClock + remaining`. Les secondes
     // passées en pause ne doivent donc rien enlever : c'est la même garantie,
     // vue depuis la commande.
-    const restant = 42;
-    const reprisA = T0 + 9_000;
-    expect(secondsLeft(reprisA + restant * 1000, reprisA)).toBe(42);
+    const remaining = 42;
+    const resumedAt = T0 + 9_000;
+    expect(secondsLeft(resumedAt + remaining * 1000, resumedAt)).toBe(42);
   });
 });

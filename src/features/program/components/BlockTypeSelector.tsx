@@ -85,7 +85,7 @@ const TypeGrid = ({
  * quatre courants lisibles d'un coup d'œil.
  */
 export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
-  const [toutVoir, setToutVoir] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   // Les familles, une fois retirés les formats déjà proposés au-dessus :
   // une famille entièrement courante disparaît du repli plutôt que d'y
@@ -114,7 +114,7 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
         <TypeGrid types={COMMON_BLOCK_TYPES} onSelect={onSelect} />
       </Box>
 
-      {!toutVoir ? (
+      {!showAll ? (
         <Box
           as="button"
           alignSelf="flex-start"
@@ -124,7 +124,7 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
           fontSize="sm"
           color="fg.muted"
           _hover={{ color: 'app.primary' }}
-          onClick={() => setToutVoir(true)}
+          onClick={() => setShowAll(true)}
         >
           <HStack gap={1.5}>
             <LuChevronDown size={14} />

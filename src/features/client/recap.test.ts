@@ -21,23 +21,28 @@ import {
 } from './recap';
 import { buildGuidedSteps } from './guidedSteps';
 import { performedKey } from './lastPerformance';
-import { bloc, exercice, pose, seance } from './fixtures';
+import {
+  makeBlock,
+  makeExercise,
+  makeBlockExercise,
+  makeSession,
+} from './fixtures';
 import type { PerformedValues } from '@/shared/types';
 import type { LastPerformance } from './lastPerformance';
 
-const CLE = performedKey(1, 1);
+const KEY = performedKey(1, 1);
 
 describe('le tonnage', () => {
   it('multiplie la charge par les répétitions tapées', () => {
     const performed: Record<string, PerformedValues> = {
-      [CLE]: { sets: [{ weight: 26, reps: 10 }] },
+      [KEY]: { sets: [{ weight: 26, reps: 10 }] },
     };
     expect(tonnageOf(performed)).toBe(260);
   });
 
   it('additionne les séries', () => {
     const performed: Record<string, PerformedValues> = {
-      [CLE]: {
+      [KEY]: {
         sets: [
           { weight: 26, reps: 10 },
           { weight: 24, reps: 8 },
@@ -49,14 +54,14 @@ describe('le tonnage', () => {
 
   it('ignore une série sans charge', () => {
     const performed: Record<string, PerformedValues> = {
-      [CLE]: { sets: [{ reps: 10 }, { weight: 26, reps: 10 }] },
+      [KEY]: { sets: [{ reps: 10 }, { weight: 26, reps: 10 }] },
     };
     expect(tonnageOf(performed)).toBe(260);
   });
 
   it('ignore une charge sans répétitions, faute de savoir combien de fois', () => {
     const performed: Record<string, PerformedValues> = {
-      [CLE]: { sets: [{ weight: 26 }] },
+      [KEY]: { sets: [{ weight: 26 }] },
     };
     expect(tonnageOf(performed)).toBe(0);
   });
@@ -66,27 +71,27 @@ describe('le tonnage', () => {
     // déjà qu'on a fait ce qui était écrit. Sans ce second cas, le tonnage
     // serait toujours nul là où il est le plus utile.
     const performed: Record<string, PerformedValues> = {
-      [CLE]: { sets: [{ weight: 26 }] },
+      [KEY]: { sets: [{ weight: 26 }] },
     };
-    const prescrites = new Map([[`${CLE}:1`, 12]]);
-    expect(tonnageOf(performed, prescrites)).toBe(312);
+    const prescribed = new Map([[`${KEY}:1`, 12]]);
+    expect(tonnageOf(performed, prescribed)).toBe(312);
   });
 
   it("ne se rabat pas sur une dose non cochée : une série pesée n'est pas une série faite", () => {
     const performed: Record<string, PerformedValues> = {
-      [CLE]: { sets: [{ weight: 26 }, { weight: 26 }] },
+      [KEY]: { sets: [{ weight: 26 }, { weight: 26 }] },
     };
     // Seule la première est cochée.
-    const prescrites = new Map([[`${CLE}:1`, 12]]);
-    expect(tonnageOf(performed, prescrites)).toBe(312);
+    const prescribed = new Map([[`${KEY}:1`, 12]]);
+    expect(tonnageOf(performed, prescribed)).toBe(312);
   });
 
   it('préfère ce que le client a tapé à ce qui était prescrit', () => {
     const performed: Record<string, PerformedValues> = {
-      [CLE]: { sets: [{ weight: 26, reps: 8 }] },
+      [KEY]: { sets: [{ weight: 26, reps: 8 }] },
     };
-    const prescrites = new Map([[`${CLE}:1`, 12]]);
-    expect(tonnageOf(performed, prescrites)).toBe(208);
+    const prescribed = new Map([[`${KEY}:1`, 12]]);
+    expect(tonnageOf(performed, prescribed)).toBe(208);
   });
 
   it('vaut zéro quand rien n’a été noté', () => {
@@ -96,40 +101,51 @@ describe('le tonnage', () => {
 
 describe('les doses qui peuvent compter', () => {
   it('ne retient que les séries cochées', () => {
-    const session = seance({
+    const session = makeSession({
       blocks: [
-        bloc({ type: 'classic', exercises: [pose({ sets: 3, reps: 10 })] }),
-      ],
-    });
-    const cles = [...allowedReps(session, ['1:1:1', '1:1:3']).keys()];
-    expect(cles.sort()).toEqual(['1:1:1', '1:1:3']);
-  });
-
-  it('prend la dose du palier sur une pyramide', () => {
-    const session = seance({
-      blocks: [
-        bloc({
-          type: 'pyramid',
-          repsScheme: [21, 15, 9],
-          exercises: [pose({})],
+        makeBlock({
+          type: 'classic',
+          exercises: [makeBlockExercise({ sets: 3, reps: 10 })],
         }),
       ],
     });
-    const permises = allowedReps(session, ['1:1:1', '1:1:2', '1:1:3']);
-    expect([...permises.values()]).toEqual([21, 15, 9]);
+    const keys = [...allowedReps(session, ['1:1:1', '1:1:3']).keys()];
+    expect(keys.sort()).toEqual(['1:1:1', '1:1:3']);
+  });
+
+  it('prend la dose du palier sur une pyramide', () => {
+    const session = makeSession({
+      blocks: [
+        makeBlock({
+          type: 'pyramid',
+          repsScheme: [21, 15, 9],
+          exercises: [makeBlockExercise({})],
+        }),
+      ],
+    });
+    const allowed = allowedReps(session, ['1:1:1', '1:1:2', '1:1:3']);
+    expect([...allowed.values()]).toEqual([21, 15, 9]);
   });
 
   it('ne retient rien quand le coach n’a prescrit aucune répétition', () => {
-    const session = seance({
-      blocks: [bloc({ type: 'classic', exercises: [pose({ sets: 2 })] })],
+    const session = makeSession({
+      blocks: [
+        makeBlock({
+          type: 'classic',
+          exercises: [makeBlockExercise({ sets: 2 })],
+        }),
+      ],
     });
     expect(allowedReps(session, ['1:1:1', '1:1:2']).size).toBe(0);
   });
 
   it('ne retient rien sur un historique de cases vide', () => {
-    const session = seance({
+    const session = makeSession({
       blocks: [
-        bloc({ type: 'classic', exercises: [pose({ sets: 3, reps: 10 })] }),
+        makeBlock({
+          type: 'classic',
+          exercises: [makeBlockExercise({ sets: 3, reps: 10 })],
+        }),
       ],
     });
     expect(allowedReps(session, []).size).toBe(0);
@@ -138,9 +154,12 @@ describe('les doses qui peuvent compter', () => {
 
 describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
   it('compte les séries d’un bloc en liste', () => {
-    const session = seance({
+    const session = makeSession({
       blocks: [
-        bloc({ type: 'classic', exercises: [pose({ sets: 4, reps: 10 })] }),
+        makeBlock({
+          type: 'classic',
+          exercises: [makeBlockExercise({ sets: 4, reps: 10 })],
+        }),
       ],
     });
     const steps = buildGuidedSteps(session);
@@ -154,9 +173,14 @@ describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
   it('compte un tour dès qu’on l’a dépassé : il ne se coche pas', () => {
     // Sans cela, quelqu'un qui vient de faire tout un Tabata lirait « 0 sur
     // 8 » — un constat qui accuse.
-    const session = seance({
+    const session = makeSession({
       blocks: [
-        bloc({ type: 'tabata', rounds: 8, workDuration: 20, restDuration: 10 }),
+        makeBlock({
+          type: 'tabata',
+          rounds: 8,
+          workDuration: 20,
+          restDuration: 10,
+        }),
       ],
     });
     const steps = buildGuidedSteps(session);
@@ -166,19 +190,19 @@ describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
   });
 
   it('compte les deux ensemble quand la séance mêle les formats', () => {
-    const session = seance({
+    const session = makeSession({
       blocks: [
-        bloc({
+        makeBlock({
           order: 1,
           type: 'tabata',
           rounds: 4,
           workDuration: 20,
           restDuration: 10,
         }),
-        bloc({
+        makeBlock({
           order: 2,
           type: 'classic',
-          exercises: [pose({ sets: 3, reps: 10 })],
+          exercises: [makeBlockExercise({ sets: 3, reps: 10 })],
         }),
       ],
     });
@@ -187,8 +211,8 @@ describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
   });
 
   it('ne compte pas une boucle : son unité est le tour bouclé', () => {
-    const session = seance({
-      blocks: [bloc({ type: 'amrap', durationMinutes: 12 })],
+    const session = makeSession({
+      blocks: [makeBlock({ type: 'amrap', durationMinutes: 12 })],
     });
     expect(countSets(buildGuidedSteps(session), 1, [])).toEqual({
       total: 0,
@@ -197,9 +221,12 @@ describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
   });
 
   it('ne dépasse jamais le total', () => {
-    const session = seance({
+    const session = makeSession({
       blocks: [
-        bloc({ type: 'classic', exercises: [pose({ sets: 2, reps: 10 })] }),
+        makeBlock({
+          type: 'classic',
+          exercises: [makeBlockExercise({ sets: 2, reps: 10 })],
+        }),
       ],
     });
     const steps = buildGuidedSteps(session);
@@ -211,43 +238,53 @@ describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
 });
 
 describe('ce qui a bougé depuis la dernière fois', () => {
-  const avecCharge = (charge: number) => ({
-    [performedKey(1, 1)]: { sets: [{ weight: charge, reps: 10 }] },
+  const withLoad = (load: number) => ({
+    [performedKey(1, 1)]: { sets: [{ weight: load, reps: 10 }] },
   });
 
   it('dit la charge du jour, et l’écart', () => {
-    const session = seance({ blocks: [bloc({ exercises: [pose({})] })] });
-    const avant: Map<string, LastPerformance> = new Map([
+    const session = makeSession({
+      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
+    });
+    const before: Map<string, LastPerformance> = new Map([
       ['ex-goblet', { sets: [{ weight: 24 }], completedAt: new Date() }],
     ]);
-    expect(comparisonsOf(session, avecCharge(26), avant)).toEqual([
+    expect(comparisonsOf(session, withLoad(26), before)).toEqual([
       { name: 'Goblet Squat', load: 26, delta: 2 },
     ]);
   });
 
   it('n’invente aucun écart sans dernière fois', () => {
-    const session = seance({ blocks: [bloc({ exercises: [pose({})] })] });
-    expect(comparisonsOf(session, avecCharge(26))).toEqual([
+    const session = makeSession({
+      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
+    });
+    expect(comparisonsOf(session, withLoad(26))).toEqual([
       { name: 'Goblet Squat', load: 26, delta: undefined },
     ]);
   });
 
   it('garde un écart nul : « j’ai tenu ma charge » est une information', () => {
-    const session = seance({ blocks: [bloc({ exercises: [pose({})] })] });
-    const avant: Map<string, LastPerformance> = new Map([
+    const session = makeSession({
+      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
+    });
+    const before: Map<string, LastPerformance> = new Map([
       ['ex-goblet', { sets: [{ weight: 26 }], completedAt: new Date() }],
     ]);
-    expect(comparisonsOf(session, avecCharge(26))[0].load).toBe(26);
-    expect(comparisonsOf(session, avecCharge(26), avant)[0].delta).toBe(0);
+    expect(comparisonsOf(session, withLoad(26))[0].load).toBe(26);
+    expect(comparisonsOf(session, withLoad(26), before)[0].delta).toBe(0);
   });
 
   it('écarte un mouvement sans charge notée', () => {
-    const session = seance({ blocks: [bloc({ exercises: [pose({})] })] });
+    const session = makeSession({
+      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
+    });
     expect(comparisonsOf(session, {})).toEqual([]);
   });
 
   it('retient la charge la plus lourde du jour', () => {
-    const session = seance({ blocks: [bloc({ exercises: [pose({})] })] });
+    const session = makeSession({
+      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
+    });
     const performed = {
       [performedKey(1, 1)]: {
         sets: [
@@ -261,35 +298,50 @@ describe('ce qui a bougé depuis la dernière fois', () => {
   });
 
   it('met devant le plus grand écart, et n’en garde que trois', () => {
-    const quatre = [
-      pose({ order: 1, exercise: exercice({ _id: 'a', name: 'A' }) }),
-      pose({ order: 2, exercise: exercice({ _id: 'b', name: 'B' }) }),
-      pose({ order: 3, exercise: exercice({ _id: 'c', name: 'C' }) }),
-      pose({ order: 4, exercise: exercice({ _id: 'd', name: 'D' }) }),
+    const four = [
+      makeBlockExercise({
+        order: 1,
+        exercise: makeExercise({ _id: 'a', name: 'A' }),
+      }),
+      makeBlockExercise({
+        order: 2,
+        exercise: makeExercise({ _id: 'b', name: 'B' }),
+      }),
+      makeBlockExercise({
+        order: 3,
+        exercise: makeExercise({ _id: 'c', name: 'C' }),
+      }),
+      makeBlockExercise({
+        order: 4,
+        exercise: makeExercise({ _id: 'd', name: 'D' }),
+      }),
     ];
-    const session = seance({ blocks: [bloc({ exercises: quatre })] });
+    const session = makeSession({ blocks: [makeBlock({ exercises: four })] });
     const performed = Object.fromEntries(
-      [26, 30, 40, 28].map((charge, i) => [
+      [26, 30, 40, 28].map((load, i) => [
         performedKey(1, i + 1),
-        { sets: [{ weight: charge, reps: 10 }] },
+        { sets: [{ weight: load, reps: 10 }] },
       ])
     );
-    const avant: Map<string, LastPerformance> = new Map(
+    const before: Map<string, LastPerformance> = new Map(
       ['a', 'b', 'c', 'd'].map((id) => [
         id,
         { sets: [{ weight: 26 }], completedAt: new Date() },
       ])
     );
-    const lignes = comparisonsOf(session, performed, avant);
-    expect(lignes.map((l) => l.name)).toEqual(['C', 'B', 'D']);
-    expect(lignes).toHaveLength(3);
+    const rows = comparisonsOf(session, performed, before);
+    expect(rows.map((l) => l.name)).toEqual(['C', 'B', 'D']);
+    expect(rows).toHaveLength(3);
   });
 });
 
 describe('le constat entier', () => {
-  const session = seance({
+  const session = makeSession({
     blocks: [
-      bloc({ type: 'classic', exercises: [pose({ sets: 2, reps: 10 })] }),
+      makeBlock({
+        type: 'classic',
+        exercises: [makeBlockExercise({ sets: 2, reps: 10 })],
+      }),
     ],
   });
   const steps = buildGuidedSteps(session);
@@ -299,7 +351,7 @@ describe('le constat entier', () => {
       session,
       steps,
       step: 0,
-      performed: { [CLE]: { sets: [{ weight: 26 }, { weight: 26 }] } },
+      performed: { [KEY]: { sets: [{ weight: 26 }, { weight: 26 }] } },
       done: ['1:1:1', '1:1:2'],
       rounds: { '3': 7 },
       startedAt: 1_000_000,

@@ -35,45 +35,45 @@ import {
  * Plus léger qu'un jsdom, et surtout : jsdom ne sait pas lever sur commande.
  * Les trois `catch` du module ne se vérifient pas autrement.
  */
-const faireStockage = () => {
-  let contenu = new Map<string, string>();
-  const etat = { leve: false };
-  const verifier = () => {
-    if (etat.leve) throw new DOMException('refusé', 'SecurityError');
+const makeStorage = () => {
+  let store = new Map<string, string>();
+  const state = { throws: false };
+  const check = () => {
+    if (state.throws) throw new DOMException('refusé', 'SecurityError');
   };
   return {
-    etat,
-    vider: () => (contenu = new Map()),
-    brut: contenu,
+    state,
+    reset: () => (store = new Map()),
+    raw: store,
     api: {
-      getItem: (k: string) => (verifier(), contenu.get(k) ?? null),
-      setItem: (k: string, v: string) => (verifier(), void contenu.set(k, v)),
-      removeItem: (k: string) => (verifier(), void contenu.delete(k)),
-      clear: () => (verifier(), contenu.clear()),
+      getItem: (k: string) => (check(), store.get(k) ?? null),
+      setItem: (k: string, v: string) => (check(), void store.set(k, v)),
+      removeItem: (k: string) => (check(), void store.delete(k)),
+      clear: () => (check(), store.clear()),
       key: () => null,
       length: 0,
     } as unknown as Storage,
-    lire: (k: string) => contenu.get(k) ?? null,
-    poser: (k: string, v: string) => contenu.set(k, v),
+    read: (k: string) => store.get(k) ?? null,
+    put: (k: string, v: string) => store.set(k, v),
   };
 };
 
-let stockage = faireStockage();
+let storage = makeStorage();
 
 beforeEach(() => {
-  stockage = faireStockage();
-  vi.stubGlobal('localStorage', stockage.api);
+  storage = makeStorage();
+  vi.stubGlobal('localStorage', storage.api);
 });
 
-const CLE = 'kettle-seance-sess1';
+const KEY = 'kettle-seance-sess1';
 
 describe('l’aller-retour', () => {
   it('écrit puis relit', () => {
     writeProgress('sess1', { step: 3, done: ['1:1:1'] });
-    const relu = readProgress('sess1');
-    expect(relu?.step).toBe(3);
-    expect(relu?.done).toEqual(['1:1:1']);
-    expect(relu?.version).toBe(2);
+    const reloaded = readProgress('sess1');
+    expect(reloaded?.step).toBe(3);
+    expect(reloaded?.done).toEqual(['1:1:1']);
+    expect(reloaded?.version).toBe(2);
   });
 
   it('range sous une clé propre à la séance', () => {
@@ -81,7 +81,7 @@ describe('l’aller-retour', () => {
     writeProgress('sess2', { step: 7 });
     expect(readProgress('sess1')?.step).toBe(1);
     expect(readProgress('sess2')?.step).toBe(7);
-    expect(stockage.lire(CLE)).not.toBeNull();
+    expect(storage.read(KEY)).not.toBeNull();
   });
 
   it('ne rend rien pour une séance jamais ouverte', () => {
@@ -94,9 +94,9 @@ describe('l’aller-retour', () => {
       performed: { '1:1': { sets: [{ weight: 26 }] } },
     });
     writeProgress('sess1', { step: 5 });
-    const relu = readProgress('sess1');
-    expect(relu?.step).toBe(5);
-    expect(relu?.performed['1:1'].sets[0].weight).toBe(26);
+    const reloaded = readProgress('sess1');
+    expect(reloaded?.step).toBe(5);
+    expect(reloaded?.performed['1:1'].sets[0].weight).toBe(26);
   });
 
   it('une première écriture partielle laisse le reste à sa forme vide', () => {
@@ -125,8 +125,8 @@ describe('l’aller-retour', () => {
 
 describe('la péremption', () => {
   it('ne rend rien au-delà de douze heures', () => {
-    stockage.poser(
-      CLE,
+    storage.put(
+      KEY,
       JSON.stringify({
         version: 2,
         step: 4,
@@ -140,8 +140,8 @@ describe('la péremption', () => {
   });
 
   it('et efface l’enregistrement périmé plutôt que de le laisser traîner', () => {
-    stockage.poser(
-      CLE,
+    storage.put(
+      KEY,
       JSON.stringify({
         version: 2,
         step: 4,
@@ -152,12 +152,12 @@ describe('la péremption', () => {
       })
     );
     readProgress('sess1');
-    expect(stockage.lire(CLE)).toBeNull();
+    expect(storage.read(KEY)).toBeNull();
   });
 
   it('rend encore un enregistrement de onze heures', () => {
-    stockage.poser(
-      CLE,
+    storage.put(
+      KEY,
       JSON.stringify({
         version: 2,
         step: 4,
@@ -172,7 +172,7 @@ describe('la péremption', () => {
 });
 
 describe('un enregistrement d’avant le passage aux noms anglais', () => {
-  const ancien = (ecarts: Record<string, unknown> = {}) =>
+  const legacyRecord = (overrides: Record<string, unknown> = {}) =>
     JSON.stringify({
       version: 1,
       etape: 2,
@@ -181,13 +181,13 @@ describe('un enregistrement d’avant le passage aux noms anglais', () => {
       tours: { '3': 5 },
       debutLe: 1_700_000_000_000,
       majLe: Date.now(),
-      ...ecarts,
+      ...overrides,
     });
 
   it('se relit, champ par champ', () => {
-    stockage.poser(CLE, ancien());
-    const relu = readProgress('sess1');
-    expect(relu).toEqual({
+    storage.put(KEY, legacyRecord());
+    const reloaded = readProgress('sess1');
+    expect(reloaded).toEqual({
       version: 2,
       step: 2,
       performed: { '1:1': { sets: [{ weight: 37 }] } },
@@ -199,51 +199,51 @@ describe('un enregistrement d’avant le passage aux noms anglais', () => {
   });
 
   it('passe au nouveau format à la première écriture', () => {
-    stockage.poser(CLE, ancien());
+    storage.put(KEY, legacyRecord());
     writeProgress('sess1', { step: 3 });
-    const stocke = JSON.parse(stockage.lire(CLE)!);
-    expect(stocke.version).toBe(2);
-    expect(stocke.etape).toBeUndefined();
-    expect(stocke.faits).toBeUndefined();
+    const stored = JSON.parse(storage.read(KEY)!);
+    expect(stored.version).toBe(2);
+    expect(stored.etape).toBeUndefined();
+    expect(stored.faits).toBeUndefined();
   });
 
   it('sans rien perdre de ce qu’il portait', () => {
-    stockage.poser(CLE, ancien());
+    storage.put(KEY, legacyRecord());
     writeProgress('sess1', { step: 3 });
-    const relu = readProgress('sess1');
-    expect(relu?.done).toEqual(['1:1:1', '1:2:1']);
-    expect(relu?.performed['1:1'].sets[0].weight).toBe(37);
-    expect(relu?.startedAt).toBe(1_700_000_000_000);
+    const reloaded = readProgress('sess1');
+    expect(reloaded?.done).toEqual(['1:1:1', '1:2:1']);
+    expect(reloaded?.performed['1:1'].sets[0].weight).toBe(37);
+    expect(reloaded?.startedAt).toBe(1_700_000_000_000);
   });
 
   it('se périme sur `majLe`, comme l’autre sur `updatedAt`', () => {
-    stockage.poser(CLE, ancien({ majLe: Date.now() - 13 * 3600_000 }));
+    storage.put(KEY, legacyRecord({ majLe: Date.now() - 13 * 3600_000 }));
     expect(readProgress('sess1')).toBeNull();
   });
 });
 
 describe('ce qu’on refuse de relire', () => {
   it('une version inconnue', () => {
-    stockage.poser(
-      CLE,
+    storage.put(
+      KEY,
       JSON.stringify({ version: 99, step: 4, updatedAt: Date.now() })
     );
     expect(readProgress('sess1')).toBeNull();
   });
 
   it('un enregistrement sans date de mise à jour', () => {
-    stockage.poser(CLE, JSON.stringify({ version: 2, step: 4 }));
+    storage.put(KEY, JSON.stringify({ version: 2, step: 4 }));
     expect(readProgress('sess1')).toBeNull();
   });
 
   it('du JSON abîmé', () => {
-    stockage.poser(CLE, '{ ceci n’est pas du JSON');
+    storage.put(KEY, '{ ceci n’est pas du JSON');
     expect(readProgress('sess1')).toBeNull();
   });
 });
 
 describe('ce qu’on redresse plutôt que de refuser', () => {
-  const avec = (ecarts: Record<string, unknown>) =>
+  const withFields = (overrides: Record<string, unknown>) =>
     JSON.stringify({
       version: 2,
       step: 0,
@@ -251,26 +251,26 @@ describe('ce qu’on redresse plutôt que de refuser', () => {
       done: [],
       rounds: {},
       updatedAt: Date.now(),
-      ...ecarts,
+      ...overrides,
     });
 
   it('une étape négative repart de zéro', () => {
-    stockage.poser(CLE, avec({ step: -3 }));
+    storage.put(KEY, withFields({ step: -3 }));
     expect(readProgress('sess1')?.step).toBe(0);
   });
 
   it('une étape qui n’est pas un entier aussi', () => {
-    stockage.poser(CLE, avec({ step: 2.5 }));
+    storage.put(KEY, withFields({ step: 2.5 }));
     expect(readProgress('sess1')?.step).toBe(0);
   });
 
   it('un `done` qui n’est pas un tableau devient vide', () => {
-    stockage.poser(CLE, avec({ done: 'pas un tableau' }));
+    storage.put(KEY, withFields({ done: 'pas un tableau' }));
     expect(readProgress('sess1')?.done).toEqual([]);
   });
 
   it('des champs absents prennent leur forme vide', () => {
-    stockage.poser(CLE, JSON.stringify({ version: 2, updatedAt: Date.now() }));
+    storage.put(KEY, JSON.stringify({ version: 2, updatedAt: Date.now() }));
     // `toEqual` et non `toMatchObject` : un `{}` attendu par `toMatchObject`
     // est satisfait par un `undefined` reçu — mesuré. L'assertion restait
     // verte alors que les formes vides avaient disparu du module.
@@ -291,18 +291,18 @@ describe('quand le stockage refuse', () => {
   // jamais s'arrêter : c'est le seul chemin qui en décide, et aucun
   // navigateur piloté ne refuse sur commande.
   it('la lecture rend `null` au lieu de lever', () => {
-    stockage.etat.leve = true;
+    storage.state.throws = true;
     expect(() => readProgress('sess1')).not.toThrow();
     expect(readProgress('sess1')).toBeNull();
   });
 
   it('l’écriture se tait au lieu de lever', () => {
-    stockage.etat.leve = true;
+    storage.state.throws = true;
     expect(() => writeProgress('sess1', { step: 2 })).not.toThrow();
   });
 
   it('l’effacement se tait aussi', () => {
-    stockage.etat.leve = true;
+    storage.state.throws = true;
     expect(() => forgetProgress('sess1')).not.toThrow();
   });
 });

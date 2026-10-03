@@ -18,11 +18,23 @@ Un commentaire peut donc citer un libellé français sans que cela pose de
 question, et un identifiant ne porte jamais d'accent.
 
 `npm run lint:langue` vérifie la règle plutôt que de la surveiller, et la CI
-l'appelle. Elle a été annoncée tenue trois fois sans l'être, à cause de trois
-angles morts du détecteur : « on » qui compte comme un mot français, un seuil
-de trois mots anglais qui laissait passer les commentaires d'une ligne, et un
-commentaire anglais citant un libellé français — dont l'accent concluait au
-français. Le script retire ce qui est cité avant de juger.
+l'appelle. Il vérifie deux choses : que les commentaires sont en français, et
+que les identifiants sont en anglais.
+
+Pour les commentaires, la règle a été annoncée tenue quatre fois sans l'être,
+à cause de quatre angles morts : « on » qui compte comme un mot français ; un
+seuil de trois mots anglais qui laissait passer les commentaires d'une ligne ;
+un commentaire anglais citant un libellé français, dont l'accent concluait au
+français ; et enfin la liste de mots anglais elle-même, incomplète par
+construction. Le script retire ce qui est cité, puis signale tout bloc de six
+mots de prose sans aucune marque de français — c'est le français qu'on exige,
+c'est donc le français qu'on vérifie.
+
+Pour les identifiants, c'est une liste de mots français, avec la faiblesse
+d'une liste ; plus une règle sans exception : un identifiant ne porte jamais
+d'accent. Sept noms sont exemptés et chacun porte sa raison dans le script —
+cinq sont les clés d'un enregistrement déjà posé dans le `localStorage` des
+clients, que les traduire rendrait illisible.
 
 ## Les commentaires
 

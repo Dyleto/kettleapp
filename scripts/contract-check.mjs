@@ -21,10 +21,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ici = dirname(fileURLToPath(import.meta.url));
-const VENDU = join(ici, '..', 'src', 'shared', 'types', 'contract.ts');
-const AMONT = join(
-  ici,
+const here = dirname(fileURLToPath(import.meta.url));
+const VENDORED = join(here, '..', 'src', 'shared', 'types', 'contract.ts');
+const UPSTREAM = join(
+  here,
   '..',
   '..',
   'kettleapp-api',
@@ -32,28 +32,28 @@ const AMONT = join(
   'kettle-contract.ts'
 );
 
-const empreinte = (contenu) =>
-  contenu.match(/Empreinte : ([0-9a-f]{12})/)?.[1] ?? '(absente)';
+const fingerprint = (source) =>
+  source.match(/Empreinte : ([0-9a-f]{12})/)?.[1] ?? '(absente)';
 
-const vendu = readFileSync(VENDU, 'utf8');
+const vendored = readFileSync(VENDORED, 'utf8');
 
-if (!existsSync(AMONT)) {
+if (!existsSync(UPSTREAM)) {
   console.log(
-    `contrat vendu : empreinte ${empreinte(vendu)}\n` +
+    `contrat vendu : empreinte ${fingerprint(vendored)}\n` +
       "kettleapp-api n'est pas à côté : rien à comparer."
   );
   process.exit(0);
 }
 
-const amont = readFileSync(AMONT, 'utf8');
+const upstream = readFileSync(UPSTREAM, 'utf8');
 
-if (vendu === amont) {
-  console.log(`contrat à jour (empreinte ${empreinte(vendu)})`);
+if (vendored === upstream) {
+  console.log(`contrat à jour (empreinte ${fingerprint(vendored)})`);
   process.exit(0);
 }
 
 console.error(
-  `contrat périmé : ici ${empreinte(vendu)}, API ${empreinte(amont)}.\n` +
+  `contrat périmé : ici ${fingerprint(vendored)}, API ${fingerprint(upstream)}.\n` +
     'Relancer `npm run contract:build` côté API, puis recopier\n' +
     'contract/kettle-contract.ts dans src/shared/types/contract.ts.'
 );

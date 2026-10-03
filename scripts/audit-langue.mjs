@@ -21,25 +21,31 @@
  * Ce qui est cité n'est pas de la prose : un commentaire français cite des
  * libellés français, un commentaire anglais cite les mêmes.
  *
+ * Depuis, il vérifie aussi les IDENTIFIANTS, qui n'avaient jamais été
+ * regardés : la passe anglaise portait sur la prose, et pas une ligne sur les
+ * noms. `useProgramAutoSave.ts` était passé au travers en entier —
+ * commentaires anglais, identifiants français. Le balayage a trouvé 160 noms
+ * français sur 1 770 déclarés.
+ *
  *   node scripts/audit-langue.mjs
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const RACINE = join(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // Le contrat est engendré par l'autre dépôt : ses commentaires lui
 // appartiennent, et les réécrire ici les ferait disparaître à la prochaine
 // génération.
-const EXCLUS = [
+const EXCLUDED = [
   'node_modules',
   'dist',
   'src/shared/types/contract.ts',
   'verif/node_modules',
 ];
 
-const BLOC = /\/\*\*?[\s\S]*?\*\/|(?:^[ \t]*\/\/[^\n]*\n)+/gm;
+const COMMENT_BLOCK = /\/\*\*?[\s\S]*?\*\/|(?:^[ \t]*\/\/[^\n]*\n)+/gm;
 
 /**
  * Des mots qui n'existent qu'en anglais.
@@ -48,7 +54,7 @@ const BLOC = /\/\*\*?[\s\S]*?\*\/|(?:^[ \t]*\/\/[^\n]*\n)+/gm;
  * presque toujours de la forme « Checks … », « Returns … », « Opens … » : ce
  * sont eux qui avaient échappé au seuil.
  */
-const ANGLAIS =
+const ENGLISH =
   /\b(the|and|that|with|which|this|from|when|what|would|never|only|because|instead|its|it's|are|was|were|does|not|but|for|has|have|here|there|they|them|their|your|each|every|same|then|than|into|about|before|after|while|whether|checks?|returns?|uses?|used|needs?|gets?|sets?|makes?|builds?|sends?|reads?|writes?|keeps?|shows?|opens?|closes?|adds?|removes?|fetch(es)?|wraps?|handles?|counts?|counting|carries|carry|says?|saying|value|values|one|two|all|any|also|still|just|per|via|nobody|something|anything|without|or|of|in|to|is|by|as|at|if|we|be|do|an)\b/i;
 
 /**
@@ -58,7 +64,7 @@ const ANGLAIS =
  * pas « son » : ils s'écrivent aussi en anglais, et c'est le premier angle
  * mort qui m'a coûté deux cents blocs.
  */
-const FRANCAIS =
+const FRENCH =
   /[àâäçéèêëîïôöûùüœÀÂÇÉÈÊËÎÏÔÛÙ]|[«»]|\b(le|les|une|des|du|aux|cette|qui|que|pas|pour|dans|avec|sans|donc|mais|toute|elle|leur|ne|est|ces|deux|rien|quand|parce|son|sa|ses|au|ce|il|et|ou|un|la|se)\b|\b[ldqsjnmct]'/;
 
 /**
@@ -79,68 +85,150 @@ const FRANCAIS =
  * Le seuil de six mots épargne ce qui n'est pas de la prose : une directive,
  * une adresse, un nom de fichier, une commande à copier.
  */
-const PROSE_MINIMALE = 6;
+const MIN_PROSE_WORDS = 6;
 
 /** Ce qui n'est pas de la prose et n'a pas à l'être. */
-const TECHNIQUE =
+const TECHNICAL =
   /eslint|ts-(expect|ignore|nocheck)|prettier-ignore|https?:\/\/|^\s*[\w./@-]+\s*$/;
 
-const motsDeProse = (nu) =>
+const proseWordCount = (bare) =>
   (
-    nu
+    bare
       .replace(/^[ \t]*(?:\/\*+|\*+\/?|\/\/)/gm, ' ')
       .match(/[A-Za-zÀ-ÿ]{2,}/g) ?? []
   ).length;
 
 /** Ce qui est cité n'est pas de la prose : on le retire avant de juger. */
-const sansCitations = (bloc) =>
-  bloc
+const withoutQuotes = (block) =>
+  block
     .replace(/«[^»]*»/g, ' ')
     .replace(/`[^`]*`/g, ' ')
     .replace(/"[^"]*"/g, ' ')
     .replace(/'[^'\n]{2,}'/g, ' ');
 
-const fichiers = [];
-const parcourir = (chemin) => {
-  for (const entree of readdirSync(chemin)) {
-    const complet = join(chemin, entree);
-    const relatif = relative(RACINE, complet);
-    if (EXCLUS.some((e) => relatif === e || relatif.startsWith(e + '/')))
-      continue;
-    if (statSync(complet).isDirectory()) parcourir(complet);
-    else if (/\.(ts|tsx|mjs)$/.test(entree)) fichiers.push(complet);
+const files = [];
+const walk = (path) => {
+  for (const entry of readdirSync(path)) {
+    const full = join(path, entry);
+    const rel = relative(ROOT, full);
+    if (EXCLUDED.some((e) => rel === e || rel.startsWith(e + '/'))) continue;
+    if (statSync(full).isDirectory()) walk(full);
+    else if (/\.(ts|tsx|mjs)$/.test(entry)) files.push(full);
   }
 };
-for (const racine of ['src', 'verif', 'scripts'])
-  parcourir(join(RACINE, racine));
+for (const root of ['src', 'verif', 'scripts']) walk(join(ROOT, root));
 
-const trouves = [];
-for (const fichier of fichiers) {
-  const contenu = readFileSync(fichier, 'utf8');
-  for (const trouve of contenu.matchAll(BLOC)) {
-    const nu = sansCitations(trouve[0]);
+const hits = [];
+for (const file of files) {
+  const source = readFileSync(file, 'utf8');
+  for (const hit of source.matchAll(COMMENT_BLOCK)) {
+    const bare = withoutQuotes(hit[0]);
     const suspect =
-      (ANGLAIS.test(nu) || motsDeProse(nu) >= PROSE_MINIMALE) &&
-      !TECHNIQUE.test(nu);
-    if (suspect && !FRANCAIS.test(nu)) {
-      trouves.push({
-        fichier: relative(RACINE, fichier),
-        ligne: contenu.slice(0, trouve.index).split('\n').length,
-        extrait: trouve[0].trim().split('\n')[0].slice(0, 80),
+      (ENGLISH.test(bare) || proseWordCount(bare) >= MIN_PROSE_WORDS) &&
+      !TECHNICAL.test(bare);
+    if (suspect && !FRENCH.test(bare)) {
+      hits.push({
+        file: relative(ROOT, file),
+        line: source.slice(0, hit.index).split('\n').length,
+        excerpt: hit[0].trim().split('\n')[0].slice(0, 80),
       });
     }
   }
 }
 
-if (trouves.length === 0) {
-  console.log(`${fichiers.length} fichiers : aucun commentaire anglais.`);
+// ─── Les identifiants ───────────────────────────────────────────────────────
+
+/**
+ * Des mots français qui ne sont pas aussi des mots anglais.
+ *
+ * Pour un identifiant, la règle ne peut pas se renverser comme pour la prose :
+ * « est-ce que ce nom a l'air anglais » n'a pas de signal simple, là où « est-ce
+ * que cette phrase a l'air française » en a plusieurs. C'est donc une liste,
+ * avec la faiblesse d'une liste — elle attrape ce qu'elle connaît. Elle vient
+ * du balayage des 1 770 identifiants déclarés du dépôt.
+ */
+const FRENCH_WORDS =
+  /^(ancien|anciennete|annuler|arrivee|attente|aucune|autre|autres|avant|avec|avertir|basculer|bilan|bloc|blocs|bouton|brut|carte|champ|champs|chaque|charge|chargement|charges|chemin|choisir|cle|cles|colonne|colonnes|commencer|commentaire|communes|compteur|confidentialite|consigne|conservation|contenu|copier|couleur|courant|courbe|dans|debut|deja|delai|depuis|dernier|derniere|destinataire|deux|deuxieme|dimanche|dire|douleur|ecart|ecarts|echeance|echec|editeur|empreinte|enregistre|ensuite|entre|envoyer|erreur|etape|etapes|etat|exercice|faire|fait|faites|faits|faux|fermeture|fiche|fige|figee|figer|fois|fondement|gouttiere|grille|hebergeur|hebergeurs|heures|hier|impossible|inchange|indexe|intervalle|introuvable|jeudi|jour|journaux|jours|kilos|lectures|lettre|libelle|libre|lien|ligne|lignes|lire|liste|listes|lundi|maintenant|maladie|mercredi|minuteur|niveau|nom|noms|nouveau|nouvelle|occupe|ouvert|ouvrir|paire|paliers|partage|paysage|perdre|permises|personne|poids|poser|pourquoi|premier|premiere|prescrites|prevues|programme|pyramide|quand|quatre|quitter|quoi|rang|rapport|recherche|recommencer|recu|refus|refuser|relancer|relu|repere|repos|reprendre|reseau|ressenti|restant|restantes|reste|resultat|retour|revenir|rien|saisir|sans|sante|seance|secondes|semaine|serveur|seuil|seules|sous|sportif|structurel|suivant|suivants|suivi|tactile|tentatives|texte|titre|totaux|tours|tuile|tutoie|tutoiement|valeur|veux|vide|vider|vieux|voir|voit|vus)$/;
+
+/**
+ * Les exceptions, et chacune a sa raison.
+ *
+ * Les cinq premières ne sont pas des identifiants : ce sont les clés d'un
+ * enregistrement déjà posé dans le `localStorage` des clients, que
+ * `sessionProgress` relit pour ne pas faire perdre une séance en cours. Les
+ * traduire ne renommerait rien — cela rendrait illisible ce qui est écrit sur
+ * leurs téléphones.
+ *
+ * `dose` et `tonnage` s'écrivent pareil dans les deux langues.
+ */
+const EXEMPT = new Set([
+  'etape',
+  'faits',
+  'tours',
+  'debutLe',
+  'majLe',
+  'dose',
+  'tonnage',
+]);
+
+const DECLARATIONS = [
+  /\b(?:const|let|var|function|class|interface|type|enum)\s+([A-Za-zÀ-ÿ_$][\wÀ-ÿ]*)/g,
+  // Pas de `\s*` avant les deux-points, et ce n'est pas un détail : la
+  // typographie française met une espace devant, donc « Ensuite : {x} » — du
+  // texte JSX — passait pour une déclaration de propriété.
+  /^[ \t]*([a-zA-ZÀ-ÿ_$][\wÀ-ÿ]*)\??:/gm,
+  /\(\s*([a-zà-ÿ][\wÀ-ÿ]*)\s*[,:)]/g,
+  /\bconst\s*[[{]([^\]}]*)[\]}]/g,
+];
+
+/** Les segments d'un nom : `champRecherche` → `champ`, `recherche`. */
+const segments = (name) =>
+  (name.match(/[A-Z]+(?![a-z])|[A-Z][a-z]*|[a-z]+/g) ?? []).map((s) =>
+    s.toLowerCase()
+  );
+
+const names = [];
+for (const file of files) {
+  const rel = relative(ROOT, file);
+  // Ni commentaires ni chaînes : on ne juge que des noms.
+  const code = readFileSync(file, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, ' ')
+    .replace(/'[^'\n]*'|"[^"\n]*"/g, " '' ");
+  const seen = new Set();
+  for (const rx of DECLARATIONS) {
+    for (const hit of code.matchAll(rx)) {
+      for (const raw of hit[1].split(/[,:=\s]+/)) {
+        if (!/^[A-Za-zÀ-ÿ_$][\wÀ-ÿ]*$/.test(raw) || seen.has(raw)) continue;
+        seen.add(raw);
+        if (EXEMPT.has(raw)) continue;
+        // Un identifiant ne porte jamais d'accent : règle sans exception.
+        const accented = /[àâäçéèêëîïôöûùüœ]/i.test(raw);
+        if (accented || segments(raw).some((s) => FRENCH_WORDS.test(s)))
+          names.push({ file: rel, name: raw });
+      }
+    }
+  }
+}
+
+if (hits.length === 0 && names.length === 0) {
+  console.log(
+    `${files.length} fichiers : commentaires en français, identifiants en anglais.`
+  );
   process.exit(0);
 }
 
-for (const { fichier, ligne, extrait } of trouves) {
-  console.error(`${fichier}:${ligne}  ${extrait}`);
+for (const { file, line, excerpt } of hits) {
+  console.error(`${file}:${line}  ${excerpt}`);
 }
-console.error(
-  `\n${trouves.length} commentaire(s) anglais. La règle du projet les veut en français.`
-);
+if (hits.length > 0) {
+  console.error(
+    `\n${hits.length} commentaire(s) anglais. La règle du projet les veut en français.`
+  );
+}
+for (const { file, name } of names) console.error(`${file}  ${name}`);
+if (names.length > 0) {
+  console.error(
+    `\n${names.length} identifiant(s) français. La règle du projet les veut en anglais.`
+  );
+}
 process.exit(1);

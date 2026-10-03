@@ -24,7 +24,7 @@ Le front doit trouver l'API d'essai : `VITE_API_URL=http://localhost:3001`
 dans un `.env` à la racine.
 
 ```sh
-node runner.mjs verify_recap.mjs verify_paysage.mjs
+node runner.mjs verify_recap.mjs verify_landscape.mjs
 node runner.mjs --all             # ce que lance `npm run verify`
 ```
 

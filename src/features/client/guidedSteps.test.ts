@@ -25,35 +25,51 @@ import {
   type GuidedStep,
 } from './guidedSteps';
 import { restBetweenSetsOf } from '@/features/program/constants';
-import { bloc, exercice, pose, seance } from './fixtures';
+import {
+  makeBlock,
+  makeExercise,
+  makeBlockExercise,
+  makeSession,
+} from './fixtures';
 
-const tours = (etapes: GuidedStep[]) =>
-  etapes.filter((e) => e.type === 'round');
-const blocs = (etapes: GuidedStep[]) =>
-  etapes.filter((e) => e.type === 'block');
-const repos = (etapes: GuidedStep[]) => etapes.filter((e) => e.type === 'rest');
+const roundsOf = (steps: GuidedStep[]) =>
+  steps.filter((e) => e.type === 'round');
+const blocksOf = (steps: GuidedStep[]) =>
+  steps.filter((e) => e.type === 'block');
+const restsOf = (steps: GuidedStep[]) => steps.filter((e) => e.type === 'rest');
 
 describe('un bloc mené par le minuteur devient une suite de tours', () => {
   it('un EMOM de dix tours donne dix étapes, pas une par mouvement', () => {
-    const emom = bloc({
+    const emom = makeBlock({
       type: 'emom',
       rounds: 10,
       exercises: [
-        pose({ order: 1, exercise: exercice({ _id: 'a', name: 'Swing' }) }),
-        pose({ order: 2, exercise: exercice({ _id: 'b', name: 'Pompes' }) }),
-        pose({ order: 3, exercise: exercice({ _id: 'c', name: 'Squat' }) }),
+        makeBlockExercise({
+          order: 1,
+          exercise: makeExercise({ _id: 'a', name: 'Swing' }),
+        }),
+        makeBlockExercise({
+          order: 2,
+          exercise: makeExercise({ _id: 'b', name: 'Pompes' }),
+        }),
+        makeBlockExercise({
+          order: 3,
+          exercise: makeExercise({ _id: 'c', name: 'Squat' }),
+        }),
       ],
     });
-    const etapes = buildGuidedSteps(seance({ blocks: [emom] }));
-    expect(etapes).toHaveLength(10);
-    expect(tours(etapes)).toHaveLength(10);
+    const steps = buildGuidedSteps(makeSession({ blocks: [emom] }));
+    expect(steps).toHaveLength(10);
+    expect(roundsOf(steps)).toHaveLength(10);
   });
 
   it('chaque tour porte son rang et le total', () => {
-    const etapes = tours(
-      buildGuidedSteps(seance({ blocks: [bloc({ type: 'emom', rounds: 3 })] }))
+    const steps = roundsOf(
+      buildGuidedSteps(
+        makeSession({ blocks: [makeBlock({ type: 'emom', rounds: 3 })] })
+      )
     );
-    expect(etapes.map((t) => [t.round, t.rounds])).toEqual([
+    expect(steps.map((t) => [t.round, t.rounds])).toEqual([
       [1, 3],
       [2, 3],
       [3, 3],
@@ -61,131 +77,155 @@ describe('un bloc mené par le minuteur devient une suite de tours', () => {
   });
 
   it('chaque tour porte tous les mouvements du tour, dans l’ordre', () => {
-    const emom = bloc({
+    const emom = makeBlock({
       type: 'emom',
       rounds: 2,
       exercises: [
-        pose({ order: 2, exercise: exercice({ _id: 'b', name: 'Pompes' }) }),
-        pose({ order: 1, exercise: exercice({ _id: 'a', name: 'Swing' }) }),
+        makeBlockExercise({
+          order: 2,
+          exercise: makeExercise({ _id: 'b', name: 'Pompes' }),
+        }),
+        makeBlockExercise({
+          order: 1,
+          exercise: makeExercise({ _id: 'a', name: 'Swing' }),
+        }),
       ],
     });
-    const premier = tours(buildGuidedSteps(seance({ blocks: [emom] })))[0];
-    expect(premier.exercises.map((e) => e.exercise.name)).toEqual([
+    const first = roundsOf(
+      buildGuidedSteps(makeSession({ blocks: [emom] }))
+    )[0];
+    expect(first.exercises.map((e) => e.exercise.name)).toEqual([
       'Swing',
       'Pompes',
     ]);
   });
 
   it("un EMOM sans intervalle écrit vaut la minute : c'est ce que le mot dit", () => {
-    const etapes = tours(
-      buildGuidedSteps(seance({ blocks: [bloc({ type: 'emom', rounds: 2 })] }))
+    const steps = roundsOf(
+      buildGuidedSteps(
+        makeSession({ blocks: [makeBlock({ type: 'emom', rounds: 2 })] })
+      )
     );
-    expect(etapes[0].workSeconds).toBe(60);
+    expect(steps[0].workSeconds).toBe(60);
   });
 
   it('un E2MOM lit son intervalle', () => {
-    const etapes = tours(
+    const steps = roundsOf(
       buildGuidedSteps(
-        seance({
-          blocks: [bloc({ type: 'emom', rounds: 4, intervalMinutes: 2 })],
+        makeSession({
+          blocks: [makeBlock({ type: 'emom', rounds: 4, intervalMinutes: 2 })],
         })
       )
     );
-    expect(etapes[0].workSeconds).toBe(120);
+    expect(steps[0].workSeconds).toBe(120);
   });
 
   it("un EMOM n'impose aucun repos : le repos est ce qu'il reste de la minute", () => {
     // C'est le défaut corrigé : une page « REPOS 1:00 » ajoutait une minute
     // que le coach n'avait pas prescrite, et doublait la durée du bloc.
-    const etapes = tours(
-      buildGuidedSteps(seance({ blocks: [bloc({ type: 'emom', rounds: 3 })] }))
+    const steps = roundsOf(
+      buildGuidedSteps(
+        makeSession({ blocks: [makeBlock({ type: 'emom', rounds: 3 })] })
+      )
     );
-    expect(etapes.every((t) => t.restSeconds === undefined)).toBe(true);
+    expect(steps.every((t) => t.restSeconds === undefined)).toBe(true);
   });
 
   it('un Tabata impose les deux : le travail et le repos', () => {
-    const tabata = bloc({
+    const tabata = makeBlock({
       type: 'tabata',
       rounds: 8,
       workDuration: 20,
       restDuration: 10,
     });
-    const etapes = tours(buildGuidedSteps(seance({ blocks: [tabata] })));
-    expect(etapes).toHaveLength(8);
-    expect([etapes[0].workSeconds, etapes[0].restSeconds]).toEqual([20, 10]);
+    const steps = roundsOf(buildGuidedSteps(makeSession({ blocks: [tabata] })));
+    expect(steps).toHaveLength(8);
+    expect([steps[0].workSeconds, steps[0].restSeconds]).toEqual([20, 10]);
   });
 
   it('un bloc à tours qui n’en a qu’un redevient une liste', () => {
     // Un seul tour n'est pas un rythme : c'est une liste qu'on coche.
-    const etapes = buildGuidedSteps(
-      seance({ blocks: [bloc({ type: 'emom', rounds: 1 })] })
+    const steps = buildGuidedSteps(
+      makeSession({ blocks: [makeBlock({ type: 'emom', rounds: 1 })] })
     );
-    expect(tours(etapes)).toHaveLength(0);
-    expect(blocs(etapes)).toHaveLength(1);
+    expect(roundsOf(steps)).toHaveLength(0);
+    expect(blocksOf(steps)).toHaveLength(1);
   });
 
   it('un bloc à tours sans nombre de tours aussi', () => {
-    const etapes = buildGuidedSteps(
-      seance({ blocks: [bloc({ type: 'tabata' })] })
+    const steps = buildGuidedSteps(
+      makeSession({ blocks: [makeBlock({ type: 'tabata' })] })
     );
-    expect(blocs(etapes)).toHaveLength(1);
+    expect(blocksOf(steps)).toHaveLength(1);
   });
 });
 
 describe('ce qui annonce la suite', () => {
   it('le dernier tour nomme le bloc suivant', () => {
-    const etapes = tours(
+    const steps = roundsOf(
       buildGuidedSteps(
-        seance({
+        makeSession({
           blocks: [
-            bloc({ order: 1, type: 'emom', rounds: 3 }),
-            bloc({ order: 2, type: 'amrap' }),
+            makeBlock({ order: 1, type: 'emom', rounds: 3 }),
+            makeBlock({ order: 2, type: 'amrap' }),
           ],
         })
       )
     );
-    expect(etapes.map((t) => t.nextLabel)).toEqual([null, null, 'AMRAP']);
+    expect(steps.map((t) => t.nextLabel)).toEqual([null, null, 'AMRAP']);
   });
 
   it('le dernier tour du dernier bloc n’annonce rien', () => {
-    const etapes = tours(
-      buildGuidedSteps(seance({ blocks: [bloc({ type: 'emom', rounds: 2 })] }))
+    const steps = roundsOf(
+      buildGuidedSteps(
+        makeSession({ blocks: [makeBlock({ type: 'emom', rounds: 2 })] })
+      )
     );
-    expect(etapes.map((t) => t.nextLabel)).toEqual([null, null]);
+    expect(steps.map((t) => t.nextLabel)).toEqual([null, null]);
   });
 });
 
 describe('une boucle se compte, une liste se coche', () => {
   it('un AMRAP est une boucle, et ne porte aucune série', () => {
-    const etapes = blocs(
+    const steps = blocksOf(
       buildGuidedSteps(
-        seance({ blocks: [bloc({ type: 'amrap', durationMinutes: 12 })] })
+        makeSession({
+          blocks: [makeBlock({ type: 'amrap', durationMinutes: 12 })],
+        })
       )
     );
-    expect(etapes[0].shape).toBe('loop');
-    expect(etapes[0].sets).toEqual([]);
+    expect(steps[0].shape).toBe('loop');
+    expect(steps[0].sets).toEqual([]);
   });
 
-  const listes = ['classic', 'chipper', 'warmup', 'pyramid', 'ladder'] as const;
+  const listTypes = [
+    'classic',
+    'chipper',
+    'warmup',
+    'pyramid',
+    'ladder',
+  ] as const;
 
-  it.each(listes)('un bloc %s est une liste', (type) => {
-    const etapes = blocs(
-      buildGuidedSteps(seance({ blocks: [bloc({ type })] }))
+  it.each(listTypes)('un bloc %s est une liste', (type) => {
+    const steps = blocksOf(
+      buildGuidedSteps(makeSession({ blocks: [makeBlock({ type })] }))
     );
-    expect(etapes[0].shape).toBe('list');
-    expect(etapes[0].sets.length).toBeGreaterThan(0);
+    expect(steps[0].shape).toBe('list');
+    expect(steps[0].sets.length).toBeGreaterThan(0);
   });
 });
 
 describe('les séries d’un bloc en liste', () => {
   it('un classique donne une série par série prescrite', () => {
-    const classique = bloc({
+    const classicBlock = makeBlock({
       type: 'classic',
-      exercises: [pose({ sets: 4, reps: 10, restBetweenSets: 90 })],
+      exercises: [
+        makeBlockExercise({ sets: 4, reps: 10, restBetweenSets: 90 }),
+      ],
     });
-    const series = setsOfBlock(classique);
-    expect(series).toHaveLength(4);
-    expect(series.map((s) => [s.rank, s.total])).toEqual([
+    const sets = setsOfBlock(classicBlock);
+    expect(sets).toHaveLength(4);
+    expect(sets.map((s) => [s.rank, s.total])).toEqual([
       [1, 4],
       [2, 4],
       [3, 4],
@@ -194,49 +234,59 @@ describe('les séries d’un bloc en liste', () => {
   });
 
   it('sans nombre de séries écrit, l’exercice se fait une fois', () => {
-    expect(setsOfBlock(bloc({ type: 'warmup' }))).toHaveLength(1);
+    expect(setsOfBlock(makeBlock({ type: 'warmup' }))).toHaveLength(1);
   });
 
   it('porte le repos entre les séries, mais pas après la dernière', () => {
-    const series = setsOfBlock(
-      bloc({
+    const sets = setsOfBlock(
+      makeBlock({
         type: 'classic',
-        exercises: [pose({ sets: 3, reps: 10, restBetweenSets: 90 })],
+        exercises: [
+          makeBlockExercise({ sets: 3, reps: 10, restBetweenSets: 90 }),
+        ],
       })
     );
-    expect(series.map((s) => s.restAfter)).toEqual([90, 90, undefined]);
+    expect(sets.map((s) => s.restAfter)).toEqual([90, 90, undefined]);
   });
 
   it('ne porte aucun repos quand il n’y a qu’une série', () => {
-    const series = setsOfBlock(
-      bloc({
+    const sets = setsOfBlock(
+      makeBlock({
         type: 'classic',
-        exercises: [pose({ sets: 1, reps: 10, restBetweenSets: 90 })],
+        exercises: [
+          makeBlockExercise({ sets: 1, reps: 10, restBetweenSets: 90 }),
+        ],
       })
     );
-    expect(series[0].restAfter).toBeUndefined();
+    expect(sets[0].restAfter).toBeUndefined();
   });
 
   it('une pyramide donne une série par palier, chacune avec sa dose', () => {
-    const pyramide = bloc({
+    const pyramidBlock = makeBlock({
       type: 'pyramid',
       repsScheme: [21, 15, 9],
       restBetweenRounds: 60,
-      exercises: [pose({})],
+      exercises: [makeBlockExercise({})],
     });
-    const series = setsOfBlock(pyramide);
-    expect(series).toHaveLength(3);
-    expect(series.map((s) => s.dose)).toEqual(['21 reps', '15 reps', '9 reps']);
-    expect(series.map((s) => s.reps)).toEqual([21, 15, 9]);
-    expect(series.map((s) => s.restAfter)).toEqual([60, 60, undefined]);
+    const sets = setsOfBlock(pyramidBlock);
+    expect(sets).toHaveLength(3);
+    expect(sets.map((s) => s.dose)).toEqual(['21 reps', '15 reps', '9 reps']);
+    expect(sets.map((s) => s.reps)).toEqual([21, 15, 9]);
+    expect(sets.map((s) => s.restAfter)).toEqual([60, 60, undefined]);
   });
 
   it('enchaîne les exercices dans l’ordre, séries comprises', () => {
-    const chipper = bloc({
+    const chipper = makeBlock({
       type: 'chipper',
       exercises: [
-        pose({ order: 2, exercise: exercice({ _id: 'b', name: 'Pompes' }) }),
-        pose({ order: 1, exercise: exercice({ _id: 'a', name: 'Burpee' }) }),
+        makeBlockExercise({
+          order: 2,
+          exercise: makeExercise({ _id: 'b', name: 'Pompes' }),
+        }),
+        makeBlockExercise({
+          order: 1,
+          exercise: makeExercise({ _id: 'a', name: 'Burpee' }),
+        }),
       ],
     });
     expect(setsOfBlock(chipper).map((s) => s.name)).toEqual([
@@ -246,14 +296,14 @@ describe('les séries d’un bloc en liste', () => {
   });
 
   it('donne à chaque série une clé qui l’identifie', () => {
-    const series = setsOfBlock(
-      bloc({
+    const sets = setsOfBlock(
+      makeBlock({
         order: 2,
         type: 'classic',
-        exercises: [pose({ order: 3, sets: 2 })],
+        exercises: [makeBlockExercise({ order: 3, sets: 2 })],
       })
     );
-    expect(series.map((s) => s.key)).toEqual(['2:3:1', '2:3:2']);
+    expect(sets.map((s) => s.key)).toEqual(['2:3:1', '2:3:2']);
   });
 });
 
@@ -307,41 +357,49 @@ describe('le repos entre séries', () => {
 
 describe('la dose d’un mouvement, pour un tour', () => {
   it('les répétitions d’abord', () => {
-    expect(roundDose(bloc({ type: 'emom' }), pose({ reps: 15 }))).toBe(
-      '15 reps'
-    );
+    expect(
+      roundDose(makeBlock({ type: 'emom' }), makeBlockExercise({ reps: 15 }))
+    ).toBe('15 reps');
   });
 
   it('la durée à défaut', () => {
-    expect(roundDose(bloc({ type: 'emom' }), pose({ duration: 45 }))).toBe(
-      '45 s'
-    );
+    expect(
+      roundDose(
+        makeBlock({ type: 'emom' }),
+        makeBlockExercise({ duration: 45 })
+      )
+    ).toBe('45 s');
   });
 
   it('la mesure libre ensuite', () => {
     expect(
       roundDose(
-        bloc({ type: 'emom' }),
-        pose({ customMetric: { value: 400, unit: 'm' } })
+        makeBlock({ type: 'emom' }),
+        makeBlockExercise({ customMetric: { value: 400, unit: 'm' } })
       )
     ).toBe('400 m');
   });
 
   it('le temps de travail du bloc en dernier recours, sur un Tabata', () => {
     expect(
-      roundDose(bloc({ type: 'tabata', workDuration: 20 }), pose({}))
+      roundDose(
+        makeBlock({ type: 'tabata', workDuration: 20 }),
+        makeBlockExercise({})
+      )
     ).toBe('20 s');
   });
 
   it('rien quand le coach n’a rien prescrit', () => {
-    expect(roundDose(bloc({ type: 'emom' }), pose({}))).toBe('');
+    expect(roundDose(makeBlock({ type: 'emom' }), makeBlockExercise({}))).toBe(
+      ''
+    );
   });
 });
 
 describe('les répétitions d’une série', () => {
   it('viennent du palier sur une pyramide', () => {
-    const pyramide = { type: 'pyramid' as const, repsScheme: [21, 15, 9] };
-    expect(repsOfSet(pyramide, { reps: 99 }, 2)).toBe(15);
+    const pyramidBlock = { type: 'pyramid' as const, repsScheme: [21, 15, 9] };
+    expect(repsOfSet(pyramidBlock, { reps: 99 }, 2)).toBe(15);
   });
 
   it('viennent de l’exercice partout ailleurs', () => {
@@ -353,118 +411,122 @@ describe('les répétitions d’une série', () => {
   });
 
   it('sont absentes au-delà du dernier palier', () => {
-    const pyramide = { type: 'pyramid' as const, repsScheme: [21, 15] };
-    expect(repsOfSet(pyramide, {}, 3)).toBeUndefined();
+    const pyramidBlock = { type: 'pyramid' as const, repsScheme: [21, 15] };
+    expect(repsOfSet(pyramidBlock, {}, 3)).toBeUndefined();
   });
 });
 
 describe('le repos entre deux blocs', () => {
   it('existe quand le coach a écrit une durée', () => {
-    const etapes = buildGuidedSteps(
-      seance({
+    const steps = buildGuidedSteps(
+      makeSession({
         blocks: [
-          bloc({ order: 1, type: 'classic', restDuration: 120 }),
-          bloc({ order: 2, type: 'chipper' }),
+          makeBlock({ order: 1, type: 'classic', restDuration: 120 }),
+          makeBlock({ order: 2, type: 'chipper' }),
         ],
       })
     );
-    expect(repos(etapes)).toHaveLength(1);
-    expect(repos(etapes)[0].duration).toBe(120);
+    expect(restsOf(steps)).toHaveLength(1);
+    expect(restsOf(steps)[0].duration).toBe(120);
   });
 
   it("n'existe pas quand il n'a rien écrit : on n'invente pas une minute", () => {
-    const etapes = buildGuidedSteps(
-      seance({
+    const steps = buildGuidedSteps(
+      makeSession({
         blocks: [
-          bloc({ order: 1, type: 'classic' }),
-          bloc({ order: 2, type: 'chipper' }),
+          makeBlock({ order: 1, type: 'classic' }),
+          makeBlock({ order: 2, type: 'chipper' }),
         ],
       })
     );
-    expect(repos(etapes)).toEqual([]);
+    expect(restsOf(steps)).toEqual([]);
   });
 
   it("n'existe pas après un bloc mené par le minuteur", () => {
     // Un bloc à tours porte déjà son repos dans ses tours : en ajouter un
     // recréerait la minute fantôme.
-    const etapes = buildGuidedSteps(
-      seance({
+    const steps = buildGuidedSteps(
+      makeSession({
         blocks: [
-          bloc({
+          makeBlock({
             order: 1,
             type: 'tabata',
             rounds: 8,
             workDuration: 20,
             restDuration: 10,
           }),
-          bloc({ order: 2, type: 'chipper' }),
+          makeBlock({ order: 2, type: 'chipper' }),
         ],
       })
     );
-    expect(repos(etapes)).toEqual([]);
+    expect(restsOf(steps)).toEqual([]);
   });
 
   it('annonce le premier mouvement du bloc qui vient', () => {
-    const etapes = buildGuidedSteps(
-      seance({
+    const steps = buildGuidedSteps(
+      makeSession({
         blocks: [
-          bloc({ order: 1, type: 'classic', restDuration: 60 }),
-          bloc({
+          makeBlock({ order: 1, type: 'classic', restDuration: 60 }),
+          makeBlock({
             order: 2,
             type: 'chipper',
             exercises: [
-              pose({ exercise: exercice({ _id: 'z', name: 'Rameur' }) }),
+              makeBlockExercise({
+                exercise: makeExercise({ _id: 'z', name: 'Rameur' }),
+              }),
             ],
           }),
         ],
       })
     );
-    expect(repos(etapes)[0].nextExerciseName).toBe('Rameur');
+    expect(restsOf(steps)[0].nextExerciseName).toBe('Rameur');
   });
 
   it('ne ferme jamais une séance : un repos final est retiré', () => {
-    const etapes = buildGuidedSteps(
-      seance({ blocks: [bloc({ type: 'classic', restDuration: 120 })] })
+    const steps = buildGuidedSteps(
+      makeSession({
+        blocks: [makeBlock({ type: 'classic', restDuration: 120 })],
+      })
     );
-    expect(etapes[etapes.length - 1].type).not.toBe('rest');
-    expect(repos(etapes)).toEqual([]);
+    expect(steps[steps.length - 1].type).not.toBe('rest');
+    expect(restsOf(steps)).toEqual([]);
   });
 });
 
 describe('l’ordre et les cas vides', () => {
   it('suit l’ordre des blocs, pas celui du tableau', () => {
-    const etapes = buildGuidedSteps(
-      seance({
+    const steps = buildGuidedSteps(
+      makeSession({
         blocks: [
-          bloc({ order: 2, type: 'amrap' }),
-          bloc({ order: 1, type: 'warmup' }),
+          makeBlock({ order: 2, type: 'amrap' }),
+          makeBlock({ order: 1, type: 'warmup' }),
         ],
       })
     );
-    expect(etapes.map((e) => e.blockLabel)).toEqual(['Échauffement', 'AMRAP']);
+    expect(steps.map((e) => e.blockLabel)).toEqual(['Échauffement', 'AMRAP']);
   });
 
   it('une séance sans bloc ne donne aucune étape', () => {
-    expect(buildGuidedSteps(seance({ blocks: [] }))).toEqual([]);
+    expect(buildGuidedSteps(makeSession({ blocks: [] }))).toEqual([]);
   });
 
   it('un bloc sans exercice donne quand même son étape', () => {
-    const etapes = buildGuidedSteps(
-      seance({ blocks: [bloc({ type: 'amrap', exercises: [] })] })
+    const steps = buildGuidedSteps(
+      makeSession({ blocks: [makeBlock({ type: 'amrap', exercises: [] })] })
     );
-    expect(etapes).toHaveLength(1);
-    expect(blocs(etapes)[0].sets).toEqual([]);
+    expect(steps).toHaveLength(1);
+    expect(blocksOf(steps)[0].sets).toEqual([]);
   });
 
   it('un bloc à tours sans exercice donne ses tours, vides', () => {
-    const etapes = tours(
+    const steps = roundsOf(
       buildGuidedSteps(
-        seance({
-          blocks: [bloc({ type: 'emom', rounds: 3, exercises: [] })],
+        makeSession({
+          blocks: [makeBlock({ type: 'emom', rounds: 3, exercises: [] })],
         })
       )
     );
-    expect(etapes).toHaveLength(3);
-    expect(etapes[0].exercises).toEqual([]);
+    expect(steps).toHaveLength(3);
+    expect(steps[0].exercises).toEqual([]);
   });
 });

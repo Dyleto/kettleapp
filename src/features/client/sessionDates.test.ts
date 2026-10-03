@@ -32,15 +32,15 @@ describe('la clé d’un jour', () => {
   it('se lit en heure locale, et non en UTC', () => {
     // Le cas qui sépare les deux lectures : 0 h 30 à Paris, c'est 22 h 30 la
     // veille en UTC. `toISOString()` rendrait donc le 20.
-    const tot = new Date(2026, 8, 21, 0, 30);
-    expect(tot.toISOString().slice(0, 10)).toBe('2026-09-20');
-    expect(dayKey(tot)).toBe('2026-09-21');
+    const early = new Date(2026, 8, 21, 0, 30);
+    expect(early.toISOString().slice(0, 10)).toBe('2026-09-20');
+    expect(dayKey(early)).toBe('2026-09-21');
   });
 
   it("vaut aussi l'hiver, où Paris n'est qu'à une heure", () => {
-    const tot = new Date(2026, 0, 15, 0, 30);
-    expect(tot.toISOString().slice(0, 10)).toBe('2026-01-14');
-    expect(dayKey(tot)).toBe('2026-01-15');
+    const early = new Date(2026, 0, 15, 0, 30);
+    expect(early.toISOString().slice(0, 10)).toBe('2026-01-14');
+    expect(dayKey(early)).toBe('2026-01-15');
   });
 
   it('ne bouge pas à une minute de minuit', () => {
@@ -55,7 +55,7 @@ describe('la clé d’un jour', () => {
 
 describe('lundi = 0', () => {
   // 2026-09-21 est un lundi. Les sept jours qui suivent couvrent la semaine.
-  const semaine = [
+  const week = [
     ['lundi', new Date(2026, 8, 21), 0],
     ['mardi', new Date(2026, 8, 22), 1],
     ['mercredi', new Date(2026, 8, 23), 2],
@@ -65,8 +65,8 @@ describe('lundi = 0', () => {
     ['dimanche', new Date(2026, 8, 27), 6],
   ] as const;
 
-  it.each(semaine)('%s vaut %i', (_nom, date, attendu) => {
-    expect(mondayIndex(date)).toBe(attendu);
+  it.each(week)('%s vaut %i', (_nom, date, expected) => {
+    expect(mondayIndex(date)).toBe(expected);
   });
 
   it('le dimanche ferme la semaine, il ne l’ouvre pas', () => {
@@ -93,10 +93,12 @@ describe('le lundi de la semaine', () => {
   });
 
   it('rend minuit local, pas l’heure qu’on lui a donnée', () => {
-    const lundi = startOfWeek(new Date(2026, 8, 23, 14, 37, 12));
-    expect([lundi.getHours(), lundi.getMinutes(), lundi.getSeconds()]).toEqual([
-      0, 0, 0,
-    ]);
+    const monday = startOfWeek(new Date(2026, 8, 23, 14, 37, 12));
+    expect([
+      monday.getHours(),
+      monday.getMinutes(),
+      monday.getSeconds(),
+    ]).toEqual([0, 0, 0]);
   });
 
   it('traverse un changement de mois', () => {
@@ -122,8 +124,8 @@ describe('les trois longueurs de nom', () => {
   });
 
   it('s’indexent avec `mondayIndex`', () => {
-    const dimanche = new Date(2026, 8, 27);
-    expect(WEEKDAY_FULL[mondayIndex(dimanche)]).toBe('dimanche');
+    const sunday = new Date(2026, 8, 27);
+    expect(WEEKDAY_FULL[mondayIndex(sunday)]).toBe('dimanche');
   });
 });
 
