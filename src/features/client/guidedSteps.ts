@@ -329,11 +329,10 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
     }
   });
 
-  // Une séance ne se termine pas sur un repos : le dernier tour du dernier
-  // bloc est fait, il ne reste rien avant quoi souffler.
-  while (steps[steps.length - 1]?.type === 'rest') {
-    steps.pop();
-  }
-
+  // Une séance ne se termine pas sur un repos, et rien n'a à y veiller : un
+  // repos n'est posé que `!isLastBlock`, donc les étapes du bloc suivant le
+  // suivent toujours. Une boucle de dépilement vivait ici ; la retirer ne
+  // faisait tomber aucun test, et pour une bonne raison — aucune séance ne
+  // peut finir sur un repos, et aucun bloc ne produit zéro étape.
   return steps;
 }
