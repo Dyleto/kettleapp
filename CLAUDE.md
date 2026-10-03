@@ -104,9 +104,9 @@ celui qu'elles visaient, et un sabotage ne les faisait pas tomber.
 
 ## Le banc d'essai
 
-`verif/` mène l'application dans un vrai navigateur et lit ce qu'elle affiche.
+`verify/` mène l'application dans un vrai navigateur et lit ce qu'elle affiche.
 `npm run verify` lance toutes les suites ; il faut que le front tourne
-(`npx vite`). Voir `verif/README.md`.
+(`npx vite`). Voir `verify/README.md`.
 
 ## Ce qui garde le projet
 

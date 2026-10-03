@@ -42,7 +42,7 @@ const EXCLUDED = [
   'node_modules',
   'dist',
   'src/shared/types/contract.ts',
-  'verif/node_modules',
+  'verify/node_modules',
 ];
 
 const COMMENT_BLOCK = /\/\*\*?[\s\S]*?\*\/|(?:^[ \t]*\/\/[^\n]*\n)+/gm;
@@ -116,7 +116,7 @@ const walk = (path) => {
     else if (/\.(ts|tsx|mjs)$/.test(entry)) files.push(full);
   }
 };
-for (const root of ['src', 'verif', 'scripts']) walk(join(ROOT, root));
+for (const root of ['src', 'verify', 'scripts']) walk(join(ROOT, root));
 
 const hits = [];
 for (const file of files) {

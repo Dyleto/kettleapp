@@ -1,5 +1,5 @@
 {
-  "name": "kettle-verif",
+  "name": "kettle-verify",
   "private": true,
   "type": "module",
   "description": "Banc d'essai : mène l'application dans un vrai navigateur et lit ce qu'elle affiche.",

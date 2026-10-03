@@ -10,7 +10,7 @@ export default tseslint.config(
   // `src/components/ui/**` figurait ici : ce chemin n'existe plus depuis que
   // le front est rangé par domaine, et l'exception ne portait donc plus sur
   // rien. Les extraits de Chakra passent le lint comme le reste.
-  { ignores: ['dist', 'verif/node_modules'] },
+  { ignores: ['dist', 'verify/node_modules'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -41,7 +41,7 @@ export default tseslint.config(
   // formateur ne les regardaient. Ils tournent sous Node, d'où leurs propres
   // variables globales.
   {
-    files: ['verif/**/*.mjs', 'scripts/**/*.mjs'],
+    files: ['verify/**/*.mjs', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
     },

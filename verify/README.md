@@ -16,7 +16,7 @@ d'avant la fusion) et un historique qui donne de quoi comparer.
 ## Le lancer
 
 ```sh
-npm install                       # depuis verif/
+npm install                       # depuis verify/
 cd .. && npm install && npx vite  # le front, sur le port 5173
 ```
 

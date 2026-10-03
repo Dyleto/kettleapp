@@ -1,6 +1,6 @@
 # Ce qui doit tenir avant toute fusion.
 #
-# Rien ne gardait ce dépôt jusqu'ici : le banc de `verif/` — neuf suites dans
+# Rien ne gardait ce dépôt jusqu'ici : le banc de `verify/` — neuf suites dans
 # un vrai navigateur — ne tournait que lorsque quelqu'un pensait à le lancer, et
 # deux régressions ont atteint `develop` en une seule semaine faute de lui.
 #
@@ -70,7 +70,7 @@ jobs:
 
       - run: npm ci
       - name: Installer les dépendances propres au banc
-        working-directory: verif
+        working-directory: verify
         run: npm ci
 
       # `playwright-core` n'embarque aucun navigateur. On installe celui
@@ -79,13 +79,13 @@ jobs:
       # Le banc le trouve ensuite seul : `CHROME_PATH` reste vide et
       # Playwright résout.
       - name: Installer Chromium
-        working-directory: verif
+        working-directory: verify
         run: |
           VERSION=$(node -p "require('playwright-core/package.json').version")
           npx --yes "playwright@$VERSION" install --with-deps chromium
 
       # Le banc mène le vrai front contre l'API en mémoire que
-      # `verif/mock-server.mjs` sert sur le port 3001. Aucune base de données
+      # `verify/mock-server.mjs` sert sur le port 3001. Aucune base de données
       # nulle part.
       - name: Pointer le front vers l'API d'essai
         run: |
