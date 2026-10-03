@@ -75,7 +75,12 @@ export const sessionTotals = (sets: PerformedSet[]): SessionTotals | null => {
   if (durations.length > 0)
     totals.duration = durations.reduce((a, b) => a + b, 0);
 
-  return Object.keys(totals).length > 0 ? totals : null;
+  // Pas de second garde sur `totals` vide : au-delà du `return` ci-dessus,
+  // `kept` porte au moins une série non vide, donc au moins une des trois
+  // quantités. Le `Object.keys(totals).length > 0 ? totals : null` qui vivait
+  // ici disait la même chose que le premier garde — deux gardes pour une
+  // règle, et aucun sabotage ne pouvait les faire tomber tous les deux.
+  return totals;
 };
 
 /**

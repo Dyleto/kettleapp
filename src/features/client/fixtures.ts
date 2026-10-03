@@ -23,6 +23,10 @@ import type {
   SessionBlock,
 } from '@/shared/types';
 
+/** Le contrat ne nomme pas l'exercice figé — il le décrit en ligne dans
+ * `BlockSnapshot`. On le nomme ici pour que les fabriques se lisent. */
+type ExerciseSnapshot = BlockSnapshot['exercises'][number];
+
 /**
  * Tout est déterminé, et il a fallu s'y reprendre.
  *
@@ -81,9 +85,25 @@ export const blocFige = (
 ): BlockSnapshot => ({
   type: 'classic',
   order: 1,
-  exercises: [
-    { exercise: { _id: 'ex-goblet', name: 'Goblet Squat' }, order: 1 },
-  ],
+  exercises: [poseFigee()],
+  ...ecarts,
+});
+
+/**
+ * Un exercice dans l'instantané, et ce qui y a été noté.
+ *
+ * Son `exercise` est un `Record<string, unknown>` et non un `Exercise` : le
+ * serveur fige ce qu'il avait sous la main le jour de la séance, et un bilan
+ * d'il y a un an peut porter un exercice dont la forme a changé depuis.
+ * C'est pour cela que les modules qui le lisent vérifient le type de `_id`
+ * plutôt que de le supposer — et c'est un cas que les tests construisent,
+ * `poseFigee({ exercise: {} })`.
+ */
+export const poseFigee = (
+  ecarts: Partial<ExerciseSnapshot> = {}
+): ExerciseSnapshot => ({
+  exercise: { _id: 'ex-goblet', name: 'Goblet Squat' },
+  order: 1,
   ...ecarts,
 });
 
