@@ -33,18 +33,18 @@ export const HealthConsentGate = () => {
   const { user, logout } = useAuth();
   const { mutate, isPending } = useSetHealthConsent();
   const { data } = useAccount();
-  const [refusOuvert, setRefusOuvert] = useState(false);
+  const [isOptOutOpen, setIsOptOutOpen] = useState(false);
 
   // Un compte déjà en service peut porter des notes d'effort collectées
   // avant que la question ne soit posée. Refuser les efface — on le dit
   // d'abord, avec le nombre. Sur un compte neuf il n'y a rien à perdre, et
   // refuser reste un seul geste : un obstacle devant un refus sans objet
   // découragerait le refus.
-  const aPerdre = data?.asClient?.healthDataCount ?? 0;
+  const toLose = data?.asClient?.healthDataCount ?? 0;
 
-  const refuser = () => {
-    if (aPerdre > 0) {
-      setRefusOuvert(true);
+  const optOut = () => {
+    if (toLose > 0) {
+      setIsOptOutOpen(true);
       return;
     }
     mutate(false);
@@ -117,7 +117,7 @@ export const HealthConsentGate = () => {
             color="fg"
             fontWeight="semibold"
             loading={isPending}
-            onClick={refuser}
+            onClick={optOut}
           >
             Je refuse
           </Button>
@@ -153,16 +153,16 @@ export const HealthConsentGate = () => {
       </VStack>
 
       <ConfirmHealthOptOut
-        open={refusOuvert}
-        onClose={() => setRefusOuvert(false)}
+        open={isOptOutOpen}
+        onClose={() => setIsOptOutOpen(false)}
         onConfirm={() => {
           mutate(false);
-          setRefusOuvert(false);
+          setIsOptOutOpen(false);
         }}
         isPending={isPending}
         title="Refuser le partage ?"
         action="Refuser et effacer"
-        count={aPerdre}
+        count={toLose}
       />
     </Box>
   );

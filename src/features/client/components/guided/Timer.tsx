@@ -14,7 +14,7 @@ interface TimerProps {
    * dernière répétition.
    */
   onComplete?: () => void;
-  couleur: string;
+  color: string;
   /** La piste sous la jauge — plus sombre sur un fond clair. */
   track?: string;
   /** Ce qui se lit à gauche du temps : le bloc et le tour, « Repos »… */
@@ -47,7 +47,7 @@ interface TimerProps {
 export const Timer = ({
   duration,
   onComplete,
-  couleur,
+  color,
   track = 'whiteAlpha.200',
   title,
   holdLabel,
@@ -79,7 +79,7 @@ export const Timer = ({
     }
   }, [isDone, onComplete]);
 
-  const lu = formatCountdown(remaining);
+  const readable = formatCountdown(remaining);
   const part =
     duration > 0 ? Math.max(0, Math.min(1, remaining / duration)) : 0;
 
@@ -108,8 +108,8 @@ export const Timer = ({
         isDone
           ? 'Temps écoulé'
           : !started
-            ? `Lancer le décompte — ${lu}`
-            : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${lu} restant`
+            ? `Lancer le décompte — ${readable}`
+            : `${isRunning ? 'Mettre en pause' : 'Reprendre le décompte'} — ${readable} restant`
       }
     >
       <HStack justify="space-between" align="flex-end" gap={3}>
@@ -120,7 +120,7 @@ export const Timer = ({
         <Box minW={0}>
           {title}
           {!isDone && !isRunning && (
-            <Text fontSize="2xs" color={couleur} opacity={0.75} mt={1}>
+            <Text fontSize="2xs" color={color} opacity={0.75} mt={1}>
               {started ? 'Toucher pour reprendre' : 'Toucher pour lancer'}
             </Text>
           )}
@@ -131,11 +131,11 @@ export const Timer = ({
           lineHeight="0.85"
           letterSpacing={compact ? '-1px' : '-3px'}
           fontVariantNumeric="tabular-nums"
-          color={couleur}
+          color={color}
           opacity={isRunning || isDone ? 1 : 0.5}
           flexShrink={0}
         >
-          {lu}
+          {readable}
         </Text>
       </HStack>
 
@@ -149,7 +149,7 @@ export const Timer = ({
         <Box
           h="100%"
           borderRadius="full"
-          bg={couleur}
+          bg={color}
           style={{
             width: `${part * 100}%`,
             transition: isRunning ? 'width 1s linear' : 'none',
@@ -158,7 +158,7 @@ export const Timer = ({
       </Box>
 
       {isDone && holdLabel ? (
-        <Text fontSize="sm" color={couleur} opacity={0.75} mt={2}>
+        <Text fontSize="sm" color={color} opacity={0.75} mt={2}>
           {holdLabel}
         </Text>
       ) : null}
@@ -182,11 +182,11 @@ export const Timer = ({
 export const OnDemandTimer = ({
   duration,
   label,
-  couleur,
+  color,
 }: {
   duration: number;
   label: string;
-  couleur: string;
+  color: string;
 }) => {
   const [isCurrent, setIsCurrent] = useState(false);
 
@@ -195,7 +195,7 @@ export const OnDemandTimer = ({
       <Box pl={4} py={1}>
         <Timer
           duration={duration}
-          couleur={couleur}
+          color={color}
           onComplete={() => {
             // Personne ne regarde l'écran à ce moment-là : on le dit au
             // poignet. `Timer` ne le fait lui-même que sans `onComplete`.
@@ -217,7 +217,7 @@ export const OnDemandTimer = ({
         display="flex"
         alignItems="center"
         fontSize="xs"
-        color={couleur}
+        color={color}
         fontWeight="bold"
         _hover={{ opacity: 0.8 }}
       >

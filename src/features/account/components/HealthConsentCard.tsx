@@ -10,7 +10,7 @@ interface Props {
   healthDataCount: number;
 }
 
-const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
+const DAY_FORMAT = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
@@ -33,19 +33,19 @@ const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
  */
 export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   const { mutate, isPending } = useSetHealthConsent();
-  const [retraitOuvert, setRetraitOuvert] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const granted = consent?.granted === true;
 
   // Donner son accord tient en un geste. Le retirer aussi — la boîte ne
   // demande pas de confirmer une intention, elle annonce une conséquence : ce
   // qui est déjà enregistré s'efface, et c'est sans retour.
-  const basculer = () => {
+  const toggleConsent = () => {
     if (isPending) return;
     // Retirer son accord quand rien n'est enregistré n'efface rien : la
     // boîte n'aurait rien à annoncer, et retirer doit rester aussi simple que
     // donner.
     if (granted && healthDataCount > 0) {
-      setRetraitOuvert(true);
+      setIsWithdrawOpen(true);
       return;
     }
     mutate(!granted);
@@ -80,7 +80,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           // `Box as="button"` ne prend pas `disabled` dans Chakra v3 : on
           // l'annonce et on garde la porte fermée dans le gestionnaire.
           aria-disabled={isPending}
-          onClick={basculer}
+          onClick={toggleConsent}
           flexShrink={0}
           w="48px"
           h="28px"
@@ -107,7 +107,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           <Text fontSize="xs" color="fg.muted">
             {granted ? 'Accepté' : 'Refusé'} le{' '}
             <Text as="span" fontFamily="mono">
-              {LE_JOUR.format(new Date(consent.decidedAt))}
+              {DAY_FORMAT.format(new Date(consent.decidedAt))}
             </Text>
           </Text>
         )}
@@ -119,11 +119,11 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
       </VStack>
 
       <ConfirmHealthOptOut
-        open={retraitOuvert}
-        onClose={() => setRetraitOuvert(false)}
+        open={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
         onConfirm={() => {
           mutate(false);
-          setRetraitOuvert(false);
+          setIsWithdrawOpen(false);
         }}
         isPending={isPending}
         title="Retirer mon accord ?"

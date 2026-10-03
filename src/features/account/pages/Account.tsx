@@ -20,7 +20,7 @@ import { BackLink } from '@/shared/components/BackLink';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
 import { CLIENT_ROUTES, COACH_ROUTES } from '@/shared/config/routes';
 
-const LE_JOUR = new Intl.DateTimeFormat('fr-FR', {
+const DAY_FORMAT = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
@@ -47,7 +47,7 @@ const Section = ({ title, children }: SectionProps) => (
   </VStack>
 );
 
-const Carte = ({ children }: { children: React.ReactNode }) => (
+const InfoCard = ({ children }: { children: React.ReactNode }) => (
   <Box
     bg="surface.card"
     borderWidth="1px"
@@ -78,7 +78,7 @@ interface Props {
  * compte portant les deux rôles lisait ses sections « client » au tutoiement
  * alors qu'il était dans l'espace coach, parce que trois titres avaient été
  * écrits en dur. D'où la règle : aucune phrase de cette page ne s'adresse au
- * lecteur sans passer par `tu`. Les textes qui ne le peuvent pas — ceux que
+ * lecteur sans passer par `informal`. Les textes qui ne le peuvent pas — ceux que
  * la carte de consentement partage avec l'accueil du client — sont écrits à
  * la première personne, qui est de toute façon la voix d'un consentement.
  */
@@ -89,48 +89,48 @@ const Account = ({ space }: Props) => {
   const { data, isLoading } = useAccount();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const tu = space === 'client';
+  const informal = space === 'client';
   const fullName = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
 
   const consequences = useMemo(() => {
     if (!data) return [];
-    const lignes: string[] = [
-      tu
+    const lines: string[] = [
+      informal
         ? 'Ton compte et ton accès à Kettle'
         : 'Votre compte et votre accès à Kettle',
     ];
 
     if (data.asClient) {
       const n = data.asClient.completedCount;
-      lignes.push(
+      lines.push(
         n > 0
-          ? `${tu ? 'Tes' : 'Vos'} ${n} séance${n > 1 ? 's' : ''} et toutes ${tu ? 'tes' : 'vos'} charges`
-          : `${tu ? 'Ton' : 'Votre'} programme`
+          ? `${informal ? 'Tes' : 'Vos'} ${n} séance${n > 1 ? 's' : ''} et toutes ${informal ? 'tes' : 'vos'} charges`
+          : `${informal ? 'Ton' : 'Votre'} programme`
       );
-      const noms = data.asClient.coaches
+      const coachNames = data.asClient.coaches
         .map((c) => `${c.firstName} ${c.lastName}`.trim())
         .filter(Boolean);
-      if (noms.length > 0) {
-        lignes.push(
-          `${tu ? 'Ton' : 'Votre'} lien avec ${noms.join(', ')} — ${noms.length > 1 ? 'ils ne verront' : 'il ou elle ne verra'} plus rien`
+      if (coachNames.length > 0) {
+        lines.push(
+          `${informal ? 'Ton' : 'Votre'} lien avec ${coachNames.join(', ')} — ${coachNames.length > 1 ? 'ils ne verront' : 'il ou elle ne verra'} plus rien`
         );
       }
     }
 
     if (data.asCoach) {
       const n = data.asCoach.clientCount;
-      lignes.push(
-        `${tu ? 'Ta' : 'Votre'} bibliothèque d'exercices et ${tu ? 'tes' : 'vos'} programmes`
+      lines.push(
+        `${informal ? 'Ta' : 'Votre'} bibliothèque d'exercices et ${informal ? 'tes' : 'vos'} programmes`
       );
       if (n > 0) {
-        lignes.push(
-          `Le lien avec ${tu ? 'tes' : 'vos'} ${n} client${n > 1 ? 's' : ''} — leurs séances déjà réalisées leur restent`
+        lines.push(
+          `Le lien avec ${informal ? 'tes' : 'vos'} ${n} client${n > 1 ? 's' : ''} — leurs séances déjà réalisées leur restent`
         );
       }
     }
 
-    return lignes;
-  }, [data, tu]);
+    return lines;
+  }, [data, informal]);
 
   if (isLoading) {
     return (
@@ -156,9 +156,9 @@ const Account = ({ space }: Props) => {
       <VStack align="stretch" gap={7}>
         <VStack align="stretch" gap={1.5}>
           <BackLink
-            label={tu ? "Aujourd'hui" : 'Mes clients'}
+            label={informal ? "Aujourd'hui" : 'Mes clients'}
             onClick={() =>
-              navigate(tu ? CLIENT_ROUTES.today : COACH_ROUTES.clients)
+              navigate(informal ? CLIENT_ROUTES.today : COACH_ROUTES.clients)
             }
           />
           <Heading as="h1" size="lg" fontWeight="bold">
@@ -168,7 +168,7 @@ const Account = ({ space }: Props) => {
 
         {/* ── Identity ───────────────────────────────────────────────── */}
         <Section title="Identité">
-          <Carte>
+          <InfoCard>
             <HStack gap={3.5}>
               <Avatar.Root size="lg" flexShrink={0}>
                 <Avatar.Fallback name={fullName} />
@@ -183,10 +183,11 @@ const Account = ({ space }: Props) => {
                 </Text>
               </VStack>
             </HStack>
-          </Carte>
+          </InfoCard>
           <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-            Ces informations viennent {tu ? 'de ton' : 'de votre'} compte
-            Google. Pour les changer, {tu ? 'passe' : 'passez'} par Google.
+            Ces informations viennent {informal ? 'de ton' : 'de votre'} compte
+            Google. Pour les changer, {informal ? 'passe' : 'passez'} par
+            Google.
           </Text>
         </Section>
 
@@ -195,10 +196,10 @@ const Account = ({ space }: Props) => {
           <Section
             title={
               data.asClient.coaches.length > 1
-                ? tu
+                ? informal
                   ? 'Tes coachs'
                   : 'Vos coachs'
-                : tu
+                : informal
                   ? 'Ton coach'
                   : 'Votre coach'
             }
@@ -207,7 +208,7 @@ const Account = ({ space }: Props) => {
               {data.asClient.coaches.map((coach) => {
                 const name = `${coach.firstName} ${coach.lastName}`.trim();
                 return (
-                  <Carte key={`${name}-${coach.linkedAt}`}>
+                  <InfoCard key={`${name}-${coach.linkedAt}`}>
                     <HStack gap={3.5}>
                       <Avatar.Root size="md" flexShrink={0}>
                         <Avatar.Fallback name={name} />
@@ -220,12 +221,12 @@ const Account = ({ space }: Props) => {
                         <Text fontSize="xs" color="fg.muted">
                           rattaché depuis le{' '}
                           <Text as="span" fontFamily="mono">
-                            {LE_JOUR.format(new Date(coach.linkedAt))}
+                            {DAY_FORMAT.format(new Date(coach.linkedAt))}
                           </Text>
                         </Text>
                       </VStack>
                     </HStack>
-                  </Carte>
+                  </InfoCard>
                 );
               })}
             </VStack>
@@ -234,7 +235,9 @@ const Account = ({ space }: Props) => {
 
         {/* ── Données de santé — côté client seulement ───────────────── */}
         {data?.asClient && (
-          <Section title={tu ? 'Tes données de santé' : 'Vos données de santé'}>
+          <Section
+            title={informal ? 'Tes données de santé' : 'Vos données de santé'}
+          >
             <HealthConsentCard
               consent={data.asClient.healthConsent}
               healthDataCount={data.asClient.healthDataCount}
@@ -244,8 +247,8 @@ const Account = ({ space }: Props) => {
 
         {/* ── Espace coach ───────────────────────────────────────────── */}
         {data?.asCoach && (
-          <Section title={tu ? 'Ton espace coach' : 'Votre espace coach'}>
-            <Carte>
+          <Section title={informal ? 'Ton espace coach' : 'Votre espace coach'}>
+            <InfoCard>
               <VStack align="start" gap={2}>
                 <HStack gap={2} align="baseline">
                   <Text fontSize="2xl" fontWeight="bold" fontFamily="mono">
@@ -259,11 +262,11 @@ const Account = ({ space }: Props) => {
                 <Text fontSize="xs" color="fg.muted">
                   Espace ouvert le{' '}
                   <Text as="span" fontFamily="mono">
-                    {LE_JOUR.format(new Date(data.asCoach.since))}
+                    {DAY_FORMAT.format(new Date(data.asCoach.since))}
                   </Text>
                 </Text>
               </VStack>
-            </Carte>
+            </InfoCard>
           </Section>
         )}
 
@@ -310,8 +313,8 @@ const Account = ({ space }: Props) => {
             ))}
           </Box>
           <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-            Pour recevoir une copie de {tu ? 'tes' : 'vos'} données,{' '}
-            {tu ? 'écris' : 'écrivez'} à{' '}
+            Pour recevoir une copie de {informal ? 'tes' : 'vos'} données,{' '}
+            {informal ? 'écris' : 'écrivez'} à{' '}
             <Link
               href={`mailto:${LEGAL.publisher.contactEmail}`}
               color="app.primary"
@@ -332,9 +335,9 @@ const Account = ({ space }: Props) => {
           borderColor="whiteAlpha.100"
         >
           <Text fontSize="sm" color="fg.muted" lineHeight="1.6">
-            La suppression efface {tu ? 'ton' : 'votre'} compte,{' '}
-            {tu ? 'tes' : 'vos'} séances et {tu ? 'tes' : 'vos'} rattachements.
-            Elle est définitive.
+            La suppression efface {informal ? 'ton' : 'votre'} compte,{' '}
+            {informal ? 'tes' : 'vos'} séances et {informal ? 'tes' : 'vos'}{' '}
+            rattachements. Elle est définitive.
           </Text>
           <Box
             as="button"
@@ -363,7 +366,7 @@ const Account = ({ space }: Props) => {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         consequences={consequences}
-        tutoiement={tu}
+        informal={informal}
       />
     </Box>
   );

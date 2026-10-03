@@ -9,7 +9,7 @@ export type SaveState = 'idle' | 'pending' | 'saving' | 'error';
  * l'onglet juste après une frappe ne perde rien, assez long pour ne pas
  * envoyer tout le programme à chaque caractère.
  */
-const DELAI_VALEUR = 800;
+const VALUE_DELAY = 800;
 
 /**
  * Une empreinte de la structure du programme : les identifiants et le nombre
@@ -20,7 +20,7 @@ const DELAI_VALEUR = 800;
  * aussitôt. Retaper « 12 reps » en produit une par caractère : celle-là
  * attend qu'il ait fini.
  */
-const empreinte = (sessions: Session[]): string =>
+const fingerprint = (sessions: Session[]): string =>
   sessions
     .map(
       (s) =>
@@ -42,7 +42,7 @@ interface Params {
   save: (sessions: Session[]) => Promise<Session[]>;
 }
 
-interface Retour {
+interface AutoSaveState {
   state: SaveState;
   /** Vrai tant qu'un changement n'est pas parti, ou pas confirmé. */
   isDirty: boolean;
@@ -75,7 +75,7 @@ export const useProgramAutoSave = ({
   serverProgram,
   initialize,
   save,
-}: Params): Retour => {
+}: Params): AutoSaveState => {
   const [state, setState] = useState<SaveState>('idle');
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   /**
@@ -83,62 +83,61 @@ export const useProgramAutoSave = ({
    * chargement. C'est un état et non une ref : `isDirty` en dérive, il doit
    * donc déclencher un rendu.
    */
-  const [enregistre, setEnregistre] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
 
-  const courant = program ? JSON.stringify(program.sessions) : null;
-  const isDirty =
-    courant !== null && enregistre !== null && courant !== enregistre;
+  const current = program ? JSON.stringify(program.sessions) : null;
+  const isDirty = current !== null && saved !== null && current !== saved;
 
   /** Le même contenu, lisible depuis `send` qui s'exécute hors du rendu. */
-  const refEnregistre = useRef<string | null>(null);
+  const savedRef = useRef<string | null>(null);
   /** Le contenu de l'envoi en vol, ou `null` quand il n'y en a pas. */
-  const enVol = useRef<string | null>(null);
+  const inFlight = useRef<string | null>(null);
   /** Le dernier état connu, lu par l'envoi différé sans le redéclencher. */
-  const dernier = useRef<Session[] | null>(null);
-  const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const last = useRef<Session[] | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const structure = useRef<string>('');
   /** `send` s'appelle lui-même ; il passe par ici pour pouvoir le faire. */
-  const relancer = useRef<() => void>(() => {});
+  const rerun = useRef<() => void>(() => {});
 
   useEffect(() => {
-    dernier.current = program?.sessions ?? null;
+    last.current = program?.sessions ?? null;
   });
 
   /** Adopte une version comme étant celle du serveur. */
-  const adopter = useCallback((sessions: Session[], contenu: string) => {
-    refEnregistre.current = contenu;
-    structure.current = empreinte(sessions);
-    setEnregistre(contenu);
+  const adopt = useCallback((sessions: Session[], content: string) => {
+    savedRef.current = content;
+    structure.current = fingerprint(sessions);
+    setSaved(content);
   }, []);
 
-  const envoyer = useCallback(() => {
-    const sessions = dernier.current;
+  const send = useCallback(() => {
+    const sessions = last.current;
     if (!sessions) return;
-    const contenu = JSON.stringify(sessions);
+    const content = JSON.stringify(sessions);
 
-    if (contenu === refEnregistre.current) {
+    if (content === savedRef.current) {
       // Le coach est revenu de lui-même à la version enregistrée pendant
       // l'attente : il n'y a plus rien à envoyer.
-      if (enVol.current === null) setState('idle');
+      if (inFlight.current === null) setState('idle');
       return;
     }
     // Un envoi est déjà parti : celui-ci se fera à son retour.
-    if (enVol.current !== null) return;
+    if (inFlight.current !== null) return;
 
-    enVol.current = contenu;
+    inFlight.current = content;
     setState('saving');
 
     save(sessions)
       .then((renvoye) => {
-        const inchange = enVol.current === JSON.stringify(dernier.current);
-        enVol.current = null;
+        const unchanged = inFlight.current === JSON.stringify(last.current);
+        inFlight.current = null;
         setSavedAt(new Date());
 
-        if (inchange) {
+        if (unchanged) {
           // Le serveur fait foi : c'est lui qui a posé les rangs, les dates et
           // les identifiants définitifs. On adopte sa version pour que la
           // comparaison suivante porte sur la même forme.
-          adopter(renvoye, JSON.stringify(renvoye));
+          adopt(renvoye, JSON.stringify(renvoye));
           initialize({ sessions: renvoye });
           setState('idle');
           return;
@@ -148,25 +147,25 @@ export const useProgramAutoSave = ({
         // repart : la requête porte les mêmes identifiants, elle est donc
         // sûre à rejouer.
         setState('pending');
-        relancer.current();
+        rerun.current();
       })
       .catch(() => {
-        enVol.current = null;
+        inFlight.current = null;
         setState('error');
       });
-  }, [adopter, initialize, save]);
+  }, [adopt, initialize, save]);
 
   useEffect(() => {
-    relancer.current = envoyer;
-  }, [envoyer]);
+    rerun.current = send;
+  }, [send]);
 
   // ── Première arrivée, et relectures d'arrière-plan ───────────────────────
   useEffect(() => {
     if (!serverProgram) return;
-    const recu = JSON.stringify(serverProgram.sessions);
+    const received = JSON.stringify(serverProgram.sessions);
 
-    if (refEnregistre.current === null) {
-      adopter(serverProgram.sessions, recu);
+    if (savedRef.current === null) {
+      adopt(serverProgram.sessions, received);
       initialize(serverProgram);
       return;
     }
@@ -174,37 +173,37 @@ export const useProgramAutoSave = ({
     // Tout ce qui arrive ensuite est une relecture d'arrière-plan. Elle ne
     // remplace l'éditeur que lorsqu'il n'y a rien à perdre : aucun changement
     // en attente, aucun envoi en vol, aucun échec à reprendre.
-    if (isDirty || enVol.current !== null || state === 'error') return;
-    if (recu === refEnregistre.current) return;
+    if (isDirty || inFlight.current !== null || state === 'error') return;
+    if (received === savedRef.current) return;
 
-    adopter(serverProgram.sessions, recu);
+    adopt(serverProgram.sessions, received);
     initialize(serverProgram);
     // `isDirty` et `state` sont lus pour décider d'ignorer, pas pour
     // déclencher : les lister en dépendances relancerait l'effet à chaque
     // frappe sans changer le résultat. Et écrire l'état ici est le travail
     // lui-même : recopier une source externe dans un état local.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverProgram, adopter, initialize]);
+  }, [serverProgram, adopt, initialize]);
 
   // ── La programmation de l'envoi ──────────────────────────────────────────
   useEffect(() => {
-    if (courant === null || enregistre === null) return;
-    if (courant === enregistre) return;
+    if (current === null || saved === null) return;
+    if (current === saved) return;
 
-    const nouvelleStructure = empreinte(program?.sessions ?? []);
-    const structurel = nouvelleStructure !== structure.current;
-    structure.current = nouvelleStructure;
+    const nextStructure = fingerprint(program?.sessions ?? []);
+    const structural = nextStructure !== structure.current;
+    structure.current = nextStructure;
 
-    if (minuteur.current) clearTimeout(minuteur.current);
-    minuteur.current = setTimeout(envoyer, structurel ? 0 : DELAI_VALEUR);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(send, structural ? 0 : VALUE_DELAY);
 
     return () => {
-      if (minuteur.current) clearTimeout(minuteur.current);
+      if (timer.current) clearTimeout(timer.current);
     };
     // `program` n'est lu que pour son empreinte, sur laquelle `current`
     // déclenche déjà : l'ajouter ferait tourner l'effet deux fois par frappe.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courant, enregistre, envoyer]);
+  }, [current, saved, send]);
 
   // Un envoi programmé n'est pas encore un envoi : on le dit, pour que la
   // ligne d'état ne reste pas muette pendant l'attente.
@@ -214,20 +213,20 @@ export const useProgramAutoSave = ({
     // d'autre : aucune cascade à craindre, l'état converge dès la première
     // passe.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setState((precedent) => (precedent === 'idle' ? 'pending' : precedent));
+    setState((previous) => (previous === 'idle' ? 'pending' : previous));
   }, [isDirty]);
 
   const flush = useCallback(() => {
-    if (minuteur.current) clearTimeout(minuteur.current);
-    envoyer();
-  }, [envoyer]);
+    if (timer.current) clearTimeout(timer.current);
+    send();
+  }, [send]);
 
   // ── Le filet à la fermeture ──────────────────────────────────────────────
   useEffect(() => {
     if (!isDirty && state !== 'saving') return;
-    const avertir = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener('beforeunload', avertir);
-    return () => window.removeEventListener('beforeunload', avertir);
+    const warnBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener('beforeunload', warnBeforeUnload);
+    return () => window.removeEventListener('beforeunload', warnBeforeUnload);
   }, [isDirty, state]);
 
   // ── Quitter l'éditeur n'est pas renoncer ─────────────────────────────────
@@ -243,7 +242,7 @@ export const useProgramAutoSave = ({
   // son minuteur.
   useEffect(
     () => () => {
-      relancer.current();
+      rerun.current();
     },
     []
   );

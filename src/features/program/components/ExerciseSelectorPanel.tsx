@@ -96,9 +96,9 @@ export const ExerciseSelectorPanel = ({
     createMutation.mutate(
       { name: trimmed },
       {
-        onSuccess: (exercice) => {
+        onSuccess: (created) => {
           setQuery('');
-          onSelect(exercice);
+          onSelect(created);
         },
       }
     );

@@ -68,10 +68,10 @@ export const splitIntoBlockRuns = (steps: GuidedStep[]) => {
     weight: number;
   }[] = [];
   steps.forEach((step, i) => {
-    const dernier = blockRuns[blockRuns.length - 1];
-    if (dernier && dernier.label === step.blockLabel) {
-      dernier.size += 1;
-      dernier.weight += weightOf(step);
+    const last = blockRuns[blockRuns.length - 1];
+    if (last && last.label === step.blockLabel) {
+      last.size += 1;
+      last.weight += weightOf(step);
       return;
     }
     blockRuns.push({

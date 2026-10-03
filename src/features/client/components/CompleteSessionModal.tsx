@@ -34,7 +34,7 @@ interface CompleteSessionModalProps {
    * On ne lui reposait alors pas la question à la fin — et un écran qu'on
    * saute sans un mot laisse croire que la saisie a été perdue.
    */
-  chargesDejaNotees?: boolean;
+  hasRecordedLoads?: boolean;
   onSubmit: (
     feedback: SessionFeedback,
     notes: string,
@@ -57,7 +57,7 @@ export const CompleteSessionModal = ({
   isOpen,
   onClose,
   recap,
-  chargesDejaNotees,
+  hasRecordedLoads,
   onSubmit,
   isLoading,
 }: CompleteSessionModalProps) => {
@@ -66,7 +66,7 @@ export const CompleteSessionModal = ({
   // droit d'enregistrer. La note d'effort reste — c'est une mesure
   // d'entraînement.
   const { user } = useAuth();
-  const partageSante = user?.healthConsent?.granted === true;
+  const sharesHealth = user?.healthConsent?.granted === true;
 
   const [effort, setEffort] = useState<number | undefined>(undefined);
   const [tags, setTags] = useState<FeedbackTag[]>([]);
@@ -162,7 +162,7 @@ export const CompleteSessionModal = ({
                       réclamait une ligne à elle — `flexBasis="100%"` — sur
                       une surface qui ne rétrécit jamais, et prenait donc
                       cette ligne au corps à chaque séance. */}
-                  {chargesDejaNotees && (
+                  {hasRecordedLoads && (
                     <Text fontSize="xs" color="fg.muted" textAlign="center">
                       Tes charges sont déjà enregistrées&nbsp;— rien à
                       ressaisir.
@@ -176,7 +176,7 @@ export const CompleteSessionModal = ({
               )}
               <EffortScale value={effort} onChange={setEffort} />
 
-              {partageSante && (
+              {sharesHealth && (
                 <>
                   <Separator borderColor="whiteAlpha.100" />
 

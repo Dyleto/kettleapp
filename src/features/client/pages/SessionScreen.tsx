@@ -51,8 +51,8 @@ import { sessionTitle } from '@/features/program/sessionTitle';
  * Zéro part avec le reste : un client qui n'a bouclé aucun tour l'a vécu, et
  * ne rien envoyer reviendrait à dire qu'il n'a pas fait le bloc.
  */
-const toRoundsDone = (tours?: Record<string, number>): RoundsDoneEntry[] =>
-  Object.entries(tours ?? {}).map(([blockOrder, rounds]) => ({
+const toRoundsDone = (rounds?: Record<string, number>): RoundsDoneEntry[] =>
+  Object.entries(rounds ?? {}).map(([blockOrder, rounds]) => ({
     blockOrder: Number(blockOrder),
     rounds,
   }));
@@ -141,12 +141,12 @@ const SessionScreen = () => {
   const handlePerformedChange = useCallback(
     (key: string, next: PerformedValues) =>
       setPerformed((prev) => {
-        const suivant = { ...prev, [key]: next };
+        const updated = { ...prev, [key]: next };
         // À la frappe plutôt qu'à la perte du focus : ce qu'on cherche à
         // couvrir, c'est l'application qui disparaît sans prévenir.
         if (activeSession)
-          writeProgress(activeSession._id, { performed: suivant });
-        return suivant;
+          writeProgress(activeSession._id, { performed: updated });
+        return updated;
       }),
     [activeSession]
   );
@@ -376,7 +376,7 @@ const SessionScreen = () => {
             />
           )
         }
-        chargesDejaNotees={countRecorded(performed) > 0}
+        hasRecordedLoads={countRecorded(performed) > 0}
         onSubmit={(feedback, notes, completedAt) => {
           handleSubmitLog(
             feedback,

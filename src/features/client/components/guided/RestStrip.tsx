@@ -41,7 +41,7 @@ export const RestStrip = ({
       <Timer
         duration={duration}
         compact
-        couleur="session.rest"
+        color="session.rest"
         track="blackAlpha.400"
         onComplete={onDone}
         title={

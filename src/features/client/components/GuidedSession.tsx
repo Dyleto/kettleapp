@@ -120,15 +120,15 @@ export const GuidedSession = ({
   const blockPreview = useMemo(
     () =>
       steps.reduce<
-        { start: number; label: string; couleur: string; detail: string }[]
+        { start: number; label: string; color: string; detail: string }[]
       >((acc, step, i) => {
         if (step.type === 'rest') return acc;
-        const dernier = acc[acc.length - 1];
-        if (dernier?.label === step.blockLabel) return acc;
+        const last = acc[acc.length - 1];
+        if (last?.label === step.blockLabel) return acc;
         acc.push({
           start: i,
           label: step.blockLabel,
-          couleur: BLOCK_ACCENT_COLOR[getBlockAccent(step.block.type)],
+          color: BLOCK_ACCENT_COLOR[getBlockAccent(step.block.type)],
           detail:
             step.type === 'round'
               ? `${step.rounds} tours`
@@ -156,7 +156,7 @@ export const GuidedSession = ({
     [steps]
   );
   // Lu une fois, à l'ouverture : c'est l'état précédent qu'on annonce.
-  const [notesGardees] = useState(() =>
+  const [keptCount] = useState(() =>
     countRecorded(readProgress(session._id)?.performed ?? {})
   );
 
@@ -283,10 +283,10 @@ export const GuidedSession = ({
     // Quitter le bloc désarme son horloge : en revenant sur un EMOM après le
     // bloc suivant, ou dix minutes plus tard, elle vous attend plutôt que de
     // tourner pendant qu'on cherche sa kettlebell.
-    const arrivee = steps[next];
-    const bloc =
-      arrivee && arrivee.type !== 'rest' ? arrivee.block.order : null;
-    if (bloc !== armedBlock) setArmedBlock(null);
+    const target = steps[next];
+    const blockOrder =
+      target && target.type !== 'rest' ? target.block.order : null;
+    if (blockOrder !== armedBlock) setArmedBlock(null);
     setIndex(next);
     setDetail(null);
     writeSavedIndex(session._id, next);
@@ -508,7 +508,7 @@ export const GuidedSession = ({
                   w="10px"
                   h="10px"
                   borderRadius="sm"
-                  bg={b.couleur}
+                  bg={b.color}
                   flexShrink={0}
                 />
                 <Text fontSize="sm" flex={1} minW={0} lineClamp={1}>
@@ -566,16 +566,16 @@ export const GuidedSession = ({
         textAlign="center"
       >
         <Text fontSize="lg" fontWeight="bold">
-          Reprendre où tu en étais&nbsp;?
+          Reprendre où informal en étais&nbsp;?
         </Text>
         <Text fontSize="sm" color="fg.muted">
           Tu t'étais arrêté à l'étape {savedIndex + 1} sur {steps.length}.
           {/* Le dire explicitement : quelqu'un qui a noté ses charges puis
               fermé l'application n'a aucun moyen de savoir ce qui l'attend, et
               « Recommencer » devient un pari. */}
-          {notesGardees > 0 &&
-            ` Tes charges sur ${notesGardees} exercice${
-              notesGardees > 1 ? 's' : ''
+          {keptCount > 0 &&
+            ` Tes charges sur ${keptCount} exercice${
+              keptCount > 1 ? 's' : ''
             } sont gardées.`}
         </Text>
         <VStack gap={2} w="full" maxW="280px">
@@ -683,7 +683,7 @@ export const GuidedSession = ({
   // Écrit une fois, monté à deux endroits selon l'orientation — jamais les
   // deux à la fois. Deux boutons identiques dans l'arbre annonceraient deux
   // sorties à un lecteur d'écran.
-  const boutonQuitter = (
+  const quitButton = (
     <Button
       variant="ghost"
       size="sm"
@@ -750,7 +750,7 @@ export const GuidedSession = ({
           p={4}
           css={{ [LANDSCAPE]: { display: 'none' } }}
         >
-          {boutonQuitter}
+          {quitButton}
         </HStack>
 
         <HStack gap={3} px={5} pt={2} align="center">
@@ -835,7 +835,7 @@ export const GuidedSession = ({
             mt={-1}
             css={{ [LANDSCAPE]: { display: 'block' } }}
           >
-            {boutonQuitter}
+            {quitButton}
           </Box>
         </HStack>
 
@@ -890,7 +890,7 @@ export const GuidedSession = ({
               performed={performed}
               onPerformedChange={onPerformedChange}
               lastPerformance={lastPerformance}
-              onOuvrirDetail={setDetail}
+              onOpenDetail={setDetail}
               rest={rest}
               onRestDone={() => setRest(null)}
               onUndo={undoSet}
@@ -941,7 +941,7 @@ export const GuidedSession = ({
               <Timer
                 key={index}
                 duration={step.block.durationMinutes * 60}
-                couleur="fg"
+                color="fg"
                 holdLabel="Temps écoulé"
                 // Pas le nom du bloc : la carte juste en dessous le porte déjà,
                 // et l'écran le disait deux fois. Ce qui manquait, c'est ce
@@ -1026,14 +1026,14 @@ export const GuidedSession = ({
                       <OnDemandTimer
                         duration={prescribed.duration}
                         label={formatDuration(prescribed.duration)}
-                        couleur="app.primary"
+                        color="app.primary"
                       />
                     ) : null}
                     {rest ? (
                       <OnDemandTimer
                         duration={rest}
                         label={`rest ${formatDuration(rest)}`}
-                        couleur="session.rest"
+                        color="session.rest"
                       />
                     ) : null}
                   </>
@@ -1046,7 +1046,7 @@ export const GuidedSession = ({
             step={step}
             onDone={goNext}
             lastPerformance={lastPerformance}
-            onOuvrirDetail={setDetail}
+            onOpenDetail={setDetail}
             armed={armedBlock === step.block.order}
             onArm={() => setArmedBlock(step.block.order)}
           />
@@ -1062,7 +1062,7 @@ export const GuidedSession = ({
             <Timer
               key={index}
               duration={step.duration}
-              couleur="bg.canvas"
+              color="bg.canvas"
               // Le fond est ici la couleur du repos : une piste claire y
               // disparaîtrait. C'est le seul écran où la jauge s'inverse.
               track="blackAlpha.400"

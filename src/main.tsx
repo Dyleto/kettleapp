@@ -25,14 +25,14 @@ import ErrorBoundary from './shared/components/ErrorBoundary';
  * Un délai plutôt qu'un drapeau : un second déploiement, plus tard dans la
  * même session, doit pouvoir se réparer lui aussi.
  */
-const CLE_RECHARGEMENT = 'kettle:dernier-rechargement-module';
-const DELAI_ENTRE_TENTATIVES = 10_000;
+const RELOAD_KEY = 'kettle:dernier-rechargement-module';
+const RETRY_WINDOW = 10_000;
 
 window.addEventListener('vite:preloadError', () => {
   try {
-    const dernier = Number(sessionStorage.getItem(CLE_RECHARGEMENT) ?? 0);
-    if (Date.now() - dernier < DELAI_ENTRE_TENTATIVES) return;
-    sessionStorage.setItem(CLE_RECHARGEMENT, String(Date.now()));
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0);
+    if (Date.now() - last < RETRY_WINDOW) return;
+    sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
   } catch {
     // Navigation privée, stockage refusé : on ne réessaie pas plutôt que de
     // risquer la boucle qu'on vient d'écarter.

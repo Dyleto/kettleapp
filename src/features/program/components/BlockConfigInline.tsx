@@ -17,7 +17,7 @@ interface BlockConfigInlineProps {
  * l'orthographe du produit : « 90 s » saisi se relit « 1 min 30 s », comme
  * partout ailleurs.
  */
-const enMinutes = (minutes: number) => formatDuration(minutes * 60);
+const inMinutes = (minutes: number) => formatDuration(minutes * 60);
 
 const Sep = ({ children }: { children: string }) => (
   <Text as="span" fontSize="sm" color="fg.muted">
@@ -73,7 +73,7 @@ export const BlockConfigInline = ({
             value={block.intervalMinutes ?? 1}
             onChange={(v) => onUpdate({ intervalMinutes: v ?? 1 })}
             suffix="min"
-            format={enMinutes}
+            format={inMinutes}
             ariaLabel="Intervalle en minutes"
             min={1}
           />
@@ -85,7 +85,7 @@ export const BlockConfigInline = ({
           value={block.durationMinutes}
           onChange={(v) => onUpdate({ durationMinutes: v })}
           suffix="min"
-          format={enMinutes}
+          format={inMinutes}
           emptyLabel="sans limite"
           ariaLabel="Durée en minutes"
           min={1}
@@ -100,7 +100,7 @@ export const BlockConfigInline = ({
             value={block.durationMinutes}
             onChange={(v) => onUpdate({ durationMinutes: v })}
             suffix="min"
-            format={enMinutes}
+            format={inMinutes}
             emptyLabel="sans limite"
             ariaLabel="Limite de temps en minutes"
             min={1}

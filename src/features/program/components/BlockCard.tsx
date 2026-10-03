@@ -39,7 +39,7 @@ interface BlockCardProps {
  */
 export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
   const summary = getBlockConfigSummary(block);
-  const nomLibre = getBlockFreeName(block);
+  const freeName = getBlockFreeName(block);
 
   return (
     <BlockFrame
@@ -49,9 +49,9 @@ export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
                    collaient en bouillie — « AMRAP AMRAP 12 ». La règle vit dans
                    `getBlockFreeName`, pas ici : l'éditeur du coach montre le nom tel
                    qu'il est tapé, puisque c'est là qu'on le change. */
-        nomLibre ? (
+        freeName ? (
           <Text fontSize="xs" color="fg.muted">
-            — {nomLibre}
+            — {freeName}
           </Text>
         ) : undefined
       }

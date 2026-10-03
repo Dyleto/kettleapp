@@ -56,10 +56,10 @@ export const InlineValue = ({
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
   /** Ce qu'il y avait avant l'ouverture — ce qu'Échap doit rendre. */
-  const [initiale, setInitiale] = useState<number | undefined>(undefined);
+  const [initial, setInitial] = useState<number | undefined>(undefined);
 
   const open = () => {
-    setInitiale(value);
+    setInitial(value);
     setDraft(value === undefined ? '' : String(value));
     setIsEditing(true);
   };
@@ -79,7 +79,7 @@ export const InlineValue = ({
    * pas une valeur effacée : on ne l'envoie qu'à la validation, seule à
    * savoir ce que « vide » veut dire ici.
    */
-  const saisir = (raw: string) => {
+  const onInput = (raw: string) => {
     setDraft(raw);
     const next = parse(raw);
     if (next !== undefined && next >= min) onChange(next);
@@ -97,8 +97,8 @@ export const InlineValue = ({
 
   // Échap annule, comme avant — mais il a maintenant quelque chose à
   // défaire.
-  const annuler = () => {
-    if (value !== initiale) onChange(initiale);
+  const cancel = () => {
+    if (value !== initial) onChange(initial);
     setIsEditing(false);
   };
 
@@ -114,7 +114,7 @@ export const InlineValue = ({
         inputMode="numeric"
         aria-label={ariaLabel}
         value={draft}
-        onChange={(e) => saisir(e.target.value)}
+        onChange={(e) => onInput(e.target.value)}
         onFocus={(e) => e.target.select()}
         onBlur={commit}
         onKeyDown={(e) => {
@@ -123,7 +123,7 @@ export const InlineValue = ({
             commit();
           } else if (e.key === 'Escape') {
             e.preventDefault();
-            annuler();
+            cancel();
           }
         }}
         bg="whiteAlpha.100"
@@ -198,13 +198,13 @@ export const InlineSequence = ({
 }: InlineSequenceProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
-  const [initiale, setInitiale] = useState<number[] | undefined>(undefined);
+  const [initial, setInitial] = useState<number[] | undefined>(undefined);
 
   const parsed = isEditing ? parseSequence(draft) : (value ?? []);
 
   // Même raison que plus haut : une suite tapée mais non validée
   // n'existait nulle part, et quitter la page l'emportait.
-  const saisir = (raw: string) => {
+  const onInput = (raw: string) => {
     setDraft(raw);
     onChange(parseSequence(raw));
   };
@@ -214,8 +214,8 @@ export const InlineSequence = ({
     setIsEditing(false);
   };
 
-  const annuler = () => {
-    onChange(initiale ?? []);
+  const cancel = () => {
+    onChange(initial ?? []);
     setIsEditing(false);
   };
 
@@ -229,7 +229,7 @@ export const InlineSequence = ({
           w="180px"
           aria-label={ariaLabel}
           value={draft}
-          onChange={(e) => saisir(e.target.value)}
+          onChange={(e) => onInput(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -237,7 +237,7 @@ export const InlineSequence = ({
               commit();
             } else if (e.key === 'Escape') {
               e.preventDefault();
-              annuler();
+              cancel();
             }
           }}
           placeholder="5-10-15-20-15-10-5"
@@ -263,7 +263,7 @@ export const InlineSequence = ({
       as="button"
       aria-label={ariaLabel}
       onClick={() => {
-        setInitiale(value);
+        setInitial(value);
         setDraft((value ?? []).join('-'));
         setIsEditing(true);
       }}
@@ -345,7 +345,7 @@ export const InlineText = ({
    * s'enregistre au fil de la frappe. Ici Échap veut dire « j'ai fini »,
    * comme Ctrl+Entrée. Treize commandes le disaient déjà.
    */
-  const ouvrir = () => setIsEditing(true);
+  const startEditing = () => setIsEditing(true);
 
   if (!hasValue && !isEditing) {
     return (
@@ -355,7 +355,7 @@ export const InlineText = ({
       <Box
         as="button"
         aria-label={ariaLabel}
-        onClick={ouvrir}
+        onClick={startEditing}
         fontSize="xs"
         color="fg.muted"
         minH="32px"
@@ -375,7 +375,7 @@ export const InlineText = ({
   }
 
   if (isEditing) {
-    const communes = {
+    const shared = {
       autoFocus: true,
       'aria-label': ariaLabel,
       value: value ?? '',
@@ -391,7 +391,7 @@ export const InlineText = ({
     if (multiline) {
       return (
         <AutoResizeTextarea
-          {...communes}
+          {...shared}
           minH="20px"
           py={0.5}
           lineHeight="1.6"
@@ -413,7 +413,7 @@ export const InlineText = ({
 
     return (
       <Input
-        {...communes}
+        {...shared}
         size="xs"
         h="20px"
         onChange={(e) => onChange(e.target.value || undefined)}
@@ -431,7 +431,7 @@ export const InlineText = ({
     <Box
       as="button"
       aria-label={ariaLabel}
-      onClick={ouvrir}
+      onClick={startEditing}
       textAlign="left"
       textDecoration="underline"
       textDecorationColor="transparent"

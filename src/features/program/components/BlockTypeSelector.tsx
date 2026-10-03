@@ -3,7 +3,7 @@ import { BlockType } from '@/shared/types';
 import {
   BLOCK_ACCENT_COLOR,
   BLOCK_FAMILIES,
-  BLOCK_TYPES_COURANTS,
+  COMMON_BLOCK_TYPES,
   BLOCK_TYPE_CONFIG,
   getBlockAccent,
   getBlockDescription,
@@ -17,7 +17,7 @@ interface BlockTypeSelectorProps {
 
 /** Une tuile de format : le nom, la couleur de sa famille, ce qu'il
  * fait. */
-const Tuile = ({
+const TypeTile = ({
   type,
   onSelect,
 }: {
@@ -60,7 +60,7 @@ const Tuile = ({
   );
 };
 
-const Grille = ({
+const TypeGrid = ({
   types,
   onSelect,
 }: {
@@ -72,7 +72,7 @@ const Grille = ({
     gap={2}
   >
     {types.map((type) => (
-      <Tuile key={type} type={type} onSelect={onSelect} />
+      <TypeTile key={type} type={type} onSelect={onSelect} />
     ))}
   </Grid>
 );
@@ -90,9 +90,9 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
   // Les familles, une fois retirés les formats déjà proposés au-dessus :
   // une famille entièrement courante disparaît du repli plutôt que d'y
   // figurer vide.
-  const restantes = BLOCK_FAMILIES.map((f) => ({
+  const remainingFamilies = BLOCK_FAMILIES.map((f) => ({
     ...f,
-    types: f.types.filter((t) => !BLOCK_TYPES_COURANTS.includes(t)),
+    types: f.types.filter((t) => !COMMON_BLOCK_TYPES.includes(t)),
   })).filter((f) => f.types.length > 0);
 
   return (
@@ -111,7 +111,7 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
         >
           Formats courants
         </Text>
-        <Grille types={BLOCK_TYPES_COURANTS} onSelect={onSelect} />
+        <TypeGrid types={COMMON_BLOCK_TYPES} onSelect={onSelect} />
       </Box>
 
       {!toutVoir ? (
@@ -130,12 +130,12 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
             <LuChevronDown size={14} />
             <Text as="span">
               Autres formats (
-              {restantes.reduce((n, f) => n + f.types.length, 0)})
+              {remainingFamilies.reduce((n, f) => n + f.types.length, 0)})
             </Text>
           </HStack>
         </Box>
       ) : (
-        restantes.map((family) => (
+        remainingFamilies.map((family) => (
           <Box key={family.key}>
             <Text
               fontSize="xs"
@@ -147,7 +147,7 @@ export const BlockTypeSelector = ({ onSelect }: BlockTypeSelectorProps) => {
             >
               {family.label}
             </Text>
-            <Grille types={family.types} onSelect={onSelect} />
+            <TypeGrid types={family.types} onSelect={onSelect} />
           </Box>
         ))
       )}

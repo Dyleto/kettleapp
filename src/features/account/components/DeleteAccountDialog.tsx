@@ -7,7 +7,7 @@ interface Props {
   onClose: () => void;
   /** Ce qui disparaît, énoncé, avec les vrais nombres. */
   consequences: string[];
-  tutoiement: boolean;
+  informal: boolean;
 }
 
 /**
@@ -22,7 +22,7 @@ export const DeleteAccountDialog = ({
   open,
   onClose,
   consequences,
-  tutoiement,
+  informal,
 }: Props) => {
   const { mutate, isPending } = useDeleteAccount();
 
@@ -38,7 +38,7 @@ export const DeleteAccountDialog = ({
         >
           <Dialog.Header>
             <Dialog.Title>
-              Supprimer {tutoiement ? 'ton' : 'votre'} compte ?
+              Supprimer {informal ? 'ton' : 'votre'} compte ?
             </Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
@@ -47,13 +47,13 @@ export const DeleteAccountDialog = ({
                 Voici ce qui disparaît, sans retour possible :
               </Text>
               <VStack as="ul" align="stretch" gap={2} listStyleType="none">
-                {consequences.map((ligne) => (
-                  <HStack as="li" key={ligne} gap={2.5} align="baseline">
+                {consequences.map((line) => (
+                  <HStack as="li" key={line} gap={2.5} align="baseline">
                     <Text as="span" color="app.error" flexShrink={0}>
                       —
                     </Text>
                     <Text as="span" fontSize="sm" color="fg">
-                      {ligne}
+                      {line}
                     </Text>
                   </HStack>
                 ))}

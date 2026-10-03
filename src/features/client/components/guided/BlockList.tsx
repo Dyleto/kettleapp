@@ -35,7 +35,7 @@ export const BlockList = ({
   performed,
   onPerformedChange,
   lastPerformance,
-  onOuvrirDetail,
+  onOpenDetail,
   rest,
   onRestDone,
   onUndo,
@@ -47,7 +47,7 @@ export const BlockList = ({
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
-  onOuvrirDetail: (ex: BlockExercise) => void;
+  onOpenDetail: (ex: BlockExercise) => void;
   /** Le repos en cours, et la série qu'il suit. */
   rest: { afterKey: string; duration: number; nextUp: string } | null;
   onRestDone: () => void;
@@ -64,7 +64,7 @@ export const BlockList = ({
   const [opened, setOpened] = useState<string | null>(null);
 
   /** Si ce mouvement a quelque chose à montrer au-delà de sa dose. */
-  const aDuDetailDe = (e: GuidedSet) =>
+  const hasDetailOf = (e: GuidedSet) =>
     !!e.exercise.note?.trim() ||
     !!e.exercise.exercise.description?.trim() ||
     !!e.exercise.exercise.videoUrl?.trim();
@@ -85,16 +85,15 @@ export const BlockList = ({
       e.rank - 1
     ];
 
-  const write = (e: GuidedSet, champ: 'weight' | 'reps', brut: string) => {
+  const write = (e: GuidedSet, field: 'weight' | 'reps', raw: string) => {
     if (!onPerformedChange) return;
     const key = performedKey(e.blockOrder, e.exerciseOrder);
     const sets = [...(performed?.[key]?.sets ?? [])];
     while (sets.length < e.rank) sets.push({});
-    const count =
-      brut.trim() === '' ? undefined : Number(brut.replace(',', '.'));
+    const count = raw.trim() === '' ? undefined : Number(raw.replace(',', '.'));
     sets[e.rank - 1] = {
       ...sets[e.rank - 1],
-      [champ]: Number.isFinite(count) ? count : undefined,
+      [field]: Number.isFinite(count) ? count : undefined,
     };
     onPerformedChange(key, { sets });
   };
@@ -102,7 +101,7 @@ export const BlockList = ({
   return (
     <VStack align="stretch" gap={1} flex={1} px={5} py={2} overflowY="auto">
       {sets.map((e) => {
-        const fait = done.has(e.key);
+        const isDone = done.has(e.key);
         const isCurrent = current?.key === e.key;
         const value = valueOfSet(e);
         const rank = rankOf(e);
@@ -122,7 +121,7 @@ export const BlockList = ({
           const last = formatLastPerformance(
             lastPerformance?.get(e.exercise.exercise._id)
           );
-          const aDuDetail =
+          const hasDetail =
             !!e.exercise.note?.trim() ||
             !!e.exercise.exercise.description?.trim() ||
             !!e.exercise.exercise.videoUrl?.trim();
@@ -138,13 +137,13 @@ export const BlockList = ({
               >
                 <VStack align="stretch" gap={3}>
                   <HStack justify="space-between" align="baseline" gap={3}>
-                    {aDuDetail ? (
+                    {hasDetail ? (
                       <Box
                         as="button"
                         textAlign="left"
                         minW={0}
                         aria-label={`Voir la consigne — ${e.name}`}
-                        onClick={() => onOuvrirDetail(e.exercise)}
+                        onClick={() => onOpenDetail(e.exercise)}
                         css={hitArea(44)}
                       >
                         <HStack gap={1.5} align="center">
@@ -214,7 +213,7 @@ export const BlockList = ({
                       <OnDemandTimer
                         duration={e.exercise.duration}
                         label={formatDuration(e.exercise.duration)}
-                        couleur="app.primary"
+                        color="app.primary"
                       />
                     </Box>
                   ) : null}
@@ -249,7 +248,7 @@ export const BlockList = ({
         // la refait. C'était une ligne morte — et les trois choses qu'on veut
         // réellement en faire n'ont rien à voir avec le curseur, elles se
         // font donc sur place plutôt qu'en le déplaçant.
-        if (fait && opened === e.key) {
+        if (isDone && opened === e.key) {
           return (
             <Fragment key={e.key}>
               <VStack
@@ -328,10 +327,10 @@ export const BlockList = ({
                 </HStack>
 
                 <HStack justify="space-between" align="center" gap={3}>
-                  {aDuDetailDe(e) ? (
+                  {hasDetailOf(e) ? (
                     <Box
                       as="button"
-                      onClick={() => onOuvrirDetail(e.exercise)}
+                      onClick={() => onOpenDetail(e.exercise)}
                       color="app.primary"
                       fontSize="sm"
                       css={hitArea(32)}
@@ -364,8 +363,8 @@ export const BlockList = ({
               minH="44px"
               px={4}
               py={2}
-              opacity={fait ? 1 : 0.75}
-              {...(fait
+              opacity={isDone ? 1 : 0.75}
+              {...(isDone
                 ? {
                     as: 'button' as const,
                     w: 'full',
@@ -379,10 +378,10 @@ export const BlockList = ({
                 : {})}
             >
               <Box
-                color={fait ? 'session.rest' : 'whiteAlpha.400'}
+                color={isDone ? 'session.rest' : 'whiteAlpha.400'}
                 flexShrink={0}
               >
-                {fait ? (
+                {isDone ? (
                   <LuCheck size={16} strokeWidth={3} />
                 ) : (
                   <Box
@@ -415,7 +414,7 @@ export const BlockList = ({
                 que les squats sont à 1 min et les fentes à 45 s sans avoir à
                 y arriver. Sur ce qui est fait, il n'apprend plus rien — la
                 charge prend sa place. */}
-              {fait ? (
+              {isDone ? (
                 <Text
                   fontSize="sm"
                   color="fg.muted"

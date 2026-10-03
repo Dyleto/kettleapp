@@ -84,6 +84,11 @@ const empty = (): SessionProgress => ({
  * empêcher.
  */
 interface LegacyProgress {
+  // Ces cinq noms ne suivent pas la règle de langue du projet, et ils ne
+  // doivent pas : ce ne sont pas des identifiants, ce sont les clés d'un
+  // enregistrement déjà posé dans le `localStorage` des clients. Les
+  // traduire ne renommerait rien — cela rendrait simplement illisible ce
+  // qui est écrit sur leurs téléphones.
   version: 1;
   etape?: number;
   performed?: Record<string, PerformedValues>;

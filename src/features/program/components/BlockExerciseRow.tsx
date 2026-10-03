@@ -49,8 +49,8 @@ export const BlockExerciseRow = ({
   // distinguer. `exercise.note` est ce que le coach a écrit pour ce
   // placement, dans cette séance ; `ex.description` décrit le mouvement en
   // général et vient de la bibliothèque, partagée par tous ses clients.
-  const consigne = exercise.note?.trim();
-  const hasNote = !!consigne;
+  const note = exercise.note?.trim();
+  const hasNote = !!note;
   const hasDescription = !!ex.description?.trim();
   const hasVideo = !!ex.videoUrl?.trim();
   const hasDetail = hasNote || hasDescription || hasVideo;
@@ -184,7 +184,7 @@ export const BlockExerciseRow = ({
                 lineHeight="tall"
                 whiteSpace="pre-wrap"
               >
-                {consigne}
+                {note}
               </Text>
             </Box>
           )}

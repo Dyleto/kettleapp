@@ -27,7 +27,7 @@ export const Round = ({
   step,
   onDone,
   lastPerformance,
-  onOuvrirDetail,
+  onOpenDetail,
   armed,
   onArm,
 }: {
@@ -35,7 +35,7 @@ export const Round = ({
   /** Le tour est fini : on passe au suivant. */
   onDone: () => void;
   lastPerformance?: Map<string, LastPerformance>;
-  onOuvrirDetail: (ex: BlockExercise) => void;
+  onOpenDetail: (ex: BlockExercise) => void;
   /**
    * Si l'horloge de ce bloc a déjà été lancée.
    *
@@ -54,7 +54,7 @@ export const Round = ({
 
   // Travail fait, on passe au repos s'il en est imposé un — sinon le tour
   // est fini et le suivant démarre, ce qui est la définition du format.
-  const finDePhase = () => {
+  const phaseEnd = () => {
     if (!resting && step.restSeconds) {
       setPhase('rest');
       return;
@@ -85,8 +85,8 @@ export const Round = ({
           duration={duration}
           autoStart={armed}
           onStart={onArm}
-          couleur={resting ? 'session.rest' : 'fg'}
-          onComplete={finDePhase}
+          color={resting ? 'session.rest' : 'fg'}
+          onComplete={phaseEnd}
           title={
             <VStack align="start" gap={0.5}>
               <Text
@@ -132,7 +132,7 @@ export const Round = ({
           relit pour se préparer au tour suivant. */}
       <VStack align="stretch" gap={0} opacity={resting ? 0.6 : 1}>
         {step.exercises.map((ex, i) => {
-          const aDuDetail =
+          const hasDetail =
             !!ex.note?.trim() ||
             !!ex.exercise.description?.trim() ||
             !!ex.exercise.videoUrl?.trim();
@@ -147,13 +147,13 @@ export const Round = ({
               py={3}
             >
               <HStack justify="space-between" align="baseline" gap={3}>
-                {aDuDetail ? (
+                {hasDetail ? (
                   <Box
                     as="button"
                     textAlign="left"
                     minW={0}
                     aria-label={`Voir la consigne — ${ex.exercise.name}`}
-                    onClick={() => onOuvrirDetail(ex)}
+                    onClick={() => onOpenDetail(ex)}
                     css={hitArea(44)}
                   >
                     <HStack gap={1.5} align="center">

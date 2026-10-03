@@ -36,16 +36,16 @@ const FEATURES = [
  * habiller en actions promettrait une seconde fois ce que la page ne peut
  * pas tenir.
  */
-const Chemin = ({
+const PathChoice = ({
   id,
-  titre,
-  ouvert,
+  title,
+  open,
   onToggle,
   children,
 }: {
   id: string;
-  titre: string;
-  ouvert: boolean;
+  title: string;
+  open: boolean;
   onToggle: () => void;
   children: React.ReactNode;
 }) => (
@@ -60,7 +60,7 @@ const Chemin = ({
     <Box
       as="button"
       w="100%"
-      aria-expanded={ouvert}
+      aria-expanded={open}
       aria-controls={id}
       onClick={onToggle}
       px={3.5}
@@ -76,19 +76,19 @@ const Chemin = ({
       }}
     >
       <Text fontSize="sm" fontWeight="medium" textAlign="left">
-        {titre}
+        {title}
       </Text>
       <Box
         color="fg.muted"
         display="flex"
         flexShrink={0}
-        transform={ouvert ? 'rotate(90deg)' : 'none'}
+        transform={open ? 'rotate(90deg)' : 'none'}
         transition="transform 0.15s"
       >
         <LuChevronRight size={15} />
       </Box>
     </Box>
-    {ouvert && (
+    {open && (
       <Box id={id} px={3.5} pb={3.5} pt={0.5}>
         {children}
       </Box>
@@ -100,7 +100,7 @@ const Login: React.FC = () => {
   useDocumentTitle('Connexion');
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [chemin, setChemin] = useState<'client' | 'coach' | null>(null);
+  const [path, setPath] = useState<'client' | 'coach' | null>(null);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -188,11 +188,11 @@ const Login: React.FC = () => {
               Première fois ici&nbsp;?
             </Text>
 
-            <Chemin
+            <PathChoice
               id="chemin-client"
-              titre="J'ai reçu une invitation"
-              ouvert={chemin === 'client'}
-              onToggle={() => setChemin(chemin === 'client' ? null : 'client')}
+              title="J'ai reçu une invitation"
+              open={path === 'client'}
+              onToggle={() => setPath(path === 'client' ? null : 'client')}
             >
               <Text fontSize="xs" color="fg.muted" lineHeight="1.7">
                 Ouvre le lien que ton coach t'a envoyé : c'est lui qui te
@@ -200,13 +200,13 @@ const Login: React.FC = () => {
                 compte qui n'est rattaché à personne, et tu ne verras aucune
                 séance.
               </Text>
-            </Chemin>
+            </PathChoice>
 
-            <Chemin
+            <PathChoice
               id="chemin-coach"
-              titre="Je suis coach"
-              ouvert={chemin === 'coach'}
-              onToggle={() => setChemin(chemin === 'coach' ? null : 'coach')}
+              title="Je suis coach"
+              open={path === 'coach'}
+              onToggle={() => setPath(path === 'coach' ? null : 'coach')}
             >
               <Text fontSize="xs" color="fg.muted" lineHeight="1.7">
                 L'espace coach ne s'ouvre pas tout seul à l'inscription.
@@ -220,7 +220,7 @@ const Login: React.FC = () => {
                 </Link>{' '}
                 et nous l'ouvrons pour votre compte.
               </Text>
-            </Chemin>
+            </PathChoice>
           </VStack>
 
           <LegalFooter />

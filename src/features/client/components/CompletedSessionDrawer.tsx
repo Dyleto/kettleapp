@@ -156,7 +156,7 @@ export const CompletedSessionDrawer = ({
   // Même règle que dans le formulaire de fin de séance : sans consentement,
   // on ne propose pas de saisir ce qu'on n'a pas le droit de conserver.
   const { user } = useAuth();
-  const partageSante = user?.healthConsent?.granted === true;
+  const sharesHealth = user?.healthConsent?.granted === true;
 
   const [isEditing, setIsEditing] = useState(false);
   const [effort, setEffort] = useState(completed.feedback?.effort);
@@ -264,7 +264,7 @@ export const CompletedSessionDrawer = ({
                     {isEditing ? (
                       <>
                         <EffortScale value={effort} onChange={setEffort} />
-                        {partageSante && (
+                        {sharesHealth && (
                           <FeedbackTags value={tags} onChange={setTags} />
                         )}
                       </>
@@ -331,13 +331,13 @@ export const CompletedSessionDrawer = ({
                   </VStack>
 
                   {/* ── Commentaires ── */}
-                  {((isEditing && partageSante) ||
+                  {((isEditing && sharesHealth) ||
                     completed.clientNotes ||
                     completed.coachNotes) && (
                     <>
                       <Separator borderColor="whiteAlpha.100" />
                       <VStack align="stretch" gap={3}>
-                        {isEditing && partageSante ? (
+                        {isEditing && sharesHealth ? (
                           <Box>
                             <SectionTitle>Ton commentaire</SectionTitle>
                             <AutoResizeTextarea

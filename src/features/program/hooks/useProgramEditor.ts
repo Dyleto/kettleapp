@@ -383,9 +383,9 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       exercise: BlockExercise
     ) => {
       updateBlockExercises(sessionId, blockId, (exs) => {
-        const suivants = [...exs];
-        suivants.splice(Math.min(index, suivants.length), 0, exercise);
-        return suivants.map((e, i) => ({ ...e, order: i + 1 }));
+        const reordered = [...exs];
+        reordered.splice(Math.min(index, reordered.length), 0, exercise);
+        return reordered.map((e, i) => ({ ...e, order: i + 1 }));
       });
     },
     [updateBlockExercises]

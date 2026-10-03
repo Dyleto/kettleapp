@@ -47,14 +47,17 @@ export const WeekStrip = ({
    * appliquait une autre, plus grossière : il annonçait trois séances prévues
    * là où la bande en dessinait six.
    */
-  const jours = days.map((d) => ({
+  const withPending = days.map((d) => ({
     ...d,
     pending: d.suggested.filter(
       (s) => !d.done.some((x) => x.originalSessionId === s._id)
     ),
   }));
-  const faites = jours.reduce((sum, d) => sum + d.done.length, 0);
-  const prevues = jours.reduce((sum, d) => sum + d.pending.length, 0);
+  const doneCount = withPending.reduce((sum, d) => sum + d.done.length, 0);
+  const pendingCount = withPending.reduce(
+    (sum, d) => sum + d.pending.length,
+    0
+  );
 
   return (
     <VStack align="stretch" gap={2}>
@@ -73,11 +76,12 @@ export const WeekStrip = ({
             montrait trois anneaux. Il ne comptait que ce qui est fait ; la
             bande montre aussi ce qui est prévu. */}
         <Text fontSize="xs" color="fg.muted">
-          {faites === 0 && prevues === 0
+          {doneCount === 0 && pendingCount === 0
             ? 'rien de prévu'
             : [
-                `${faites} faite${faites > 1 ? 's' : ''}`,
-                prevues > 0 && `${prevues} prévue${prevues > 1 ? 's' : ''}`,
+                `${doneCount} faite${doneCount > 1 ? 's' : ''}`,
+                pendingCount > 0 &&
+                  `${pendingCount} prévue${pendingCount > 1 ? 's' : ''}`,
               ]
                 .filter(Boolean)
                 .join(' · ')}
@@ -95,7 +99,7 @@ export const WeekStrip = ({
         role="group"
         aria-label="Séances de la semaine"
       >
-        {jours.map(({ date, key, done, pending }) => {
+        {withPending.map(({ date, key, done, pending }) => {
           const isToday = key === todayKey;
           const isFuture = key > todayKey;
           const effort = done.length > 0 ? getEffortSummary(done[0]) : null;

@@ -44,7 +44,7 @@ const DeadEndExit = () => (
  * Un tourniquet ne dit pas ce qu'on attend. Le contour de la carte
  * d'invitation, si — et quand elle se remplit, rien ne bouge.
  */
-const Attente = () => (
+const Waiting = () => (
   <VStack gap={3} w="100%" aria-busy="true" aria-label="Vérification du lien">
     <Skeleton w="96px" h="96px" borderRadius="full" mb={2} />
     <Skeleton w="140px" h="11px" borderRadius="full" />
@@ -62,7 +62,7 @@ const Attente = () => (
  * est à la fin. On redirigeait alors vers la connexion sans un mot — d'où un
  * compte créé sans coach rattaché, qui est la boucle de l'entrée A1.
  */
-const LienIncomplet = () => (
+const IncompleteLink = () => (
   <VStack gap={3} w="100%">
     <Box color="app.error" mb={1}>
       <LuUnlink size={26} />
@@ -95,8 +95,8 @@ const Join = () => {
     : '';
 
   const getContent = () => {
-    if (!invitationToken) return <LienIncomplet />;
-    if (isLoading) return <Attente />;
+    if (!invitationToken) return <IncompleteLink />;
+    if (isLoading) return <Waiting />;
 
     if (error) {
       const status = axios.isAxiosError(error)

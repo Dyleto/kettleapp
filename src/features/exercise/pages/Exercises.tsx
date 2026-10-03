@@ -41,7 +41,7 @@ const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
  * L'en-tête et la liste prennent donc leur gabarit au même endroit : ils ne
  * peuvent plus diverger.
  */
-const COLONNES = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
+const COLUMNS = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
 
 /**
  * À partir de combien d'exercices un index alphabétique commence à servir.
@@ -51,8 +51,8 @@ const COLONNES = { base: '1fr', lg: '1fr 380px', xl: '1fr 460px' };
  * lignes ne raccourcit aucun trajet. Il doit apparaître quand il sert, pas
  * par principe.
  */
-const SEUIL_INDEX = 25;
-const GOUTTIERE = { base: 0, lg: 8 };
+const INDEX_THRESHOLD = 25;
+const GUTTER = { base: 0, lg: 8 };
 
 const Exercises = () => {
   useDocumentTitle('Bibliothèque');
@@ -110,7 +110,7 @@ const Exercises = () => {
    * Un exercice jamais placé dans un programme n'y figure pas : ce serait
    * remplir l'espace avec ce qui sert le moins.
    */
-  const lesPlusUtilises = useMemo(
+  const mostUsedList = useMemo(
     () =>
       [...exercises]
         .filter((e) => (e.usageCount ?? 0) > 0)
@@ -121,8 +121,8 @@ const Exercises = () => {
 
   // Sous le seuil, une liste dense et sans façon : les groupes existent
   // toujours, mais ils ne portent ni titre ni index.
-  const indexe = filtered.length >= SEUIL_INDEX;
-  const letters = indexe ? grouped.map((g) => g.letter) : [];
+  const indexed = filtered.length >= INDEX_THRESHOLD;
+  const letters = indexed ? grouped.map((g) => g.letter) : [];
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const scrollToLetter = (letter: string) => {
@@ -136,9 +136,9 @@ const Exercises = () => {
     createMutation.mutate(
       { name: trimmed },
       {
-        onSuccess: (exercice) => {
+        onSuccess: (created) => {
           setQuery('');
-          openSheet(exercice._id);
+          openSheet(created._id);
         },
       }
     );
@@ -152,10 +152,10 @@ const Exercises = () => {
    * nomme. Il ne fabrique pas pour autant un exercice sans nom — si un nom
    * est déjà là il crée, sinon il emmène le curseur là où on l'écrit.
    */
-  const champRecherche = useRef<HTMLInputElement>(null);
-  const nouveau = () => {
+  const searchField = useRef<HTMLInputElement>(null);
+  const createNew = () => {
     if (canCreate) return create();
-    champRecherche.current?.focus();
+    searchField.current?.focus();
   };
 
   const confirmDeletion = () => {
@@ -189,7 +189,7 @@ const Exercises = () => {
               même type, même colonne, même couleur. Il passe donc dans la
               marge, avec un filet qui court jusqu'au bord — c'est un
               séparateur, pas une entrée de liste. */}
-          {indexe && (
+          {indexed && (
             <Box
               position="sticky"
               top={0}
@@ -263,7 +263,7 @@ const Exercises = () => {
         {/* L'en-tête et la recherche vivent dans la même colonne que la
             liste : le filtre fait exactement la largeur de ce qu'il
             filtre. */}
-        <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
+        <Grid templateColumns={COLUMNS} gap={GUTTER} alignItems="start">
           <VStack gap={4} align="stretch" minW={0}>
             {/* `space-between` sur une rangée qui ne se replie pas poussait
                 la page 27 px trop large à 360 : « Bibliothèque », le compte et
@@ -294,7 +294,7 @@ const Exercises = () => {
                     nomme. */}
                 <Box
                   as="button"
-                  onClick={nouveau}
+                  onClick={createNew}
                   fontSize="sm"
                   fontWeight="bold"
                   color="app.primary"
@@ -322,7 +322,7 @@ const Exercises = () => {
             >
               <LuSearch size={14} color="var(--chakra-colors-fg-muted)" />
               <Input
-                ref={champRecherche}
+                ref={searchField}
                 placeholder="Chercher ou créer un exercice…"
                 aria-label="Chercher un exercice"
                 value={query}
@@ -359,7 +359,7 @@ const Exercises = () => {
           </Box>
         ) : (
           <>
-            <Grid templateColumns={COLONNES} gap={GOUTTIERE} alignItems="start">
+            <Grid templateColumns={COLUMNS} gap={GUTTER} alignItems="start">
               <Box minW={0}>{list}</Box>
 
               {isDesktop && (
@@ -390,13 +390,13 @@ const Exercises = () => {
                       >
                         Les plus utilisés
                       </Text>
-                      {lesPlusUtilises.length === 0 ? (
+                      {mostUsedList.length === 0 ? (
                         <Text fontSize="sm" color="fg.muted">
                           Aucun exercice n'est encore posé dans un programme.
                         </Text>
                       ) : (
                         <VStack align="stretch" gap={0}>
-                          {lesPlusUtilises.map((exercise) => (
+                          {mostUsedList.map((exercise) => (
                             <ExerciseRow
                               key={exercise._id}
                               exercise={exercise}

@@ -90,7 +90,7 @@ export const BLOCK_FAMILIES: {
  * argument qui comptera. D'ici là, replier les sept autres coûte un clic à
  * qui les cherche, là où les montrer coûte une lecture à tout le monde.
  */
-export const BLOCK_TYPES_COURANTS: BlockType[] = [
+export const COMMON_BLOCK_TYPES: BlockType[] = [
   'warmup',
   'classic',
   'emom',
@@ -230,10 +230,12 @@ export const getBlockAccent = (type: BlockType): BlockAccent => {
  * la casse — « amrap 12 » est le même réflexe.
  */
 export const getBlockFreeName = (block: SessionBlock): string | undefined => {
-  const nom = block.label?.trim();
-  if (!nom) return undefined;
+  const coachName = block.label?.trim();
+  if (!coachName) return undefined;
   const type = getBlockLabel(block.type);
-  return nom.toLowerCase().startsWith(type.toLowerCase()) ? undefined : nom;
+  return coachName.toLowerCase().startsWith(type.toLowerCase())
+    ? undefined
+    : coachName;
 };
 
 /**
@@ -257,7 +259,7 @@ export const blockIndexPrefix = (type: BlockType): boolean =>
  */
 export const getBlockConfigSummary = (block: SessionBlock): string => {
   const minutes = (m?: number) => (m ? formatDuration(m * 60) : '');
-  const secondes = (sec?: number) =>
+  const seconds = (sec?: number) =>
     sec === undefined ? '' : formatDuration(sec);
 
   switch (block.type) {
@@ -267,12 +269,12 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
     case 'emom': {
       // Un EMOM est à la minute par définition : on ne le dit que lorsqu'il
       // ne l'est pas — « 12 tours, toutes les 2 min », l'E2MOM.
-      const tours = block.rounds ? `${block.rounds}\u00A0tours` : '';
-      const intervalle =
+      const rounds = block.rounds ? `${block.rounds}\u00A0tours` : '';
+      const interval =
         (block.intervalMinutes ?? 1) > 1
           ? `toutes les ${minutes(block.intervalMinutes)}`
           : '';
-      return [tours, intervalle].filter(Boolean).join(' · ');
+      return [rounds, interval].filter(Boolean).join(' · ');
     }
     case 'amrap':
       return minutes(block.durationMinutes);
@@ -285,18 +287,18 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
     case 'onoff':
       return [
         block.rounds && `${block.rounds} ×`,
-        secondes(block.workDuration),
-        block.restDuration !== undefined && `/ ${secondes(block.restDuration)}`,
+        seconds(block.workDuration),
+        block.restDuration !== undefined && `/ ${seconds(block.restDuration)}`,
       ]
         .filter(Boolean)
         .join(' ');
     case 'pyramid':
     case 'ladder': {
       const scheme = block.repsScheme?.join('-') ?? '';
-      const repos = block.restBetweenRounds
-        ? `${secondes(block.restBetweenRounds)} repos`
+      const rest = block.restBetweenRounds
+        ? `${seconds(block.restBetweenRounds)} repos`
         : '';
-      return [scheme, repos].filter(Boolean).join(' · ');
+      return [scheme, rest].filter(Boolean).join(' · ');
     }
     default:
       return '';
