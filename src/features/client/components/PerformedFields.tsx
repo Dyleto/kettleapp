@@ -18,7 +18,8 @@ interface PerformedFieldsProps {
    * lignes de saisie.
    */
   setLabels?: string[];
-  /** "la dernière fois : 3 × 12 reps · 26 kg", or `null`. */
+  /** « la dernière fois : 3 × 12 reps · 26 kg », ou `null` quand il n'y a
+   * rien à rappeler — une première fois ne se compare à rien. */
   lastLabel?: string | null;
   /** L'exercice se mesure en temps : demander des répétitions n'a pas de
    *  sens, on ne montre donc que la charge. */

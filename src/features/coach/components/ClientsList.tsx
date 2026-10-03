@@ -53,19 +53,26 @@ const inactivityDays = (client: Client): number =>
  * écrit en toutes lettres : c'est ce qui rend le rang de chaque client
  * évident.
  */
-interface LigneClient {
+interface RowCells {
   /** L'état en un mot : la dernière note d'effort, ou « Nouveau ». */
-  etat: string | null;
+  status: string | null;
   /** Depuis quand, lorsque la cellule suivante ne le dit pas déjà. */
-  anciennete: string | null;
+  since: string | null;
   /** Ce qui attend le coach, ou rien. */
-  attente: string | null;
+  waiting: string | null;
   /** Une séance non lue appelle une action ; un silence ne fait que durer. */
-  attenteEstAction: boolean;
+  waitingIsAction: boolean;
 }
 
-/** "il y a 3 semaines", in a single grammar. */
-const depuis = (days: number): string => {
+/**
+ * « il y a 3 semaines » — une seule grammaire pour toute la colonne.
+ *
+ * Quatre tournures cohabitaient, et balayer la colonne était impossible :
+ * il fallait relire chaque ligne. Les paliers sont choisis pour que la
+ * phrase reste courte sans jamais mentir — au-delà de deux mois on ne
+ * compte plus les semaines, personne ne lit « il y a 11 semaines ».
+ */
+const agoLabel = (days: number): string => {
   if (days <= 0) return "aujourd'hui";
   if (days === 1) return 'hier';
   if (days < 14) return `il y a ${days} jours`;
@@ -75,7 +82,7 @@ const depuis = (days: number): string => {
   return `il y a ${months} mois`;
 };
 
-const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
+const rowCells = (client: Client, effortLabel?: string): RowCells => {
   // Jamais commencé. Passé le seuil de silence, ce n'est plus un nouveau
   // client : c'est quelqu'un d'inscrit qui n'a rien fait.
   if (!client.lastCompletedAt) {
@@ -84,31 +91,31 @@ const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
       ? {
           // L'ancienneté se compte depuis le rattachement : c'est ce qui
           // sépare deux clients jamais commencés dans le tri « À traiter ».
-          etat: null,
-          anciennete: depuis(days),
-          attente: 'jamais démarré',
-          attenteEstAction: false,
+          status: null,
+          since: agoLabel(days),
+          waiting: 'jamais démarré',
+          waitingIsAction: false,
         }
       : {
-          etat: 'Nouveau',
-          anciennete: depuis(days),
-          attente: null,
-          attenteEstAction: false,
+          status: 'Nouveau',
+          since: agoLabel(days),
+          waiting: null,
+          waitingIsAction: false,
         };
   }
 
   const days = daysSince(client.lastCompletedAt);
-  const etat = effortLabel ?? null;
+  const status = effortLabel ?? null;
 
   // Des séances à lire : la seule cellule qui appelle une action, et elle
   // prime sur le silence — on ne peut pas être silencieux et avoir écrit.
   if (client.unseenCount > 0) {
     const n = client.unseenCount;
     return {
-      etat,
-      anciennete: depuis(days),
-      attente: `${n} séance${n > 1 ? 's' : ''} à lire`,
-      attenteEstAction: true,
+      status,
+      since: agoLabel(days),
+      waiting: `${n} séance${n > 1 ? 's' : ''} à lire`,
+      waitingIsAction: true,
     };
   }
 
@@ -116,18 +123,18 @@ const ligneClient = (client: Client, effortLabel?: string): LigneClient => {
   // déjà, et la répéter à deux centimètres n'ajoute rien.
   if (days >= SILENCE_THRESHOLD_DAYS) {
     return {
-      etat,
-      anciennete: null,
-      attente: `rien ${depuis(days).replace('il y a', 'depuis')}`,
-      attenteEstAction: false,
+      status,
+      since: null,
+      waiting: `rien ${agoLabel(days).replace('il y a', 'depuis')}`,
+      waitingIsAction: false,
     };
   }
 
   return {
-    etat,
-    anciennete: depuis(days),
-    attente: null,
-    attenteEstAction: false,
+    status,
+    since: agoLabel(days),
+    waiting: null,
+    waitingIsAction: false,
   };
 };
 
@@ -184,7 +191,7 @@ interface ClientRowProps {
 
 const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
   const effort = getEffortLevel(client.lastEffort);
-  const ligne = ligneClient(client, effort?.label);
+  const cells = rowCells(client, effort?.label);
 
   return (
     <Card
@@ -241,7 +248,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           truncate
           minW={0}
         >
-          {ligne.etat}
+          {cells.status}
         </Text>
 
         <Text
@@ -251,7 +258,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           truncate
           minW={0}
         >
-          {ligne.anciennete}
+          {cells.since}
         </Text>
 
         {/* Écrit en toutes lettres, à la place du nombre nu. Un « 3 » en
@@ -264,12 +271,12 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           fontSize="xs"
           textAlign="end"
           whiteSpace="nowrap"
-          fontWeight={ligne.attenteEstAction ? 'bold' : 'normal'}
-          color={ligne.attenteEstAction ? 'app.primary' : 'fg.muted'}
+          fontWeight={cells.waitingIsAction ? 'bold' : 'normal'}
+          color={cells.waitingIsAction ? 'app.primary' : 'fg.muted'}
           truncate
           minW={0}
         >
-          {ligne.attente}
+          {cells.waiting}
         </Text>
       </Grid>
     </Card>

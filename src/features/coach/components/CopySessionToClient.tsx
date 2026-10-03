@@ -51,18 +51,16 @@ export const CopySessionToClient = ({
 }: CopySessionToClientProps) => {
   const { data: clients = [], isLoading } = useClients();
   const queryClient = useQueryClient();
-  const [enCours, setEnCours] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   useBackDismiss(isOpen, onClose);
 
-  const autres = clients.filter((c) => c._id !== sourceClientId);
+  const others = clients.filter((c) => c._id !== sourceClientId);
 
-  const copier = useMutation({
+  const copyTo = useMutation({
     mutationFn: coachService.copySessionToClient,
     onSuccess: (_, variables) => {
-      const destinataire = clients.find(
-        (c) => c._id === variables.targetClientId
-      );
+      const recipient = clients.find((c) => c._id === variables.targetClientId);
       // Le programme de destination a changé sous le cache : la prochaine
       // visite chez ce client doit le relire, sinon la séance copiée
       // n'apparaît qu'après un rechargement complet.
@@ -75,8 +73,8 @@ export const CopySessionToClient = ({
         // un message qui laisse un doute sur le destinataire d'une copie ne
         // sert à rien.
         title: `Séance copiée chez ${
-          destinataire
-            ? `${destinataire.firstName} ${destinataire.lastName}`
+          recipient
+            ? `${recipient.firstName} ${recipient.lastName}`
             : 'le client'
         }`,
         description: 'Elle est posée à la fin de son programme.',
@@ -90,7 +88,7 @@ export const CopySessionToClient = ({
         description: 'Rien n’a été modifié. Réessayez dans un instant.',
       });
     },
-    onSettled: () => setEnCours(null),
+    onSettled: () => setPendingId(null),
   });
 
   return (
@@ -127,14 +125,14 @@ export const CopySessionToClient = ({
                 <HStack justify="center" py={6}>
                   <Spinner size="sm" color="app.primary" />
                 </HStack>
-              ) : autres.length === 0 ? (
+              ) : others.length === 0 ? (
                 <Text fontSize="sm" color="fg.muted">
                   Vous n'avez pas d'autre client pour l'instant.
                 </Text>
               ) : (
                 <VStack align="stretch" gap={0}>
-                  {autres.map((client) => {
-                    const occupe = enCours === client._id;
+                  {others.map((client) => {
+                    const busy = pendingId === client._id;
                     return (
                       <Box
                         key={client._id}
@@ -145,19 +143,19 @@ export const CopySessionToClient = ({
                         borderRadius="md"
                         // Une copie en vol verrouille la liste : deux clics
                         // rapides poseraient deux séances.
-                        aria-disabled={copier.isPending}
-                        opacity={copier.isPending && !occupe ? 0.5 : 1}
-                        cursor={copier.isPending ? 'default' : 'pointer'}
+                        aria-disabled={copyTo.isPending}
+                        opacity={copyTo.isPending && !busy ? 0.5 : 1}
+                        cursor={copyTo.isPending ? 'default' : 'pointer'}
                         _hover={
-                          copier.isPending
+                          copyTo.isPending
                             ? undefined
                             : { bg: 'whiteAlpha.100' }
                         }
                         css={hitArea(44)}
                         onClick={() => {
-                          if (copier.isPending) return;
-                          setEnCours(client._id);
-                          copier.mutate({
+                          if (copyTo.isPending) return;
+                          setPendingId(client._id);
+                          copyTo.mutate({
                             targetClientId: client._id,
                             sourceClientId,
                             sourceSessionId,
@@ -174,7 +172,7 @@ export const CopySessionToClient = ({
                           <Text fontSize="sm" flex={1} minW={0} lineClamp={1}>
                             {client.firstName} {client.lastName}
                           </Text>
-                          {occupe ? (
+                          {busy ? (
                             <Spinner size="xs" color="app.primary" />
                           ) : (
                             <Box color="fg.muted" flexShrink={0}>

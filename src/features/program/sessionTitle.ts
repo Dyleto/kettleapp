@@ -16,10 +16,10 @@
  * fois.
  */
 
-/** "Séance 2" or "Séance 2 — Haut du corps". */
+/** « Séance 2 », ou « Séance 2 — Haut du corps » quand le coach a nommé. */
 export const sessionTitle = (order: number, name?: string): string => {
-  const libre = name?.trim();
-  return libre ? `Séance ${order} — ${libre}` : `Séance ${order}`;
+  const freeName = name?.trim();
+  return freeName ? `Séance ${order} — ${freeName}` : `Séance ${order}`;
 };
 
 /**
@@ -29,7 +29,7 @@ export const sessionTitle = (order: number, name?: string): string => {
 export const sessionTitleParts = (
   order: number,
   name?: string
-): { rang: string; libre?: string } => ({
-  rang: `Séance ${order}`,
-  libre: name?.trim() || undefined,
+): { rank: string; freeName?: string } => ({
+  rank: `Séance ${order}`,
+  freeName: name?.trim() || undefined,
 });

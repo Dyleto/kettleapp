@@ -95,7 +95,8 @@ export type GuidedStep =
       type: 'round';
       blockLabel: string;
       block: SessionBlock;
-      /** 1-indexed, as it is spoken: "Round 3 / 10". */
+      /** Compté à partir de 1, comme on le dit à voix haute : « Tour 3 / 10 ».
+       * Les rangs de l'éditeur partent de 1 eux aussi, donc rien à décaler. */
       round: number;
       rounds: number;
       /** Ce qu'il y a à faire dans ce tour, dans l'ordre. */

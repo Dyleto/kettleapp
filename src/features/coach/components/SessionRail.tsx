@@ -41,7 +41,7 @@ interface SessionRailProps {
    * quand fut la dernière. C'est ce qui dit si le programme est suivi, et
    * cela se lit ici sur toutes les séances plutôt que sur la seule ouverte.
    */
-  suivi?: Map<string, { fois: number; derniere?: string }>;
+  tracking?: Map<string, { count: number; lastAt?: string }>;
 }
 
 /**
@@ -72,7 +72,7 @@ interface RowProps {
   session: Session;
   index: number;
   isActive: boolean;
-  suivi?: { fois: number; derniere?: string };
+  tracking?: { count: number; lastAt?: string };
   onSelect: () => void;
   sortable: boolean;
 }
@@ -80,7 +80,7 @@ interface RowProps {
 const RailRow = ({
   session,
   isActive,
-  suivi,
+  tracking,
   onSelect,
   sortable,
 }: RowProps) => {
@@ -93,7 +93,7 @@ const RailRow = ({
     isDragging,
   } = useSortable({ id: session._id, disabled: !sortable });
 
-  const { rang, libre } = sessionTitleParts(session.order, session.name);
+  const { rank, freeName } = sessionTitleParts(session.order, session.name);
 
   return (
     <Box
@@ -129,11 +129,11 @@ const RailRow = ({
             fontWeight="bold"
             color={isActive ? 'fg' : 'fg.muted'}
           >
-            {rang}
+            {rank}
           </Text>
-          {libre && (
+          {freeName && (
             <Text fontSize="xs" color="fg.muted" lineClamp={1} maxW="full">
-              {libre}
+              {freeName}
             </Text>
           )}
         </VStack>
@@ -145,12 +145,12 @@ const RailRow = ({
           color="fg.muted"
           flexShrink={0}
           title={
-            suivi
-              ? `Réalisée ${suivi.fois} fois par ce client`
+            tracking
+              ? `Réalisée ${tracking.count} fois par ce client`
               : 'Jamais réalisée par ce client'
           }
         >
-          {suivi ? `${suivi.fois}×` : 'jamais faite'}
+          {tracking ? `${tracking.count}×` : 'jamais faite'}
         </Text>
       </HStack>
       <HStack gap={1.5} align="baseline">
@@ -167,12 +167,12 @@ const RailRow = ({
         )}
         {/* La date de la dernière fois : « faite 4 fois » ne dit pas si
             c'était la semaine dernière ou en juin. */}
-        {suivi?.derniere && (
+        {tracking?.lastAt && (
           <Text fontSize="xs" color="fg.muted" flexShrink={0} ml="auto">
             {new Intl.DateTimeFormat('fr-FR', {
               day: 'numeric',
               month: 'short',
-            }).format(new Date(suivi.derniere))}
+            }).format(new Date(tracking.lastAt))}
           </Text>
         )}
       </HStack>
@@ -195,7 +195,7 @@ export const SessionRail = ({
   onSelect,
   onAddSession,
   onReorder,
-  suivi,
+  tracking,
 }: SessionRailProps) => {
   /**
    * À partir de quand le rail devient une colonne.
@@ -251,7 +251,7 @@ export const SessionRail = ({
                 session={session}
                 index={index}
                 isActive={index === activeIndex}
-                suivi={suivi?.get(session._id)}
+                tracking={tracking?.get(session._id)}
                 onSelect={() => onSelect(index)}
                 sortable={!!onReorder}
               />
@@ -312,7 +312,7 @@ export const SessionRail = ({
               color={isActive ? 'bg.canvas' : 'fg.muted'}
               fontSize="sm"
               fontWeight="bold"
-              opacity={!suivi?.get(session._id) && !isActive ? 0.6 : 1}
+              opacity={!tracking?.get(session._id) && !isActive ? 0.6 : 1}
             >
               S{session.order}
             </Box>

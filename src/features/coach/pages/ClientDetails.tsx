@@ -124,20 +124,18 @@ const ClientDetails = () => {
    * si le programme est suivi : le coach a besoin de la lire sur toutes les
    * séances d'un coup, pour voir celles que son client évite.
    */
-  const suivi = useMemo(() => {
-    const par = new Map<string, { fois: number; derniere?: string }>();
+  const tracking = useMemo(() => {
+    const perSession = new Map<string, { count: number; lastAt?: string }>();
     for (const h of history) {
-      const courant = par.get(h.originalSessionId) ?? { fois: 0 };
-      const quand = String(h.completedAt);
-      par.set(h.originalSessionId, {
-        fois: courant.fois + 1,
-        derniere:
-          !courant.derniere || quand > courant.derniere
-            ? quand
-            : courant.derniere,
+      const current = perSession.get(h.originalSessionId) ?? { count: 0 };
+      const when = String(h.completedAt);
+      perSession.set(h.originalSessionId, {
+        count: current.count + 1,
+        lastAt:
+          !current.lastAt || when > current.lastAt ? when : current.lastAt,
       });
     }
-    return par;
+    return perSession;
   }, [history]);
 
   const handleSelectSession = (index: number) => {
@@ -391,7 +389,7 @@ const ClientDetails = () => {
             onSelect={handleSelectSession}
             onAddSession={handleAddSession}
             onReorder={actions.reorderSessions}
-            suivi={suivi}
+            tracking={tracking}
           />
 
           <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>

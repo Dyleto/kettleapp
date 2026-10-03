@@ -12,7 +12,11 @@ interface InvitationResponse {
 }
 
 /**
- * Generates an invitation link.
+ * Engendre un lien d'invitation.
+ *
+ * Invalide l'invitation en cours au succès : deux liens valides en même
+ * temps donneraient au coach un lien affiché qui n'est plus celui que le
+ * serveur accepte.
  */
 export const useGenerateInvitation = () => {
   const queryClient = useQueryClient();

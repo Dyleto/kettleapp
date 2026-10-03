@@ -44,9 +44,9 @@ export const InvitationLinkDialog = ({ link, expiresAt, onClose }: Props) => {
     if (!n) return;
     const range = document.createRange();
     range.selectNodeContents(n);
-    const sel = window.getSelection();
-    sel?.removeAllRanges();
-    sel?.addRange(range);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
   };
 
   // Ici le clic est tout neuf : c'est la tentative qui a le plus de chances

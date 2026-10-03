@@ -30,9 +30,8 @@ export const GRID_LAYOUTS = {
     base: 'repeat(2, 1fr)',
   },
 
-  /**
-   * Session grid, at a fixed width.
-   */
+  /** Les séances, à largeur fixe plutôt qu'élastique : une carte de séance
+   * qui s'étire perd sa colonne de réglages. */
   sessions: {
     base: '1fr',
     md: 'repeat(auto-fill, minmax(450px, 450px))',

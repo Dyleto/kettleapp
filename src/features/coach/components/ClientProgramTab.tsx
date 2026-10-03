@@ -137,9 +137,9 @@ export const ClientProgramTab = ({
 
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
   const [isCopyOpen, setIsCopyOpen] = useState(false);
-  const [noteDemandee, setNoteDemandee] = useState(false);
-  const aUneNote = !!session.notes?.trim();
-  const noteVisible = aUneNote || noteDemandee;
+  const [noteRequested, setNoteRequested] = useState(false);
+  const hasNote = !!session.notes?.trim();
+  const showsNote = hasNote || noteRequested;
 
   const blockSelectorRef = useRef<HTMLDivElement>(null);
   const closeBlockSelector = useCallback(() => setShowBlockSelector(false), []);
@@ -180,7 +180,7 @@ export const ClientProgramTab = ({
               d'être demandée. Un « + note de séance » posé en permanence était
               la septième invitation de l'écran, et la seule dont la plupart
               des séances se passent. */}
-          {noteVisible && (
+          {showsNote && (
             <Box className="group" w="fit-content" maxW="full">
               <InlineText
                 value={session.notes}
@@ -188,7 +188,7 @@ export const ClientProgramTab = ({
                 addLabel="+ note de séance"
                 ariaLabel="Note de la séance"
                 fontSize="sm"
-                startOpen={noteDemandee && !aUneNote}
+                startOpen={noteRequested && !hasNote}
                 multiline
               />
             </Box>
@@ -205,11 +205,11 @@ export const ClientProgramTab = ({
               value={session.suggestedDays}
               onChange={onUpdateSessionDays}
             />
-            {!noteVisible && (
+            {!showsNote && (
               <IconButton
                 aria-label="Ajouter une note de séance"
                 title="Ajouter une note de séance"
-                onClick={() => setNoteDemandee(true)}
+                onClick={() => setNoteRequested(true)}
                 css={touchHitArea()}
                 size="2xs"
                 variant="ghost"

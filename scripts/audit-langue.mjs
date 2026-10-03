@@ -49,7 +49,7 @@ const BLOC = /\/\*\*?[\s\S]*?\*\/|(?:^[ \t]*\/\/[^\n]*\n)+/gm;
  * sont eux qui avaient échappé au seuil.
  */
 const ANGLAIS =
-  /\b(the|and|that|with|which|this|from|when|what|would|never|only|because|instead|its|it's|are|was|were|does|not|but|for|has|have|here|there|they|them|their|your|each|every|same|then|than|into|about|before|after|while|whether|checks?|returns?|uses?|used|needs?|gets?|sets?|makes?|builds?|sends?|reads?|writes?|keeps?|shows?|opens?|closes?|adds?|removes?|fetch(es)?|wraps?|handles?|counts?|counting|carries|carry|says?|saying|value|values|one|two|all|any|also|still|just|per|via|nobody|something|anything|without)\b/i;
+  /\b(the|and|that|with|which|this|from|when|what|would|never|only|because|instead|its|it's|are|was|were|does|not|but|for|has|have|here|there|they|them|their|your|each|every|same|then|than|into|about|before|after|while|whether|checks?|returns?|uses?|used|needs?|gets?|sets?|makes?|builds?|sends?|reads?|writes?|keeps?|shows?|opens?|closes?|adds?|removes?|fetch(es)?|wraps?|handles?|counts?|counting|carries|carry|says?|saying|value|values|one|two|all|any|also|still|just|per|via|nobody|something|anything|without|or|of|in|to|is|by|as|at|if|we|be|do|an)\b/i;
 
 /**
  * Ce qui ne s'écrit qu'en français.
