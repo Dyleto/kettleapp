@@ -70,8 +70,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         _id: newObjectId(),
         order: prev.sessions.length + 1,
         blocks: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        // Des chaînes ISO, comme celles que l'API renvoie : une séance
+        // composée ici doit avoir exactement la forme de celle qui revient,
+        // sans quoi l'enregistrement comparerait deux formes différentes.
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       return { ...prev, sessions: [...prev.sessions, newSession] };
     });
@@ -127,8 +130,11 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
           _id: newObjectId(),
           exercises: block.exercises.map((ex) => ({ ...ex })),
         })),
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        // Des chaînes ISO, comme celles que l'API renvoie : une séance
+        // composée ici doit avoir exactement la forme de celle qui revient,
+        // sans quoi l'enregistrement comparerait deux formes différentes.
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       const sessions = [

@@ -34,6 +34,24 @@ Ce qui vaut d'être écrit :
 
 Ce qui ne vaut pas la peine : paraphraser la ligne suivante.
 
+## Les types viennent de l'API
+
+`src/shared/types/contract.ts` est engendré par kettleapp-api depuis les
+schémas Zod qu'il applique à ses réponses. Ne pas le modifier à la main : cela
+ne changerait rien à ce que l'API envoie, cela ferait seulement mentir les
+types.
+
+Pour le mettre à jour : `npm run contract:build` côté API, puis recopier
+`contract/kettle-contract.ts` ici. `npm run contract:check` compare les deux
+copies à l'octet quand le dépôt de l'API est à côté ; aucun formateur ne doit
+toucher au fichier, c'est cette identité qui rend la comparaison possible.
+
+`src/shared/types/index.ts` ne décrit plus rien : il nomme. Chaque type du
+produit — `Session`, `Client`, `CompletedSession` — est un alias d'un type du
+contrat. Un type écrit à la main ici serait une seconde description de la même
+chose, et les deux divergeraient : c'est déjà arrivé, sur un `endDate` que
+l'API n'a jamais envoyé et sur des `Date` qui sont des chaînes.
+
 ## La discipline de vérification
 
 Un vert ne vaut que si on l'a cassé. Pour chaque mécanisme vérifié, on le

@@ -1,0 +1,9 @@
+# Le contrat de l'API est engendré, et par l'autre dépôt.
+#
+# Les deux formateurs ne sont pas de la même version — 3.8 côté API, 3.9 ici —
+# et ils ne coupent pas une union longue au même endroit. Le reformater ici
+# rendrait les deux copies différentes à l'octet, et c'est cette identité qui
+# permet de répondre d'un `diff` à « suis-je à jour ? ».
+#
+# Il arrive déjà formaté : c'est le générateur qui s'en charge.
+src/shared/types/contract.ts

@@ -37,10 +37,11 @@ export default tseslint.config(
       ],
     },
   },
-  // Le banc est du code, et rien ne le gardait : ni lint ni formateur ne le
-  // regardaient. Il tourne sous Node, d'où ses propres variables globales.
+  // Le banc et les scripts sont du code, et rien ne les gardait : ni lint ni
+  // formateur ne les regardaient. Ils tournent sous Node, d'où leurs propres
+  // variables globales.
   {
-    files: ['verif/**/*.mjs'],
+    files: ['verif/**/*.mjs', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: { ...globals.node, ...globals.browser },
     },

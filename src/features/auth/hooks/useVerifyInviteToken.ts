@@ -1,14 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/shared/config/api';
-import { Coach } from '@/shared/types';
+import { InvitedCoach } from '@/shared/types';
 import { queryKeys } from '@/shared/config/queryKeys';
 
 interface VerifyTokenResponse {
-  coach: Coach;
+  coach: InvitedCoach;
 }
 
 /**
- * Checks an invitation token.
+ * Vérifier un lien d'invitation avant toute connexion.
+ *
+ * `staleTime: Infinity` et aucune reprise : un jeton ne change pas, et son
+ * refus non plus. Réessayer donnerait trois fois la même erreur sur l'écran
+ * d'entrée d'un nouveau client.
  */
 export const useVerifyInviteToken = (token: string | undefined) => {
   return useQuery({

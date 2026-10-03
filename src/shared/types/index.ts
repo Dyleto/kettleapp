@@ -1,384 +1,127 @@
 /**
- * Ce que le client a décidé quant au partage de son ressenti.
+ * Les types de l'API, sous les noms que le front leur donne.
  *
- * `version` est celle du texte auquel il a répondu. Le serveur la compare à la
- * version en vigueur : c'est elle qui décide si la question est reposée.
+ * Ce fichier ne décrit plus rien : il nomme. Chaque type est un alias d'un
+ * type de `contract.ts`, qui est engendré depuis les schémas Zod que l'API
+ * applique à ses réponses — un champ qui n'y figure pas ne sort pas.
+ *
+ * Il décrivait, avant, et c'était une seconde description de la même chose,
+ * écrite à la main. Les deux avaient divergé : le programme y portait un
+ * `endDate` que l'API n'a jamais envoyé, la liste des clients une adresse
+ * e-mail qu'aucun écran ne lit, et toutes les dates y étaient des `Date`
+ * quand ce sont des chaînes qui arrivent — ce que chaque appelant corrigeait
+ * déjà en écrivant `new Date(...)`.
+ *
+ * Les alias restent parce que les noms du produit ne sont pas ceux du
+ * réseau : on écrit `Session`, pas `SessionPayload`, et un écran parle de la
+ * séance d'un client, pas d'une charge utile.
  */
-export interface HealthConsent {
-  granted: boolean;
-  decidedAt: string;
-  version: string;
-}
+import type {
+  AccountSummaryPayload,
+  BlockExercisePayload,
+  BlockExerciseSnapshotPayload,
+  BlockSnapshotPayload,
+  BlockTypePayload,
+  ClientRowPayload,
+  ClientDetailsPayload,
+  CompletedSessionPayload,
+  ExercisePayload,
+  FeedbackPayload,
+  HealthConsentPayload,
+  InviteCheckPayload,
+  LegacyMetricsPayload,
+  PerformedPayload,
+  PerformedSetPayload,
+  ProgramPayload,
+  SessionBlockPayload,
+  SessionPayload,
+  UserPayload,
+} from './contract';
 
-/**
- * Le compte connecté, tel que l'API le rend.
- *
- * Les trois rôles sont des booléens et non un champ unique : un même compte
- * est souvent coach ET client — un coach s'écrit ses propres séances — et un
- * rôle unique l'obligeait à deux comptes, donc à deux connexions.
- */
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture?: string;
-  isAdmin: boolean;
-  isCoach: boolean;
-  isClient: boolean;
-  healthConsent: HealthConsent | null;
-  /** Vrai tant que le client n'a pas répondu au texte actuellement en vigueur. */
-  needsHealthConsent: boolean;
-}
+/** La décision du client sur le partage de son ressenti. */
+export type HealthConsent = HealthConsentPayload;
+
+/** Le compte connecté. Les trois rôles sont des booléens : un même compte est
+ * souvent coach ET client. */
+export type User = UserPayload;
 
 /** Ce que l'écran « Mon compte » a besoin de savoir, rôle par rôle. */
-export interface AccountSummary {
-  asClient: {
-    coaches: {
-      firstName: string;
-      lastName: string;
-      picture?: string;
-      linkedAt: string;
-    }[];
-    completedCount: number;
-    /** Combien de bilans un refus effacerait. Zéro = rien à annoncer. */
-    healthDataCount: number;
-    healthConsent: HealthConsent | null;
-    since: string;
-  } | null;
-  asCoach: {
-    clientCount: number;
-    since: string;
-  } | null;
-}
+export type AccountSummary = AccountSummaryPayload;
 
 /**
- * Un client vu depuis la liste du coach.
+ * Un client dans la liste du coach.
  *
- * `unseenCount` et `lastEffort` n'appartiennent pas au client : ils
- * appartiennent à ce que le coach n'a pas encore lu. Ils voyagent ici parce
- * que la liste les affiche, et qu'une requête par ligne pour les chercher
- * mettait la liste à genoux au-delà d'une dizaine de clients.
+ * Sans adresse e-mail : la liste affiche des noms, et l'API ne l'envoie plus.
+ * Le front en déclarait une — qu'aucun écran ne lisait.
  */
-export interface Client {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  picture?: string;
-  linkedAt: Date;
-  unseenCount: number;
-  /** Absent tant que le client n'a pas terminé une séance. */
-  lastCompletedAt?: Date;
-  /**
-   * Ce qu'il a dit du ressenti de la dernière séance. Absent quand elle n'en
-   * portait pas — un bilan d'avant la refonte, ou terminé sans répondre.
-   */
-  lastEffort?: number;
-}
-
-/** Un coach vu depuis l'espace client : de quoi le nommer, rien de plus. */
-export interface Coach {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  picture?: string;
-  hiredAt: Date;
-}
+export type Client = ClientRowPayload;
 
 /**
- * L'enveloppe d'un programme, sans ses séances.
+ * Le coach qu'un lien d'invitation révèle.
  *
- * Un client a toujours un programme, même vide : l'API le crée au premier
- * accès. Les séances se demandent à part — la liste des clients n'a pas
- * besoin de les charger.
+ * Dérivé de la réponse plutôt que déclaré : le front portait un type `Coach`
+ * avec `_id`, `email` et `hiredAt`, dont la réponse ne contient aucun des
+ * trois. Elle porte `id`, un prénom, un nom et une photo — et c'est tout ce
+ * que l'écran affiche.
  */
-export interface Program {
-  _id: string;
-  endDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type InvitedCoach = InviteCheckPayload['coach'];
 
-/**
- * Un mouvement de la bibliothèque du coach.
- *
- * Il appartient au coach (`createdBy`) et non à une séance : le même
- * « Goblet squat » sert chez tous ses clients, et corriger sa vidéo une fois
- * la corrige partout. C'est aussi pourquoi un bilan en garde un instantané —
- * voir `BlockExerciseSnapshot`.
- */
-export interface Exercise {
-  _id: string;
-  name: string;
-  description?: string;
-  videoUrl?: string;
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-  /** Nombre de séances du coach où l'exercice apparaît. Servi par l'API. */
-  usageCount?: number;
-}
+/** Un mouvement de la bibliothèque du coach. */
+export type Exercise = ExercisePayload;
 
-// ─── Blocks ──────────────────────────────────────────────────────────────────
+/** Les onze formats de bloc. L'union vient du contrat : un `switch` doit
+ * cesser de compiler le jour où un format s'ajoute. */
+export type BlockType = BlockTypePayload;
 
-/**
- * Les formats de bloc que l'atelier sait écrire.
- *
- * Ce n'est pas une taxonomie ouverte : chaque valeur a son rendu dans
- * l'éditeur, son minuteur dans le mode guidé et sa façon de s'écrire dans la
- * prescription. En ajouter un veut dire passer par ces trois endroits, et
- * TypeScript est ce qui le rappelle.
- */
-export type BlockType =
-  | 'warmup'
-  | 'emom'
-  | 'every'
-  | 'amrap'
-  | 'timecap'
-  | 'chipper'
-  | 'classic'
-  | 'tabata'
-  | 'onoff'
-  | 'pyramid'
-  | 'ladder';
+/** Un exercice tel qu'il est prescrit dans un bloc. */
+export type BlockExercise = BlockExercisePayload;
 
-/**
- * Une mesure que Kettle ne connaît pas — « 400 m », « 20 cal ».
- *
- * L'unité est une chaîne libre et le restera : enfermer les distances, les
- * calories et le reste dans une énumération revenait à refuser au coach tout
- * ce qui n'y figurait pas, et la liste n'a pas de fin.
- */
-export interface CustomMetric {
-  value: number;
-  unit: string;
-}
+/** Un bloc : un format, et les exercices qu'il enchaîne. */
+export type SessionBlock = SessionBlockPayload;
 
-/**
- * Un exercice tel qu'il est prescrit dans un bloc.
- *
- * Il pointe vers l'exercice de la bibliothèque et porte, à côté, ce qui
- * n'appartient qu'à cette séance-là : les doses et la consigne. Le mouvement
- * est partagé, la prescription ne l'est pas.
- */
-export interface BlockExercise {
-  exercise: Exercise;
-  order: number;
-  sets?: number;
-  restBetweenSets?: number;
-  reps?: number;
-  duration?: number;
-  customMetric?: CustomMetric;
-  /**
-   * La consigne du coach pour cet exercice, dans cette séance-là.
-   *
-   * Distincte de `exercise.description`, qui décrit le mouvement en général et
-   * vit dans la bibliothèque, partagée par tous les clients et toutes les
-   * séances.
-   */
-  note?: string;
-}
-
-/**
- * Un bloc d'une séance : un format, et les exercices qu'il enchaîne.
- *
- * Presque tous les champs sont optionnels parce qu'aucun format ne les
- * utilise tous — un AMRAP a un `durationMinutes`, un Tabata un `workDuration`
- * et un `restDuration`, un classique ni l'un ni l'autre. Un type par format
- * aurait été plus juste, mais l'atelier change le type d'un bloc d'un clic,
- * en gardant ses exercices : une union discriminée l'obligerait à
- * reconstruire l'objet à chaque changement, et à perdre ce que l'autre
- * format ne porte pas.
- */
-export interface SessionBlock {
-  _id: string;
-  type: BlockType;
-  label?: string;
-  order: number;
-  notes?: string;
-  durationMinutes?: number;
-  intervalMinutes?: number;
-  rounds?: number;
-  restBetweenRounds?: number;
-  workDuration?: number;
-  restDuration?: number;
-  repsScheme?: number[];
-  exercises: BlockExercise[];
-}
-
-// ─── Session ─────────────────────────────────────────────────────────────────
-
-/**
- * Une séance du programme, telle que le coach l'a écrite.
- *
- * C'est la prescription vivante : elle change quand le coach la corrige. Ce
- * que le client a fait un jour donné vit dans `CompletedSession`, qui en
- * garde une copie figée.
- */
-export interface Session {
-  _id: string;
-  order: number;
-  /** Le nom libre du coach — « Full body A ». Absent : la séance dit son rang. */
-  name?: string;
-  notes?: string;
-  /**
-   * Les jours que le coach conseille, lundi = 0. Un conseil : un jour manqué
-   * ne crée aucune dette. Absent ou vide = la séance n'est liée à aucun jour.
-   */
-  suggestedDays?: number[];
-  blocks: SessionBlock[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+/** Une séance du programme, telle que le coach l'a écrite. */
+export type Session = SessionPayload;
 
 /** Le programme d'un client, du point de vue de l'écran : ses séances. */
-export interface ClientProgram {
-  sessions: Session[];
-}
+export type ClientProgram = Pick<ProgramPayload, 'sessions'>;
 
-/** Un client et son programme, pour l'atelier : une seule requête plutôt
- * que deux, l'écran ayant besoin des deux à la fois. */
-export interface ClientWithDetails extends Client {
-  program: ClientProgram;
-  unseenCount: number;
-}
+/** Un client et son programme — une seule requête pour l'atelier, qui a
+ * besoin des deux à la fois. */
+export type ClientWithDetails = ClientDetailsPayload;
 
-// ─── Completed Session (snapshot) ────────────────────────────────────────────
+/** Un exercice figé le jour où la séance a été faite. */
+export type BlockExerciseSnapshot = BlockExerciseSnapshotPayload;
 
-/**
- * Un exercice figé le jour où la séance a été faite.
- *
- * `exercise` est une copie et non une référence : renommer un mouvement, ou
- * le supprimer de la bibliothèque, ne doit pas réécrire — ni vider — un
- * historique déjà enregistré. Le type est volontairement lâche
- * (`Record<string, unknown>`), l'instantané gardant ce que l'exercice
- * portait à l'époque, champs d'alors compris.
- */
-export interface BlockExerciseSnapshot {
-  exercise: Record<string, unknown>;
-  order: number;
-  sets?: number;
-  restBetweenSets?: number;
-  reps?: number;
-  duration?: number;
-  customMetric?: CustomMetric;
-  /** La consigne du coach, telle qu'elle était le jour de la séance. */
-  note?: string;
-  performed?: PerformedValues;
-}
+/** Un bloc figé : ce qui était demandé, et ce qui en a été fait. */
+export type BlockSnapshot = BlockSnapshotPayload;
 
-/**
- * Un bloc figé, avec ce qui a été demandé et ce qui a été fait.
- *
- * `type` est ici une chaîne et non `BlockType` : un bilan de l'an dernier
- * peut porter un format qui n'existe plus, et il doit rester lisible.
- */
-export interface BlockSnapshot {
-  type: string;
-  label?: string;
-  order: number;
-  notes?: string;
-  durationMinutes?: number;
-  intervalMinutes?: number;
-  /** Les tours prescrits par le coach. */
-  rounds?: number;
-  /** Tours réellement bouclés — le score, quand le format en a un. */
-  performedRounds?: number;
-  restBetweenRounds?: number;
-  workDuration?: number;
-  restDuration?: number;
-  repsScheme?: number[];
-  exercises: BlockExerciseSnapshot[];
-}
+/** Une séance terminée : la prescription de ce jour-là, et ce qui en a été
+ * fait. */
+export type CompletedSession = CompletedSessionPayload;
 
-/**
- * Une séance terminée : ce qu'elle demandait ce jour-là, et ce qui en a été
- * fait.
- *
- * Tout est figé, jusqu'au nom et au rang de la séance. C'est ce qui permet
- * au coach de corriger son programme sans réécrire l'histoire, et c'est
- * aussi ce qui laisse comparer une séance d'aujourd'hui à la même d'il y a un
- * mois : les deux instantanés se comparent, les prescriptions vivantes non.
- */
-export interface CompletedSession {
-  _id: string;
-  completedAt: Date;
-  originalSessionId: string;
-  sessionOrder: number;
-  /**
-   * Le nom que portait la séance ce jour-là, figé comme son rang : renommer une
-   * séance ne réécrit pas les bilans déjà enregistrés.
-   */
-  sessionName?: string;
-  blocks: BlockSnapshot[];
-  coachNotes?: string;
-  feedback?: SessionFeedback;
-  /** @deprecated L'ancien bilan à cinq axes. Encore lu, plus jamais écrit. */
-  metrics?: SessionMetrics;
-  clientNotes?: string;
-  viewedByCoach: boolean;
-  editedAt?: Date;
-}
+/** Le ressenti d'une séance : une note, et deux compléments facultatifs. */
+export type SessionFeedback = FeedbackPayload;
 
-// ─── Ressenti ────────────────────────────────────────────────────────────────
+/** Ce qui peut expliquer un ressenti. Dérivé du ressenti lui-même : la liste
+ * vit dans le contrat, et une seconde copie ici divergerait. */
+export type FeedbackTag = NonNullable<SessionFeedback['tags']>[number];
 
-/**
- * Ce qui peut expliquer un ressenti, quand le chiffre seul ne suffit pas.
- *
- * Six étiquettes, pas davantage : une liste plus longue se parcourt au lieu
- * de se reconnaître, et le bilan se remplit debout, en fin de séance.
- */
-export type FeedbackTag =
-  'poor_sleep' | 'pain' | 'stress' | 'fatigue' | 'illness' | 'great_shape';
+/** @deprecated L'ancien bilan à cinq axes. Encore lu, plus jamais écrit. */
+export type SessionMetrics = LegacyMetricsPayload;
 
-/**
- * Le ressenti d'une séance, en une note et deux compléments facultatifs.
- *
- * A remplacé cinq curseurs — stress, humeur, énergie, sommeil, courbatures —
- * que presque personne ne remplissait jusqu'au bout. Ce qui intéresse le
- * coach tient dans « c'était trop dur » ou « trop facile », et le reste
- * s'explique par une étiquette.
- */
-export interface SessionFeedback {
-  /** 1 « trop facile » … 5 « trop dure ». La cible est 3, au centre. */
-  effort: number;
-  tags?: FeedbackTag[];
-  note?: string;
-}
+/** Ce que le client a fait sur UNE série. Une clé absente veut dire « non
+ * renseigné » — jamais zéro. */
+export type PerformedSet = PerformedSetPayload;
 
-/** @deprecated Remplacé par `SessionFeedback`. Gardé pour relire
- * l'historique déjà enregistré. */
-export interface SessionMetrics {
-  stress: number;
-  mood: number;
-  energy: number;
-  sleep: number;
-  soreness: number;
-}
+/** Ce que le client a réellement fait sur un exercice, série par série. */
+export type PerformedValues = PerformedPayload;
 
-/**
- * Ce que le client a fait sur UNE série.
- * Une clé absente veut dire « non renseigné » — jamais zéro.
- */
-export interface PerformedSet {
-  weight?: number;
-  reps?: number;
-  duration?: number;
-}
-
-/**
- * Ce que le client a réellement fait, série par série.
- *
- * La liste s'arrête où l'exercice s'est arrêté : une série prescrite qui n'y
- * est pas n'a pas été faite. « J'ai fait mes quatre séries » et « j'ai
- * abandonné à la deuxième » sont deux informations différentes, et l'ancien
- * couple unique charge/répétitions n'en portait aucune.
- */
-export interface PerformedValues {
-  sets: PerformedSet[];
-}
+// ─── Ce que le front envoie ─────────────────────────────────────────────────
+//
+// Les deux types qui suivent décrivent une requête et non une réponse : ils
+// ne viennent donc pas du contrat de sortie. L'API les valide de son côté
+// (`client.schema.ts`), et c'est cette validation qui fait foi — ceux-ci
+// disent seulement ce que le front compose.
 
 /**
  * Ce qui a été réalisé sur un exercice, adressé par sa position dans
