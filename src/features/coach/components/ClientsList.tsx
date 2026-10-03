@@ -219,8 +219,8 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           md: '32px minmax(0, 1fr) 84px 108px 152px',
         }}
         templateAreas={{
-          base: `"avatar nom nom attente" "avatar etat anciennete attente"`,
-          md: `"avatar nom etat anciennete attente"`,
+          base: `"avatar name name waiting" "avatar status since waiting"`,
+          md: `"avatar name status since waiting"`,
         }}
       >
         <Avatar.Root size="sm" gridArea="avatar" flexShrink={0}>
@@ -229,7 +229,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
         </Avatar.Root>
 
         <Text
-          gridArea="nom"
+          gridArea="name"
           fontWeight="semibold"
           fontSize="sm"
           truncate
@@ -241,7 +241,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
         {/* Les cellules vides restent vides, mais à leur place : c'est ce
             qui permet de comparer deux lignes sans les relire. */}
         <Text
-          gridArea="etat"
+          gridArea="status"
           fontSize="xs"
           fontWeight="bold"
           color={effort ? EFFORT_ZONE_COLOR[effort.zone] : 'fg.muted'}
@@ -251,13 +251,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           {cells.status}
         </Text>
 
-        <Text
-          gridArea="anciennete"
-          fontSize="xs"
-          color="fg.muted"
-          truncate
-          minW={0}
-        >
+        <Text gridArea="since" fontSize="xs" color="fg.muted" truncate minW={0}>
           {cells.since}
         </Text>
 
@@ -267,7 +261,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
             avec une couleur qui veut dire autre chose. Seule une séance non
             lue appelle une action, donc seule elle porte l'accent. */}
         <Text
-          gridArea="attente"
+          gridArea="waiting"
           fontSize="xs"
           textAlign="end"
           whiteSpace="nowrap"

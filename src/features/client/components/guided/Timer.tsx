@@ -188,7 +188,7 @@ export const OnDemandTimer = ({
   label: string;
   couleur: string;
 }) => {
-  const [isCurrent, setEnCours] = useState(false);
+  const [isCurrent, setIsCurrent] = useState(false);
 
   if (isCurrent)
     return (
@@ -200,7 +200,7 @@ export const OnDemandTimer = ({
             // Personne ne regarde l'écran à ce moment-là : on le dit au
             // poignet. `Timer` ne le fait lui-même que sans `onComplete`.
             navigator.vibrate?.([120, 80, 120]);
-            setEnCours(false);
+            setIsCurrent(false);
           }}
           compact
         />
@@ -211,7 +211,7 @@ export const OnDemandTimer = ({
     <Box pl={4}>
       <Box
         as="button"
-        onClick={() => setEnCours(true)}
+        onClick={() => setIsCurrent(true)}
         aria-label={`Lancer le décompte — ${label}`}
         minH="44px"
         display="flex"
