@@ -1,13 +1,14 @@
 # Ce qui doit tenir avant toute fusion.
 #
-# Rien ne gardait ce dépôt jusqu'ici : le banc de `verif/` — dix suites,
-# 169 assertions — ne tournait que lorsque quelqu'un pensait à le lancer, et
+# Rien ne gardait ce dépôt jusqu'ici : le banc de `verif/` — neuf suites dans
+# un vrai navigateur — ne tournait que lorsque quelqu'un pensait à le lancer, et
 # deux régressions ont atteint `develop` en une seule semaine faute de lui.
 #
 # Le banc est la raison d'être de ce fichier. Le typage, le lint et le
 # formateur coûtent peu et attrapent des fautes de frappe ; le banc est ce qui
 # attrape une séance qui cesse d'enregistrer, un bouton qui sort de l'écran,
-# ou un repos qui cache le bloc.
+# ou un repos qui cache le bloc. Les tests unitaires, eux, éprouvent ce que
+# les fonctions décident, sur des cas qu'aucun écran n'atteint.
 name: CI
 
 on:
@@ -58,7 +59,7 @@ jobs:
       - run: npm test
 
   bench:
-    name: Le banc (10 suites)
+    name: Le banc (9 suites)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
