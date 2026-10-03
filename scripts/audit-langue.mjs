@@ -65,7 +65,7 @@ const ENGLISH =
  * mort qui m'a coûté deux cents blocs.
  */
 const FRENCH =
-  /[àâäçéèêëîïôöûùüœÀÂÇÉÈÊËÎÏÔÛÙ]|[«»]|\b(le|les|une|des|du|aux|cette|qui|que|pas|pour|dans|avec|sans|donc|mais|toute|elle|leur|ne|est|ces|deux|rien|quand|parce|son|sa|ses|au|ce|il|et|ou|un|la|se)\b|\b[ldqsjnmct]'/;
+  /[àâäçéèêëîïôöûùüœÀÂÇÉÈÊËÎÏÔÛÙ]|[«»]|\b(le|les|une|des|du|aux|cette|qui|que|pas|pour|dans|avec|sans|donc|mais|toute|elle|leur|ne|est|ces|deux|rien|quand|parce|son|sa|ses|au|ce|il|et|ou|un|la|se)\b|\b[ldqsjnmct]'/i;
 
 /**
  * La seconde règle, et la plus solide : de la prose sans aucune marque de
@@ -83,13 +83,16 @@ const FRENCH =
  * élision, un mot courant.
  *
  * Le seuil de six mots épargne ce qui n'est pas de la prose : une directive,
- * une adresse, un nom de fichier, une commande à copier.
+ * une adresse, un nom de fichier, une commande à copier. S'y ajoutent deux
+ * formes qui n'en sont pas davantage : un marqueur de route — « GET
+ * /api/client/program » — et un trait de séparation, dont le titre porte
+ * souvent un nom de produit.
  */
-const MIN_PROSE_WORDS = 6;
+const MIN_PROSE_WORDS = 4;
 
 /** Ce qui n'est pas de la prose et n'a pas à l'être. */
 const TECHNICAL =
-  /eslint|ts-(expect|ignore|nocheck)|prettier-ignore|https?:\/\/|^\s*[\w./@-]+\s*$/;
+  /eslint|ts-(expect|ignore|nocheck)|prettier-ignore|https?:\/\/|^\s*[\w./@-]+\s*$|\b(GET|POST|PUT|PATCH|DELETE)\s+\/|─{3,}|={3,}|\$\{/;
 
 const proseWordCount = (bare) =>
   (
@@ -104,7 +107,7 @@ const withoutQuotes = (block) =>
     .replace(/«[^»]*»/g, ' ')
     .replace(/`[^`]*`/g, ' ')
     .replace(/"[^"]*"/g, ' ')
-    .replace(/'[^'\n]{2,}'/g, ' ');
+    .replace(/(^|[^A-Za-zÀ-ÿ])'[^'\n]{2,}'/g, '$1 ');
 
 const files = [];
 const walk = (path) => {

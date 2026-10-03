@@ -59,7 +59,7 @@ export const BlockFrame = ({
     pl={3}
     py={1}
   >
-    {/* ── Header: type · free name · settings ── */}
+    {/* ── L'en-tête : type · nom libre · réglages ── */}
     {/* Sa gouttière porte des zones de 44 px, comme celle de la
         première ligne juste en dessous : sans cet espacement, les deux se
         recouvraient de 5 px. */}

@@ -14,9 +14,8 @@ export const GRID_LAYOUTS = {
     xl: 'repeat(5, 1fr)',
   },
 
-  /**
-   * Grid 3 colonnes responsive (sessions, programmes)
-   */
+  /** Trois colonnes : séances et programmes, dont les cartes sont plus
+   * larges que des vignettes d'exercice. */
   threeColumns: {
     base: 'repeat(2, 1fr)',
     md: 'repeat(2, 1fr)',

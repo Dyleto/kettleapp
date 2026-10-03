@@ -130,7 +130,8 @@ export const P = ({ children }: { children: ReactNode }) => (
   </Text>
 );
 
-/** A bulleted list, readable on a phone. */
+/** Une liste à puces qui se lit sur un téléphone : les puces sont retirées
+ * du flux pour que le texte garde toute la largeur. */
 export const BulletList = ({ items }: { items: ReactNode[] }) => (
   <VStack as="ul" align="stretch" gap={2} listStyleType="none" pl={0}>
     {items.map((item, i) => (

@@ -26,9 +26,11 @@ Pour les commentaires, la règle a été annoncée tenue quatre fois sans l'êtr
 seuil de trois mots anglais qui laissait passer les commentaires d'une ligne ;
 un commentaire anglais citant un libellé français, dont l'accent concluait au
 français ; et enfin la liste de mots anglais elle-même, incomplète par
-construction. Le script retire ce qui est cité, puis signale tout bloc de six
-mots de prose sans aucune marque de français — c'est le français qu'on exige,
-c'est donc le français qu'on vérifie.
+construction. Le script retire ce qui est cité, puis signale tout bloc de
+quatre mots de prose sans aucune marque de français — c'est le français qu'on
+exige, c'est donc le français qu'on vérifie. Un marqueur de route, un trait de
+séparation, une directive et une adresse en sont exemptés : ce n'est pas de la
+prose.
 
 Pour les identifiants, c'est une liste de mots français, avec la faiblesse
 d'une liste ; plus une règle sans exception : un identifiant ne porte jamais

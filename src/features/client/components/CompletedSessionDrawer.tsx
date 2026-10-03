@@ -388,7 +388,7 @@ export const CompletedSessionDrawer = ({
                     </>
                   )}
 
-                  {/* ── Content: prescribed vs performed ── */}
+                  {/* ── Le corps : prescrit en regard de réalisé ── */}
                   {blocks.length > 0 && (
                     <>
                       <Separator borderColor="whiteAlpha.100" />

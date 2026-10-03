@@ -11,7 +11,8 @@
  */
 export interface YouTubeVideo {
   id: string;
-  /** A Short plays vertically on a phone. */
+  /** Un Short se joue à la verticale : le cadre de lecture n'est pas le
+   * même, et le deviner d'après l'URL évite de demander à l'API YouTube. */
   isShort: boolean;
 }
 
