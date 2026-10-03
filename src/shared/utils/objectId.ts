@@ -23,14 +23,14 @@ const ALEA = Array.from(crypto.getRandomValues(new Uint8Array(5)))
   .join('');
 
 /** Le compteur démarre au hasard pour que deux onglets ne se suivent pas. */
-let compteur = crypto.getRandomValues(new Uint32Array(1))[0] % 0xffffff;
+let counter = crypto.getRandomValues(new Uint32Array(1))[0] % 0xffffff;
 
 /** Un identifiant neuf. Horodatage, part aléatoire de la page, compteur :
  * l'ordre de création reste lisible dans la clé, comme côté serveur. */
 export const newObjectId = (): string => {
-  const secondes = Math.floor(Date.now() / 1000)
+  const seconds = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, '0');
-  compteur = (compteur + 1) % 0x1000000;
-  return secondes + ALEA + compteur.toString(16).padStart(6, '0');
+  counter = (counter + 1) % 0x1000000;
+  return seconds + ALEA + counter.toString(16).padStart(6, '0');
 };

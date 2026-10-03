@@ -21,7 +21,7 @@ const api = axios.create({
  * rôle du compte — un compte porte souvent les deux — mais l'adresse dit où
  * l'on se trouve, et c'est la même règle que pour « Mon compte ».
  */
-const tutoie = () => location.pathname.startsWith('/client');
+const isClientArea = () => location.pathname.startsWith('/client');
 
 /**
  * Les deux pannes qu'un écran ne sait pas expliquer lui-même.
@@ -40,7 +40,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isPublicRoute(location.pathname)) {
       eventEmitter.emit('error', {
         title: 'Session expirée',
-        message: tutoie() ? 'Reconnecte-toi.' : 'Veuillez vous reconnecter.',
+        message: isClientArea()
+          ? 'Reconnecte-toi.'
+          : 'Veuillez vous reconnecter.',
       });
 
       setTimeout(() => {
@@ -53,7 +55,7 @@ api.interceptors.response.use(
         title: 'Accès refusé',
         message:
           error.response?.data?.message ||
-          (tutoie()
+          (isClientArea()
             ? "Tu n'as pas les droits nécessaires."
             : "Vous n'avez pas les permissions nécessaires."),
       });

@@ -1,5 +1,5 @@
 import { Box, Input, Text } from '@chakra-ui/react';
-import { hitAreaTactile } from '@/shared/components/hitArea';
+import { touchHitArea } from '@/shared/components/hitArea';
 import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
 import { useState } from 'react';
 
@@ -150,7 +150,7 @@ export const InlineValue = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      css={hitAreaTactile()}
+      css={touchHitArea()}
       transition="text-decoration-color 0.15s"
     >
       <Text
@@ -272,7 +272,7 @@ export const InlineSequence = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      css={hitAreaTactile()}
+      css={touchHitArea()}
       transition="text-decoration-color 0.15s"
     >
       <Text
@@ -359,7 +359,7 @@ export const InlineText = ({
         display="flex"
         alignItems="center"
         opacity={{ base: 0.7, md: 0 }}
-        css={hitAreaTactile()}
+        css={touchHitArea()}
         _groupHover={{ opacity: 0.7 }}
         _focusVisible={{
           opacity: 1,
@@ -434,7 +434,7 @@ export const InlineText = ({
       textDecorationColor="transparent"
       textUnderlineOffset="3px"
       _hover={{ textDecorationColor: 'var(--chakra-colors-fg-muted)' }}
-      css={hitAreaTactile()}
+      css={touchHitArea()}
       transition="text-decoration-color 0.15s"
     >
       {/* Sans `pre-wrap`, les sauts de ligne tapés seraient aplatis à la

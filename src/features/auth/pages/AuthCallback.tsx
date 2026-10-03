@@ -165,12 +165,12 @@ const AuthCallback = () => {
           </Button>
           {echec === 'serveur' && (
             <Link
-              href={`mailto:${LEGAL.editeur.contactEmail}`}
+              href={`mailto:${LEGAL.publisher.contactEmail}`}
               fontSize="xs"
               color="fg.muted"
               textDecoration="underline"
             >
-              {LEGAL.editeur.contactEmail}
+              {LEGAL.publisher.contactEmail}
             </Link>
           )}
         </VStack>

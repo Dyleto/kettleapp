@@ -17,7 +17,7 @@ export const LegalFooter = () => (
   <HStack gap={3} justify="center" flexWrap="wrap">
     <Link
       as={RouterLink}
-      {...{ to: LEGAL_ROUTES.confidentialite }}
+      {...{ to: LEGAL_ROUTES.privacy }}
       fontSize="xs"
       color="fg.muted"
       _hover={{ color: 'app.primary' }}
@@ -29,7 +29,7 @@ export const LegalFooter = () => (
     </Text>
     <Link
       as={RouterLink}
-      {...{ to: LEGAL_ROUTES.mentions }}
+      {...{ to: LEGAL_ROUTES.legalNotice }}
       fontSize="xs"
       color="fg.muted"
       _hover={{ color: 'app.primary' }}

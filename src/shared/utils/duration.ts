@@ -28,20 +28,20 @@ export const formatDuration = (seconds: number): string => {
   if (total < 60) return `${total}${NBSP}s`;
 
   const minutes = Math.floor(total / 60);
-  const reste = total % 60;
+  const rest = total % 60;
 
   if (minutes < 60) {
-    return reste === 0
+    return rest === 0
       ? `${minutes}${NBSP}min`
-      : `${minutes}${NBSP}min${NBSP}${reste}${NBSP}s`;
+      : `${minutes}${NBSP}min${NBSP}${rest}${NBSP}s`;
   }
 
-  const heures = Math.floor(minutes / 60);
+  const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
   // « 1 h 1 » se lit mal ; une heure se dit avec ses deux chiffres de minutes.
   return mins === 0
-    ? `${heures}${NBSP}h`
-    : `${heures}${NBSP}h${NBSP}${String(mins).padStart(2, '0')}`;
+    ? `${hours}${NBSP}h`
+    : `${hours}${NBSP}h${NBSP}${String(mins).padStart(2, '0')}`;
 };
 
 /**

@@ -95,7 +95,7 @@ export const HealthConsentGate = () => {
             Le détail de ce qu'on conserve est dans la{' '}
             <Link
               as={RouterLink}
-              {...{ to: LEGAL_ROUTES.confidentialite }}
+              {...{ to: LEGAL_ROUTES.privacy }}
               color="app.primary"
               textDecoration="underline"
             >

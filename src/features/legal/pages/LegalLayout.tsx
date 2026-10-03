@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Heading, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
-import { A_COMPLETER, LEGAL } from '@/shared/config/legal';
+import { TO_FILL, LEGAL } from '@/shared/config/legal';
 import { hitArea } from '@/shared/components/hitArea';
 
 /**
@@ -64,7 +64,7 @@ export const LegalLayout = ({
               <Text fontSize="xs" color="fg.muted">
                 Dernière mise à jour :{' '}
                 <Text as="span" fontFamily="mono">
-                  {LEGAL.majLe}
+                  {LEGAL.revisedAt}
                 </Text>
               </Text>
             </VStack>
@@ -116,7 +116,7 @@ export const Article = ({
 
 /** Un intitulé de troisième niveau : les documents légaux s'imbriquent, et
  * un article se subdivise. */
-export const SousTitre = ({ children }: { children: ReactNode }) => (
+export const Subtitle = ({ children }: { children: ReactNode }) => (
   <Heading as="h3" size="sm" fontWeight="semibold" color="fg" mt={1}>
     {children}
   </Heading>
@@ -131,7 +131,7 @@ export const P = ({ children }: { children: ReactNode }) => (
 );
 
 /** A bulleted list, readable on a phone. */
-export const Liste = ({ items }: { items: ReactNode[] }) => (
+export const BulletList = ({ items }: { items: ReactNode[] }) => (
   <VStack as="ul" align="stretch" gap={2} listStyleType="none" pl={0}>
     {items.map((item, i) => (
       <HStack as="li" key={i} gap={2.5} align="baseline">
@@ -148,13 +148,13 @@ export const Liste = ({ items }: { items: ReactNode[] }) => (
 
 /** A "what we do / why / on what legal basis" block. */
 export const Base = ({
-  quoi,
-  pourquoi,
-  fondement,
+  what,
+  why,
+  basis,
 }: {
-  quoi: string;
-  pourquoi: string;
-  fondement: string;
+  what: string;
+  why: string;
+  basis: string;
 }) => (
   <VStack
     align="stretch"
@@ -165,13 +165,13 @@ export const Base = ({
     py={0.5}
   >
     <Text fontSize="sm" fontWeight="semibold" color="fg">
-      {quoi}
+      {what}
     </Text>
     <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-      {pourquoi}
+      {why}
     </Text>
     <Text fontSize="xs" color="app.primary">
-      {fondement}
+      {basis}
     </Text>
   </VStack>
 );
@@ -180,8 +180,8 @@ export const Base = ({
  * Une valeur encore manquante. Elle s'affiche en rouge plutôt que de se
  * fondre dans le texte : un document légal incomplet doit se voir comme tel.
  */
-export const AComplete = ({ valeur }: { valeur: string }) =>
-  valeur === A_COMPLETER ? (
+export const LegalValue = ({ value }: { value: string }) =>
+  value === TO_FILL ? (
     <Text
       as="span"
       bg="app.error/16"
@@ -193,8 +193,8 @@ export const AComplete = ({ valeur }: { valeur: string }) =>
       fontWeight="bold"
       fontFamily="mono"
     >
-      {A_COMPLETER}
+      {TO_FILL}
     </Text>
   ) : (
-    <Text as="span">{valeur}</Text>
+    <Text as="span">{value}</Text>
   );

@@ -7,5 +7,5 @@
  * problème : 520 px de haut est le seuil au-delà duquel la mise en page debout
  * tient encore.
  */
-export const PAYSAGE =
+export const LANDSCAPE =
   '@media (orientation: landscape) and (max-height: 520px)';

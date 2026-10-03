@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 /** La marque laissée dans l'historique, et le seul mot qui identifie nos repères. */
-const REPERE = 'kettleCouche';
+const MARKER = 'kettleCouche';
 
 /**
  * Le bouton retour du téléphone ferme la couche du dessus au lieu de quitter
@@ -31,25 +31,25 @@ const REPERE = 'kettleCouche';
 export const useBackDismiss = (isOpen: boolean, onDismiss: () => void) => {
   // Le gestionnaire de fermeture est relu au moment où le retour arrive, pas
   // figé à l'ouverture : le parent peut se redessiner entre-temps.
-  const fermeture = useRef(onDismiss);
+  const dismissRef = useRef(onDismiss);
   useEffect(() => {
-    fermeture.current = onDismiss;
+    dismissRef.current = onDismiss;
   });
 
   useEffect(() => {
     if (!isOpen) return;
 
-    window.history.pushState({ ...window.history.state, [REPERE]: true }, '');
+    window.history.pushState({ ...window.history.state, [MARKER]: true }, '');
 
-    const surRetour = () => fermeture.current();
-    window.addEventListener('popstate', surRetour);
+    const onPopState = () => dismissRef.current();
+    window.addEventListener('popstate', onPopState);
 
     return () => {
-      window.removeEventListener('popstate', surRetour);
+      window.removeEventListener('popstate', onPopState);
       // Le repère est toujours là : c'est une fermeture ordinaire, et c'est à
       // nous de le retirer. L'écouteur est déjà détaché, donc ce retour
       // n'appellera personne.
-      if (window.history.state?.[REPERE]) window.history.back();
+      if (window.history.state?.[MARKER]) window.history.back();
     };
   }, [isOpen]);
 };

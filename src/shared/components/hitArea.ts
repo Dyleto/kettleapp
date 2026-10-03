@@ -5,7 +5,7 @@ import type { SystemStyleObject } from '@chakra-ui/react';
  * pointe ». Une tablette de 900 px se pilote au doigt, un portable de 1280 px
  * à écran tactile aussi ; la largeur ne le dit pas. `(hover: none)`, si.
  */
-export const TACTILE = '@media (hover: none)';
+export const TOUCH = '@media (hover: none)';
 
 /**
  * Étend la zone tactile d'une commande à 44 px sans toucher à sa taille
@@ -28,7 +28,7 @@ export const TACTILE = '@media (hover: none)';
  *           plancher WCAG 2.5.8 (24 px), et c'est le maximum atteignable à
  *           cet espacement.
  *
- * Cet espacement n'est pas une fatalité : `hitAreaTactile`, plus bas, rend
+ * Cet espacement n'est pas une fatalité : `touchHitArea`, plus bas, rend
  * les 44 px partout où la mise en page écarte d'abord les voisines pour le
  * tactile.
  */
@@ -61,9 +61,9 @@ export const hitArea = (size = 44): SystemStyleObject => ({
  * D'où cette variante plutôt qu'un changement de `hitArea` : elle ne
  * s'applique que là où les voisines ont d'abord été écartées.
  */
-export const hitAreaTactile = (souris = 32): SystemStyleObject => ({
-  ...hitArea(souris),
-  [TACTILE]: {
+export const touchHitArea = (mouse = 32): SystemStyleObject => ({
+  ...hitArea(mouse),
+  [TOUCH]: {
     '&::after': {
       minWidth: '44px',
       minHeight: '44px',
@@ -84,8 +84,8 @@ export const hitAreaTactile = (souris = 32): SystemStyleObject => ({
  * l'éditeur se cassait sur deux niveaux et doublait de hauteur — de 36 px à
  * 77. L'espacement coûte 9 px de largeur et garde l'éditeur lisible.
  */
-export const ecartTactile: SystemStyleObject = {
-  [TACTILE]: { gap: '20px' },
+export const touchGap: SystemStyleObject = {
+  [TOUCH]: { gap: '20px' },
 };
 
 /**
@@ -94,6 +94,6 @@ export const ecartTactile: SystemStyleObject = {
  * La même règle dans l'autre sens : deux lignes qui se suivent à 36 px ne
  * peuvent pas porter chacune une zone de 44 px.
  */
-export const pasTactile: SystemStyleObject = {
-  [TACTILE]: { minHeight: '44px' },
+export const touchRow: SystemStyleObject = {
+  [TOUCH]: { minHeight: '44px' },
 };

@@ -5,7 +5,7 @@ import { Box, HStack, VStack, Text } from '@chakra-ui/react';
 import { hitArea } from '@/shared/components/hitArea';
 import { useState } from 'react';
 import { LuInfo } from 'react-icons/lu';
-import { PAYSAGE } from './media';
+import { LANDSCAPE } from './media';
 import { Timer } from './Timer';
 
 /**
@@ -74,7 +74,7 @@ export const Round = ({
       // Posé à plat, ces gouttières valent 16 px chacune sur 360 px de
       // hauteur. Les cibles gardent leurs 44 px — on ne rétrécit pas ce qu'on
       // touche les mains moites — c'est le vide qui cède.
-      css={{ [PAYSAGE]: { gap: '10px', paddingTop: 0, paddingBottom: 0 } }}
+      css={{ [LANDSCAPE]: { gap: '10px', paddingTop: 0, paddingBottom: 0 } }}
     >
       {duration ? (
         <Timer

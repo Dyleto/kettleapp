@@ -38,11 +38,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import {
-  TACTILE,
-  ecartTactile,
-  hitAreaTactile,
-} from '@/shared/components/hitArea';
+import { TOUCH, touchGap, touchHitArea } from '@/shared/components/hitArea';
 import {
   closestCenter,
   DndContext,
@@ -200,7 +196,7 @@ export const ClientProgramTab = ({
           {/* Les pastilles de jour font 44 px sous un doigt, le bouton de
               note en porte 44 invisibles autour de ses 24 : sans cet écart,
               sa zone mordrait sur la pastille de dimanche. */}
-          <HStack gap={2} css={ecartTactile} align="center">
+          <HStack gap={2} css={touchGap} align="center">
             {/* Le jour conseillé est un attribut de la séance, du même rang
                 que sa note : le coach le pose, une fois, ici. La semaine du
                 client s'en déduit à l'affichage — il n'y a pas d'agenda
@@ -214,7 +210,7 @@ export const ClientProgramTab = ({
                 aria-label="Ajouter une note de séance"
                 title="Ajouter une note de séance"
                 onClick={() => setNoteDemandee(true)}
-                css={hitAreaTactile()}
+                css={touchHitArea()}
                 size="2xs"
                 variant="ghost"
                 color="fg.muted"
@@ -341,7 +337,7 @@ export const ClientProgramTab = ({
             /* Assez larges, trop courts : 32 px de haut sous un doigt. Ils
                            sont seuls sur leur ligne, la hauteur peut donc croître sans
                            rien recouvrir. */
-            css={{ [TACTILE]: { minHeight: '44px' } }}
+            css={{ [TOUCH]: { minHeight: '44px' } }}
             onClick={onDuplicateSession}
           >
             <LuCopy size={13} />
@@ -355,7 +351,7 @@ export const ClientProgramTab = ({
             size="xs"
             variant="ghost"
             color="fg.muted"
-            css={{ [TACTILE]: { minHeight: '44px' } }}
+            css={{ [TOUCH]: { minHeight: '44px' } }}
             onClick={() => setIsCopyOpen(true)}
           >
             <LuUsers size={13} />
@@ -372,7 +368,7 @@ export const ClientProgramTab = ({
             ml="auto"
             color="app.error"
             _hover={{ bg: 'app.error/12' }}
-            css={{ [TACTILE]: { minHeight: '44px' } }}
+            css={{ [TOUCH]: { minHeight: '44px' } }}
             onClick={onRemoveSession}
           >
             <LuTrash2 size={13} />

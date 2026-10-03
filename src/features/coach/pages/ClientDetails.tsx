@@ -28,7 +28,7 @@ import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbac
 import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
 import { BackLink } from '@/shared/components/BackLink';
 import { Header } from '@/shared/components/Header';
-import { TACTILE, hitArea } from '@/shared/components/hitArea';
+import { TOUCH, hitArea } from '@/shared/components/hitArea';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { Exercise, Session } from '@/shared/types';
@@ -368,7 +368,7 @@ const ClientDetails = () => {
               size="sm"
               variant="outline"
               flexShrink={0}
-              css={{ [TACTILE]: { minHeight: '44px' } }}
+              css={{ [TOUCH]: { minHeight: '44px' } }}
               onClick={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
             >
               Journal complet

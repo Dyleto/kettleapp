@@ -1,26 +1,26 @@
 import { Box, Link, Text, VStack } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
-import { AComplete, Article, LegalLayout, Liste, P } from './LegalLayout';
+import { LegalValue, Article, LegalLayout, BulletList, P } from './LegalLayout';
 
 const Mail = () => (
   <Link
-    href={`mailto:${LEGAL.editeur.contactEmail}`}
+    href={`mailto:${LEGAL.publisher.contactEmail}`}
     color="app.primary"
     textDecoration="underline"
   >
-    {LEGAL.editeur.contactEmail}
+    {LEGAL.publisher.contactEmail}
   </Link>
 );
 
-const Hebergeur = ({
+const Host = ({
   role,
-  nom,
-  adresse,
+  name,
+  address,
 }: {
   role: string;
-  nom: string;
-  adresse: string;
+  name: string;
+  address: string;
 }) => (
   <VStack
     align="stretch"
@@ -34,15 +34,15 @@ const Hebergeur = ({
       {role}
     </Text>
     <Text fontSize="sm" fontWeight="semibold">
-      <AComplete valeur={nom} />
+      <LegalValue value={name} />
     </Text>
     <Text fontSize="xs" color="fg.muted">
-      <AComplete valeur={adresse} />
+      <LegalValue value={address} />
     </Text>
   </VStack>
 );
 
-const MentionsLegales = () => (
+const LegalNotice = () => (
   <LegalLayout
     title="Mentions légales"
     intro={
@@ -55,8 +55,8 @@ const MentionsLegales = () => (
   >
     <Article n={1} title="Éditeur">
       <P>
-        Kettle est édité par <AComplete valeur={LEGAL.editeur.nom} />, personne
-        physique agissant à titre non professionnel.
+        Kettle est édité par <LegalValue value={LEGAL.publisher.name} />,
+        personne physique agissant à titre non professionnel.
       </P>
       <P>
         Contact : <Mail />
@@ -74,18 +74,18 @@ const MentionsLegales = () => (
 
     <Article n={2} title="Directeur de la publication">
       <P>
-        <AComplete valeur={LEGAL.editeur.nom} />.
+        <LegalValue value={LEGAL.publisher.name} />.
       </P>
     </Article>
 
     <Article n={3} title="Hébergeurs">
       <VStack align="stretch" gap={4}>
-        <Hebergeur {...LEGAL.hebergeurs.site} />
-        <Hebergeur {...LEGAL.hebergeurs.api} />
-        <Hebergeur
-          role={LEGAL.hebergeurs.base.role}
-          nom={LEGAL.hebergeurs.base.nom}
-          adresse={LEGAL.hebergeurs.base.adresse}
+        <Host {...LEGAL.hosts.site} />
+        <Host {...LEGAL.hosts.api} />
+        <Host
+          role={LEGAL.hosts.base.role}
+          name={LEGAL.hosts.base.name}
+          address={LEGAL.hosts.base.address}
         />
       </VStack>
     </Article>
@@ -95,7 +95,7 @@ const MentionsLegales = () => (
         Le traitement des données personnelles est décrit dans la{' '}
         <Link
           as={RouterLink}
-          {...{ to: LEGAL_ROUTES.confidentialite }}
+          {...{ to: LEGAL_ROUTES.privacy }}
           color="app.primary"
           textDecoration="underline"
         >
@@ -136,7 +136,7 @@ const MentionsLegales = () => (
           sous sa seule responsabilité.
         </Text>
       </Box>
-      <Liste
+      <BulletList
         items={[
           'Consultez un médecin avant de reprendre ou d’intensifier une activité physique, en particulier en cas d’antécédent cardiaque, de grossesse, de blessure ou de traitement en cours.',
           'Interrompez immédiatement un exercice en cas de douleur, de gêne inhabituelle, de vertige ou d’essoufflement anormal.',
@@ -196,4 +196,4 @@ const MentionsLegales = () => (
   </LegalLayout>
 );
 
-export default MentionsLegales;
+export default LegalNotice;

@@ -18,7 +18,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
-import { PAYSAGE } from './guided/media';
+import { LANDSCAPE } from './guided/media';
 import { Timer, OnDemandTimer } from './guided/Timer';
 import { Round } from './guided/Round';
 import { BlockList } from './guided/BlockList';
@@ -714,7 +714,7 @@ export const GuidedSession = ({
       // beaucoup de hauteur. Le seuil regarde la largeur ; ici c'est la
       // hauteur qui décide.
       css={{
-        [PAYSAGE]: { justifyContent: 'stretch', background: 'transparent' },
+        [LANDSCAPE]: { justifyContent: 'stretch', background: 'transparent' },
       }}
     >
       <Box
@@ -723,7 +723,7 @@ export const GuidedSession = ({
         h={{ base: 'full', md: '90vh' }}
         maxH={{ base: 'full', md: '720px' }}
         css={{
-          [PAYSAGE]: {
+          [LANDSCAPE]: {
             maxWidth: '100%',
             height: '100%',
             maxHeight: '100%',
@@ -748,7 +748,7 @@ export const GuidedSession = ({
         <HStack
           justify="flex-end"
           p={4}
-          css={{ [PAYSAGE]: { display: 'none' } }}
+          css={{ [LANDSCAPE]: { display: 'none' } }}
         >
           {boutonQuitter}
         </HStack>
@@ -833,7 +833,7 @@ export const GuidedSession = ({
             display="none"
             flexShrink={0}
             mt={-1}
-            css={{ [PAYSAGE]: { display: 'block' } }}
+            css={{ [LANDSCAPE]: { display: 'block' } }}
           >
             {boutonQuitter}
           </Box>
@@ -1172,7 +1172,7 @@ export const GuidedSession = ({
         {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
             touche les mains moites. C'est la marge qui cède, pas le
             bouton. */}
-        <HStack p={4} gap={3} css={{ [PAYSAGE]: { padding: '8px 12px' } }}>
+        <HStack p={4} gap={3} css={{ [LANDSCAPE]: { padding: '8px 12px' } }}>
           {/* Un contour, comme celui de « J'ai terminé cette séance ». Du
               texte gris sans cadre, à côté d'un « Suivant » ambre plein deux
               fois plus large, se lit « indisponible » : le contraste était

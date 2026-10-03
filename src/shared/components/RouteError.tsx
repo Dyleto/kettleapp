@@ -21,11 +21,11 @@ export function RouteError() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const introuvable = isRouteErrorResponse(error) && error.status === 404;
+  const notFound = isRouteErrorResponse(error) && error.status === 404;
 
   // Une adresse inconnue n'a rien à signaler : seules les vraies erreurs
   // méritent la console.
-  if (!introuvable) console.error('Route error:', error);
+  if (!notFound) console.error('Route error:', error);
 
   return (
     <Box
@@ -38,28 +38,24 @@ export function RouteError() {
       bg="bg.canvas"
     >
       <VStack gap={5} maxW="380px">
-        <Box color={introuvable ? 'fg.muted' : 'app.error'}>
-          {introuvable ? (
-            <LuCompass size={28} />
-          ) : (
-            <LuTriangleAlert size={28} />
-          )}
+        <Box color={notFound ? 'fg.muted' : 'app.error'}>
+          {notFound ? <LuCompass size={28} /> : <LuTriangleAlert size={28} />}
         </Box>
 
         <VStack gap={2}>
           <Heading as="h1" size="lg" lineHeight="1.3">
-            {introuvable
+            {notFound
               ? "Cette page n'existe pas"
               : "Oups ! Quelque chose s'est cassé."}
           </Heading>
           <Text fontSize="sm" color="fg.muted" lineHeight="1.7">
-            {introuvable
+            {notFound
               ? "L'adresse demandée ne correspond à aucun écran de Kettle. Elle a peut-être été tronquée en chemin, ou l'écran a changé d'adresse."
               : 'Une erreur inattendue s’est produite — peut-être une connexion qui a lâché pendant le chargement.'}
           </Text>
         </VStack>
 
-        {introuvable ? (
+        {notFound ? (
           <Button
             bg="app.primary"
             color="bg.canvas"

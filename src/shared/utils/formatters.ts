@@ -40,13 +40,13 @@ export const formatExerciseMetric = (
    * (`blockDefinesOwnMetrics`), la ligne n'avait donc rien à écrire. Elle
    * écrit maintenant la série, là où les autres écrivent « 15 reps ».
    */
-  const paliers =
+  const steps =
     blockDefinesOwnMetrics(blockType) && block?.repsScheme?.length
       ? `${block.repsScheme.join('\u00B7')}\u00A0reps`
       : '';
 
   const fallback =
-    paliers ||
+    steps ||
     (blockSupportsRepsOnly(blockType) && block?.workDuration !== undefined
       ? formatDuration(block.workDuration)
       : '');

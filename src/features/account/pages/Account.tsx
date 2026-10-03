@@ -205,17 +205,17 @@ const Account = ({ space }: Props) => {
           >
             <VStack align="stretch" gap={2}>
               {data.asClient.coaches.map((coach) => {
-                const nom = `${coach.firstName} ${coach.lastName}`.trim();
+                const name = `${coach.firstName} ${coach.lastName}`.trim();
                 return (
-                  <Carte key={`${nom}-${coach.linkedAt}`}>
+                  <Carte key={`${name}-${coach.linkedAt}`}>
                     <HStack gap={3.5}>
                       <Avatar.Root size="md" flexShrink={0}>
-                        <Avatar.Fallback name={nom} />
+                        <Avatar.Fallback name={name} />
                         <Avatar.Image alt="" src={coach.picture} />
                       </Avatar.Root>
                       <VStack align="start" gap={0.5} minW={0}>
                         <Text fontSize="sm" fontWeight="semibold">
-                          {nom}
+                          {name}
                         </Text>
                         <Text fontSize="xs" color="fg.muted">
                           rattaché depuis le{' '}
@@ -279,9 +279,9 @@ const Account = ({ space }: Props) => {
             {[
               {
                 label: 'Politique de confidentialité',
-                to: LEGAL_ROUTES.confidentialite,
+                to: LEGAL_ROUTES.privacy,
               },
-              { label: 'Mentions légales', to: LEGAL_ROUTES.mentions },
+              { label: 'Mentions légales', to: LEGAL_ROUTES.legalNotice },
             ].map(({ label, to }, index) => (
               <Box key={label}>
                 {index > 0 && <Box h="1px" bg="whiteAlpha.100" />}
@@ -313,11 +313,11 @@ const Account = ({ space }: Props) => {
             Pour recevoir une copie de {tu ? 'tes' : 'vos'} données,{' '}
             {tu ? 'écris' : 'écrivez'} à{' '}
             <Link
-              href={`mailto:${LEGAL.editeur.contactEmail}`}
+              href={`mailto:${LEGAL.publisher.contactEmail}`}
               color="app.primary"
               textDecoration="underline"
             >
-              {LEGAL.editeur.contactEmail}
+              {LEGAL.publisher.contactEmail}
             </Link>
             . Réponse sous un mois.
           </Text>

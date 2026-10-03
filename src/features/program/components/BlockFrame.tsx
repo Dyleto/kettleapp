@@ -1,6 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { TACTILE } from '@/shared/components/hitArea';
+import { TOUCH } from '@/shared/components/hitArea';
 import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/shared/types';
 import {
@@ -71,7 +71,7 @@ export const BlockFrame = ({
       /* L'espacement de 44 px vaut aussi entre la dernière ligne de
                l'en-tête et la première ligne d'exercice : 4 px les séparaient, et
                leurs zones se recouvraient de 5. */
-      css={{ [TACTILE]: { minHeight: '44px', paddingBottom: '12px' } }}
+      css={{ [TOUCH]: { minHeight: '44px', paddingBottom: '12px' } }}
     >
       {/* Le titre et les réglages partagent une colonne flexible : les
           réglages se replient quand ils ne tiennent plus, plutôt que de
@@ -87,7 +87,7 @@ export const BlockFrame = ({
         align="baseline"
         gap={2}
         rowGap={1}
-        css={{ [TACTILE]: { rowGap: '20px' } }}
+        css={{ [TOUCH]: { rowGap: '20px' } }}
       >
         <Text
           fontSize="xs"
@@ -119,7 +119,7 @@ export const BlockFrame = ({
         zone de 44 px au tactile, qui mordait de 6 px sur « + exercice » juste
         au-dessus — et la dernière du DOM l'aurait emporté. */}
     {notes && (
-      <Box mt={1} css={{ [TACTILE]: { marginTop: '10px' } }}>
+      <Box mt={1} css={{ [TOUCH]: { marginTop: '10px' } }}>
         {notes}
       </Box>
     )}

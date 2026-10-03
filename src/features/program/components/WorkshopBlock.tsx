@@ -24,11 +24,7 @@ import {
   getBlockLabel,
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
-import {
-  ecartTactile,
-  hitAreaTactile,
-  pasTactile,
-} from '@/shared/components/hitArea';
+import { touchGap, touchHitArea, touchRow } from '@/shared/components/hitArea';
 import { formatDuration } from '@/shared/utils/formatters';
 import { InlineText, InlineValue } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';
@@ -132,7 +128,7 @@ const ExerciseRow = ({
       flexWrap="wrap"
       align="center"
       css={{
-        ...pasTactile,
+        ...touchRow,
         // Visibles en permanence, en retrait : à opacité nulle, un coach qui
         // découvrait l'éditeur ne pouvait pas deviner qu'un bloc se déplace
         // ou se supprime — la commande n'existait qu'une fois survolée.
@@ -267,7 +263,7 @@ const ExerciseRow = ({
         <HStack
           data-row-gutter
           gap={2}
-          css={ecartTactile}
+          css={touchGap}
           flexShrink={0}
           opacity={{ base: 1, md: 0.35 }}
           transition="opacity 0.15s"
@@ -279,7 +275,7 @@ const ExerciseRow = ({
                 : `Ajouter une consigne — ${exercise.exercise.name}`
             }
             title={hasNote ? 'Modifier la consigne' : 'Ajouter une consigne'}
-            css={hitAreaTactile()}
+            css={touchHitArea()}
             size="2xs"
             variant="ghost"
             color={hasNote ? 'app.primary' : 'fg.muted'}
@@ -298,7 +294,7 @@ const ExerciseRow = ({
               aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
               title={`Mesure en ${KIND_LABEL[kind]} — changer`}
               onClick={switchKind}
-              css={hitAreaTactile()}
+              css={touchHitArea()}
               fontSize="10px"
               fontWeight="bold"
               letterSpacing="wide"
@@ -313,7 +309,7 @@ const ExerciseRow = ({
           <IconButton
             aria-label={`Retirer ${exercise.exercise.name}`}
             title="Retirer cet exercice"
-            css={hitAreaTactile()}
+            css={touchHitArea()}
             size="2xs"
             variant="ghost"
             color="fg.muted"
@@ -445,7 +441,7 @@ export const WorkshopBlock = ({
       gutter={
         <HStack
           gap={2}
-          css={ecartTactile}
+          css={touchGap}
           opacity={{ base: 1, md: 0.35 }}
           _groupHover={{ opacity: 1 }}
           _groupFocusWithin={{ opacity: 1 }}
@@ -459,7 +455,7 @@ export const WorkshopBlock = ({
               <IconButton
                 aria-label={`Champs facultatifs du bloc ${getBlockLabel(block.type)}`}
                 title="Nom et consigne du bloc"
-                css={hitAreaTactile()}
+                css={touchHitArea()}
                 size="2xs"
                 variant="ghost"
                 color="fg.muted"
@@ -500,7 +496,7 @@ export const WorkshopBlock = ({
           <IconButton
             aria-label={`Réorganiser le bloc ${getBlockLabel(block.type)}`}
             title="Déplacer ce bloc"
-            css={hitAreaTactile()}
+            css={touchHitArea()}
             size="2xs"
             variant="ghost"
             color="fg.muted"
@@ -513,7 +509,7 @@ export const WorkshopBlock = ({
           <IconButton
             aria-label={`Supprimer le bloc ${getBlockLabel(block.type)}`}
             title="Supprimer ce bloc"
-            css={hitAreaTactile()}
+            css={touchHitArea()}
             size="2xs"
             variant="ghost"
             color="fg.muted"

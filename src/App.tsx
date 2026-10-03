@@ -53,11 +53,9 @@ const History = React.lazy(() => import('@/features/client/pages/History'));
 // il n'a pas à changer d'espace pour se relire.
 const Account = React.lazy(() => import('@/features/account/pages/Account'));
 
-const Confidentialite = React.lazy(
-  () => import('@/features/legal/pages/Confidentialite')
-);
-const MentionsLegales = React.lazy(
-  () => import('@/features/legal/pages/MentionsLegales')
+const Privacy = React.lazy(() => import('@/features/legal/pages/Privacy'));
+const LegalNotice = React.lazy(
+  () => import('@/features/legal/pages/LegalNotice')
 );
 
 const ClientDetailsRedirect = () => {
@@ -82,8 +80,8 @@ const router = createBrowserRouter(
       <Route path="no-role" element={<NoRole />} />
 
       {/* Servis par l'application, et lisibles sans compte. */}
-      <Route path="confidentialite" element={<Confidentialite />} />
-      <Route path="mentions-legales" element={<MentionsLegales />} />
+      <Route path="confidentialite" element={<Privacy />} />
+      <Route path="mentions-legales" element={<LegalNotice />} />
 
       {/* Routes Coach */}
       <Route path="coach" element={<CoachLayout />}>

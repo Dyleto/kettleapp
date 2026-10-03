@@ -1,5 +1,5 @@
 import { Box, HStack } from '@chakra-ui/react';
-import { TACTILE, hitArea } from '@/shared/components/hitArea';
+import { TOUCH, hitArea } from '@/shared/components/hitArea';
 import { dayChipStyle } from '@/shared/components/dayChip';
 import { WEEKDAY_FULL, WEEKDAY_SHORT } from '@/features/client/sessionDates';
 
@@ -66,7 +66,7 @@ export const SuggestedDaysPicker = ({
                            déjà faire. */
             css={{
               ...hitArea(32),
-              [TACTILE]: { minWidth: '44px', minHeight: '44px' },
+              [TOUCH]: { minWidth: '44px', minHeight: '44px' },
             }}
             _hover={{ borderColor: active ? 'app.primary' : 'whiteAlpha.400' }}
             transition="border-color 0.15s, background-color 0.15s"

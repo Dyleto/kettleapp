@@ -212,11 +212,11 @@ const Login: React.FC = () => {
                 L'espace coach ne s'ouvre pas tout seul à l'inscription.
                 Écrivez-nous à{' '}
                 <Link
-                  href={`mailto:${LEGAL.editeur.contactEmail}`}
+                  href={`mailto:${LEGAL.publisher.contactEmail}`}
                   color="app.primary"
                   textDecoration="underline"
                 >
-                  {LEGAL.editeur.contactEmail}
+                  {LEGAL.publisher.contactEmail}
                 </Link>{' '}
                 et nous l'ouvrons pour votre compte.
               </Text>

@@ -2,26 +2,26 @@ import { Link, Text, VStack } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
 import {
-  AComplete,
+  LegalValue,
   Article,
   Base,
   LegalLayout,
-  Liste,
+  BulletList,
   P,
-  SousTitre,
+  Subtitle,
 } from './LegalLayout';
 
 const Mail = () => (
   <Link
-    href={`mailto:${LEGAL.editeur.contactEmail}`}
+    href={`mailto:${LEGAL.publisher.contactEmail}`}
     color="app.primary"
     textDecoration="underline"
   >
-    {LEGAL.editeur.contactEmail}
+    {LEGAL.publisher.contactEmail}
   </Link>
 );
 
-const Confidentialite = () => (
+const Privacy = () => (
   <LegalLayout
     title="Politique de confidentialité"
     intro={
@@ -38,9 +38,9 @@ const Confidentialite = () => (
     <Article n={1} title="Qui est responsable">
       <P>
         Le responsable du traitement est{' '}
-        <AComplete valeur={LEGAL.editeur.nom} />, éditeur de Kettle, joignable à{' '}
-        <Mail />. C'est lui qui décide de ce qui est collecté et de l'usage qui
-        en est fait.
+        <LegalValue value={LEGAL.publisher.name} />, éditeur de Kettle,
+        joignable à <Mail />. C'est lui qui décide de ce qui est collecté et de
+        l'usage qui en est fait.
       </P>
       <P>
         Les coachs qui utilisent Kettle n'ont pas ce pouvoir. Ils consultent les
@@ -51,7 +51,7 @@ const Confidentialite = () => (
     </Article>
 
     <Article n={2} title="Les données traitées">
-      <SousTitre>Identité — transmise par Google</SousTitre>
+      <Subtitle>Identité — transmise par Google</Subtitle>
       <P>
         Kettle n'a pas de mot de passe. On s'y connecte avec un compte Google,
         qui nous transmet quatre informations : adresse e-mail, prénom, nom,
@@ -59,8 +59,8 @@ const Confidentialite = () => (
         passe Google, ni vos contacts, ni votre agenda, ni vos fichiers.
       </P>
 
-      <SousTitre>Entraînement</SousTitre>
-      <Liste
+      <Subtitle>Entraînement</Subtitle>
+      <BulletList
         items={[
           'Le programme : séances, blocs, exercices, consignes, jours conseillés',
           'Pour un coach : sa bibliothèque d’exercices — nom, description, lien vidéo',
@@ -69,9 +69,9 @@ const Confidentialite = () => (
         ]}
       />
 
-      <SousTitre>Santé — uniquement avec votre accord explicite</SousTitre>
+      <Subtitle>Santé — uniquement avec votre accord explicite</Subtitle>
       <P>Après une séance, un client peut déclarer trois choses :</P>
-      <Liste
+      <BulletList
         items={[
           'un niveau d’effort, de 1 à 5',
           'des étiquettes de ressenti : mal dormi, douleur, stressé, fatigué, malade, en forme',
@@ -102,8 +102,8 @@ const Confidentialite = () => (
         reposer la question si ce texte change.
       </P>
 
-      <SousTitre>Techniques</SousTitre>
-      <Liste
+      <Subtitle>Techniques</Subtitle>
+      <BulletList
         items={[
           <>
             Un cookie de session nommé{' '}
@@ -120,30 +120,30 @@ const Confidentialite = () => (
     <Article n={3} title="Pourquoi, et sur quelle base légale">
       <VStack align="stretch" gap={4}>
         <Base
-          quoi="Vous connecter et tenir votre compte"
-          pourquoi="Sans compte, rien n’est rattachable à personne."
-          fondement="Exécution du contrat — art. 6.1.b"
+          what="Vous connecter et tenir votre compte"
+          why="Sans compte, rien n’est rattachable à personne."
+          basis="Exécution du contrat — art. 6.1.b"
         />
         <Base
-          quoi="Construire, afficher et enregistrer les programmes et les séances"
-          pourquoi="C’est le service lui-même."
-          fondement="Exécution du contrat — art. 6.1.b"
+          what="Construire, afficher et enregistrer les programmes et les séances"
+          why="C’est le service lui-même."
+          basis="Exécution du contrat — art. 6.1.b"
         />
         <Base
-          quoi="Enregistrer les étiquettes de ressenti et les commentaires"
-          pourquoi="Permettre au coach d’adapter l’entraînement à votre état."
-          fondement="Consentement explicite — art. 9.2.a"
+          what="Enregistrer les étiquettes de ressenti et les commentaires"
+          why="Permettre au coach d’adapter l’entraînement à votre état."
+          basis="Consentement explicite — art. 9.2.a"
         />
         <Base
-          quoi="Journaliser les requêtes du serveur"
-          pourquoi="Diagnostiquer les pannes, détecter les abus et les tentatives d’intrusion."
-          fondement="Intérêt légitime — art. 6.1.f"
+          what="Journaliser les requêtes du serveur"
+          why="Diagnostiquer les pannes, détecter les abus et les tentatives d’intrusion."
+          basis="Intérêt légitime — art. 6.1.f"
         />
       </VStack>
     </Article>
 
     <Article n={4} title="Qui voit quoi">
-      <Liste
+      <BulletList
         items={[
           'Votre coach voit votre identité, votre programme, vos séances réalisées avec vos charges et votre niveau d’effort — et, si vous l’avez accepté, vos étiquettes de ressenti et vos commentaires.',
           'Les autres clients de votre coach ne voient rien de vous.',
@@ -164,7 +164,7 @@ const Confidentialite = () => (
         Kettle s'appuie sur quatre prestataires, et sur eux seuls. Chacun
         n'accède aux données que pour exécuter sa prestation.
       </P>
-      <Liste
+      <BulletList
         items={[
           <>
             <b>Google Ireland Limited</b> — authentification. Google sait que
@@ -172,16 +172,16 @@ const Confidentialite = () => (
             faites.
           </>,
           <>
-            <b>{LEGAL.hebergeurs.base.nom}</b> — base de données, région{' '}
-            <AComplete valeur={LEGAL.hebergeurs.base.region} />.
+            <b>{LEGAL.hosts.base.name}</b> — base de données, région{' '}
+            <LegalValue value={LEGAL.hosts.base.region} />.
           </>,
           <>
-            <b>{LEGAL.hebergeurs.site.nom}</b> — hébergement du site et de
+            <b>{LEGAL.hosts.site.name}</b> — hébergement du site et de
             l'application.
           </>,
           <>
-            <b>{LEGAL.hebergeurs.api.nom}</b> — hébergement du serveur
-            applicatif, région {LEGAL.hebergeurs.api.region}.
+            <b>{LEGAL.hosts.api.name}</b> — hébergement du serveur applicatif,
+            région {LEGAL.hosts.api.region}.
           </>,
         ]}
       />
@@ -217,18 +217,18 @@ const Confidentialite = () => (
     </Article>
 
     <Article n={6} title="Combien de temps">
-      <Liste
+      <BulletList
         items={[
           'Votre compte et tout ce qui s’y rattache : tant que le compte existe. Sa suppression est immédiate et définitive.',
           <>
-            Un compte resté inactif {LEGAL.conservation.compteInactif} est
+            Un compte resté inactif {LEGAL.retention.inactiveAccount} est
             supprimé.
           </>,
           'Les étiquettes de ressenti et les commentaires : effacés dès que vous retirez votre accord, sans attendre.',
           'La trace de votre réponse au consentement : conservée tant que le compte existe, parce qu’elle est la preuve du fondement de la collecte.',
           'Les sessions de connexion : 7 jours, puis il faut se reconnecter.',
           'Les liens d’invitation : 7 jours, puis ils expirent d’eux-mêmes.',
-          <>Les journaux du serveur : {LEGAL.conservation.journaux}.</>,
+          <>Les logs du serveur : {LEGAL.retention.logs}.</>,
         ]}
       />
     </Article>
@@ -239,7 +239,7 @@ const Confidentialite = () => (
         Trois choses seulement sont écrites dans votre navigateur, et toutes
         sont strictement nécessaires au fonctionnement :
       </P>
-      <Liste
+      <BulletList
         items={[
           <>
             <Text as="span" fontFamily="mono">
@@ -271,7 +271,7 @@ const Confidentialite = () => (
         s'exercent directement depuis l'application, sans rien demander à
         personne :
       </P>
-      <Liste
+      <BulletList
         items={[
           <>
             <b>Retirer votre consentement</b> aux données de santé, depuis « Mon
@@ -298,7 +298,7 @@ const Confidentialite = () => (
     </Article>
 
     <Article n={9} title="Sécurité">
-      <Liste
+      <BulletList
         items={[
           'Les échanges entre votre appareil et le serveur sont chiffrés en HTTPS.',
           'Kettle ne stocke aucun mot de passe : l’authentification est déléguée à Google.',
@@ -353,7 +353,7 @@ const Confidentialite = () => (
         Les informations d'édition et d'hébergement figurent dans les{' '}
         <Link
           as={RouterLink}
-          {...{ to: LEGAL_ROUTES.mentions }}
+          {...{ to: LEGAL_ROUTES.legalNotice }}
           color="app.primary"
           textDecoration="underline"
         >
@@ -365,4 +365,4 @@ const Confidentialite = () => (
   </LegalLayout>
 );
 
-export default Confidentialite;
+export default Privacy;
