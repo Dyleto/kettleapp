@@ -15,13 +15,32 @@ interface UseCountdownOptions {
 }
 
 /**
- * Un décompte qui survit à l'écran éteint.
+ * Les secondes qui restent avant `endAt`, telles qu'elles s'affichent.
  *
- * Il compte à partir d'une échéance absolue et non en soustrayant une seconde
+ * Lues sur une échéance absolue et non obtenues en soustrayant une seconde
  * par tick : un onglet en arrière-plan voit ses minuteurs ralentis, et le
  * chrono d'un EMOM prenait plusieurs secondes de retard par tour dès que le
  * client verrouillait son téléphone — ce qu'il fait en le posant pour
- * soulever.
+ * soulever. C'est toute la raison d'être de ce module, et c'est ici que la
+ * règle est écrite.
+ *
+ * Arrondi vers le haut, et c'est une décision des deux côtés. Au départ : le
+ * premier tick tombe 250 ms après, soit 59,75 s sur un tour d'une minute, et
+ * un arrondi vers le bas afficherait « 0:59 » un quart de seconde après avoir
+ * lancé l'horloge. À l'arrivée : il reste « 1 » tant que la dernière seconde
+ * n'est pas écoulée, donc la fin ne se déclenche pas en avance.
+ *
+ * Vit hors du hook pour être vérifiable : aucun test unitaire ne monte de
+ * composant, et c'est la seule part de ce module qui décide quelque chose.
+ */
+export const secondsLeft = (endAt: number, now: number): number =>
+  Math.max(0, Math.ceil((endAt - now) / 1000));
+
+/**
+ * Un décompte qui survit à l'écran éteint.
+ *
+ * Le hook ne fait que le câblage : poser l'échéance au premier démarrage,
+ * battre, et rendre les commandes. Ce qu'il décide est dans `secondsLeft`.
  */
 export function useCountdown(
   seconds: number,
@@ -47,9 +66,9 @@ export function useCountdown(
 
     const tick = () => {
       const endAt = endAtRef.current ?? Date.now();
-      const secondsLeft = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
-      setRemaining(secondsLeft);
-      if (secondsLeft === 0) {
+      const left = secondsLeft(endAt, Date.now());
+      setRemaining(left);
+      if (left === 0) {
         setIsRunning(false);
         onCompleteRef.current?.();
       }

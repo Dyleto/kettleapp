@@ -31,9 +31,13 @@ export const getCompletedSessionBlockTypes = (
 };
 
 /**
- * Le mot que le client a choisi pour cette séance — « Juste », « Dure ».
+ * Le cran d'effort que le client a choisi — celui dont le mot est « Juste »,
+ * « Dure ». Le cran entier et non son libellé : les appelants en lisent aussi
+ * la zone, pour la couleur.
+ *
  * `null` pour un bilan enregistré avant la refonte de l'échelle d'effort : la
- * question ne lui a jamais été posée, et on n'invente pas de réponse.
+ * question ne lui a jamais été posée, et on n'invente pas de réponse — un
+ * « Juste » par défaut se lirait comme un ressenti.
  */
 export const getEffortSummary = (completed: CompletedSession) =>
   getEffortLevel(completed.feedback?.effort) ?? null;
