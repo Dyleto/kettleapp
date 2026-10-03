@@ -228,7 +228,7 @@ const Privacy = () => (
           'La trace de votre réponse au consentement : conservée tant que le compte existe, parce qu’elle est la preuve du fondement de la collecte.',
           'Les sessions de connexion : 7 jours, puis il faut se reconnecter.',
           'Les liens d’invitation : 7 jours, puis ils expirent d’eux-mêmes.',
-          <>Les logs du serveur : {LEGAL.retention.logs}.</>,
+          <>Les journaux du serveur : {LEGAL.retention.logs}.</>,
         ]}
       />
     </Article>
