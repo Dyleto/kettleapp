@@ -101,13 +101,17 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
     const stored = JSON.parse(raw) as Partial<SessionProgress> &
       Partial<LegacyProgress>;
 
+    // Sans date, l'enregistrement est traité comme infiniment vieux : il n'y
+    // a pas de « récent » à constater sur une donnée qu'on ne sait pas dater,
+    // et la péremption ci-dessous l'écarte. Le refus explicite qui vivait ici
+    // ne changeait donc rien d'observable — le sabotage qui le retirait ne
+    // faisait tomber aucune assertion, et pour cause.
     const updatedAt =
       typeof stored.updatedAt === 'number'
         ? stored.updatedAt
         : typeof stored.majLe === 'number'
           ? stored.majLe
-          : null;
-    if (updatedAt === null) return null;
+          : 0;
     if (stored.version !== 1 && stored.version !== 2) return null;
 
     if (Date.now() - updatedAt > LIFETIME) {
@@ -142,11 +146,14 @@ export const writeProgress = (
   patch: Partial<Omit<SessionProgress, 'version' | 'updatedAt'>>
 ) => {
   try {
+    // `version: 2` n'est pas répété ici : `readProgress` normalise toujours
+    // ce qu'il rend, et `patch` ne peut pas porter de version — son type
+    // l'exclut. Le répéter donnait une ligne qu'aucun sabotage ne pouvait
+    // faire tomber.
     const current = readProgress(sessionId) ?? empty();
     const next: SessionProgress = {
       ...current,
       ...patch,
-      version: 2,
       updatedAt: Date.now(),
     };
     localStorage.setItem(key(sessionId), JSON.stringify(next));
