@@ -566,7 +566,7 @@ export const GuidedSession = ({
         textAlign="center"
       >
         <Text fontSize="lg" fontWeight="bold">
-          Reprendre où informal en étais&nbsp;?
+          Reprendre où tu en étais&nbsp;?
         </Text>
         <Text fontSize="sm" color="fg.muted">
           Tu t'étais arrêté à l'étape {savedIndex + 1} sur {steps.length}.

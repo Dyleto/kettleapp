@@ -99,6 +99,15 @@ seconde près, une renumérotation de rangs.
 Aucun test unitaire ne monte de composant : ce serait reconstituer un
 navigateur en moins fidèle, et le banc est là pour cela.
 
+Le banc attrape aussi ce qu'aucun outil d'analyse ne voit. Le renommage des
+identifiants a réécrit quatre libellés affichés. Trois ont été vus par le
+relevé des textes qui encadrait l'opération ; le quatrième — « Reprendre où tu
+en étais » devenu « où informal en étais » — a échappé aux deux, parce que le
+relevé empruntait son motif au masque qu'il surveillait, et qu'un
+point-virgule d'entité HTML (`&nbsp;`) les aveuglait tous les deux. C'est le
+banc qui l'a dit, en lisant l'écran. Un outil qui partage le défaut de ce
+qu'il surveille ne surveille rien.
+
 Les décors de test (`fixtures.ts`) sont déterminés : deux décors par défaut
 sont identiques. Un identifiant engendré par un compteur avait rendu vaines
 des assertions entières — elles constataient un écart d'identifiant, pas
