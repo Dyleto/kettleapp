@@ -18,7 +18,7 @@ import {
 export interface CompleteSessionPayload {
   feedback: SessionFeedback;
   performed?: PerformedEntry[];
-  /** The score of blocks counted in rounds — an AMRAP. */
+  /** Le score des blocs qui se comptent en tours — un AMRAP. */
   roundsDone?: RoundsDoneEntry[];
   clientNotes?: string;
   completedAt?: string;

@@ -274,7 +274,8 @@ export const GuidedSession = ({
     const next = done.filter((k) => k !== key);
     setDone(next);
     writeProgress(session._id, { done: next });
-    // A rest that belonged to the set just untaken no longer means anything.
+    // Un repos qui appartenait à la série qu'on vient de décocher ne veut
+    // plus rien dire.
     if (rest?.afterKey === key) setRest(null);
   };
 
@@ -349,7 +350,7 @@ export const GuidedSession = ({
         }
         sentinel = lock;
       } catch {
-        // Refused or unavailable (not the active screen, permissions…): so be it.
+        // Refusé ou indisponible (écran non actif, permissions…) : tant pis.
       }
     };
 

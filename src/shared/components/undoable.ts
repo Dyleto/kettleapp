@@ -30,7 +30,7 @@ export const undoable = ({
   /** What has just happened, in the past tense: "Corde à sauter retiré". */
   title: string;
   description?: string;
-  /** Puts the previous state back. Called at most once. */
+  /** Remet l'état précédent. Appelé au plus une fois. */
   undo: () => void;
 }) => {
   let taken = false;

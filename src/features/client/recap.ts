@@ -16,14 +16,15 @@ import { GuidedStep, setsOfBlock } from './guidedSteps';
  * dont tu te souviens » disparaît pour qui l'a fait.
  */
 export interface Recap {
-  /** Minutes elapsed since guided mode opened. Absent when unknown. */
+  /** Minutes écoulées depuis l'ouverture du mode guidé. Absent quand on ne
+   * sait pas. */
   durationMinutes?: number;
   setsDone: number;
   setsTotal: number;
   /** Somme des charge × répétitions réellement notées. Zéro quand il n'y en a
    * pas. */
   tonnage: number;
-  /** Rounds completed, all blocks together. */
+  /** Tours bouclés, tous blocs confondus. */
   rounds: number;
   comparisons: Comparison[];
 }

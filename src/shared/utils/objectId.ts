@@ -16,7 +16,8 @@
  * ObjectId valides : l'API les ignorait et créait une séance à chaque envoi.
  */
 
-/** Five bytes drawn once per page load, as the driver does. */
+/** Cinq octets tirés une fois par chargement de page, comme le fait le
+ * pilote. */
 const ALEA = Array.from(crypto.getRandomValues(new Uint8Array(5)))
   .map((octet) => octet.toString(16).padStart(2, '0'))
   .join('');

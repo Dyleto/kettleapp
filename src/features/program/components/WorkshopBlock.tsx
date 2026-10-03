@@ -55,7 +55,7 @@ const KIND_LABEL: Record<MetricKind, string> = {
   custom: 'mesure libre',
 };
 
-/** The same, short enough to fit in a row's gutter. */
+/** Le même, assez court pour tenir dans la gouttière d'une ligne. */
 const KIND_SHORT: Record<MetricKind, string> = {
   reps: 'reps',
   duration: 'durée',
@@ -350,7 +350,7 @@ const ExerciseRow = ({
 
 interface WorkshopBlockProps {
   block: SessionBlock;
-  /** Exercises already placed elsewhere in the programme. */
+  /** Les exercices déjà placés ailleurs dans le programme. */
   inProgram: Exercise[];
   dragHandleProps?: Record<string, unknown>;
   onUpdate: (updates: Partial<SessionBlock>) => void;
@@ -361,7 +361,7 @@ interface WorkshopBlockProps {
   /** Fourni en dessous de 768 px : choisir un exercice passe alors par le
    *  tiroir plein écran plutôt que par le menu déroulant, trop à l'étroit. */
   onRequestExercisePicker?: () => void;
-  /** Opens an exercise's card over the editor. */
+  /** Ouvre la fiche d'un exercice par-dessus l'éditeur. */
   onOpenExerciseSheet?: (exercise: Exercise) => void;
 }
 

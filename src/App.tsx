@@ -81,7 +81,7 @@ const router = createBrowserRouter(
       <Route path="join" element={<Join />} />
       <Route path="no-role" element={<NoRole />} />
 
-      {/* Served by the application, and readable without an account. */}
+      {/* Servis par l'application, et lisibles sans compte. */}
       <Route path="confidentialite" element={<Confidentialite />} />
       <Route path="mentions-legales" element={<MentionsLegales />} />
 

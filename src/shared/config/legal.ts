@@ -18,7 +18,7 @@ export const A_COMPLETER = 'À COMPLÉTER';
  * divergent dès la première correction.
  */
 export const LEGAL = {
-  /** When both documents were last revised. */
+  /** La date de dernière révision des deux documents. */
   majLe: '14 septembre 2026',
 
   editeur: {
@@ -51,7 +51,7 @@ export const LEGAL = {
       nom: 'Render Services, Inc.',
       adresse:
         '525 Brannan Street, Suite 300, San Francisco, CA 94107, États-Unis',
-      /** The service runs in Frankfurt: processing stays within the EU. */
+      /** Le service tourne à Francfort : le traitement reste dans l'UE. */
       region: 'Francfort (Allemagne)',
     },
     base: {
@@ -75,7 +75,7 @@ export const LEGAL = {
   },
 } as const;
 
-/** Both documents, served by the app itself. */
+/** Les deux documents, servis par l'application elle-même. */
 export const LEGAL_ROUTES = {
   confidentialite: '/confidentialite',
   mentions: '/mentions-legales',

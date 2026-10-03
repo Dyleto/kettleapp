@@ -8,7 +8,7 @@
 export const dayKey = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-/** "lundi 7 mars" — the selected day's header. */
+/** « lundi 7 mars » — le titre du jour sélectionné. */
 export const formatDayLabel = (key: string): string => {
   const [year, month, day] = key.split('-').map(Number);
   return new Intl.DateTimeFormat('fr-FR', {
@@ -26,7 +26,8 @@ export const formatDayLabel = (key: string): string => {
  * confondent. */
 export const WEEKDAY_LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'] as const;
 
-/** Three letters: what is needed once a day must be chosen, not merely read. */
+/** Trois lettres : ce qu'il faut dès qu'un jour se choisit, et ne se lit
+ * plus seulement. */
 export const WEEKDAY_SHORT = [
   'Lun',
   'Mar',

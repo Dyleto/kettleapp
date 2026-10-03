@@ -9,7 +9,7 @@ interface Props {
   title: string;
   /** Le libellé de l'action, qui doit dire ce qu'elle fait. */
   action: string;
-  /** How many wrap-ups still carry a tag or a comment. */
+  /** Combien de bilans portent encore une étiquette ou un commentaire. */
   count: number;
 }
 

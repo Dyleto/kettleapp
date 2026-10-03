@@ -76,8 +76,8 @@ export const useClientSessions = () => {
     return sortedSessions[(lastIndex + 1) % sortedSessions.length];
   }, [sessions, history]);
 
-  // "How much did I use last time?" is answered from the history already
-  // loaded: no request, no extra route.
+  // « Combien j'ai mis la dernière fois ? » se répond depuis l'historique
+  // déjà chargé : aucune requête, aucune route de plus.
   const lastPerformance = useMemo(
     () => buildLastPerformanceIndex(history),
     [history]

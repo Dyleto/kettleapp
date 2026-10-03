@@ -9,7 +9,7 @@ import {
 
 interface ExerciseProgressionsProps {
   history: CompletedSession[];
-  /** Past this, the list becomes a table nobody reads. */
+  /** Au-delà, la liste devient un tableau que personne ne lit. */
   limit?: number;
 }
 

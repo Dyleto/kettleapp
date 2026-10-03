@@ -228,8 +228,8 @@ const Exercises = () => {
         </Box>
       ))}
 
-      {/* Search also creates: a missing exercise is typed and exists,
-          exactly as in the editor's selector. */}
+      {/* La recherche crée aussi : un exercice absent se tape et existe,
+          exactement comme dans le sélecteur de l'éditeur. */}
       {canCreate && (
         <Box
           as="button"

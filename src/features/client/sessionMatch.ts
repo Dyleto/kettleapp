@@ -30,7 +30,7 @@ export type SessionMatch =
   /** Faite sous une autre forme : l'identifiant correspond, le contenu
    * non. */
   | { state: 'changed' }
-  /** No wrap-up carries this id at all. */
+  /** Aucun bilan ne porte cet identifiant. */
   | { state: 'never' };
 
 /**
@@ -89,7 +89,7 @@ const doseOf = (block: SessionBlock | BlockSnapshot): string => {
   ].join(';');
 };
 
-/** The whole session's dose, block order included. */
+/** La dose de toute la séance, ordre des blocs compris. */
 export const sessionDose = (blocks: (SessionBlock | BlockSnapshot)[]): string =>
   [...blocks]
     .sort((a, b) => a.order - b.order)

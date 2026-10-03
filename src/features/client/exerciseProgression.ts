@@ -18,7 +18,8 @@ export interface ExerciseProgression {
   name: string;
   metric: ProgressionMetric;
   points: ProgressionPoint[];
-  /** The last point's date: used to put recent exercises first. */
+  /** La date du dernier point : elle sert à mettre devant les exercices
+   * récemment travaillés. */
   lastAt: Date;
 }
 

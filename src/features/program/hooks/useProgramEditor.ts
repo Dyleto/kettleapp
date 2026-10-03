@@ -93,7 +93,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
   }, []);
 
   /**
-   * Puts a session back at its rank — the undo safety net's return path.
+   * Remet une séance à son rang — le chemin de retour du filet d'annulation.
    */
   const insertSession = useCallback((index: number, session: Session) => {
     setProgram((prev) => {

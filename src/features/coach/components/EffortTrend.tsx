@@ -60,7 +60,8 @@ const countTags = (sessions: CompletedSession[]) => {
  * rien le jour où elle compte.
  */
 export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
-  // Oldest to newest: a trend reads in the direction of time.
+  // Du plus ancien au plus récent : une tendance se lit dans le sens du
+  // temps.
   const chronological = [...history]
     .sort(
       (a, b) =>

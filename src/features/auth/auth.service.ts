@@ -32,7 +32,8 @@ export const authService = {
     return data;
   },
 
-  // Fetch the current profile.
+  // Le profil courant. La session vit dans un cookie `httpOnly` : c'est le
+  // seul moyen de savoir qui est connecté.
   getMe: async () => {
     const { data } = await api.get<{ user: User }>('/api/auth/me');
     return data;
@@ -43,7 +44,7 @@ export const authService = {
     await api.post('/api/auth/logout');
   },
 
-  // Check an invitation token (public).
+  // Vérifier un lien d'invitation. Publique : on arrive dessus sans compte.
   verifyInviteToken: async (token: string) => {
     const { data } = await api.get(
       `/api/auth/verify-invite-token?token=${token}`

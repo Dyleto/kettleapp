@@ -158,7 +158,8 @@ export const prescribedSetLabels = (
   return [''];
 };
 
-// Blocks whose timing is entirely defined by the block's scheme (no per-exercise metric).
+// Les blocs dont le minutage est entièrement défini par le schéma du bloc :
+// l'exercice n'y porte aucune mesure propre.
 export const blockDefinesOwnMetrics = (type: BlockType): boolean =>
   ['pyramid', 'ladder'].includes(type);
 

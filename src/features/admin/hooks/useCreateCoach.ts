@@ -11,7 +11,10 @@ interface CreateCoachData {
 }
 
 /**
- * Creates a coach (admin only).
+ * Créer un coach.
+ *
+ * La seule écriture de l'administration, et la seule porte d'entrée d'un
+ * coach dans Kettle : il n'y a pas d'inscription coach.
  */
 export const useCreateCoach = () => {
   return useMutation({

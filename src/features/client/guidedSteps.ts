@@ -29,13 +29,14 @@ import { formatDuration } from '@/shared/utils/formatters';
  * « à faire » à « fait », et c'est le même geste partout.
  */
 export interface GuidedSet {
-  /** Stable identity: it carries the state, and survives a reload. */
+  /** Identité stable : c'est elle qui porte l'état, et elle survit à un
+   * rechargement. */
   key: string;
   blockOrder: number;
   exerciseOrder: number;
-  /** 1-indexed, as it is spoken: "set 2 / 4", "rung 3". */
+  /** Compté à partir de 1, comme on le dit : « série 2 / 4 », « palier 3 ». */
   rank: number;
-  /** How many the exercise carries — the "/ 4". */
+  /** Combien l'exercice en porte — le « / 4 ». */
   total: number;
   name: string;
   /** What there is to do: "10 reps", or "8 reps" on a rung. */
@@ -152,7 +153,7 @@ const ROUND_BASED_TYPES: BlockType[] = ['emom', 'every', 'tabata', 'onoff'];
 const sortByOrder = <T extends { order: number }>(items: T[]): T[] =>
   [...items].sort((a, b) => a.order - b.order);
 
-/** A round's time, according to what the block imposes. */
+/** Le temps d'un tour, selon ce que le bloc impose. */
 const roundTime = (
   block: SessionBlock
 ): { workSeconds?: number; restSeconds?: number } => {

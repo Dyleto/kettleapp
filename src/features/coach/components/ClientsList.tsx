@@ -57,7 +57,7 @@ interface LigneClient {
   etat: string | null;
   /** Depuis quand, lorsque la cellule suivante ne le dit pas déjà. */
   anciennete: string | null;
-  /** What awaits the coach, or nothing. */
+  /** Ce qui attend le coach, ou rien. */
   attente: string | null;
   /** An unread session calls for action; a silence merely goes on. */
   attenteEstAction: boolean;
@@ -177,7 +177,7 @@ const matches = (client: Client, query: string): boolean => {
 interface ClientRowProps {
   client: Client;
   onSelect: () => void;
-  /** The client whose preview is shown alongside. */
+  /** Le client dont l'aperçu s'affiche à côté. */
   selected?: boolean;
 }
 

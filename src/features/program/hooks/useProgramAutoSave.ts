@@ -47,7 +47,7 @@ interface Retour {
   /** Vrai tant qu'un changement n'est pas parti, ou pas confirmé. */
   isDirty: boolean;
   savedAt: Date | null;
-  /** Forces an immediate send: the retry button after a failure. */
+  /** Force un envoi immédiat : le bouton de reprise après un échec. */
   flush: () => void;
 }
 
@@ -93,18 +93,18 @@ export const useProgramAutoSave = ({
   const refEnregistre = useRef<string | null>(null);
   /** Le contenu de l'envoi en vol, ou `null` quand il n'y en a pas. */
   const enVol = useRef<string | null>(null);
-  /** The last known state, read by the deferred send without re-triggering it. */
+  /** Le dernier état connu, lu par l'envoi différé sans le redéclencher. */
   const dernier = useRef<Session[] | null>(null);
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
   const structure = useRef<string>('');
-  /** `send` calls itself; it goes through here in order to be able to. */
+  /** `send` s'appelle lui-même ; il passe par ici pour pouvoir le faire. */
   const relancer = useRef<() => void>(() => {});
 
   useEffect(() => {
     dernier.current = program?.sessions ?? null;
   });
 
-  /** Adopts a version as being the server's. */
+  /** Adopte une version comme étant celle du serveur. */
   const adopter = useCallback((sessions: Session[], contenu: string) => {
     refEnregistre.current = contenu;
     structure.current = empreinte(sessions);
@@ -160,7 +160,7 @@ export const useProgramAutoSave = ({
     relancer.current = envoyer;
   }, [envoyer]);
 
-  // ── First arrival, and background refreshes ──────────────────────────────
+  // ── Première arrivée, et relectures d'arrière-plan ───────────────────────
   useEffect(() => {
     if (!serverProgram) return;
     const recu = JSON.stringify(serverProgram.sessions);
@@ -186,7 +186,7 @@ export const useProgramAutoSave = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverProgram, adopter, initialize]);
 
-  // ── Scheduling the send ──────────────────────────────────────────────────
+  // ── La programmation de l'envoi ──────────────────────────────────────────
   useEffect(() => {
     if (courant === null || enregistre === null) return;
     if (courant === enregistre) return;

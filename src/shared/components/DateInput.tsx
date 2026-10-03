@@ -4,7 +4,7 @@ import { LuCalendar, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 
 interface DateInputProps {
   label?: string;
-  /** The field's name for assistive technology. */
+  /** Le nom du champ pour les technologies d'assistance. */
   ariaLabel?: string;
   value: string; // YYYY-MM-DD
   max?: string; // YYYY-MM-DD

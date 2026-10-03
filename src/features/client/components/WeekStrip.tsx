@@ -8,9 +8,9 @@ import { WeekDayPlan } from '../weekPlan';
 
 interface WeekStripProps {
   days: WeekDayPlan[];
-  /** Opens the detail of a session already done. */
+  /** Ouvre le détail d'une séance déjà faite. */
   onOpenCompleted: (completed: CompletedSession) => void;
-  /** Opens a session suggested but not yet done. */
+  /** Ouvre une séance conseillée et pas encore faite. */
   onOpenSession: (session: Session) => void;
 }
 

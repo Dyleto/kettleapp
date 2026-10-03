@@ -10,7 +10,7 @@ interface SessionCalendarFilterProps {
   onSelectDay: (day: string | null) => void;
   /** Deux mois côte à côte quand la colonne a la place. */
   months?: 1 | 2;
-  /** Below this width, the calendar folds away. */
+  /** En dessous de cette largeur, le calendrier se replie. */
   collapseBelow?: 'md' | 'lg';
 }
 

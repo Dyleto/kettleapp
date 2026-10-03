@@ -91,7 +91,7 @@ export const LegalLayout = ({
   );
 };
 
-/** A numbered section of the document. */
+/** Une section numérotée du document. */
 export const Article = ({
   n,
   title,

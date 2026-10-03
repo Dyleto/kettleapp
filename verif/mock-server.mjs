@@ -281,7 +281,7 @@ const withPerformed = (blocks, entries) =>
     }),
   }));
 
-/** The score of blocks counted in rounds — an AMRAP. */
+/** Le score des blocs qui se comptent en tours — un AMRAP. */
 const withRounds = (blocks, entries) =>
   blocks.map((b) => {
     const hit = (entries || []).find((r) => r.blockOrder === b.order);

@@ -6,7 +6,7 @@ import { useState } from 'react';
 interface InlineValueProps {
   value?: number;
   onChange: (value?: number) => void;
-  /** The word glued to the value: "reps", "s", "min", "tours"… */
+  /** Le mot collé à la valeur : « reps », « s », « min », « tours »… */
   suffix?: string;
   /** Ce qui se lit quand la valeur est absente. Jamais « 0 ». */
   emptyLabel?: string;

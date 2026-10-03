@@ -51,7 +51,7 @@ export const BlockList = ({
   /** Le repos en cours, et la série qu'il suit. */
   rest: { afterKey: string; duration: number; nextUp: string } | null;
   onRestDone: () => void;
-  /** Untick a set: it goes back to being something to do. */
+  /** Décocher une série : elle redevient quelque chose à faire. */
   onUndo: (key: string) => void;
 }) => {
   /**

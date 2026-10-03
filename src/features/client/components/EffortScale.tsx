@@ -3,8 +3,9 @@ import { useRef } from 'react';
 import { EFFORT_SCALE, EFFORT_ZONE_COLOR, getEffortLevel } from '../constants';
 
 interface EffortScaleProps {
-  /** `undefined` = nothing chosen. Never preselected: a value nobody
-   *  picked must not be recordable as an answer. */
+  /** `undefined` = rien de choisi. Jamais présélectionné : une valeur que
+   *  personne n'a choisie ne doit pas pouvoir s'enregistrer comme une
+   *  réponse. */
   value?: number;
   onChange: (value: number) => void;
 }

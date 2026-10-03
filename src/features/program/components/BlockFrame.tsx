@@ -11,17 +11,17 @@ import {
 
 interface BlockFrameProps {
   block: SessionBlock;
-  /** Free name: text in read mode, a field in edit mode. */
+  /** Nom libre : du texte en lecture, un champ en édition. */
   name?: ReactNode;
-  /** Settings: a summary in read mode, controls in edit mode. */
+  /** Réglages : un résumé en lecture, des commandes en édition. */
   config?: ReactNode;
   /** Les commandes du bloc, à droite de l'en-tête. Absentes en lecture. */
   gutter?: ReactNode;
-  /** The exercise rows. */
+  /** Les lignes d'exercice. */
   children: ReactNode;
-  /** The block's instruction: text in read mode, a field in edit mode. */
+  /** La consigne du bloc : du texte en lecture, un champ en édition. */
   notes?: ReactNode;
-  /** Below the exercises — "+ exercice" in edit mode. */
+  /** Sous les exercices — « + exercice » en édition. */
   footer?: ReactNode;
 }
 

@@ -118,7 +118,7 @@ const customConfig = defineConfig({
     },
     tokens: {
       colors: {
-        /** The brand's amber, at a single address. */
+        /** L'ambre de la marque, à une seule adresse. */
         amber: { value: '#CF9F3F' },
         brand: {
           50: { value: '#fffbeb' },

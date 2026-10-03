@@ -50,7 +50,7 @@ export const weightOf = (step: GuidedStep): number => {
   if (step.type === 'rest') return step.duration / 60;
   if (step.type === 'round')
     return (step.workSeconds ?? 60) / 60 + (step.restSeconds ?? 0) / 60;
-  // A loop carries its duration; a list, its sets.
+  // Une boucle porte sa durée ; une liste, ses séries.
   if (step.shape === 'loop')
     return Math.max(1, step.block.durationMinutes ?? step.sets.length);
   return Math.max(1, step.sets.length);

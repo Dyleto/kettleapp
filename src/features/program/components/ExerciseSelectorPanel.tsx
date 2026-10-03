@@ -27,9 +27,9 @@ interface ExerciseSelectorPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (exercise: Exercise) => void;
-  /** Exercises already placed elsewhere in this programme. */
+  /** Les exercices déjà placés ailleurs dans ce programme. */
   inProgram?: Exercise[];
-  /** Opens the exercise's card without leaving the editor. */
+  /** Ouvre la fiche de l'exercice sans quitter l'éditeur. */
   onOpenSheet?: (exercise: Exercise) => void;
 }
 

@@ -1,7 +1,11 @@
 import { AxiosError } from 'axios';
 
 /**
- * Produces a readable error message for the context at hand.
+ * Un message d'erreur lisible, pour le contexte où l'on se trouve.
+ *
+ * L'API renvoie déjà un message en français quand elle sait quoi dire : il
+ * remonte tel quel. Le repli ne sert qu'aux pannes qui n'en portent pas — le
+ * réseau, un 500.
  */
 export const getErrorMessage = (error: unknown, context: string): string => {
   if (error instanceof AxiosError) {

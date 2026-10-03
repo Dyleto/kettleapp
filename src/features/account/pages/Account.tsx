@@ -232,7 +232,7 @@ const Account = ({ space }: Props) => {
           </Section>
         )}
 
-        {/* ── Health data — client side only ─────────────────────────── */}
+        {/* ── Données de santé — côté client seulement ───────────────── */}
         {data?.asClient && (
           <Section title={tu ? 'Tes données de santé' : 'Vos données de santé'}>
             <HealthConsentCard

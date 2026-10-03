@@ -15,11 +15,13 @@ import { PerformedValues } from '@/shared/types';
  * précisément le cas qu'on cherchait à couvrir.
  */
 interface SessionProgress {
-  /** So the shape can change without reading stale records. */
+  /** Pour que la forme puisse changer sans qu'on relise un enregistrement
+   * périmé. */
   version: 2;
-  /** Where we were in guided mode. */
+  /** Où l'on en était dans le mode guidé. */
   step: number;
-  /** What was recorded, keyed by `performedKey(blockOrder, exerciseOrder)`. */
+  /** Ce qui a été noté, indexé par `performedKey(blockOrder,
+   * exerciseOrder)`. */
   performed: Record<string, PerformedValues>;
   /**
    * Les séries déjà faites, par clé.
@@ -45,7 +47,8 @@ interface SessionProgress {
    * dernier retour dans l'application.
    */
   startedAt?: number;
-  /** When, in milliseconds. Used to tell whether this still concerns today. */
+  /** Quand, en millisecondes. Sert à savoir si cela concerne encore
+   * aujourd'hui. */
   updatedAt: number;
 }
 
@@ -90,7 +93,7 @@ interface LegacyProgress {
   majLe: number;
 }
 
-/** This session's record, if it is still current. */
+/** L'enregistrement de cette séance, s'il est encore d'actualité. */
 export const readProgress = (sessionId: string): SessionProgress | null => {
   try {
     const raw = localStorage.getItem(key(sessionId));
@@ -127,8 +130,8 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
       updatedAt,
     };
   } catch {
-    // Storage refused (private browsing, quota, corrupted data): the session
-    // works without it, it simply remembers nothing.
+    // Stockage refusé (navigation privée, quota, donnée abîmée) : la séance
+    // marche sans lui, elle ne retient simplement rien.
     return null;
   }
 };
@@ -162,11 +165,11 @@ export const forgetProgress = (sessionId: string) => {
   try {
     localStorage.removeItem(key(sessionId));
   } catch {
-    // Same.
+    // Pareil.
   }
 };
 
-/** How many exercises carry at least one recorded value. */
+/** Combien d'exercices portent au moins une valeur notée. */
 export const countRecorded = (
   performed: Record<string, PerformedValues>
 ): number =>

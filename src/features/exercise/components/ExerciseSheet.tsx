@@ -168,7 +168,8 @@ const validateVideoUrl = (value: string): string | null => {
   return 'Lien non reconnu — seul YouTube est lu : watch, youtu.be ou Shorts.';
 };
 
-/** `blocksDeletion`: a delete button is offered, and this usage blocks it. */
+/** `blocksDeletion` : un bouton de suppression est proposé, et cet usage
+ * le bloque. */
 const usageSentence = (usage: number, blocksDeletion: boolean): string => {
   const base = `Utilisé dans ${usage} séance${usage > 1 ? 's' : ''}`;
   // On dit pourquoi le bouton ne répond pas, au lieu de le laisser muet.

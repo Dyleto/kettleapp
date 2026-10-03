@@ -5,7 +5,7 @@ import { dayKey, mondayIndex, startOfWeek } from './sessionDates';
  * fait. */
 export interface WeekDayPlan {
   date: Date;
-  /** "2026-09-07", the day's local key. */
+  /** « 2026-09-07 », la clé locale du jour. */
   key: string;
   /** Lundi = 0. */
   index: number;

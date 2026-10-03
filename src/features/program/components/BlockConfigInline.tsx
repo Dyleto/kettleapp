@@ -37,7 +37,7 @@ export const BlockConfigInline = ({
   onUpdate,
 }: BlockConfigInlineProps) => {
   switch (block.type) {
-    // ── Nothing to set ──
+    // ── Rien à régler ──
     case 'warmup':
     case 'classic':
       return null;
@@ -110,7 +110,7 @@ export const BlockConfigInline = ({
         </HStack>
       );
 
-    // ── Composed values ──
+    // ── Valeurs composées ──
     case 'tabata':
     case 'onoff':
       return (

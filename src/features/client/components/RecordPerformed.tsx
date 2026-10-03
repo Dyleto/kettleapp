@@ -19,7 +19,7 @@ interface RecordPerformedProps {
   performed: Record<string, PerformedValues>;
   onPerformedChange: (key: string, next: PerformedValues) => void;
   lastPerformance?: Map<string, LastPerformance>;
-  /** Closed without going further: back to the session. */
+  /** Fermé sans aller plus loin : retour à la séance. */
   onCancel: () => void;
   /** On passe au ressenti, que les charges aient été notées ou non. */
   onContinue: () => void;

@@ -17,7 +17,7 @@ export const linkExpiry = (expiresAt?: string) =>
       }).format(new Date(expiresAt))}.`
     : '';
 
-/** What an attempt at sending the link out came to. */
+/** Ce qu'une tentative de faire sortir le lien a donné. */
 export type LinkDelivery = 'shared' | 'copied' | 'cancelled' | 'failed';
 
 /**
