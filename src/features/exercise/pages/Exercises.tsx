@@ -27,9 +27,7 @@ import { LuPlus, LuSearch, LuX } from 'react-icons/lu';
 import { createPortal } from 'react-dom';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { ExerciseRow, ExerciseSheet } from '@/features/exercise';
-import { stripAccents } from '@/shared/utils/formatters';
-
-const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
+import { normalize, stripAccents } from '@/shared/utils/formatters';
 
 /**
  * Les colonnes de la bibliothèque, à une seule adresse.

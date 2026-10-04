@@ -19,7 +19,7 @@ import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/features/client/constants';
 import { Card } from '@/shared/components/Card';
 import { hitArea } from '@/shared/components/hitArea';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { stripAccents } from '@/shared/utils/formatters';
+import { normalize } from '@/shared/utils/formatters';
 import { Client } from '@/shared/types';
 
 const SILENCE_THRESHOLD_DAYS = 14;
@@ -174,11 +174,11 @@ const sortClients = (clients: Client[], sort: ClientSort): Client[] => {
 };
 
 const matches = (client: Client, query: string): boolean => {
-  const needle = stripAccents(query).toLowerCase().trim();
+  const needle = normalize(query);
   if (!needle) return true;
-  const haystack = stripAccents(
-    `${client.firstName} ${client.lastName}`
-  ).toLowerCase();
+  const haystack = normalize(`${client.firstName} ${client.lastName}`);
+  // Chaque mot séparément : « mar du » doit trouver « Marie Dupont », parce
+  // qu'on tape le prénom puis le début du nom sans savoir lequel est lequel.
   return needle.split(/\s+/).every((word) => haystack.includes(word));
 };
 

@@ -46,7 +46,7 @@ export const writeSavedIndex = (sessionId: string, index: number) =>
  * infiniment mieux que de compter combien de fois quelqu'un tape
  * « Suivant ».
  */
-export const weightOf = (step: GuidedStep): number => {
+const weightOf = (step: GuidedStep): number => {
   if (step.type === 'rest') return step.duration / 60;
   if (step.type === 'round')
     return (step.workSeconds ?? 60) / 60 + (step.restSeconds ?? 0) / 60;

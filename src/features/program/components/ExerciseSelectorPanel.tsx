@@ -14,9 +14,7 @@ import { useCreateExercise } from '@/features/exercise/hooks/useExerciseMutation
 import { useExercises } from '@/features/exercise/hooks/useExercises';
 import { ExerciseRow } from '@/features/exercise';
 import { Exercise } from '@/shared/types';
-import { stripAccents } from '@/shared/utils/formatters';
-
-const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
+import { normalize } from '@/shared/utils/formatters';
 
 const GROUP_IN_PROGRAM = 'Déjà dans ce programme';
 const GROUP_MOST_USED = 'Vos plus utilisés';

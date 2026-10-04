@@ -29,7 +29,7 @@ export const BLOCK_TYPE_CONFIG: Record<BlockType, { label: string }> = {
  * relit pas « Max de tours en temps limité » à chaque bloc. D'où la longueur
  * — une ligne qui tient dans une tuile, pas une définition.
  */
-export const BLOCK_DESCRIPTIONS: Record<BlockType, string> = {
+const BLOCK_DESCRIPTIONS: Record<BlockType, string> = {
   warmup: 'Échauffement libre',
   classic: 'Séries & reps classiques',
   emom: 'Exos toutes les minutes',

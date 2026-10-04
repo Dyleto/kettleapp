@@ -4,10 +4,8 @@ import { LuArrowUpRight, LuPlus, LuSearch } from 'react-icons/lu';
 import { Exercise } from '@/shared/types';
 import { useExercises } from '@/features/exercise/hooks/useExercises';
 import { useCreateExercise } from '@/features/exercise/hooks/useExerciseMutations';
-import { stripAccents } from '@/shared/utils/formatters';
+import { normalize } from '@/shared/utils/formatters';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
-
-const normalize = (s: string) => stripAccents(s).toLowerCase().trim();
 
 interface Option {
   exercise: Exercise;
