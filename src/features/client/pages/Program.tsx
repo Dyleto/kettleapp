@@ -1,4 +1,4 @@
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMemo } from 'react';
 import { Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';

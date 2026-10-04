@@ -18,7 +18,7 @@ import {
   LuUser,
 } from 'react-icons/lu';
 import { hitArea } from './hitArea';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { getAccountRoute } from '@/shared/config/routes';
 
 interface HeaderProps {

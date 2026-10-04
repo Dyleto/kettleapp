@@ -1,8 +1,4 @@
-import {
-  isRouteErrorResponse,
-  useNavigate,
-  useRouteError,
-} from 'react-router-dom';
+import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router';
 import { Box, Button, Heading, Text, VStack } from '@chakra-ui/react';
 import { LuCompass, LuTriangleAlert } from 'react-icons/lu';
 import { useAuth } from '@/shared/contexts/useAuth';

@@ -2,10 +2,10 @@ import {
   Route,
   createRoutesFromElements,
   createBrowserRouter,
-  RouterProvider,
   Navigate,
   useParams,
-} from 'react-router-dom';
+} from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import RootLayout from './shared/layouts/RootLayout';
 import React from 'react';
 import { RouteError } from './shared/components/RouteError';

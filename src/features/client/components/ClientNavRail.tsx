@@ -1,5 +1,5 @@
 import { VStack, HStack, Text } from '@chakra-ui/react';
-import { NavLink } from 'react-router-dom';
+import { NavLink } from 'react-router';
 import { Header } from '@/shared/components/Header';
 import { CLIENT_NAV_ITEMS } from '../navItems';
 

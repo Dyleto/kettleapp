@@ -9,7 +9,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useAuth } from '@/shared/contexts/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { LegalFooter } from '@/shared/components/LegalFooter';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useEffect, useState } from 'react';

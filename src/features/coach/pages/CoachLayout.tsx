@@ -1,4 +1,4 @@
-import { Outlet, useMatches } from 'react-router-dom';
+import { Outlet, useMatches } from 'react-router';
 import { CoachNavRail, CoachTabBar } from '@/features/coach';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
 import { Box, Flex } from '@chakra-ui/react';

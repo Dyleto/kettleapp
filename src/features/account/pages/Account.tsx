@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router';
 import {
   Avatar,
   Box,

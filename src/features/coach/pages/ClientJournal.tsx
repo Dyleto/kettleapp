@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { Box, Heading, Spinner, VStack } from '@chakra-ui/react';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';

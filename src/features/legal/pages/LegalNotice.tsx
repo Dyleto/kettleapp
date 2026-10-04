@@ -1,5 +1,5 @@
 import { Box, Link, Text, VStack } from '@chakra-ui/react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
 import { LegalValue, Article, LegalLayout, BulletList, P } from './LegalLayout';
 

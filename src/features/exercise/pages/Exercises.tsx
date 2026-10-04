@@ -22,7 +22,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { LuPlus, LuSearch, LuX } from 'react-icons/lu';
 import { createPortal } from 'react-dom';
 import { COACH_ROUTES } from '@/shared/config/routes';

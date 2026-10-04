@@ -11,7 +11,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { LuUnlink } from 'react-icons/lu';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import axios from 'axios';
 import { LegalFooter } from '@/shared/components/LegalFooter';
 

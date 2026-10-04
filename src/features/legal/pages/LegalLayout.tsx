@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Box, Heading, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
 import { TO_FILL, LEGAL } from '@/shared/config/legal';

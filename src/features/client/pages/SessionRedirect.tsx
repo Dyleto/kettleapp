@@ -1,4 +1,4 @@
-import { Navigate, useOutletContext } from 'react-router-dom';
+import { Navigate, useOutletContext } from 'react-router';
 import { Container, Skeleton, VStack } from '@chakra-ui/react';
 import { CLIENT_CONTENT_MAX_W, useClientSessions } from '@/features/client';
 import { CLIENT_ROUTES } from '@/shared/config/routes';

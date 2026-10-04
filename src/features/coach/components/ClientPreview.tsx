@@ -7,7 +7,7 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Client } from '@/shared/types';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
