@@ -59,7 +59,10 @@ jobs:
       - run: npm test
 
   bench:
-    name: Le banc (9 suites)
+    # Sans compte dans le nom : le lanceur découvre les suites du dossier,
+    # et un nombre écrit ici se périmerait au premier ajout. Il l'a fait —
+    # la tâche annonçait neuf suites en en lançant dix.
+    name: Le banc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
