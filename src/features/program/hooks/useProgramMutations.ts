@@ -78,7 +78,7 @@ export const useUpdateProgramSessions = (
       );
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (saved) => {
       // En mode silencieux, l'appelant adopte lui-même la réponse :
       // invalider la fiche du client déclencherait une requête dont le seul
       // effet serait de réécrire l'atelier par-dessus la frappe en cours.
@@ -87,6 +87,35 @@ export const useUpdateProgramSessions = (
           queryKey: queryKeys.coach.clients.detail(clientId),
         });
         toaster.create({ title: 'Programme sauvegardé', type: 'success' });
+      } else {
+        // Ne pas invalider ne dispense pas de tenir le cache à jour, et
+        // c'est ce qui manquait : il gardait le programme tel qu'il était au
+        // chargement de la page, pendant que l'atelier et le serveur
+        // avançaient sans lui.
+        //
+        // Retour du terrain : « quand ça me marque "enregistré", que je
+        // quitte la page — par exemple pour aller dans la bibliothèque — et
+        // que je reviens, tout ce que j'ai écrit dans les 5 min a disparu ».
+        // Les 5 minutes sont le `staleTime` : en deçà, React Query ne relit
+        // pas au montage, donc l'atelier se réinitialisait sur le cache
+        // périmé. L'écran revenait en arrière, et comme l'envoi remplace le
+        // programme entier, la modification suivante écrasait sur le serveur
+        // ce que le coach croyait enregistré.
+        //
+        // `setQueryData` et non `invalidateQueries` : il met le cache au
+        // niveau sans déclencher de requête, donc sans le défaut que la
+        // branche ci-dessus évite. La réponse du serveur fait foi — c'est
+        // elle qui porte les rangs et les identifiants définitifs.
+        queryClient.setQueryData(
+          queryKeys.coach.clients.detail(clientId),
+          (previous: { program?: { sessions: Session[] } } | undefined) =>
+            previous
+              ? {
+                  ...previous,
+                  program: { ...previous.program, sessions: saved },
+                }
+              : previous
+        );
       }
 
       // Le programme tel que le client le voit, en revanche, a bien changé.

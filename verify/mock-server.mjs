@@ -227,6 +227,17 @@ const program = () => ({
   sessions: EMPTY_PROGRAM ? [] : SESSIONS,
 });
 
+/**
+ * Ce que la base du coach contient, et que le PUT remplace entièrement.
+ *
+ * Une copie profonde de `SESSIONS` : les suites client lisent `SESSIONS`, et
+ * un enregistrement du coach ne doit pas déplacer ce qu'elles observent.
+ */
+let COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
+
+/** Le nombre d'enregistrements que le serveur a réellement acceptés. */
+let PUT_COUNT = 0;
+
 // Copie profonde des blocs, pour pouvoir y poser `performed` sans altérer le
 // programme lui-même.
 const snapshot = (session) => JSON.parse(JSON.stringify(session.blocks));
@@ -453,6 +464,88 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { program: program() });
   if (pathname === '/api/client/history')
     return sendJson(res, 200, { history: HISTORY });
+
+  // ── Le côté coach ────────────────────────────────────────────────────────
+  //
+  // Ajouté pour reproduire une perte de travail signalée depuis le terrain :
+  // « quand ça me marque enregistré, que je quitte la page et que je reviens,
+  // tout ce que j'ai écrit dans les 5 min a disparu ». Le banc ne menait que
+  // l'espace client, donc l'atelier du coach — l'écran où l'on écrit le plus —
+  // n'était couvert par rien.
+  //
+  // `COACH_SESSIONS` tient le rôle de la base : le PUT la remplace
+  // entièrement, comme `replaceProgramSessions` le fait, et le GET la relit.
+  // C'est cette sémantique de remplacement qui transforme un affichage périmé
+  // en perte réelle.
+  const detailMatch = pathname.match(/^\/api\/coach\/clients\/([^/]+)$/);
+  if (detailMatch && method === 'GET') {
+    return sendJson(res, 200, {
+      _id: CLIENT_ID,
+      firstName: 'Sarah',
+      lastName: 'Martin',
+      email: 'sarah@example.com',
+      program: { ...program(), sessions: COACH_SESSIONS },
+      unseenCount: 0,
+    });
+  }
+
+  if (pathname === '/api/coach/clients' && method === 'GET')
+    return sendJson(res, 200, []);
+
+  if (/^\/api\/coach\/clients\/[^/]+\/history$/.test(pathname))
+    return sendJson(res, 200, []);
+
+  const saveMatch = pathname.match(
+    /^\/api\/coach\/clients\/([^/]+)\/program\/sessions$/
+  );
+  if (saveMatch && method === 'PUT') {
+    COACH_SESSIONS = (body.sessions || []).map((session, si) => ({
+      ...session,
+      _id: session._id || `sess-new-${si + 1}`,
+      order: si + 1,
+      createdAt: '2026-06-01T10:00:00.000Z',
+      updatedAt: new Date().toISOString(),
+      blocks: (session.blocks || []).map((block, bi) => ({
+        ...block,
+        _id: block._id || `blk-new-${si + 1}-${bi + 1}`,
+        order: bi + 1,
+        exercises: (block.exercises || []).map((ex, ei) => ({
+          ...ex,
+          _id: ex._id || `bex-new-${si + 1}-${bi + 1}-${ei + 1}`,
+          order: ei + 1,
+          // Le front envoie `exerciseId` et relit `exercise` : c'est l'API
+          // qui repeuple le mouvement. Sans cela l'atelier perdrait ses
+          // exercices au premier aller-retour.
+          exercise: EXERCISES.find((e) => e._id === ex.exerciseId) ?? {
+            _id: ex.exerciseId,
+            name: 'Mouvement',
+            category: 'other',
+          },
+        })),
+      })),
+    }));
+    PUT_COUNT += 1;
+    return sendJson(res, 200, COACH_SESSIONS);
+  }
+
+  if (pathname === '/api/coach/exercises' && method === 'GET')
+    return sendJson(res, 200, EXERCISES);
+
+  // Le décor repart à l'identique : la suite écrit dans `COACH_SESSIONS`, et
+  // un tour qui hériterait de l'état du tour précédent ferait se télescoper
+  // les noms — ce qui est arrivé, et a rendu deux assertions illisibles.
+  if (pathname === '/api/mock/reset' && method === 'POST') {
+    COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
+    PUT_COUNT = 0;
+    return sendJson(res, 200, { reset: true });
+  }
+
+  // Combien d'enregistrements ont réellement abouti. Une assertion qui
+  // constate un écran vide ne dit pas si l'envoi est parti : ce compteur le
+  // dit, et il empêche de prendre un « rien n'a été envoyé » pour un « tout a
+  // été perdu ».
+  if (pathname === '/api/mock/put-count')
+    return sendJson(res, 200, { count: PUT_COUNT });
 
   if (pathname === '/api/account') {
     return sendJson(res, 200, {
