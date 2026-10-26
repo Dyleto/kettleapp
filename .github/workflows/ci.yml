@@ -81,11 +81,45 @@ jobs:
       # plutôt qu'épinglée ici, pour que les deux ne puissent jamais diverger.
       # Le banc le trouve ensuite seul : `CHROME_PATH` reste vide et
       # Playwright résout.
-      - name: Installer Chromium
+      #
+      # La version sort dans sa propre étape parce que trois autres la lisent,
+      # et qu'elle sert de clé de cache : la lire deux fois serait l'occasion
+      # de la lire différemment.
+      - name: La version de navigateur attendue
+        id: browser
         working-directory: verify
         run: |
-          VERSION=$(node -p "require('playwright-core/package.json').version")
-          npx --yes "playwright@$VERSION" install --with-deps chromium
+          echo "version=$(node -p "require('playwright-core/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Le navigateur pèse environ 150 Mo et était retéléchargé à chaque
+      # exécution. Mesuré : cette étape prenait 23 à 33 s le 24 octobre, puis
+      # 613 et 842 s le 26, sans qu'on y ait touché. La clé porte la version
+      # exacte et aucune clé de repli : un navigateur d'une autre version ne
+      # servirait à rien, et un cache partiel laisserait croire qu'il sert.
+      - name: Le navigateur, s'il est déjà connu
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.browser.outputs.version }}
+
+      # Deux étapes exclusives plutôt qu'une, et c'est voulu : le
+      # téléchargement du navigateur et l'`apt-get` de `--with-deps` étaient
+      # comptés ensemble, donc on ne pouvait pas savoir lequel avait ralenti
+      # d'un facteur trente. Séparés, le minutage de la prochaine exécution le
+      # dira de lui-même.
+      - name: Installer Chromium
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        working-directory: verify
+        run: npx --yes "playwright@${{ steps.browser.outputs.version }}" install --with-deps chromium
+
+      # Les bibliothèques système ne sont pas dans le cache — elles
+      # s'installent hors du dossier mis en cache. Quand le navigateur est
+      # déjà là, il reste donc à s'assurer qu'elles y sont.
+      - name: Les bibliothèques système du navigateur
+        if: steps.browser-cache.outputs.cache-hit == 'true'
+        working-directory: verify
+        run: npx --yes "playwright@${{ steps.browser.outputs.version }}" install-deps chromium
 
       # Le banc mène le vrai front contre l'API en mémoire que
       # `verify/mock-server.mjs` sert sur le port 3001. Aucune base de données
