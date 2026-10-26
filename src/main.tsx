@@ -7,6 +7,7 @@ import { ErrorHandler } from './shared/components/ErrorHandler';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './shared/config/queryClient';
 import ErrorBoundary from './shared/components/ErrorBoundary';
+import { AppUpdateBanner } from './shared/components/AppUpdateBanner';
 
 /**
  * Un module qui ne charge plus après un déploiement.
@@ -47,6 +48,10 @@ ReactDOM.createRoot(document.getElementById('root')! as HTMLElement).render(
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <App />
+          {/* À la racine et non dans `RootLayout`, qui retourne tôt pendant
+              le chargement et sur chaque redirection : la vérification des
+              nouvelles versions doit tourner dans tous les cas. */}
+          <AppUpdateBanner />
           <ErrorHandler />
           <Toaster />
         </AuthProvider>

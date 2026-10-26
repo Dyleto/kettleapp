@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ClientProgram, Session } from '@/shared/types';
+import { useClaimUnsavedWork } from '@/shared/hooks/useUnsavedWork';
 
 /** Ce que la ligne d'état a à dire. */
 export type SaveState = 'idle' | 'pending' | 'saving' | 'error';
@@ -222,12 +223,25 @@ export const useProgramAutoSave = ({
   }, [send]);
 
   // ── Le filet à la fermeture ──────────────────────────────────────────────
+  const atRisk = isDirty || state === 'saving' || state === 'error';
+
   useEffect(() => {
-    if (!isDirty && state !== 'saving') return;
+    if (!atRisk) return;
     const warnBeforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener('beforeunload', warnBeforeUnload);
     return () => window.removeEventListener('beforeunload', warnBeforeUnload);
-  }, [isDirty, state]);
+  }, [atRisk]);
+
+  // La même condition sert à la mise à jour automatique : elle recharge la
+  // page quand une nouvelle version arrive, et elle ne doit pas le faire
+  // par-dessus une frappe qui n'est pas partie. `beforeunload` ne couvrait
+  // que la fermeture de l'onglet, pas un rechargement que l'application
+  // déclenche elle-même — celui-là ne demande rien à personne.
+  //
+  // `state === 'error'` compte comme à risque, alors que l'ancien filet
+  // l'ignorait : un envoi qui a échoué est exactement le cas où il reste
+  // quelque chose à perdre.
+  useClaimUnsavedWork(atRisk);
 
   // ── Quitter l'éditeur n'est pas renoncer ─────────────────────────────────
   //
