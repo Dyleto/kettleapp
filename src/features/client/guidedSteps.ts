@@ -203,43 +203,126 @@ export const repsOfSet = (
 };
 
 /**
+ * Une série du bloc, posée depuis son exercice et son rang.
+ *
+ * Partagée par les deux ordres de parcours ci-dessous, qui ne diffèrent que
+ * par l'ordre et par le moment du repos.
+ */
+const setAt = (
+  block: SessionBlock,
+  ex: BlockExercise,
+  rank: number,
+  total: number,
+  label: string,
+  restAfter?: number
+): GuidedSet => ({
+  // La clé ne dépend pas de l'ordre de parcours : une séance reprise garde
+  // donc ses séries cochées même si cet ordre change.
+  key: `${block.order}:${ex.order}:${rank}`,
+  blockOrder: block.order,
+  exerciseOrder: ex.order,
+  rank,
+  total,
+  name: ex.exercise.name,
+  // Le palier porte sa propre dose ; ailleurs c'est celle de l'exercice.
+  dose: label || roundDose(block, ex),
+  reps: repsOfSet(block, ex, rank),
+  restAfter,
+  exercise: ex,
+});
+
+/**
+ * Une pyramide se fait palier par palier, tous mouvements confondus.
+ *
+ * Retour du terrain : « le Pyramide ne fonctionne pas comme espéré, il
+ * marche que pour 1 exo et pas plusieurs ». Il déroulait toute la pyramide du
+ * premier exercice, puis toute celle du second : sur `5·10·15` avec tractions
+ * et pompes, cela donnait 5-10-15 tractions puis 5-10-15 pompes. Ce qu'un
+ * coach écrit là est 5 tractions + 5 pompes, puis 10 + 10, puis 15 + 15 —
+ * c'est le principe même du format, et c'est pour cela qu'il paraissait ne
+ * marcher qu'à un seul mouvement : à un seul, les deux ordres coïncident.
+ *
+ * Le repos appartient donc à la fin du palier et non à la fin de chaque
+ * exercice : il n'y a rien à récupérer entre deux mouvements du même palier,
+ * c'est justement ce qui les enchaîne.
+ */
+const rungMajorSets = (
+  block: SessionBlock,
+  exercises: BlockExercise[]
+): GuidedSet[] => {
+  const sets: GuidedSet[] = [];
+  // Le schéma vit sur le bloc : tous les exercices ont les mêmes paliers,
+  // en nombre comme en dose.
+  const rungs = prescribedSetLabels(block, exercises[0] ?? { sets: 1 });
+
+  rungs.forEach((label, i) => {
+    exercises.forEach((ex, j) => {
+      const isLastOfRung = j === exercises.length - 1;
+      sets.push(
+        setAt(
+          block,
+          ex,
+          i + 1,
+          rungs.length,
+          label,
+          // Pas de repos après le dernier palier : le bloc suivant vient
+          // alors, et le coach n'a rien prescrit pour cet intervalle.
+          isLastOfRung && i < rungs.length - 1
+            ? block.restBetweenRounds
+            : undefined
+        )
+      );
+    });
+  });
+  return sets;
+};
+
+/**
+ * Partout ailleurs, un exercice se finit avant qu'on passe au suivant.
+ *
+ * C'est l'ordre de la musculation : trois séries de squat, puis trois séries
+ * de développé. Le repos tombe entre les séries d'un même exercice.
+ */
+const exerciseMajorSets = (
+  block: SessionBlock,
+  exercises: BlockExercise[]
+): GuidedSet[] => {
+  const sets: GuidedSet[] = [];
+  exercises.forEach((ex) => {
+    const rungs = prescribedSetLabels(block, ex);
+    const rest = restBetweenSetsOf(block, ex);
+    rungs.forEach((label, i) => {
+      sets.push(
+        setAt(
+          block,
+          ex,
+          i + 1,
+          rungs.length,
+          label,
+          i < rungs.length - 1 ? rest : undefined
+        )
+      );
+    });
+  });
+  return sets;
+};
+
+/**
  * Les séries d'un bloc en liste, dans l'ordre où on les fait.
  *
  * Le découpage existait déjà — `prescribedSetLabels` le donne, et c'est
  * depuis toujours ce qui découpe le formulaire de bilan. Il n'était
  * simplement pas utilisé pour guider : on le montrait, on ne le parcourait
  * pas.
+ *
+ * Deux ordres, parce que deux formats : une pyramide monte ses paliers avec
+ * tous ses mouvements, un bloc à séries finit un mouvement avant le suivant.
  */
 export const setsOfBlock = (block: SessionBlock): GuidedSet[] => {
-  const sets: GuidedSet[] = [];
-  sortByOrder(block.exercises).forEach((ex) => {
-    const rungs = prescribedSetLabels(block, ex);
-    const own = roundDose(block, ex);
-    // Une pyramide prescrit un repos entre ses paliers, un bloc à séries
-    // entre ses séries : c'est le même moment sous deux noms.
-    const rest = blockDefinesOwnMetrics(block.type)
-      ? block.restBetweenRounds
-      : restBetweenSetsOf(block, ex);
-    rungs.forEach((label, i) => {
-      sets.push({
-        key: `${block.order}:${ex.order}:${i + 1}`,
-        blockOrder: block.order,
-        exerciseOrder: ex.order,
-        rank: i + 1,
-        total: rungs.length,
-        name: ex.exercise.name,
-        // Le palier porte sa propre dose ; ailleurs c'est celle de
-        // l'exercice.
-        dose: label || own,
-        reps: repsOfSet(block, ex, i + 1),
-        // Pas de repos après le dernier : l'exercice suivant vient alors,
-        // et le coach n'a rien prescrit pour cet intervalle.
-        restAfter: i < rungs.length - 1 ? rest : undefined,
-        exercise: ex,
-      });
-    });
-  });
-  return sets;
+  const exercises = sortByOrder(block.exercises);
+  return blockDefinesOwnMetrics(block.type)
+    ? rungMajorSets(block, exercises)
+    : exerciseMajorSets(block, exercises);
 };
 
 /**

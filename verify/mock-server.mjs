@@ -215,6 +215,32 @@ const SESSIONS = [
       },
     ],
   },
+  // Une pyramide à deux mouvements, ajoutée pour un retour du terrain : « le
+  // Pyramide ne fonctionne pas comme espéré, il marche que pour 1 exo et pas
+  // plusieurs ». Une séance à part et non un exercice ajouté à `sess5` :
+  // deux suites comptent ses sept paliers, et un décor doit rester déterminé.
+  {
+    _id: 'sess6',
+    order: 6,
+    name: 'Pyramide à deux',
+    notes: '',
+    suggestedDays: [],
+    createdAt: '2026-06-01T10:00:00.000Z',
+    updatedAt: '2026-06-01T10:00:00.000Z',
+    blocks: [
+      {
+        _id: 'blk10',
+        type: 'pyramid',
+        order: 1,
+        repsScheme: [5, 10, 15],
+        restBetweenRounds: 45,
+        exercises: [
+          blockExercise(EXERCISES[5], 1, {}),
+          blockExercise(EXERCISES[9], 2, {}),
+        ],
+      },
+    ],
+  },
 ];
 
 const EMPTY_PROGRAM = process.env.MOCK_EMPTY === '1';

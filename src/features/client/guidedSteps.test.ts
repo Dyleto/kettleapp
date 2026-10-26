@@ -275,6 +275,162 @@ describe('les séries d’un bloc en liste', () => {
     expect(sets.map((s) => s.restAfter)).toEqual([60, 60, undefined]);
   });
 
+  /**
+   * Retour du terrain : « le Pyramide ne fonctionne pas comme espéré, il
+   * marche que pour 1 exo et pas plusieurs ».
+   *
+   * Aucun test ne couvrait ce cas : les 315 autres passaient avec l'ancien
+   * ordre, qui déroulait toute la pyramide du premier exercice puis toute
+   * celle du second. C'est par ce trou que le défaut est passé — et il
+   * paraissait ne toucher que les blocs à plusieurs mouvements parce qu'à un
+   * seul, les deux ordres coïncident.
+   */
+  it('une pyramide à plusieurs mouvements monte palier par palier', () => {
+    const sets = setsOfBlock(
+      makeBlock({
+        type: 'pyramid',
+        repsScheme: [5, 10, 15],
+        restBetweenRounds: 60,
+        exercises: [
+          makeBlockExercise({
+            order: 1,
+            exercise: makeExercise({ _id: 'a', name: 'Tractions' }),
+          }),
+          makeBlockExercise({
+            order: 2,
+            exercise: makeExercise({ _id: 'b', name: 'Pompes' }),
+          }),
+        ],
+      })
+    );
+
+    // L'espace de « 5 reps » est insécable : `prescribedSetLabels` l'écrit
+    // ainsi, et l'écrire ordinaire ici ferait tomber l'assertion sans que
+    // rien ne soit cassé.
+    expect(sets.map((s) => `${s.name} ${s.dose}`)).toEqual([
+      'Tractions 5\u00A0reps',
+      'Pompes 5\u00A0reps',
+      'Tractions 10\u00A0reps',
+      'Pompes 10\u00A0reps',
+      'Tractions 15\u00A0reps',
+      'Pompes 15\u00A0reps',
+    ]);
+  });
+
+  // Le repos appartient au palier, pas à l'exercice : il n'y a rien à
+  // récupérer entre deux mouvements du même palier, c'est justement ce qui
+  // les enchaîne. Et rien après le dernier, où le bloc suivant prend la
+  // suite.
+  it('ne repose qu’à la fin de chaque palier, et pas après le dernier', () => {
+    const sets = setsOfBlock(
+      makeBlock({
+        type: 'pyramid',
+        repsScheme: [5, 10],
+        restBetweenRounds: 90,
+        exercises: [
+          makeBlockExercise({
+            order: 1,
+            exercise: makeExercise({ _id: 'a', name: 'Tractions' }),
+          }),
+          makeBlockExercise({
+            order: 2,
+            exercise: makeExercise({ _id: 'b', name: 'Pompes' }),
+          }),
+        ],
+      })
+    );
+
+    expect(sets.map((s) => s.restAfter)).toEqual([
+      undefined,
+      90,
+      undefined,
+      undefined,
+    ]);
+  });
+
+  // Une échelle suit la même règle : c'est le même format, déroulé dans un
+  // seul sens.
+  it('une échelle à plusieurs mouvements monte aussi palier par palier', () => {
+    const sets = setsOfBlock(
+      makeBlock({
+        type: 'ladder',
+        repsScheme: [1, 2],
+        exercises: [
+          makeBlockExercise({
+            order: 1,
+            exercise: makeExercise({ _id: 'a', name: 'Squat' }),
+          }),
+          makeBlockExercise({
+            order: 2,
+            exercise: makeExercise({ _id: 'b', name: 'Dips' }),
+          }),
+        ],
+      })
+    );
+
+    expect(sets.map((s) => `${s.name} ${s.rank}`)).toEqual([
+      'Squat 1',
+      'Dips 1',
+      'Squat 2',
+      'Dips 2',
+    ]);
+  });
+
+  // Les clés ne dépendent pas de l'ordre de parcours, et c'est ce qui permet
+  // à une séance en cours au moment du déploiement de garder ses séries
+  // cochées.
+  it('garde des clés uniques malgré l’ordre par palier', () => {
+    const sets = setsOfBlock(
+      makeBlock({
+        type: 'pyramid',
+        repsScheme: [5, 10],
+        exercises: [
+          makeBlockExercise({
+            order: 1,
+            exercise: makeExercise({ _id: 'a', name: 'Tractions' }),
+          }),
+          makeBlockExercise({
+            order: 2,
+            exercise: makeExercise({ _id: 'b', name: 'Pompes' }),
+          }),
+        ],
+      })
+    );
+
+    expect(new Set(sets.map((s) => s.key)).size).toBe(sets.length);
+    expect(sets.map((s) => s.key)).toContain('1:2:1');
+  });
+
+  // Un bloc à séries ne change pas : trois séries de squat, puis trois de
+  // développé. Changer la pyramide ne devait pas emporter l'ordre de la
+  // musculation avec elle.
+  it('un bloc à séries finit un exercice avant de passer au suivant', () => {
+    const sets = setsOfBlock(
+      makeBlock({
+        type: 'classic',
+        exercises: [
+          makeBlockExercise({
+            order: 1,
+            sets: 2,
+            exercise: makeExercise({ _id: 'a', name: 'Squat' }),
+          }),
+          makeBlockExercise({
+            order: 2,
+            sets: 2,
+            exercise: makeExercise({ _id: 'b', name: 'Développé' }),
+          }),
+        ],
+      })
+    );
+
+    expect(sets.map((s) => s.name)).toEqual([
+      'Squat',
+      'Squat',
+      'Développé',
+      'Développé',
+    ]);
+  });
+
   it('enchaîne les exercices dans l’ordre, séries comprises', () => {
     const chipper = makeBlock({
       type: 'chipper',
