@@ -1,5 +1,6 @@
 import { Box, HStack, Input, Text, VStack } from '@chakra-ui/react';
 import { useState } from 'react';
+import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
 import { LuChevronRight } from 'react-icons/lu';
 import { PerformedSet, PerformedValues } from '@/shared/types';
 import { hitArea } from '@/shared/components/hitArea';
@@ -26,49 +27,59 @@ interface PerformedFieldsProps {
   isTimed?: boolean;
 }
 
-// Une chaîne vide efface la clé au lieu d'écrire 0 : « non renseigné » ne
-// doit jamais ressembler à « zéro », ni ici ni dans ce qu'on envoie à
-// l'API.
-const parse = (raw: string): number | undefined => {
-  const trimmed = raw.trim().replace(',', '.');
-  if (trimmed === '') return undefined;
-  const n = Number(trimmed);
-  return Number.isFinite(n) && n >= 0 ? n : undefined;
-};
-
+/**
+ * Un champ de charge ou de répétitions.
+ *
+ * Le texte tapé vient de `useNumberDraft` et non du nombre enregistré : le
+ * champ se réaffichait depuis la valeur, donc « 22, » redonnait 22 et la
+ * virgule s'effaçait sous les doigts. On ne pouvait pas atteindre « 22,5 »
+ * alors que la virgule était pourtant convertie ici — le défaut n'était pas
+ * dans l'analyse, il était dans l'affichage.
+ */
 const Field = ({
   label,
   suffix,
   value,
   onChange,
+  decimals = false,
 }: {
   label: string;
   suffix: string;
   value?: number;
   onChange: (v?: number) => void;
-}) => (
-  <HStack gap={1} align="center">
-    <Input
-      size="xs"
-      w="52px"
-      textAlign="center"
-      inputMode="decimal"
-      aria-label={label}
-      placeholder="—"
-      value={value === undefined ? '' : String(value)}
-      onChange={(e) => onChange(parse(e.target.value))}
-      bg="whiteAlpha.50"
-      borderColor="whiteAlpha.100"
-      _placeholder={{ color: 'fg.muted', opacity: 0.6 }}
-      _focus={{ borderColor: 'app.primary.border', bg: 'whiteAlpha.100' }}
-      borderRadius="md"
-      fontFamily="mono"
-    />
-    <Text fontSize="xs" color="fg.muted">
-      {suffix}
-    </Text>
-  </HStack>
-);
+  decimals?: boolean;
+}) => {
+  const { text, onText, onLeave } = useNumberDraft({
+    value,
+    onChange,
+    decimals,
+  });
+
+  return (
+    <HStack gap={1} align="center">
+      <Input
+        size="xs"
+        w="52px"
+        textAlign="center"
+        inputMode="decimal"
+        aria-label={label}
+        placeholder="—"
+        value={text}
+        onChange={(e) => onText(e.target.value)}
+        onBlur={onLeave}
+        bg="whiteAlpha.50"
+        borderColor="whiteAlpha.100"
+        _placeholder={{ color: 'fg.muted', opacity: 0.6 }}
+        _focus={{ borderColor: 'app.primary.border', bg: 'whiteAlpha.100' }}
+        borderRadius="md"
+        fontFamily="mono"
+      />
+      <Text fontSize="xs" color="fg.muted">
+        {suffix}
+      </Text>
+    </HStack>
+  );
+};
 
 const SetInputs = ({
   set,
@@ -96,6 +107,10 @@ const SetInputs = ({
       suffix="kg"
       value={set.weight}
       onChange={(v) => onChange({ ...set, weight: v })}
+      // Une charge se compte en demi-kilos : c'est le pas des plus petits
+      // disques, et celui des haltères de salle. L'API déclare `weight` en
+      // nombre, pas en entier.
+      decimals
     />
   </HStack>
 );

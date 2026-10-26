@@ -213,6 +213,10 @@ const ExerciseRow = ({
                   }
                   ariaLabel={`Mesure — ${exercise.exercise.name}`}
                   width="56px"
+                  // La seule mesure du programme que l'API déclare en nombre
+                  // et non en entier : « 22,5 kg », « 1,5 km ». Les
+                  // répétitions, les séries et les tours restent entiers.
+                  decimals
                 />
                 <Input
                   size="xs"

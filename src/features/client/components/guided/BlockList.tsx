@@ -10,6 +10,7 @@ import { Box, HStack, Input, VStack, Text } from '@chakra-ui/react';
 import { hitArea } from '@/shared/components/hitArea';
 import { formatDuration } from '@/shared/utils/duration';
 import { Fragment, useState } from 'react';
+import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
 import { LuCheck, LuInfo, LuTimer } from 'react-icons/lu';
 import { OnDemandTimer } from './Timer';
 import { RestStrip } from './RestStrip';
@@ -27,6 +28,52 @@ import { RestStrip } from './RestStrip';
  * typographique arbitraire, et la liste redevient lisible parce qu'un
  * formulaire ne la coupe plus à chaque ligne.
  */
+/**
+ * Le champ de charge d'une série.
+ *
+ * Un composant et non un `<Input>` posé dans la boucle : il porte un
+ * brouillon de texte, et un hook ne peut pas vivre dans un `map`.
+ *
+ * Le brouillon est ce qui rend « 22,5 » atteignable. Le champ se réaffichait
+ * depuis le nombre enregistré, donc « 22, » redonnait 22 — `Number('22.')`
+ * vaut 22 — et la virgule s'effaçait sous les doigts. Retour du terrain :
+ * « les ,5 ne marchent pas, il peut pas écrire 22,5 par exemple ». La
+ * virgule était bien convertie ici ; c'est l'affichage qui la reprenait.
+ */
+const WeightField = ({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value?: number;
+  onChange: (next?: number) => void;
+}) => {
+  // Une charge se compte en demi-kilos : le pas des plus petits disques, et
+  // celui des haltères de salle. L'API déclare `weight` en nombre.
+  const { text, onText, onLeave } = useNumberDraft({
+    value,
+    onChange,
+    decimals: true,
+  });
+
+  return (
+    <Input
+      aria-label={label}
+      inputMode="decimal"
+      value={text}
+      onChange={(ev) => onText(ev.target.value)}
+      onBlur={onLeave}
+      w="76px"
+      minH="44px"
+      textAlign="center"
+      fontFamily="mono"
+      fontWeight="bold"
+      placeholder="—"
+    />
+  );
+};
+
 export const BlockList = ({
   block,
   sets,
@@ -85,16 +132,18 @@ export const BlockList = ({
       e.rank - 1
     ];
 
-  const write = (e: GuidedSet, field: 'weight' | 'reps', raw: string) => {
+  // Reçoit un nombre et non du texte : l'analyse appartient au champ, qui
+  // est le seul à savoir ce qu'il accepte. Elle vivait ici en troisième
+  // copie, et les trois avaient divergé.
+  //
+  // La liste n'écrit que la charge. Le paramètre `field` qui vivait ici
+  // acceptait aussi `'reps'`, qu'aucun appel ne lui a jamais passé.
+  const writeWeight = (e: GuidedSet, next: number | undefined) => {
     if (!onPerformedChange) return;
     const key = performedKey(e.blockOrder, e.exerciseOrder);
     const sets = [...(performed?.[key]?.sets ?? [])];
     while (sets.length < e.rank) sets.push({});
-    const count = raw.trim() === '' ? undefined : Number(raw.replace(',', '.'));
-    sets[e.rank - 1] = {
-      ...sets[e.rank - 1],
-      [field]: Number.isFinite(count) ? count : undefined,
-    };
+    sets[e.rank - 1] = { ...sets[e.rank - 1], weight: next };
     onPerformedChange(key, { sets });
   };
 
@@ -180,19 +229,10 @@ export const BlockList = ({
                           <Text fontSize="sm" color="fg.muted">
                             Fait à
                           </Text>
-                          <Input
-                            aria-label={`Poids utilisé, en kilos — ${e.name} ${rank}`}
-                            inputMode="decimal"
-                            value={value?.weight ?? ''}
-                            onChange={(ev) =>
-                              write(e, 'weight', ev.target.value)
-                            }
-                            w="76px"
-                            minH="44px"
-                            textAlign="center"
-                            fontFamily="mono"
-                            fontWeight="bold"
-                            placeholder="—"
+                          <WeightField
+                            label={`Poids utilisé, en kilos — ${e.name} ${rank}`}
+                            value={value?.weight}
+                            onChange={(next) => writeWeight(e, next)}
                           />
                           <Text fontSize="sm" color="fg.muted">
                             kg
@@ -291,17 +331,10 @@ export const BlockList = ({
                       <Text fontSize="sm" color="fg.muted">
                         Fait à
                       </Text>
-                      <Input
-                        aria-label={`Corriger le poids, en kilos — ${e.name} ${rank}`}
-                        inputMode="decimal"
-                        value={value?.weight ?? ''}
-                        onChange={(ev) => write(e, 'weight', ev.target.value)}
-                        w="76px"
-                        minH="44px"
-                        textAlign="center"
-                        fontFamily="mono"
-                        fontWeight="bold"
-                        placeholder="—"
+                      <WeightField
+                        label={`Corriger le poids, en kilos — ${e.name} ${rank}`}
+                        value={value?.weight}
+                        onChange={(next) => writeWeight(e, next)}
                       />
                       <Text fontSize="sm" color="fg.muted">
                         kg

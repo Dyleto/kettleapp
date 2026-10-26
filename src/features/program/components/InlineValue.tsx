@@ -2,6 +2,7 @@ import { Box, Input, Text } from '@chakra-ui/react';
 import { touchHitArea } from '@/shared/components/hitArea';
 import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
 import { useState } from 'react';
+import { parseNumberInput } from '@/shared/utils/numberInput';
 
 interface InlineValueProps {
   value?: number;
@@ -28,14 +29,17 @@ interface InlineValueProps {
    * ce que l'autre verra.
    */
   format?: (value: number) => string;
+  /**
+   * Ce champ accepte-t-il les décimales ?
+   *
+   * La frontière est au contrat : l'API déclare `reps`, `sets`, `rounds` et
+   * `repsScheme` en entiers, et seuls `customMetric` et `weight` en nombres.
+   * Un champ qui ne le dit pas voit sa valeur arrondie, parce qu'envoyer
+   * « 12,5 » là où l'API attend un entier donnerait un 400 que le coach
+   * lirait comme « ça n'enregistre pas ».
+   */
+  decimals?: boolean;
 }
-
-const parse = (raw: string): number | undefined => {
-  const trimmed = raw.trim();
-  if (trimmed === '') return undefined;
-  const n = Number(trimmed);
-  return Number.isFinite(n) ? n : undefined;
-};
 
 /**
  * Au repos c'est du texte, au clic c'est un champ — dans la même empreinte,
@@ -52,6 +56,7 @@ export const InlineValue = ({
   width = '56px',
   clearable = false,
   format,
+  decimals = false,
 }: InlineValueProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -81,12 +86,12 @@ export const InlineValue = ({
    */
   const onInput = (raw: string) => {
     setDraft(raw);
-    const next = parse(raw);
+    const next = parseNumberInput(raw, { decimals });
     if (next !== undefined && next >= min) onChange(next);
   };
 
   const commit = () => {
-    const next = parse(draft);
+    const next = parseNumberInput(draft, { decimals });
     if (next === undefined) {
       if (clearable) onChange(undefined);
     } else if (next >= min) {
@@ -111,7 +116,9 @@ export const InlineValue = ({
         h="22px"
         px={1}
         textAlign="center"
-        inputMode="numeric"
+        // `numeric` affiche sur iPhone un pavé sans séparateur décimal : on
+        // ne pouvait littéralement pas taper la virgule. `decimal` l'offre.
+        inputMode={decimals ? 'decimal' : 'numeric'}
         aria-label={ariaLabel}
         value={draft}
         onChange={(e) => onInput(e.target.value)}
