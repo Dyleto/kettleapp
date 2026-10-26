@@ -117,6 +117,18 @@ export const InlineExercisePicker = ({
             onSelect(created);
             setQuery('');
             onClose();
+            // Un exercice créé n'a que son nom : sa fiche s'ouvre aussitôt
+            // pour que la vidéo et la consigne se posent sans quitter la
+            // séance en cours d'écriture.
+            //
+            // Retour du terrain : « ça serait bien qu'à la création d'un
+            // exercice via le programme on puisse directement rentrer les
+            // infos de l'exercice, c'est quelque chose qu'il avait avant et
+            // qu'il a plus. » Il l'avait : un écran de saisie séparé, retiré
+            // quand la fiche est devenue éditable là où elle se lit. Tout
+            // était là — le tiroir du parent, et ce `onOpenSheet` qui y
+            // mène — sauf cet appel.
+            onOpenSheet?.(created);
           },
         }
       );

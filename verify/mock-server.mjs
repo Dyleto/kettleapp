@@ -264,6 +264,9 @@ let COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
 /** Le nombre d'enregistrements que le serveur a réellement acceptés. */
 let PUT_COUNT = 0;
 
+/** Les exercices créés pendant un tour, pour pouvoir les retirer au suivant. */
+const CREATED_EXERCISES = [];
+
 // Copie profonde des blocs, pour pouvoir y poser `performed` sans altérer le
 // programme lui-même.
 const snapshot = (session) => JSON.parse(JSON.stringify(session.blocks));
@@ -557,12 +560,44 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/coach/exercises' && method === 'GET')
     return sendJson(res, 200, EXERCISES);
 
+  // La création depuis le programme n'envoyait que le nom : la fiche s'ouvre
+  // maintenant par-dessus pour que la vidéo et la consigne se posent sans
+  // quitter la séance. Le serveur d'essai rend donc un exercice créé, et
+  // accepte qu'on le complète ensuite.
+  if (pathname === '/api/coach/exercises' && method === 'POST') {
+    const created = {
+      _id: `ex-new-${CREATED_EXERCISES.length + 1}`,
+      name: body.name ?? 'Sans nom',
+      description: body.description ?? '',
+      videoUrl: body.videoUrl ?? '',
+      isPublic: false,
+      usageCount: 0,
+    };
+    CREATED_EXERCISES.push(created);
+    EXERCISES.push(created);
+    return sendJson(res, 201, created);
+  }
+
+  const exerciseMatch = pathname.match(/^\/api\/coach\/exercises\/([^/]+)$/);
+  if (exerciseMatch && method === 'PUT') {
+    const target = EXERCISES.find((e) => e._id === exerciseMatch[1]);
+    if (!target) return sendJson(res, 404, { message: 'Exercice introuvable' });
+    Object.assign(target, body);
+    return sendJson(res, 200, target);
+  }
+
   // Le décor repart à l'identique : la suite écrit dans `COACH_SESSIONS`, et
   // un tour qui hériterait de l'état du tour précédent ferait se télescoper
   // les noms — ce qui est arrivé, et a rendu deux assertions illisibles.
   if (pathname === '/api/mock/reset' && method === 'POST') {
     COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
     PUT_COUNT = 0;
+    // Les exercices créés repartent aussi : la bibliothèque doit retrouver sa
+    // taille, sinon une assertion qui la compte dérive d'un tour à l'autre.
+    CREATED_EXERCISES.splice(0).forEach((created) => {
+      const at = EXERCISES.indexOf(created);
+      if (at >= 0) EXERCISES.splice(at, 1);
+    });
     return sendJson(res, 200, { reset: true });
   }
 

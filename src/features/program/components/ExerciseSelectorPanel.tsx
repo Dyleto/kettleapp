@@ -97,6 +97,10 @@ export const ExerciseSelectorPanel = ({
         onSuccess: (created) => {
           setQuery('');
           onSelect(created);
+          // Même raison que dans le sélecteur en ligne : créer n'envoie que
+          // le nom, et la fiche du parent est le seul endroit où la vidéo et
+          // la consigne se posent sans quitter la séance.
+          onOpenSheet?.(created);
         },
       }
     );
