@@ -1,5 +1,5 @@
 /**
- * Créer un exercice depuis le programme, et le renseigner sur place.
+ * Créer ou modifier un exercice depuis le programme, sans quitter la séance.
  *
  * Retour du terrain : « ça serait bien qu'à la création d'un exercice via le
  * programme on puisse directement rentrer les infos de l'exercice, c'est
@@ -23,6 +23,7 @@ const WORKSHOP = `${BASE}/coach/clients/${CLIENT}/s/1`;
 const NAME = 'Swing lesté témoin';
 const VIDEO = 'https://www.youtube.com/watch?v=sswzD1Q7dTk';
 const NOTE = 'Dos plat, la poussée vient des hanches.';
+const EDIT = 'Consigne corrigée depuis le programme.';
 
 /** La bibliothèque telle que le serveur la porte, lue hors du navigateur. */
 const library = async () => {
@@ -92,46 +93,101 @@ const main = async () => {
     `${await video.count()} champ(s)`
   );
 
-  // Sans la fiche, la suite n'a plus rien à éprouver : elle le dit et
-  // s'arrête, au lieu de mourir sur un clic impossible. Sous sabotage, la
-  // première version remontait une exception Playwright à la place de ce
-  // qu'elle avait constaté.
-  if ((await note.count()) !== 1) {
+  // ── Remplir, et vérifier que cela arrive au serveur ──────────────────────
+  //
+  // Sans la fiche il n'y a rien à remplir : on le dit et on passe à la suite,
+  // au lieu de mourir sur un clic impossible ou de s'arrêter là. Deux
+  // versions de ce garde se sont trompées : la première remontait une
+  // exception Playwright, la seconde sortait du programme et laissait le
+  // second geste — la modification — jamais éprouvé.
+  if ((await note.count()) === 1) {
+    await note.click();
+    await p.waitForTimeout(300);
+    await sheet
+      .getByRole('textbox', { name: `Consigne — ${NAME}`, exact: true })
+      .fill(NOTE);
+    await p.keyboard.press('Tab');
+    await p.waitForTimeout(800);
+
+    await video.click();
+    await p.waitForTimeout(300);
+    await sheet
+      .getByRole('textbox', { name: `Lien vidéo — ${NAME}`, exact: true })
+      .fill(VIDEO);
+    await p.keyboard.press('Tab');
+    await p.waitForTimeout(1000);
+
+    const created = (await library()).find((e) => e.name === NAME);
+    ok(
+      'le serveur porte le nouvel exercice',
+      !!created,
+      JSON.stringify(created)
+    );
+    ok(
+      '  → avec sa consigne',
+      created?.description === NOTE,
+      clean(created?.description ?? '(vide)')
+    );
+    ok(
+      '  → et son lien vidéo',
+      created?.videoUrl === VIDEO,
+      created?.videoUrl ?? '(vide)'
+    );
+  } else {
     ok('la consigne arrive au serveur', false, 'fiche absente, non éprouvé');
     ok('le lien vidéo arrive au serveur', false, 'fiche absente, non éprouvé');
-    await browser.close();
-    process.exit(1);
   }
 
-  // ── Remplir, et vérifier que cela arrive au serveur ──────────────────────
-  await note.click();
-  await p.waitForTimeout(300);
-  await sheet
-    .getByRole('textbox', { name: `Consigne — ${NAME}`, exact: true })
-    .fill(NOTE);
-  await p.keyboard.press('Tab');
-  await p.waitForTimeout(800);
+  // ── Modifier un exercice existant, depuis le même sélecteur ──────────────
+  await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1800);
+  await p
+    .getByRole('button', { name: /^exercice$/ })
+    .first()
+    .click();
+  await p.waitForTimeout(700);
 
-  await video.click();
-  await p.waitForTimeout(300);
-  await sheet
-    .getByRole('textbox', { name: `Lien vidéo — ${NAME}`, exact: true })
-    .fill(VIDEO);
-  await p.keyboard.press('Tab');
-  await p.waitForTimeout(1000);
+  const openers = p.getByRole('button', { name: /^Ouvrir la fiche de / });
+  const count = await openers.count();
+  ok(
+    'chaque exercice du sélecteur ouvre sa fiche',
+    count > 0,
+    `${count} bouton(s)`
+  );
 
-  const created = (await library()).find((e) => e.name === NAME);
-  ok('le serveur porte le nouvel exercice', !!created, JSON.stringify(created));
-  ok(
-    '  → avec sa consigne',
-    created?.description === NOTE,
-    clean(created?.description ?? '(vide)')
-  );
-  ok(
-    '  → et son lien vidéo',
-    created?.videoUrl === VIDEO,
-    created?.videoUrl ?? '(vide)'
-  );
+  if (count > 0) {
+    const label = await openers.first().getAttribute('aria-label');
+    const existing = (label ?? '').replace('Ouvrir la fiche de ', '');
+    await openers.first().click();
+    await p.waitForTimeout(1200);
+
+    const openSheet = p.getByRole('dialog');
+    const existingNote = openSheet.getByLabel(`Consigne — ${existing}`, {
+      exact: true,
+    });
+    ok(
+      `la fiche de « ${existing} » s’ouvre sur place`,
+      (await existingNote.count()) === 1,
+      `${await existingNote.count()} champ(s)`
+    );
+
+    if ((await existingNote.count()) === 1) {
+      await existingNote.click();
+      await p.waitForTimeout(300);
+      await openSheet
+        .getByRole('textbox', { name: `Consigne — ${existing}`, exact: true })
+        .fill(EDIT);
+      await p.keyboard.press('Tab');
+      await p.waitForTimeout(900);
+
+      const edited = (await library()).find((e) => e.name === existing);
+      ok(
+        '  → et la correction arrive au serveur',
+        edited?.description === EDIT,
+        clean(edited?.description ?? '(vide)')
+      );
+    }
+  }
 
   await browser.close();
   process.exit(failureCount() > 0 ? 1 : 0);
