@@ -16,7 +16,15 @@
  * qui a été tapé — un champ rempli dans un tiroir qui n'arrive pas à l'API ne
  * vaut pas mieux qu'un champ absent.
  */
-import { BASE, launch, ok, failureCount, signIn, clean } from './common.mjs';
+import {
+  BASE,
+  launch,
+  ok,
+  failureCount,
+  signIn,
+  clean,
+  MOBILE,
+} from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
 const WORKSHOP = `${BASE}/coach/clients/${CLIENT}/s/1`;
@@ -25,6 +33,7 @@ const VIDEO = 'https://www.youtube.com/watch?v=sswzD1Q7dTk';
 const NOTE = 'Dos plat, la poussée vient des hanches.';
 const EDIT = 'Consigne corrigée depuis le programme.';
 const PLACED = 'Corrigée depuis la ligne du programme.';
+const MOBILE_NAME = 'Swing témoin mobile';
 
 /** La bibliothèque telle que le serveur la porte, lue hors du navigateur. */
 const library = async () => {
@@ -282,6 +291,120 @@ const main = async () => {
         );
       }
     }
+  }
+
+  // ── En mobile, où le sélecteur est un tiroir et non une liste ────────────
+  //
+  // Retour du terrain : « en mode mobile le tiroir ne s'ouvre pas à la
+  // création ». Exact, et le banc ne pouvait pas le voir : il menait cet
+  // écran en desktop, où le sélecteur est une liste posée dans le bloc. En
+  // mobile c'est un tiroir, et deux couches s'échangeaient donc dans le même
+  // rendu — le sélecteur se fermait, la fiche s'ouvrait, et le
+  // `history.back()` de nettoyage du premier refermait la seconde dans la
+  // seconde qui suivait.
+  //
+  // D'où un contexte mobile, et une attente longue : la fiche s'ouvrait
+  // bien, elle ne restait pas. Une assertion prise aussitôt l'aurait vue
+  // ouverte et aurait conclu que tout allait bien.
+  const mobile = await browser.newContext(MOBILE);
+  const m = await signIn(mobile);
+  await m.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
+  await m.waitForTimeout(1800);
+
+  await m
+    .getByRole('button', { name: /^exercice$/ })
+    .first()
+    .click();
+  await m.waitForTimeout(800);
+  await m
+    .getByRole('textbox', { name: 'Chercher un exercice' })
+    .first()
+    .fill(MOBILE_NAME);
+  await m.waitForTimeout(500);
+  await m.getByRole('button', { name: /Créer/ }).first().click();
+  await m.waitForTimeout(2500);
+
+  const mobileNote = m
+    .getByRole('dialog')
+    .getByLabel(`Consigne — ${MOBILE_NAME}`, { exact: true });
+  ok(
+    'en mobile, la fiche s’ouvre à la création et elle reste',
+    (await mobileNote.count()) === 1,
+    `${await m.getByRole('dialog').count()} tiroir(s), ${await mobileNote.count()} champ(s)`
+  );
+
+  // Et le bouton retour, qui est la raison d'être de `useBackDismiss`, doit
+  // continuer de fermer la couche. Le correctif distingue nos propres retours
+  // de ceux de l'utilisateur : s'il en avalait un de trop, c'est ici que ça
+  // se verrait.
+  await m.goBack();
+  await m.waitForTimeout(1200);
+  ok(
+    '  → et le retour la referme, sans quitter le programme',
+    (await m.getByRole('dialog').count()) === 0 &&
+      m.url().includes('/coach/clients/'),
+    `${await m.getByRole('dialog').count()} tiroir(s) — ${m.url()}`
+  );
+
+  ok(
+    '  → le mouvement créé est bien dans le bloc',
+    (await m
+      .locator('main')
+      .getByRole('button', { name: `Ouvrir la fiche de ${MOBILE_NAME}` })
+      .count()) === 1
+  );
+
+  // ── Deux couches ouvertes en même temps ─────────────────────────────────
+  //
+  // En mobile, ouvrir une fiche depuis l'intérieur du sélecteur l'empile
+  // par-dessus : le sélecteur reste dessous. Un retour doit refermer la fiche
+  // et rendre le sélecteur, pas les deux ni la page. C'est le cas que le
+  // registre prévoit — un repère pour la pile, reposé tant qu'il reste une
+  // couche — et que rien ne vérifiait.
+  await m
+    .getByRole('button', { name: /^exercice$/ })
+    .first()
+    .click();
+  await m.waitForTimeout(800);
+  ok('le sélecteur est ouvert', (await m.getByRole('dialog').count()) >= 1);
+
+  const fromSelector = m.getByRole('button', {
+    name: `Ouvrir la fiche de ${MOBILE_NAME}`,
+  });
+  if (await fromSelector.count()) {
+    await fromSelector.first().click();
+    await m.waitForTimeout(1200);
+    ok(
+      'la fiche s’empile par-dessus le sélecteur',
+      (await m
+        .getByRole('dialog')
+        .getByLabel(`Consigne — ${MOBILE_NAME}`, { exact: true })
+        .count()) === 1
+    );
+
+    await m.goBack();
+    await m.waitForTimeout(1200);
+    ok(
+      '  → le retour referme la fiche et rend le sélecteur',
+      (await m
+        .getByRole('textbox', { name: 'Chercher un exercice' })
+        .count()) === 1 &&
+        (await m
+          .getByRole('dialog')
+          .getByLabel(`Consigne — ${MOBILE_NAME}`, { exact: true })
+          .count()) === 0,
+      m.url()
+    );
+
+    await m.goBack();
+    await m.waitForTimeout(1200);
+    ok(
+      '  → et le retour suivant referme le sélecteur, sans quitter la page',
+      (await m
+        .getByRole('textbox', { name: 'Chercher un exercice' })
+        .count()) === 0 && m.url().includes('/coach/clients/'),
+      m.url()
+    );
   }
 
   await browser.close();
