@@ -415,6 +415,10 @@ export const ClientProgramTab = ({
                   <ExerciseSheet
                     exercise={sheetExercise}
                     onClose={() => setSheetExercise(null)}
+                    // Ouverte par-dessus la séance en cours d'écriture, la
+                    // fiche doit dire où l'on retourne : une croix dans un
+                    // coin ne le dit pas.
+                    doneLabel="Retour au programme"
                   />
                 )}
               </Drawer.Body>

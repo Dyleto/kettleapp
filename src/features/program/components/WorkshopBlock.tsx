@@ -66,6 +66,9 @@ interface ExerciseRowProps {
   index: number;
   onUpdate: (updates: ExerciseUpdate) => void;
   onRemove: () => void;
+  /** Absent quand la ligne se lit sans pouvoir ouvrir la fiche du
+   * mouvement. */
+  onOpenSheet?: () => void;
 }
 
 const ExerciseRow = ({
@@ -74,6 +77,7 @@ const ExerciseRow = ({
   index,
   onUpdate,
   onRemove,
+  onOpenSheet,
 }: ExerciseRowProps) => {
   // La consigne d'un exercice n'a pas d'invitation permanente sous chaque
   // ligne : cinq exercices, ce seraient cinq « + consigne » à lire avant de
@@ -146,9 +150,33 @@ const ExerciseRow = ({
         {/* Deux lignes plutôt qu'une : « Soulevé de terre jambes tendues
             à la barre » en demande deux même sur toute la largeur d'un
             téléphone. */}
-        <Text fontSize="sm" color="fg.muted" lineClamp={2}>
-          {exercise.exercise.name}
-        </Text>
+        {/* Le nom est la porte vers la fiche du mouvement — description,
+            vidéo, consigne générale. Elle n'était atteignable que depuis le
+            sélecteur, donc un coach qui voulait corriger la vidéo d'un
+            exercice déjà posé devait le rechercher comme s'il voulait
+            l'ajouter, ou quitter le programme pour la bibliothèque.
+            Souligné au survol et au focus : sans cela rien ne distingue un
+            nom cliquable d'un nom écrit, comme pour les valeurs. */}
+        {onOpenSheet ? (
+          <Box
+            as="button"
+            aria-label={`Ouvrir la fiche de ${exercise.exercise.name}`}
+            onClick={onOpenSheet}
+            textAlign="left"
+            minW={0}
+            fontSize="sm"
+            color="fg.muted"
+            lineClamp={2}
+            _hover={{ color: 'fg', textDecoration: 'underline' }}
+            _focusVisible={{ color: 'fg', textDecoration: 'underline' }}
+          >
+            {exercise.exercise.name}
+          </Box>
+        ) : (
+          <Text fontSize="sm" color="fg.muted" lineClamp={2}>
+            {exercise.exercise.name}
+          </Text>
+        )}
       </HStack>
 
       {/* La prescription, alignée à droite en chiffres tabulaires : c'est
@@ -577,6 +605,11 @@ export const WorkshopBlock = ({
           index={index}
           onUpdate={(updates) => onUpdateExercise(index, updates)}
           onRemove={() => onRemoveExercise(index)}
+          onOpenSheet={
+            onOpenExerciseSheet
+              ? () => onOpenExerciseSheet(exercise.exercise)
+              : undefined
+          }
         />
       ))}
     </BlockFrame>

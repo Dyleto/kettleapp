@@ -155,6 +155,17 @@ interface ExerciseSheetProps {
   /** Absent quand la carte s'ouvre depuis un endroit où supprimer n'a pas de
    *  sens — l'éditeur, par exemple. */
   onDelete?: () => void;
+  /**
+   * Le libellé du bouton qui referme la fiche, quand une croix ne suffit pas
+   * à dire où l'on retourne.
+   *
+   * Dans la bibliothèque, fermer la fiche rend la liste qui est déjà
+   * derrière : la croix se comprend. Ouverte par-dessus le programme, elle
+   * recouvre ce qu'on était en train d'écrire, et le coach cherche à
+   * « valider » — d'où un bouton nommé, en bas, là où le pouce finit de
+   * lire.
+   */
+  doneLabel?: string;
 }
 
 /**
@@ -190,6 +201,7 @@ export const ExerciseSheet = ({
   exercise,
   onClose,
   onDelete,
+  doneLabel,
 }: ExerciseSheetProps) => {
   const updateMutation = useUpdateExercise();
   const video = exercise.videoUrl ? parseYouTubeUrl(exercise.videoUrl) : null;
@@ -317,6 +329,31 @@ export const ExerciseSheet = ({
         >
           {usageSentence(usage, !!onDelete)}
         </Text>
+      )}
+
+      {/* La validation d'une fiche ouverte par-dessus le programme.
+          Les champs partent déjà à la perte du focus — il n'y a rien à
+          enregistrer ici, et c'est justement pourquoi ce bouton était
+          d'abord absent. Mais une fiche qui recouvre la séance en cours
+          d'écriture laisse chercher comment revenir, et une croix de 14 px
+          dans un coin ne le dit pas. Le clic retire d'abord le focus du
+          champ ouvert, donc sa valeur est partie avant que la fiche se
+          referme. */}
+      {doneLabel && onClose && (
+        <Box
+          as="button"
+          onClick={onClose}
+          mt={2}
+          py={2.5}
+          borderRadius="md"
+          bg="app.primary/12"
+          color="app.primary"
+          fontSize="sm"
+          fontWeight="medium"
+          _hover={{ bg: 'app.primary/20' }}
+        >
+          {doneLabel}
+        </Box>
       )}
     </VStack>
   );

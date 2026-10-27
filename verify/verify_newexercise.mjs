@@ -24,6 +24,7 @@ const NAME = 'Swing lesté témoin';
 const VIDEO = 'https://www.youtube.com/watch?v=sswzD1Q7dTk';
 const NOTE = 'Dos plat, la poussée vient des hanches.';
 const EDIT = 'Consigne corrigée depuis le programme.';
+const PLACED = 'Corrigée depuis la ligne du programme.';
 
 /** La bibliothèque telle que le serveur la porte, lue hors du navigateur. */
 const library = async () => {
@@ -141,21 +142,39 @@ const main = async () => {
   // ── Modifier un exercice existant, depuis le même sélecteur ──────────────
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1800);
+
+  // Ce que la page porte déjà, avant d'ouvrir le sélecteur : les lignes du
+  // programme.
+  const placedBefore = await p
+    .getByRole('button', { name: /^Ouvrir la fiche de / })
+    .count();
+
   await p
     .getByRole('button', { name: /^exercice$/ })
     .first()
     .click();
   await p.waitForTimeout(700);
 
-  const openers = p.getByRole('button', { name: /^Ouvrir la fiche de / });
-  const count = await openers.count();
+  // L'écart avant/après ouverture, et non un compte absolu.
+  //
+  // Deux raisons. D'abord les lignes du programme portent elles aussi un
+  // « Ouvrir la fiche de… » depuis ce commit : un compte pris sur toute la
+  // page additionnait les deux — 19 là où le sélecteur en porte 11 — et
+  // serait resté vert même si le sélecteur n'en portait plus aucun. Ensuite
+  // le sélecteur n'a pas la même forme selon la largeur : un tiroir sur
+  // desktop, une liste posée dans le bloc sur mobile. Cadrer sur `dialog`
+  // ne voyait donc que la première, et comptait zéro sur la seconde.
+  const allOpeners = () =>
+    p.getByRole('button', { name: /^Ouvrir la fiche de / }).count();
+  const inSelector = (await allOpeners()) - placedBefore;
   ok(
     'chaque exercice du sélecteur ouvre sa fiche',
-    count > 0,
-    `${count} bouton(s)`
+    inSelector > 0,
+    `${inSelector} bouton(s) apportés par le sélecteur`
   );
+  const openers = p.getByRole('button', { name: /^Ouvrir la fiche de / });
 
-  if (count > 0) {
+  if (inSelector > 0) {
     const label = await openers.first().getAttribute('aria-label');
     const existing = (label ?? '').replace('Ouvrir la fiche de ', '');
     await openers.first().click();
@@ -186,6 +205,82 @@ const main = async () => {
         edited?.description === EDIT,
         clean(edited?.description ?? '(vide)')
       );
+    }
+  }
+
+  // ── Ouvrir la fiche depuis une ligne déjà posée dans le programme ────────
+  //
+  // Le geste que le sélecteur ne couvre pas : l'exercice est déjà dans le
+  // bloc, et le coach veut corriger sa vidéo. Il n'y avait aucun chemin — il
+  // fallait rechercher le mouvement comme pour l'ajouter, ou quitter le
+  // programme pour la bibliothèque.
+  await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1800);
+
+  const inProgram = p
+    .locator('main')
+    .getByRole('button', { name: /^Ouvrir la fiche de / });
+  const placed = await inProgram.count();
+  ok(
+    'un exercice posé dans le programme ouvre sa fiche',
+    placed > 0,
+    `${placed} mouvement(s) cliquable(s)`
+  );
+
+  if (placed > 0) {
+    const label = await inProgram.first().getAttribute('aria-label');
+    const name = (label ?? '').replace('Ouvrir la fiche de ', '');
+    await inProgram.first().click();
+    await p.waitForTimeout(1200);
+
+    const placedSheet = p.getByRole('dialog');
+    const field = placedSheet.getByLabel(`Consigne — ${name}`, {
+      exact: true,
+    });
+    ok(
+      `la fiche de « ${name} » s’ouvre par-dessus le programme`,
+      (await field.count()) === 1,
+      `${await field.count()} champ(s)`
+    );
+
+    // ── Valider sans quitter le champ ──────────────────────────────────────
+    //
+    // Le vrai risque de ce bouton : les champs partent à la perte du focus,
+    // donc cliquer « Retour au programme » alors qu'on tape encore doit
+    // d'abord retirer le focus — sinon la frappe est perdue au moment précis
+    // où le coach croit valider.
+    if ((await field.count()) === 1) {
+      await field.click();
+      await p.waitForTimeout(300);
+      await placedSheet
+        .getByRole('textbox', { name: `Consigne — ${name}`, exact: true })
+        .fill(PLACED);
+
+      const done = placedSheet.getByRole('button', {
+        name: 'Retour au programme',
+      });
+      ok('la fiche porte une validation nommée', (await done.count()) === 1);
+
+      if (await done.count()) {
+        await done.click();
+        await p.waitForTimeout(1200);
+
+        ok(
+          '  → elle referme la fiche et rend le programme',
+          (await p.getByRole('dialog').count()) === 0 &&
+            (await p
+              .locator('main')
+              .getByRole('button', { name: /^Ouvrir la fiche de / })
+              .count()) > 0
+        );
+
+        const kept = (await library()).find((e) => e.name === name);
+        ok(
+          '  → et la frappe en cours est enregistrée, pas perdue',
+          kept?.description === PLACED,
+          clean(kept?.description ?? '(vide)')
+        );
+      }
     }
   }
 
