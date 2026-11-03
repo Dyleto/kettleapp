@@ -1,11 +1,13 @@
 import {
   Box,
   HStack,
+  Menu,
+  Portal,
   Text,
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { LuPlus } from 'react-icons/lu';
+import { LuPlus, LuTrash2 } from 'react-icons/lu';
 import { Session } from '@/shared/types';
 import {
   BLOCK_ACCENT_COLOR,
@@ -42,6 +44,13 @@ interface SessionRailProps {
    * cela se lit ici sur toutes les séances plutôt que sur la seule ouverte.
    */
   tracking?: Map<string, { count: number; lastAt?: string }>;
+  /**
+   * Supprimer la séance visée, sans l'ouvrir d'abord.
+   *
+   * Absent quand le rail se lit sans pouvoir supprimer. Le filet d'annulation
+   * vit chez l'appelant : c'est lui qui sait où remettre la séance.
+   */
+  onRequestDelete?: (sessionId: string) => void;
 }
 
 /**
@@ -75,12 +84,15 @@ interface RowProps {
   tracking?: { count: number; lastAt?: string };
   onSelect: () => void;
   sortable: boolean;
+  /** Absent quand le rail se lit sans pouvoir supprimer. */
+  onRequestDelete?: () => void;
 }
 
 const RailRow = ({
   session,
   isActive,
   tracking,
+  onRequestDelete,
   onSelect,
   sortable,
 }: RowProps) => {
@@ -95,7 +107,7 @@ const RailRow = ({
 
   const { rank, freeName } = sessionTitleParts(session.order, session.name);
 
-  return (
+  const row = (
     <Box
       ref={setNodeRef}
       style={{
@@ -179,6 +191,38 @@ const RailRow = ({
       <Composition session={session} />
     </Box>
   );
+
+  if (!onRequestDelete) return row;
+
+  return (
+    <Menu.Root>
+      <Menu.ContextTrigger asChild>{row}</Menu.ContextTrigger>
+      <Portal>
+        <Menu.Positioner>
+          <Menu.Content
+            bg="bg.surface"
+            borderWidth="1px"
+            borderRadius="xl"
+            padding={1}
+          >
+            <Menu.Item
+              value="delete"
+              cursor="pointer"
+              onClick={onRequestDelete}
+              color="app.error"
+              _hover={{ bg: 'app.error/12' }}
+              borderRadius="md"
+            >
+              <HStack gap={2}>
+                <LuTrash2 size={13} />
+                <Text>Supprimer la séance {session.order}</Text>
+              </HStack>
+            </Menu.Item>
+          </Menu.Content>
+        </Menu.Positioner>
+      </Portal>
+    </Menu.Root>
+  );
 };
 
 /**
@@ -196,6 +240,7 @@ export const SessionRail = ({
   onAddSession,
   onReorder,
   tracking,
+  onRequestDelete,
 }: SessionRailProps) => {
   /**
    * À partir de quand le rail devient une colonne.
@@ -254,6 +299,11 @@ export const SessionRail = ({
                 tracking={tracking?.get(session._id)}
                 onSelect={() => onSelect(index)}
                 sortable={!!onReorder}
+                onRequestDelete={
+                  onRequestDelete
+                    ? () => onRequestDelete(session._id)
+                    : undefined
+                }
               />
             ))}
           </SortableContext>

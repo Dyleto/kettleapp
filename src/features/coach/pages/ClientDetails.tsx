@@ -150,7 +150,7 @@ const ClientDetails = () => {
   };
 
   /**
-   * Supprimer la séance ouverte, avec de quoi la remettre.
+   * Supprimer une séance, avec de quoi la remettre.
    *
    * C'est la plus grande perte possible en un geste — une séance emporte tous
    * ses blocs — et c'est précisément pour cela que le filet vaut mieux que la
@@ -159,15 +159,24 @@ const ClientDetails = () => {
    *
    * Annuler y ramène aussi le coach. Annuler, c'est revenir où l'on était,
    * pas seulement récupérer ce qu'on avait perdu.
+   *
+   * N'importe quelle séance et non la seule ouverte : le rail permet
+   * désormais de supprimer au clic droit celle qu'on vise, sans l'ouvrir
+   * d'abord. Le bouton du bas, lui, passe toujours celle qui est ouverte.
    */
-  const handleRemoveActiveSession = () => {
-    if (!activeSession) return;
-    const index = currentIndex;
-    const removed = activeSession;
+  const handleRemoveSession = (sessionId: string) => {
+    const sessions = program?.sessions ?? [];
+    const index = sessions.findIndex((s) => s._id === sessionId);
+    const removed = sessions[index];
+    if (!removed) return;
     const howMany = removed.blocks.length;
 
     actions.removeSession(removed._id);
-    navigate(COACH_ROUTES.clientSession(clientId!, 1));
+    // On ne déplace le coach que si c'est la séance qu'il regardait : une
+    // suppression faite depuis le rail sur une autre séance ne doit pas lui
+    // changer l'écran sous les yeux.
+    if (index === currentIndex)
+      navigate(COACH_ROUTES.clientSession(clientId!, 1));
 
     undoable({
       title: `Séance ${removed.order} supprimée`,
@@ -389,6 +398,7 @@ const ClientDetails = () => {
             onSelect={handleSelectSession}
             onAddSession={handleAddSession}
             onReorder={actions.reorderSessions}
+            onRequestDelete={handleRemoveSession}
             tracking={tracking}
           />
 
@@ -432,7 +442,7 @@ const ClientDetails = () => {
                   key={activeSession._id}
                   session={activeSession}
                   inProgram={inProgram}
-                  onRemoveSession={handleRemoveActiveSession}
+                  onRemoveSession={() => handleRemoveSession(activeSession._id)}
                   clientId={clientId!}
                   onDuplicateSession={handleDuplicateActiveSession}
                   onUpdateSessionDays={(days) =>
