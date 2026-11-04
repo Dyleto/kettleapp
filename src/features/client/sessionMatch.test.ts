@@ -68,7 +68,7 @@ describe('ce qui rompt la correspondance', () => {
 
   it('un palier de pyramide retiré', () => {
     const { session, history } = pair([
-      makeBlock({ type: 'pyramid', repsScheme: [21, 15, 9] }),
+      makeBlock({ type: 'ladder', repsScheme: [21, 15, 9] }),
     ]);
     session.blocks[0].repsScheme = [21, 15];
     expect(matchSession(session, history).state).toBe('changed');

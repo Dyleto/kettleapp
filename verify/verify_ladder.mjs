@@ -1,15 +1,16 @@
 /**
- * Une pyramide à plusieurs mouvements monte-elle palier par palier ?
+ * Une échelle à plusieurs mouvements monte-elle palier par palier ?
  *
  * Retour du terrain : « le Pyramide ne fonctionne pas comme espéré, il marche
- * que pour 1 exo et pas plusieurs ».
+ * que pour 1 exo et pas plusieurs » — le format s'appelait encore ainsi ;
+ * « Pyramide » et « Échelle » ne faisaient qu'un et ont fusionné depuis.
  *
- * Elle déroulait toute la pyramide du premier exercice, puis toute celle du
+ * Elle déroulait toute l'échelle du premier exercice, puis toute celle du
  * second : sur `5·10·15` avec Pompes et Planche, cela donnait 5-10-15 pompes
  * puis 5-10-15 planches. Ce qu'un coach écrit là est 5 pompes + 5 planches,
  * puis 10 + 10, puis 15 + 15 — c'est le principe du format. Et c'est pour
  * cela qu'il semblait ne marcher qu'à un seul mouvement : à un seul, les deux
- * ordres coïncident, et le décor du banc n'avait qu'une pyramide à un
+ * ordres coïncident, et le décor du banc n'avait qu'une échelle à un
  * exercice.
  *
  * Le repos appartient à la fin du palier et non à la fin de chaque exercice :
@@ -40,7 +41,7 @@ const orderOnScreen = (p) =>
   });
 
 {
-  console.log('\n── la pyramide alterne ses mouvements à chaque palier');
+  console.log('\n── l’échelle alterne ses mouvements à chaque palier');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess6');

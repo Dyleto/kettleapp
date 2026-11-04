@@ -18,7 +18,6 @@ export const BLOCK_TYPE_CONFIG: Record<BlockType, { label: string }> = {
   classic: { label: 'Classique' },
   tabata: { label: 'Tabata' },
   onoff: { label: 'On / Off' },
-  pyramid: { label: 'Pyramide' },
   ladder: { label: 'Échelle' },
 };
 
@@ -39,8 +38,11 @@ const BLOCK_DESCRIPTIONS: Record<BlockType, string> = {
   chipper: 'Liste à faire en 1 passe',
   tabata: 'Travail / Repos en alternance',
   onoff: 'Xon / Xoff × N tours',
-  pyramid: 'Reps qui montent et descendent',
-  ladder: 'Reps qui augmentent ou diminuent',
+  // « Pyramide » a disparu, et sa description avec : une pyramide est une
+  // échelle dont le schéma redescend. Celle-ci doit donc dire les deux sens,
+  // sans quoi un coach qui cherche une pyramide ne reconnaîtrait pas le
+  // format sous ce nom.
+  ladder: 'Reps qui montent, descendent, ou les deux',
 };
 
 /** Rend la chaîne vide plutôt qu'`undefined` : les appelants la placent
@@ -75,7 +77,7 @@ export const BLOCK_FAMILIES: {
     // connu — les blocs déjà créés s'affichent — mais on n'en crée plus.
     types: ['emom', 'amrap', 'timecap', 'tabata', 'onoff'],
   },
-  { key: 'progressive', label: 'Progressif', types: ['pyramid', 'ladder'] },
+  { key: 'progressive', label: 'Progressif', types: ['ladder'] },
 ];
 
 /**
@@ -160,8 +162,13 @@ export const prescribedSetLabels = (
 
 // Les blocs dont le minutage est entièrement défini par le schéma du bloc :
 // l'exercice n'y porte aucune mesure propre.
+//
+// Un seul type depuis que « Pyramide » est entré dans « Échelle ». La forme
+// de liste est gardée : la question « ce type porte-t-il ses propres doses ? »
+// ne se confond pas avec « est-ce une échelle ? », et un format qui
+// l'emprunterait demain n'aurait rien à réécrire ici.
 export const blockDefinesOwnMetrics = (type: BlockType): boolean =>
-  ['pyramid', 'ladder'].includes(type);
+  ['ladder'].includes(type);
 
 /**
  * Les blocs dont la durée fait partie du format — et qui méritent donc une
@@ -292,7 +299,6 @@ export const getBlockConfigSummary = (block: SessionBlock): string => {
       ]
         .filter(Boolean)
         .join(' ');
-    case 'pyramid':
     case 'ladder': {
       const scheme = block.repsScheme?.join('-') ?? '';
       const rest = block.restBetweenRounds

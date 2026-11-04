@@ -8,7 +8,10 @@ import {
   Session,
   SessionBlock,
 } from '@/shared/types';
-import { blockSupportsSets } from '@/features/program/constants';
+import {
+  blockDefinesOwnMetrics,
+  blockSupportsSets,
+} from '@/features/program/constants';
 
 type ExerciseUpdate = Partial<Omit<BlockExercise, 'exercise'>>;
 
@@ -25,7 +28,6 @@ const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
   every: { intervalMinutes: 3, rounds: 5 },
   tabata: { rounds: 8, workDuration: 20, restDuration: 10 },
   onoff: { rounds: 10, workDuration: 30, restDuration: 30 },
-  pyramid: { repsScheme: [5, 10, 15, 20, 15, 10, 5], restBetweenRounds: 60 },
   ladder: { repsScheme: [5, 10, 15, 20], restBetweenRounds: 60 },
 };
 
@@ -38,7 +40,7 @@ const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
   if (blockSupportsSets(blockType))
     return { sets: 3, reps: 10, restBetweenSets: 60 };
   if (['tabata', 'onoff'].includes(blockType)) return { reps: 5 };
-  if (['pyramid', 'ladder'].includes(blockType)) return {};
+  if (blockDefinesOwnMetrics(blockType)) return {};
   return { reps: 10 };
 };
 

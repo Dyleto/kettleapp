@@ -117,7 +117,7 @@ describe('les doses qui peuvent compter', () => {
     const session = makeSession({
       blocks: [
         makeBlock({
-          type: 'pyramid',
+          type: 'ladder',
           repsScheme: [21, 15, 9],
           exercises: [makeBlockExercise({})],
         }),

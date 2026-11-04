@@ -147,7 +147,6 @@ export const BlockConfigInline = ({
       );
 
     // ── A sequence ──
-    case 'pyramid':
     case 'ladder':
       return (
         // Une pyramide peut avoir treize paliers : la suite doit pouvoir se

@@ -4,7 +4,7 @@
  * Il existe pour mener l'application pour de vrai dans un navigateur —
  * cliquer, taper, terminer une séance — et pour lire ce qu'elle affiche. Le
  * jeu de données couvre les cas qui cassent : un EMOM, un Tabata, un AMRAP,
- * un chipper, une pyramide, un bloc « Every » d'avant la fusion, et un
+ * un chipper, une échelle, un bloc « Every » d'avant la fusion, et un
  * historique qui donne de quoi comparer.
  *
  * Il vit dans le dépôt et non dans un dossier temporaire : la première
@@ -208,21 +208,22 @@ const SESSIONS = [
     blocks: [
       {
         _id: 'blk8',
-        type: 'pyramid',
+        type: 'ladder',
         order: 1,
         repsScheme: [2, 4, 6, 8, 6, 4, 2],
         exercises: [blockExercise(EXERCISES[1], 1, {})],
       },
     ],
   },
-  // Une pyramide à deux mouvements, ajoutée pour un retour du terrain : « le
+  // Une échelle à deux mouvements, ajoutée pour un retour du terrain : « le
   // Pyramide ne fonctionne pas comme espéré, il marche que pour 1 exo et pas
-  // plusieurs ». Une séance à part et non un exercice ajouté à `sess5` :
+  // plusieurs » — le format s'appelait encore ainsi. Une séance à part et non
+  // un exercice ajouté à `sess5` :
   // deux suites comptent ses sept paliers, et un décor doit rester déterminé.
   {
     _id: 'sess6',
     order: 6,
-    name: 'Pyramide à deux',
+    name: 'Échelle à deux',
     notes: '',
     suggestedDays: [],
     createdAt: '2026-06-01T10:00:00.000Z',
@@ -230,7 +231,7 @@ const SESSIONS = [
     blocks: [
       {
         _id: 'blk10',
-        type: 'pyramid',
+        type: 'ladder',
         order: 1,
         repsScheme: [5, 10, 15],
         restBetweenRounds: 45,

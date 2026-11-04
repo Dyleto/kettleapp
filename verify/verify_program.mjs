@@ -155,7 +155,7 @@ const cards = async (p) => {
     clean(before['Séance 5'] ?? '(absente)')
   );
 
-  // La séance 5 est une pyramide : un bloc, sept paliers.
+  // La séance 5 est une échelle : un bloc, sept paliers.
   await start(p, 'sess5');
   for (let i = 0; i < 7; i++) {
     const f = p.getByRole('button', { name: /^Fait$/ });

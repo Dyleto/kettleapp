@@ -90,7 +90,7 @@ const record = (p, sess) =>
   console.log('\n── terminer la séance reste une décision');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
-  // La séance 5 est une pyramide : un bloc, sept paliers.
+  // La séance 5 est une échelle : un bloc, sept paliers.
   await start(p, 'sess5');
   for (let i = 0; i < 7; i++) {
     const f = p.getByRole('button', { name: /^Fait$/ });
@@ -107,7 +107,7 @@ const record = (p, sess) =>
   );
   ok(
     '  → on est toujours dans la séance',
-    /— Pyramide$/i.test(await where(p)),
+    /— Échelle$/i.test(await where(p)),
     await where(p)
   );
   ok(

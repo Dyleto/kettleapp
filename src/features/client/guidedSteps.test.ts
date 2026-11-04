@@ -202,7 +202,7 @@ describe('une boucle se compte, une liste se coche', () => {
     'classic',
     'chipper',
     'warmup',
-    'pyramid',
+    'ladder',
     'ladder',
   ] as const;
 
@@ -262,13 +262,13 @@ describe('les séries d’un bloc en liste', () => {
   });
 
   it('une pyramide donne une série par palier, chacune avec sa dose', () => {
-    const pyramidBlock = makeBlock({
-      type: 'pyramid',
+    const ladderBlock = makeBlock({
+      type: 'ladder',
       repsScheme: [21, 15, 9],
       restBetweenRounds: 60,
       exercises: [makeBlockExercise({})],
     });
-    const sets = setsOfBlock(pyramidBlock);
+    const sets = setsOfBlock(ladderBlock);
     expect(sets).toHaveLength(3);
     expect(sets.map((s) => s.dose)).toEqual(['21 reps', '15 reps', '9 reps']);
     expect(sets.map((s) => s.reps)).toEqual([21, 15, 9]);
@@ -288,7 +288,7 @@ describe('les séries d’un bloc en liste', () => {
   it('une pyramide à plusieurs mouvements monte palier par palier', () => {
     const sets = setsOfBlock(
       makeBlock({
-        type: 'pyramid',
+        type: 'ladder',
         repsScheme: [5, 10, 15],
         restBetweenRounds: 60,
         exercises: [
@@ -324,7 +324,7 @@ describe('les séries d’un bloc en liste', () => {
   it('ne repose qu’à la fin de chaque palier, et pas après le dernier', () => {
     const sets = setsOfBlock(
       makeBlock({
-        type: 'pyramid',
+        type: 'ladder',
         repsScheme: [5, 10],
         restBetweenRounds: 90,
         exercises: [
@@ -382,7 +382,7 @@ describe('les séries d’un bloc en liste', () => {
   it('garde des clés uniques malgré l’ordre par palier', () => {
     const sets = setsOfBlock(
       makeBlock({
-        type: 'pyramid',
+        type: 'ladder',
         repsScheme: [5, 10],
         exercises: [
           makeBlockExercise({
@@ -554,8 +554,8 @@ describe('la dose d’un mouvement, pour un tour', () => {
 
 describe('les répétitions d’une série', () => {
   it('viennent du palier sur une pyramide', () => {
-    const pyramidBlock = { type: 'pyramid' as const, repsScheme: [21, 15, 9] };
-    expect(repsOfSet(pyramidBlock, { reps: 99 }, 2)).toBe(15);
+    const ladderBlock = { type: 'ladder' as const, repsScheme: [21, 15, 9] };
+    expect(repsOfSet(ladderBlock, { reps: 99 }, 2)).toBe(15);
   });
 
   it('viennent de l’exercice partout ailleurs', () => {
@@ -567,8 +567,8 @@ describe('les répétitions d’une série', () => {
   });
 
   it('sont absentes au-delà du dernier palier', () => {
-    const pyramidBlock = { type: 'pyramid' as const, repsScheme: [21, 15] };
-    expect(repsOfSet(pyramidBlock, {}, 3)).toBeUndefined();
+    const ladderBlock = { type: 'ladder' as const, repsScheme: [21, 15] };
+    expect(repsOfSet(ladderBlock, {}, 3)).toBeUndefined();
   });
 });
 
