@@ -265,6 +265,69 @@ let COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
 /** Le nombre d'enregistrements que le serveur a réellement acceptés. */
 let PUT_COUNT = 0;
 
+/**
+ * Ce que l'API rend d'un lot de séances reçu : rangs posés, identifiants
+ * attribués, mouvements repeuplés.
+ *
+ * Une seule fonction pour le programme d'un client et pour un modèle, parce
+ * que c'est un seul code côté API — `replaceProgramSessions` et
+ * `replaceTemplateSessions` passent par le même schéma. Deux copies ici
+ * auraient laissé le banc valider une forme que l'API n'envoie pas.
+ */
+const shaped = (sessions, idPrefix) =>
+  (sessions || []).map((session, si) => ({
+    ...session,
+    _id: session._id || `${idPrefix}-sess-${si + 1}`,
+    order: si + 1,
+    createdAt: '2026-06-01T10:00:00.000Z',
+    updatedAt: new Date().toISOString(),
+    blocks: (session.blocks || []).map((block, bi) => ({
+      ...block,
+      _id: block._id || `${idPrefix}-blk-${si + 1}-${bi + 1}`,
+      order: bi + 1,
+      exercises: (block.exercises || []).map((ex, ei) => ({
+        ...ex,
+        _id: ex._id || `${idPrefix}-bex-${si + 1}-${bi + 1}-${ei + 1}`,
+        order: ei + 1,
+        // Le front envoie `exerciseId` et relit `exercise` : c'est l'API
+        // qui repeuple le mouvement. Sans cela l'atelier perdrait ses
+        // exercices au premier aller-retour.
+        exercise: EXERCISES.find((e) => e._id === ex.exerciseId) ?? {
+          _id: ex.exerciseId,
+          name: 'Mouvement',
+          category: 'other',
+        },
+      })),
+    })),
+  }));
+
+/**
+ * Les modèles de programme du coach.
+ *
+ * Un seul au départ, et il porte deux séances : de quoi vérifier qu'un import
+ * remplace vraiment le programme du client — qui en compte davantage — plutôt
+ * que de s'y ajouter.
+ */
+const initialTemplates = () => [
+  {
+    _id: 'tpl1',
+    name: 'Prise de masse',
+    sessions: JSON.parse(JSON.stringify(SESSIONS.slice(0, 2))),
+    createdAt: '2026-06-01T10:00:00.000Z',
+    updatedAt: '2026-06-01T10:00:00.000Z',
+  },
+];
+
+let TEMPLATES = initialTemplates();
+
+/** Ce qu'une ligne de liste porte : le nom et le compte, pas les séances. */
+const templateRow = (template) => ({
+  _id: template._id,
+  name: template.name,
+  sessionCount: template.sessions.length,
+  updatedAt: template.updatedAt,
+});
+
 /** Les exercices créés pendant un tour, pour pouvoir les retirer au suivant. */
 const CREATED_EXERCISES = [];
 
@@ -529,33 +592,76 @@ const server = http.createServer(async (req, res) => {
     /^\/api\/coach\/clients\/([^/]+)\/program\/sessions$/
   );
   if (saveMatch && method === 'PUT') {
-    COACH_SESSIONS = (body.sessions || []).map((session, si) => ({
-      ...session,
-      _id: session._id || `sess-new-${si + 1}`,
-      order: si + 1,
-      createdAt: '2026-06-01T10:00:00.000Z',
-      updatedAt: new Date().toISOString(),
-      blocks: (session.blocks || []).map((block, bi) => ({
-        ...block,
-        _id: block._id || `blk-new-${si + 1}-${bi + 1}`,
-        order: bi + 1,
-        exercises: (block.exercises || []).map((ex, ei) => ({
-          ...ex,
-          _id: ex._id || `bex-new-${si + 1}-${bi + 1}-${ei + 1}`,
-          order: ei + 1,
-          // Le front envoie `exerciseId` et relit `exercise` : c'est l'API
-          // qui repeuple le mouvement. Sans cela l'atelier perdrait ses
-          // exercices au premier aller-retour.
-          exercise: EXERCISES.find((e) => e._id === ex.exerciseId) ?? {
-            _id: ex.exerciseId,
-            name: 'Mouvement',
-            category: 'other',
-          },
-        })),
-      })),
-    }));
+    COACH_SESSIONS = shaped(body.sessions, 'new');
     PUT_COUNT += 1;
     return sendJson(res, 200, COACH_SESSIONS);
+  }
+
+  // Un import écrase le programme du client par les séances du modèle. Le
+  // contenu ne voyage pas : le front nomme le modèle, le serveur le relit.
+  const importMatch = pathname.match(
+    /^\/api\/coach\/clients\/([^/]+)\/program\/import$/
+  );
+  if (importMatch && method === 'POST') {
+    const template = TEMPLATES.find((t) => t._id === body.templateId);
+    if (!template) return sendJson(res, 404, { message: 'Modèle introuvable' });
+    // Les identifiants de séance sont retirés avant façonnage : ils
+    // appartiennent au modèle, et les réutiliser ferait deux documents sous
+    // la même clé — c'est le défaut que `sessionsForImport` évite côté API.
+    COACH_SESSIONS = shaped(
+      JSON.parse(JSON.stringify(template.sessions)).map((session) => ({
+        ...session,
+        _id: undefined,
+      })),
+      'imported'
+    );
+    PUT_COUNT += 1;
+    return sendJson(res, 200, COACH_SESSIONS);
+  }
+
+  // ── Les modèles de programme ─────────────────────────────────────────────
+  if (pathname === '/api/coach/templates' && method === 'GET')
+    return sendJson(res, 200, { templates: TEMPLATES.map(templateRow) });
+
+  if (pathname === '/api/coach/templates' && method === 'POST') {
+    const created = {
+      _id: `tpl-new-${TEMPLATES.length + 1}`,
+      name: body.name ?? 'Sans nom',
+      sessions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    TEMPLATES.push(created);
+    return sendJson(res, 201, { template: created });
+  }
+
+  const templateMatch = pathname.match(/^\/api\/coach\/templates\/([^/]+)$/);
+  if (templateMatch) {
+    const template = TEMPLATES.find((t) => t._id === templateMatch[1]);
+    if (!template) return sendJson(res, 404, { message: 'Modèle introuvable' });
+
+    if (method === 'GET') return sendJson(res, 200, { template });
+    if (method === 'PATCH') {
+      template.name = body.name ?? template.name;
+      template.updatedAt = new Date().toISOString();
+      return sendJson(res, 200, { template });
+    }
+    if (method === 'DELETE') {
+      TEMPLATES = TEMPLATES.filter((t) => t !== template);
+      return sendJson(res, 200, {});
+    }
+  }
+
+  const templateSessionsMatch = pathname.match(
+    /^\/api\/coach\/templates\/([^/]+)\/sessions$/
+  );
+  if (templateSessionsMatch && method === 'PUT') {
+    const template = TEMPLATES.find((t) => t._id === templateSessionsMatch[1]);
+    if (!template) return sendJson(res, 404, { message: 'Modèle introuvable' });
+    template.sessions = shaped(body.sessions, 'tpl');
+    template.updatedAt = new Date().toISOString();
+    PUT_COUNT += 1;
+    return sendJson(res, 200, { template });
   }
 
   if (pathname === '/api/coach/exercises' && method === 'GET')
@@ -592,6 +698,7 @@ const server = http.createServer(async (req, res) => {
   // les noms — ce qui est arrivé, et a rendu deux assertions illisibles.
   if (pathname === '/api/mock/reset' && method === 'POST') {
     COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
+    TEMPLATES = initialTemplates();
     PUT_COUNT = 0;
     // Les exercices créés repartent aussi : la bibliothèque doit retrouver sa
     // taille, sinon une assertion qui la compte dérive d'un tour à l'autre.

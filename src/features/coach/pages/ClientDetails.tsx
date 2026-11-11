@@ -16,11 +16,8 @@ import { LuArrowLeft, LuBookOpen } from 'react-icons/lu';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
-import { useProgramAutoSave } from '@/features/program/hooks/useProgramAutoSave';
-import { undoable } from '@/shared/components/undoable';
+import { useProgramWorkshop } from '@/features/program/hooks/useProgramWorkshop';
 import { InlineText } from '@/features/program/components/InlineValue';
-import { getBlockLabel } from '@/features/program/constants';
 import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
@@ -31,19 +28,7 @@ import { Header } from '@/shared/components/Header';
 import { TOUCH, hitArea } from '@/shared/components/hitArea';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { Exercise, Session } from '@/shared/types';
-
-/**
- * « Avec ses 3 exercices. », « Avec son exercice. », ou rien du tout.
- *
- * Le pluriel n'est pas une affaire de « s » collé à la fin : « Avec ses 1
- * bloc » ne se dit pas, et c'est ce que produisait la forme courte.
- */
-const removedContents = (howMany: number, noun: string): string | undefined => {
-  if (howMany === 0) return undefined;
-  if (howMany === 1) return `Avec son ${noun}.`;
-  return `Avec ses ${howMany} ${noun}s.`;
-};
+import { Session } from '@/shared/types';
 
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
@@ -59,7 +44,6 @@ const ClientDetails = () => {
   useDocumentTitle(
     client ? `${client.firstName} ${client.lastName}` : undefined
   );
-  const { program, initialize, actions } = useProgramEditor(null);
   const updateProgramMutation = useUpdateProgramSessions(clientId!, {
     silent: true,
   });
@@ -73,15 +57,30 @@ const ClientDetails = () => {
     [mutateAsync]
   );
 
+  const goToSession = useCallback(
+    (index: number) => navigate(COACH_ROUTES.clientSession(clientId!, index)),
+    [navigate, clientId]
+  );
+
+  // L'atelier, partagé avec l'écran des modèles de programme : son état, son
+  // enregistrement et ses huit gestes avec leurs filets d'annulation. Ne
+  // reste ici que ce qui est propre à un client.
   const {
-    state: saveState,
+    program,
+    actions,
+    activeSession,
+    currentIndex,
+    workshopProps,
+    addSession,
+    removeSession,
+    saveState,
     savedAt,
     flush,
-  } = useProgramAutoSave({
-    program,
+  } = useProgramWorkshop({
     serverProgram: client?.program,
-    initialize,
     save,
+    sessionIndex,
+    goToSession,
   });
 
   /**
@@ -98,23 +97,7 @@ const ClientDetails = () => {
    */
   const isWide = useBreakpointValue({ base: false, xl: true });
 
-  const currentIndex = Math.max(0, (Number(sessionIndex) || 1) - 1);
   const sessions = program?.sessions ?? [];
-  const activeSession = sessions[currentIndex] ?? null;
-
-  // Tout le programme est en mémoire : « déjà dans ce programme » et
-  // « jamais fait » se calculent sans une seule requête de plus.
-  const inProgram = useMemo<Exercise[]>(() => {
-    const byId = new Map<string, Exercise>();
-    program?.sessions.forEach((s) =>
-      s.blocks.forEach((b) =>
-        b.exercises.forEach((ex) => byId.set(ex.exercise._id, ex.exercise))
-      )
-    );
-    return [...byId.values()].sort((a, b) =>
-      a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
-    );
-  }, [program]);
 
   /**
    * Combien de fois chaque séance a été faite, et quand fut la dernière.
@@ -137,110 +120,6 @@ const ClientDetails = () => {
     }
     return perSession;
   }, [history]);
-
-  const handleSelectSession = (index: number) => {
-    navigate(COACH_ROUTES.clientSession(clientId!, index + 1));
-  };
-
-  const handleAddSession = () => {
-    actions.addSession();
-    navigate(
-      COACH_ROUTES.clientSession(clientId!, (program?.sessions.length ?? 0) + 1)
-    );
-  };
-
-  /**
-   * Supprimer une séance, avec de quoi la remettre.
-   *
-   * C'est la plus grande perte possible en un geste — une séance emporte tous
-   * ses blocs — et c'est précisément pour cela que le filet vaut mieux que la
-   * question : la question reçoit un « oui » réflexe dès la troisième fois,
-   * quand la bannière attend huit secondes sans rien demander.
-   *
-   * Annuler y ramène aussi le coach. Annuler, c'est revenir où l'on était,
-   * pas seulement récupérer ce qu'on avait perdu.
-   *
-   * N'importe quelle séance et non la seule ouverte : le rail permet
-   * désormais de supprimer au clic droit celle qu'on vise, sans l'ouvrir
-   * d'abord. Le bouton du bas, lui, passe toujours celle qui est ouverte.
-   */
-  const handleRemoveSession = (sessionId: string) => {
-    const sessions = program?.sessions ?? [];
-    const index = sessions.findIndex((s) => s._id === sessionId);
-    const removed = sessions[index];
-    if (!removed) return;
-    const howMany = removed.blocks.length;
-
-    actions.removeSession(removed._id);
-    // On ne déplace le coach que si c'est la séance qu'il regardait : une
-    // suppression faite depuis le rail sur une autre séance ne doit pas lui
-    // changer l'écran sous les yeux.
-    if (index === currentIndex)
-      navigate(COACH_ROUTES.clientSession(clientId!, 1));
-
-    undoable({
-      title: `Séance ${removed.order} supprimée`,
-      description: removedContents(howMany, 'bloc'),
-      undo: () => {
-        actions.insertSession(index, removed);
-        navigate(COACH_ROUTES.clientSession(clientId!, index + 1));
-      },
-    });
-  };
-
-  /**
-   * Supprimer un bloc, avec de quoi le remettre.
-   *
-   * Il avait une confirmation, et elle part avec ce filet : garder les deux
-   * reviendrait à poser une question ET à offrir un rattrapage, soit deux
-   * gestes pour une seule erreur possible. Un bloc part entier, avec ses
-   * exercices — la bannière le dit, et « Annuler » le remet à sa place.
-   */
-  const removeBlock = (blockId: string) => {
-    const index = activeSession?.blocks.findIndex((b) => b._id === blockId);
-    const block =
-      index !== undefined && index >= 0
-        ? activeSession?.blocks[index]
-        : undefined;
-    if (!activeSession || !block || index === undefined) return;
-
-    actions.removeBlock(activeSession._id, blockId);
-    undoable({
-      title: `Bloc ${getBlockLabel(block.type)} supprimé`,
-      description: removedContents(block.exercises.length, 'exercice'),
-      undo: () => actions.insertBlock(activeSession._id, index, block),
-    });
-  };
-
-  /**
-   * Retirer un exercice, avec de quoi le remettre.
-   *
-   * C'est le geste le plus fréquent de l'éditeur, et le seul qui ne demandait
-   * rien : une ✕ dans la gouttière, à côté de « changer l'unité ». Une
-   * confirmation à chaque retrait serait insupportable ; une bannière qui
-   * reste huit secondes ne coûte rien à qui ne s'est pas trompé.
-   */
-  const removeExercise = (blockId: string, index: number) => {
-    const block = activeSession?.blocks.find((b) => b._id === blockId);
-    const removed = block?.exercises[index];
-    if (!activeSession || !removed) return;
-
-    actions.removeExercise(activeSession._id, blockId, index);
-    undoable({
-      title: `${removed.exercise.name} retiré`,
-      description: `De ${getBlockLabel(block.type)}.`,
-      undo: () =>
-        actions.insertExercise(activeSession._id, blockId, index, removed),
-    });
-  };
-
-  const handleDuplicateActiveSession = () => {
-    if (!activeSession) return;
-    actions.duplicateSession(activeSession._id);
-    // La copie s'insère juste après l'original : on l'ouvre aussitôt, c'est
-    // ce qui vient d'être créé pour être ajusté.
-    navigate(COACH_ROUTES.clientSession(clientId!, currentIndex + 2));
-  };
 
   if (isLoading) {
     return (
@@ -395,15 +274,19 @@ const ClientDetails = () => {
           <SessionRail
             sessions={program.sessions}
             activeIndex={currentIndex}
-            onSelect={handleSelectSession}
-            onAddSession={handleAddSession}
+            onSelect={(index) => goToSession(index + 1)}
+            onAddSession={addSession}
             onReorder={actions.reorderSessions}
-            onRequestDelete={handleRemoveSession}
+            onRequestDelete={removeSession}
             tracking={tracking}
           />
 
           <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
-            {activeSession ? (
+            {/* Les deux vont toujours ensemble — `workshopProps` n'existe
+                que s'il y a une séance ouverte — mais TypeScript ne relie pas
+                deux valeurs rendues par le même hook : sans le second test, la
+                diffusion des propriétés serait refusée. */}
+            {activeSession && workshopProps ? (
               <>
                 {/* Le rang reste le titre, le nom s'y ajoute — et s'édite là
                     où il se lit, exactement comme le nom libre d'un bloc :
@@ -440,41 +323,8 @@ const ClientDetails = () => {
 
                 <ClientProgramTab
                   key={activeSession._id}
-                  session={activeSession}
-                  inProgram={inProgram}
-                  onRemoveSession={() => handleRemoveSession(activeSession._id)}
+                  {...workshopProps}
                   clientId={clientId!}
-                  onDuplicateSession={handleDuplicateActiveSession}
-                  onUpdateSessionDays={(days) =>
-                    actions.updateSessionDays(activeSession._id, days)
-                  }
-                  onUpdateSessionNotes={(notes) =>
-                    actions.updateSessionNotes(activeSession._id, notes)
-                  }
-                  onAddBlock={(type) =>
-                    actions.addBlock(activeSession._id, type)
-                  }
-                  onRemoveBlock={(blockId) => removeBlock(blockId)}
-                  onUpdateBlock={(blockId, updates) =>
-                    actions.updateBlock(activeSession._id, blockId, updates)
-                  }
-                  onReorderBlocks={(orderedIds) =>
-                    actions.reorderBlocks(activeSession._id, orderedIds)
-                  }
-                  onAddExercise={(blockId, exercise) =>
-                    actions.addExercise(activeSession._id, blockId, exercise)
-                  }
-                  onRemoveExercise={(blockId, index) =>
-                    removeExercise(blockId, index)
-                  }
-                  onUpdateExercise={(blockId, index, updates) =>
-                    actions.updateExercise(
-                      activeSession._id,
-                      blockId,
-                      index,
-                      updates
-                    )
-                  }
                 />
               </>
             ) : sessions.length === 0 ? (
@@ -487,7 +337,7 @@ const ClientDetails = () => {
                     color="bg.canvas"
                     fontWeight="bold"
                     minH="44px"
-                    onClick={handleAddSession}
+                    onClick={addSession}
                     _hover={{ bg: 'app.primary.hover' }}
                   >
                     Ajouter une séance
@@ -515,7 +365,7 @@ const ClientDetails = () => {
                     color="bg.canvas"
                     fontWeight="bold"
                     minH="44px"
-                    onClick={() => handleSelectSession(0)}
+                    onClick={() => goToSession(1)}
                     _hover={{ bg: 'app.primary.hover' }}
                   >
                     Aller à la séance 1

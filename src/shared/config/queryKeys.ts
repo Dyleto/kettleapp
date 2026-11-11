@@ -42,6 +42,13 @@ export const queryKeys = {
     invitations: {
       all: () => [...queryKeys.coach.all, 'invitations'] as const,
     },
+
+    templates: {
+      all: () => [...queryKeys.coach.all, 'templates'] as const,
+      lists: () => [...queryKeys.coach.templates.all(), 'list'] as const,
+      detail: (templateId: string) =>
+        [...queryKeys.coach.templates.all(), templateId] as const,
+    },
   },
 
   admin: {

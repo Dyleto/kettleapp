@@ -56,6 +56,9 @@ export const COACH_ROUTES = {
   clientSession: (clientId: string, sessionIndex: number) =>
     `/coach/clients/${clientId}/s/${sessionIndex}`,
   clientJournal: (clientId: string) => `/coach/clients/${clientId}/journal`,
+  templates: '/coach/templates',
+  templateSession: (templateId: string, sessionIndex: number) =>
+    `/coach/templates/${templateId}/s/${sessionIndex}`,
   exercises: '/coach/exercises',
   exerciseDetails: (exerciseId: string) => `/coach/exercises/${exerciseId}`,
   account: '/coach/account',

@@ -35,6 +35,12 @@ const ClientJournal = React.lazy(
 const Exercises = React.lazy(
   () => import('@/features/exercise/pages/Exercises')
 );
+const Templates = React.lazy(
+  () => import('@/features/template/pages/Templates')
+);
+const TemplateDetails = React.lazy(
+  () => import('@/features/template/pages/TemplateDetails')
+);
 
 const ClientLayout = React.lazy(
   () => import('@/features/client/pages/ClientLayout')
@@ -61,6 +67,14 @@ const LegalNotice = React.lazy(
 const ClientDetailsRedirect = () => {
   const { clientId } = useParams();
   return <Navigate to={COACH_ROUTES.clientSession(clientId!, 1)} replace />;
+};
+
+// Un modèle s'ouvre sur sa première séance, comme le programme d'un client :
+// l'adresse sans rang existe parce qu'on la tape, pas parce qu'un écran y
+// mène.
+const TemplateDetailsRedirect = () => {
+  const { templateId } = useParams();
+  return <Navigate to={COACH_ROUTES.templateSession(templateId!, 1)} replace />;
 };
 
 // `exercises/:id/edit` rendait exactement le même composant que
@@ -100,6 +114,18 @@ const router = createBrowserRouter(
             sur un écran d'entrée séparé : même route, panneau ou tiroir
             selon la largeur. « new » n'existe plus — on crée en tapant un
             nom. */}
+        {/* Les modèles de programme : des programmes préfaits, à importer
+            chez un client pour lui servir de base. */}
+        <Route path="templates" element={<Templates />} />
+        <Route
+          path="templates/:templateId"
+          element={<TemplateDetailsRedirect />}
+        />
+        <Route
+          path="templates/:templateId/s/:sessionIndex"
+          element={<TemplateDetails />}
+        />
+
         <Route path="exercises" element={<Exercises />} />
         <Route
           path="exercises/new"

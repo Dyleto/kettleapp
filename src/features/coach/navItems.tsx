@@ -1,5 +1,5 @@
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { LuUsers, LuDumbbell } from 'react-icons/lu';
+import { LuUsers, LuDumbbell, LuLayoutTemplate } from 'react-icons/lu';
 
 /**
  * Les destinations de l'espace coach, à une seule adresse.
@@ -13,5 +13,10 @@ import { LuUsers, LuDumbbell } from 'react-icons/lu';
  */
 export const COACH_NAV_ITEMS = [
   { to: COACH_ROUTES.clients, label: 'Mes clients', icon: LuUsers, end: true },
+  {
+    to: COACH_ROUTES.templates,
+    label: 'Modèles',
+    icon: LuLayoutTemplate,
+  },
   { to: COACH_ROUTES.exercises, label: 'Bibliothèque', icon: LuDumbbell },
 ];

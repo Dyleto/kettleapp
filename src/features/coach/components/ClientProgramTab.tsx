@@ -55,8 +55,16 @@ import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 
 interface Props {
   session: Session;
-  /** Le client dont on édite le programme — la source d'une copie. */
-  clientId: string;
+  /**
+   * Le client dont on édite le programme — la source d'une copie.
+   *
+   * Absent quand l'atelier édite un modèle de programme : « copier vers un
+   * client » n'a alors pas de source, et c'est la seule chose de cet écran
+   * qui soit propre à un client. Tout le reste — les blocs, les exercices, la
+   * fiche d'un mouvement — ne sait pas de qui est le programme qu'il édite,
+   * et c'est ce qui rend l'atelier réutilisable tel quel.
+   */
+  clientId?: string;
   /** Les exercices déjà placés ailleurs dans le programme, pour le
    * sélecteur. */
   inProgram: Exercise[];
@@ -346,17 +354,20 @@ export const ClientProgramTab = ({
           {/* Dupliquer et copier se ressemblent assez pour voisiner, et
               assez peu pour ne pas se confondre : l'un reste chez ce client,
               l'autre part chez un autre — et son libellé le dit avant le
-              clic, par les points de suspension qui annoncent un choix. */}
-          <Button
-            size="xs"
-            variant="ghost"
-            color="fg.muted"
-            css={{ [TOUCH]: { minHeight: '44px' } }}
-            onClick={() => setIsCopyOpen(true)}
-          >
-            <LuUsers size={13} />
-            Copier vers un client…
-          </Button>
+              clic, par les points de suspension qui annoncent un choix.
+              Absent sur un modèle, qui n'a pas de client source. */}
+          {clientId && (
+            <Button
+              size="xs"
+              variant="ghost"
+              color="fg.muted"
+              css={{ [TOUCH]: { minHeight: '44px' } }}
+              onClick={() => setIsCopyOpen(true)}
+            >
+              <LuUsers size={13} />
+              Copier vers un client…
+            </Button>
+          )}
           <Button
             size="xs"
             variant="ghost"
@@ -377,13 +388,15 @@ export const ClientProgramTab = ({
         </HStack>
       </VStack>
 
-      <CopySessionToClient
-        sourceClientId={clientId}
-        sourceSessionId={session._id}
-        sessionOrder={session.order}
-        isOpen={isCopyOpen}
-        onClose={() => setIsCopyOpen(false)}
-      />
+      {clientId && (
+        <CopySessionToClient
+          sourceClientId={clientId}
+          sourceSessionId={session._id}
+          sessionOrder={session.order}
+          isOpen={isCopyOpen}
+          onClose={() => setIsCopyOpen(false)}
+        />
+      )}
 
       {selectorBlockId && (
         <ExerciseSelectorPanel

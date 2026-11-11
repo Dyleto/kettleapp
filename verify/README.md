@@ -1,6 +1,6 @@
 # Le banc d'essai
 
-Neuf suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
+Quinze suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
 `npm test` à la racine, qui éprouve la logique pure en quelques secondes :
 une suite qui n'a pas besoin d'un navigateur n'a rien à faire ici. Il y en
 avait une — `verify_format.mjs`, qui empaquetait un module avec esbuild faute
@@ -10,7 +10,7 @@ performedFormat.test.ts`.
 Il mène l'application dans un vrai navigateur — cliquer, taper, terminer une
 séance — et lit ce qu'elle affiche. Aucune base de données : `mock-server.mjs`
 sert une API Kettle en mémoire, avec un jeu de données qui couvre les formats
-qui cassent (EMOM, Tabata, AMRAP, chipper, pyramide, un bloc « Every »
+qui cassent (EMOM, Tabata, AMRAP, chipper, échelle, un bloc « Every »
 d'avant la fusion) et un historique qui donne de quoi comparer.
 
 ## Le lancer

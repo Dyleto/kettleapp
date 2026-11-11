@@ -35,6 +35,8 @@ import type {
   ProgramPayload,
   SessionBlockPayload,
   SessionPayload,
+  TemplatePayload,
+  TemplateRowPayload,
   UserPayload,
 } from './contract';
 
@@ -84,6 +86,20 @@ export type Session = SessionPayload;
 
 /** Le programme d'un client, du point de vue de l'écran : ses séances. */
 export type ClientProgram = Pick<ProgramPayload, 'sessions'>;
+
+/**
+ * Une ligne de la liste des modèles : de quoi choisir, pas de quoi éditer.
+ */
+export type TemplateRow = TemplateRowPayload;
+
+/**
+ * Un modèle de programme ouvert.
+ *
+ * Ses séances sont des `Session`, les mêmes que celles d'un programme de
+ * client : c'est ce qui permet au même atelier de les éditer, et c'est
+ * décidé côté API — `templatePayload` réutilise `sessionPayload`.
+ */
+export type Template = TemplatePayload;
 
 /** Un client et son programme — une seule requête pour l'atelier, qui a
  * besoin des deux à la fois. */
