@@ -104,7 +104,7 @@ const AuthCallback = () => {
         if (!mounted) return;
 
         setUser(data.user);
-        toaster.create({ title: 'Connexion réussie !', type: 'success' });
+        toaster.create({ title: 'Connexion réussie', type: 'success' });
 
         const wait = Math.max(
           0,

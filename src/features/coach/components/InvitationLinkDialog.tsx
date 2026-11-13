@@ -81,8 +81,8 @@ export const InvitationLinkDialog = ({ link, expiresAt, onClose }: Props) => {
               <VStack align="start" gap={1}>
                 <Dialog.Title>Le lien d&rsquo;invitation</Dialog.Title>
                 <Text fontSize="sm" color="fg.muted" fontWeight="normal">
-                  Votre navigateur n&rsquo;a pas voulu le copier. Le voici —
-                  envoyez-le à votre client, il rejoindra votre suivi.
+                  Ton navigateur n&rsquo;a pas voulu le copier. Le voici :
+                  envoie-le à ton client, son compte sera rattaché au tien.
                 </Text>
               </VStack>
             </Dialog.Header>

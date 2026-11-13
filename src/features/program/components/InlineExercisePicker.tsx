@@ -24,8 +24,8 @@ interface InlineExercisePickerProps {
 }
 
 const GROUP_IN_PROGRAM = 'Déjà dans ce programme';
-const GROUP_MOST_USED = 'Vos plus utilisés';
-const GROUP_ALL = 'Toute la bibliothèque';
+const GROUP_MOST_USED = 'Tes plus utilisés';
+const GROUP_ALL = 'Tous tes exercices';
 const GROUP_RESULTS = 'Résultats';
 
 /**

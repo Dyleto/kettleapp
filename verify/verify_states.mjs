@@ -113,7 +113,7 @@ const browser = await launch();
       .catch(() => null)) === 'true'
   );
 
-  await tab(p, 'Historique');
+  await tab(p, 'Progrès');
   ok(
     "l'historique vide dit ce qui y viendra",
     await appears(p, 'Rien à montrer encore', 4000)
@@ -164,7 +164,7 @@ const browser = await launch();
     program.slice(0, 80)
   );
 
-  await tab(p, 'Historique');
+  await tab(p, 'Progrès');
   await p.waitForTimeout(600);
   const history = await screen(p);
   ok(

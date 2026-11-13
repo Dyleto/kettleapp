@@ -441,7 +441,7 @@ const AdminDashboard = () => {
                   Aucun coach pour l'instant
                 </Text>
                 <Text color="fg.muted" fontSize="xs" mt={1}>
-                  Créez le premier compte coach pour commencer
+                  Crée le premier compte coach pour commencer
                 </Text>
               </Box>
             ) : (

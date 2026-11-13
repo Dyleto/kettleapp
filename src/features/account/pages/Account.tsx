@@ -73,14 +73,15 @@ interface Props {
  * seul le client voit celle des données de santé : un coach n'en déclare
  * aucune.
  *
- * La règle d'adresse : Kettle tutoie le client et vouvoie le coach, et c'est
- * l'espace où l'on se trouve qui décide — pas le sujet de la section. Un
- * compte portant les deux rôles lisait ses sections « client » au tutoiement
- * alors qu'il était dans l'espace coach, parce que trois titres avaient été
- * écrits en dur. D'où la règle : aucune phrase de cette page ne s'adresse au
- * lecteur sans passer par `informal`. Les textes qui ne le peuvent pas — ceux que
- * la carte de consentement partage avec l'accueil du client — sont écrits à
- * la première personne, qui est de toute façon la voix d'un consentement.
+ * Une seule voix : Kettle tutoie tout le monde. La page vouvoyait le coach
+ * et tutoyait le client, selon l'espace d'où l'on venait, et chaque phrase
+ * passait par une bascule — dix-huit en tout. Un compte portant les deux
+ * rôles lisait donc la même page dans deux tons selon le bouton qui l'y
+ * avait mené. L'espace ne décide plus que d'une chose : où ramène le lien de
+ * retour.
+ *
+ * Les textes de la carte de consentement restent à la première personne, qui
+ * est la voix d'un consentement.
  */
 const Account = ({ space }: Props) => {
   useDocumentTitle('Mon compte');
@@ -89,48 +90,42 @@ const Account = ({ space }: Props) => {
   const { data, isLoading } = useAccount();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const informal = space === 'client';
+  const inClientSpace = space === 'client';
   const fullName = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
 
   const consequences = useMemo(() => {
     if (!data) return [];
-    const lines: string[] = [
-      informal
-        ? 'Ton compte et ton accès à Kettle'
-        : 'Votre compte et votre accès à Kettle',
-    ];
+    const lines: string[] = ['Ton compte et ton accès à Kettle'];
 
     if (data.asClient) {
       const n = data.asClient.completedCount;
       lines.push(
         n > 0
-          ? `${informal ? 'Tes' : 'Vos'} ${n} séance${n > 1 ? 's' : ''} et toutes ${informal ? 'tes' : 'vos'} charges`
-          : `${informal ? 'Ton' : 'Votre'} programme`
+          ? `Tes ${n} séance${n > 1 ? 's' : ''} et toutes tes charges`
+          : `Ton programme`
       );
       const coachNames = data.asClient.coaches
         .map((c) => `${c.firstName} ${c.lastName}`.trim())
         .filter(Boolean);
       if (coachNames.length > 0) {
         lines.push(
-          `${informal ? 'Ton' : 'Votre'} lien avec ${coachNames.join(', ')} — ${coachNames.length > 1 ? 'ils ne verront' : 'il ou elle ne verra'} plus rien`
+          `Ton lien avec ${coachNames.join(', ')} — ce que tu fais ne ${coachNames.length > 1 ? 'leur' : 'lui'} sera plus montré`
         );
       }
     }
 
     if (data.asCoach) {
       const n = data.asCoach.clientCount;
-      lines.push(
-        `${informal ? 'Ta' : 'Votre'} bibliothèque d'exercices et ${informal ? 'tes' : 'vos'} programmes`
-      );
+      lines.push('Tes exercices et tes programmes');
       if (n > 0) {
         lines.push(
-          `Le lien avec ${informal ? 'tes' : 'vos'} ${n} client${n > 1 ? 's' : ''} — leurs séances déjà réalisées leur restent`
+          `Le lien avec tes ${n} client${n > 1 ? 's' : ''} — leurs séances déjà réalisées leur restent`
         );
       }
     }
 
     return lines;
-  }, [data, informal]);
+  }, [data]);
 
   if (isLoading) {
     return (
@@ -156,9 +151,11 @@ const Account = ({ space }: Props) => {
       <VStack align="stretch" gap={7}>
         <VStack align="stretch" gap={1.5}>
           <BackLink
-            label={informal ? "Aujourd'hui" : 'Mes clients'}
+            label={inClientSpace ? "Aujourd'hui" : 'Clients'}
             onClick={() =>
-              navigate(informal ? CLIENT_ROUTES.today : COACH_ROUTES.clients)
+              navigate(
+                inClientSpace ? CLIENT_ROUTES.today : COACH_ROUTES.clients
+              )
             }
           />
           <Heading as="h1" size="lg" fontWeight="bold">
@@ -185,9 +182,8 @@ const Account = ({ space }: Props) => {
             </HStack>
           </InfoCard>
           <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-            Ces informations viennent {informal ? 'de ton' : 'de votre'} compte
-            Google. Pour les changer, {informal ? 'passe' : 'passez'} par
-            Google.
+            Ces informations viennent de ton compte Google. Pour les changer,
+            passe par Google.
           </Text>
         </Section>
 
@@ -195,13 +191,7 @@ const Account = ({ space }: Props) => {
         {data?.asClient && data.asClient.coaches.length > 0 && (
           <Section
             title={
-              data.asClient.coaches.length > 1
-                ? informal
-                  ? 'Tes coachs'
-                  : 'Vos coachs'
-                : informal
-                  ? 'Ton coach'
-                  : 'Votre coach'
+              data.asClient.coaches.length > 1 ? 'Tes coachs' : 'Ton coach'
             }
           >
             <VStack align="stretch" gap={2}>
@@ -235,9 +225,7 @@ const Account = ({ space }: Props) => {
 
         {/* ── Données de santé — côté client seulement ───────────────── */}
         {data?.asClient && (
-          <Section
-            title={informal ? 'Tes données de santé' : 'Vos données de santé'}
-          >
+          <Section title="Tes données de santé">
             <HealthConsentCard
               consent={data.asClient.healthConsent}
               healthDataCount={data.asClient.healthDataCount}
@@ -247,7 +235,7 @@ const Account = ({ space }: Props) => {
 
         {/* ── Espace coach ───────────────────────────────────────────── */}
         {data?.asCoach && (
-          <Section title={informal ? 'Ton espace coach' : 'Votre espace coach'}>
+          <Section title="Ton espace coach">
             <InfoCard>
               <VStack align="start" gap={2}>
                 <HStack gap={2} align="baseline">
@@ -317,8 +305,7 @@ const Account = ({ space }: Props) => {
             ))}
           </Box>
           <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-            Pour recevoir une copie de {informal ? 'tes' : 'vos'} données,{' '}
-            {informal ? 'écris' : 'écrivez'} à{' '}
+            Pour recevoir une copie de tes données, écris à{' '}
             <Link
               href={`mailto:${LEGAL.publisher.contactEmail}`}
               color="app.primary"
@@ -339,9 +326,8 @@ const Account = ({ space }: Props) => {
           borderColor="whiteAlpha.100"
         >
           <Text fontSize="sm" color="fg.muted" lineHeight="1.6">
-            La suppression efface {informal ? 'ton' : 'votre'} compte,{' '}
-            {informal ? 'tes' : 'vos'} séances et {informal ? 'tes' : 'vos'}{' '}
-            rattachements. Elle est définitive.
+            La suppression efface ton compte, tes séances et tes rattachements.
+            Elle est définitive.
           </Text>
           <Box
             as="button"
@@ -370,7 +356,6 @@ const Account = ({ space }: Props) => {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         consequences={consequences}
-        informal={informal}
       />
     </Box>
   );

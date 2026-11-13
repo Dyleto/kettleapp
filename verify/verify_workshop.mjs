@@ -116,7 +116,7 @@ const main = async () => {
   });
 
   await p
-    .getByRole('link', { name: /Bibliothèque/ })
+    .getByRole('link', { name: /Exercices/ })
     .first()
     .click();
   await p.waitForTimeout(1200);

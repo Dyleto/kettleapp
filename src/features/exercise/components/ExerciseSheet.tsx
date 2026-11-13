@@ -185,7 +185,7 @@ const usageSentence = (usage: number, blocksDeletion: boolean): string => {
   const base = `Utilisé dans ${usage} séance${usage > 1 ? 's' : ''}`;
   // On dit pourquoi le bouton ne répond pas, au lieu de le laisser muet.
   return blocksDeletion
-    ? `${base} — retirez-le de ces séances avant de pouvoir le supprimer.`
+    ? `${base} — retire-le de ces séances avant de pouvoir le supprimer.`
     : base;
 };
 

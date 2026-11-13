@@ -52,7 +52,7 @@ const EXERCISES = [
   ex('ex6', 'Pompes', '', 6),
   ex('ex7', 'Mountain Climbers', '', 1),
   ex('ex8', 'Corde à sauter', '', 0),
-  // Hors du programme de ce client : alimente « Vos plus utilisés ».
+  // Hors du programme de ce client : alimente « Tes plus utilisés ».
   ex('ex9', 'Turkish Get-Up', '', 5),
   ex('ex10', 'Planche', '', 0),
 ];

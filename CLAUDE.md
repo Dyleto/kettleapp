@@ -18,8 +18,8 @@ Un commentaire peut donc citer un libellé français sans que cela pose de
 question, et un identifiant ne porte jamais d'accent.
 
 `npm run lint:langue` vérifie la règle plutôt que de la surveiller, et la CI
-l'appelle. Il vérifie deux choses : que les commentaires sont en français, et
-que les identifiants sont en anglais.
+l'appelle. Il vérifie trois choses : que les commentaires sont en français,
+que les identifiants sont en anglais, et que les textes affichés tutoient.
 
 Pour les commentaires, la règle a été annoncée tenue quatre fois sans l'être,
 à cause de quatre angles morts : « on » qui compte comme un mot français ; un
@@ -37,6 +37,32 @@ d'une liste ; plus une règle sans exception : un identifiant ne porte jamais
 d'accent. Sept noms sont exemptés et chacun porte sa raison dans le script —
 cinq sont les clés d'un enregistrement déjà posé dans le `localStorage` des
 clients, que les traduire rendrait illisible.
+
+## La voix
+
+**Kettle tutoie tout le monde, coach compris.** Le coach était vouvoyé et le
+client tutoyé, sauf là où quelqu'un avait oublié : la page des modèles
+tutoyait le coach, l'invitation vouvoyait le client, et « Mon compte »
+portait dix-huit bascules pour choisir sa voix selon l'espace. Une règle à
+deux branches se trompe de branche.
+
+`lint:langue` refuse donc, hors commentaires, « vous », « votre », « vos »,
+« veuillez » et tout verbe en « -ez » — les pronoms seuls ne suffisent pas,
+« Ajoutez une séance » n'en porte aucun. Les pages légales en sont
+exemptées : ce sont des documents, et les réécrire est une décision
+éditoriale, pas une correction.
+
+Trois autres règles, que le script ne voit pas et que `verify_voice` lit à
+l'écran :
+
+- ne pas accorder ce qu'on ne connaît pas — « Julie t'invite sur Kettle », et
+  non « vous invite à le rejoindre » ;
+- un onglet et l'écran qu'il ouvre portent le même nom ;
+- à qui un texte s'adresse dépend de qui le lit : le mot du client est « ton
+  mot » pour lui, « son mot » pour son coach.
+
+Une panne dit ce qui est sauf (« Ton programme n'a pas bougé »), sans point
+d'exclamation ni « Oups ».
 
 ## Les commentaires
 

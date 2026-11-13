@@ -41,7 +41,7 @@ export const useCreateCoach = () => {
           message:
             axios.isAxiosError(error) && error.response?.data?.message
               ? error.response.data.message
-              : 'Une erreur est survenue. Veuillez réessayer.',
+              : "Le compte n'a pas été créé. Réessaie dans un instant.",
         });
       }
     },

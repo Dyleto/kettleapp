@@ -210,7 +210,7 @@ const Login: React.FC = () => {
             >
               <Text fontSize="xs" color="fg.muted" lineHeight="1.7">
                 L'espace coach ne s'ouvre pas tout seul à l'inscription.
-                Écrivez-nous à{' '}
+                Écris-nous à{' '}
                 <Link
                   href={`mailto:${LEGAL.publisher.contactEmail}`}
                   color="app.primary"
@@ -218,7 +218,7 @@ const Login: React.FC = () => {
                 >
                   {LEGAL.publisher.contactEmail}
                 </Link>{' '}
-                et nous l'ouvrons pour votre compte.
+                et on l'ouvre pour ton compte.
               </Text>
             </PathChoice>
           </VStack>

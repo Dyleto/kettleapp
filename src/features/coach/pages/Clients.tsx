@@ -50,7 +50,7 @@ const Clients = () => {
    */
   const withPreview = useBreakpointValue({ base: false, xl: true }) ?? false;
   const [preview, setPreview] = useState<Client | null>(null);
-  useDocumentTitle('Mes clients');
+  useDocumentTitle('Clients');
 
   /**
    * Ce qui se passe une fois le lien en main.
@@ -83,8 +83,8 @@ const Clients = () => {
           : "Lien d'invitation copié",
       description: [
         outcome === 'shared'
-          ? 'Votre client rejoindra votre suivi.'
-          : 'Envoyez-le à votre client : il rejoindra votre suivi.',
+          ? 'Le compte de ton client sera rattaché au tien.'
+          : 'Envoie-le à ton client : son compte sera rattaché au tien.',
         expiry,
       ]
         .filter(Boolean)
@@ -125,7 +125,7 @@ const Clients = () => {
         <HStack justify="space-between" align="center" gap={3}>
           <VStack align="start" gap={0} minW={0}>
             <Text as="h1" fontWeight="bold" fontSize="lg">
-              Mes clients
+              Clients
             </Text>
             {clients.length > 0 && (
               <Text fontSize="xs" color="fg.muted">

@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router';
 import { LuSearch, LuX } from 'react-icons/lu';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { LoadFailure } from '@/shared/components/LoadFailure';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/features/client/constants';
 import { Card } from '@/shared/components/Card';
@@ -351,12 +352,11 @@ export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
 
   if (clients.length === 0) {
     return (
-      <VStack gap={2} py={12} textAlign="center">
-        <Text color="fg.muted">Aucun client pour le moment</Text>
-        <Text color="fg.muted" fontSize="sm">
-          Invitez votre premier client pour commencer.
-        </Text>
-      </VStack>
+      <EmptyState
+        mood="hello"
+        title="Invite ton premier client"
+        line="Ton client reçoit un lien, crée son compte, et apparaît ici. Tu pourras alors écrire son programme."
+      />
     );
   }
 

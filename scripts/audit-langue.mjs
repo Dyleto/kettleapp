@@ -27,6 +27,12 @@
  * commentaires anglais, identifiants français. Le balayage a trouvé 160 noms
  * français sur 1 770 déclarés.
  *
+ * Et enfin la VOIX des textes affichés : Kettle tutoie tout le monde. Le
+ * coach était vouvoyé et le client tutoyé, sauf là où quelqu'un avait oublié
+ * — la page des modèles tutoyait le coach, l'invitation vouvoyait le client.
+ * Une règle à deux branches se trompe de branche ; une règle sans branche se
+ * vérifie d'un motif.
+ *
  *   node scripts/audit-langue.mjs
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -219,9 +225,57 @@ for (const file of files) {
   }
 }
 
-if (hits.length === 0 && names.length === 0) {
+// ─── La voix ────────────────────────────────────────────────────────────────
+
+/**
+ * Le vouvoiement, reconnu à ses pronoms et à ses verbes.
+ *
+ * Les pronoms seuls ne suffisent pas : « Ajoutez une séance » n'en porte
+ * aucun, et c'est la forme la plus courante dans une interface — un bouton,
+ * une consigne. D'où la seconde moitié du motif, qui prend tout mot en
+ * « -ez ». Hors commentaires, le code est en anglais : un tel mot ne peut
+ * venir que d'un texte affiché.
+ */
+const FORMAL = /\b(vous|votre|vos|veuillez)\b|\b[a-zà-ÿ]{3,}ez\b/i;
+
+/** Les mots en « -ez » qui ne sont pas des verbes : sans eux, « chez un
+ * client » passerait pour un ordre. */
+const NOT_A_VERB = /\b(chez|assez|nez)\b/gi;
+
+/**
+ * Ce que la règle ne regarde pas.
+ *
+ * Les pages légales sont des documents, pas de l'interface : une politique
+ * de confidentialité s'écrit au « vous », et la réécrire est une décision
+ * éditoriale, pas une correction. Le banc et les scripts ne s'affichent à
+ * personne.
+ */
+const VOICE_SCOPE = (rel) =>
+  rel.startsWith('src/') &&
+  !rel.startsWith('src/features/legal/') &&
+  rel !== 'src/shared/config/legal.ts';
+
+const formal = [];
+for (const file of files) {
+  const rel = relative(ROOT, file);
+  if (!VOICE_SCOPE(rel)) continue;
+  // Les commentaires citent volontiers l'ancien texte pour dire pourquoi il
+  // a changé : on ne juge que ce qui reste une fois qu'ils sont retirés. Les
+  // retours à la ligne sont gardés, pour que le numéro de ligne reste juste.
+  const shown = readFileSync(file, 'utf8').replace(
+    /\/\*[\s\S]*?\*\/|\/\/[^\n]*/g,
+    (comment) => comment.replace(/[^\n]/g, ' ')
+  );
+  shown.split('\n').forEach((text, index) => {
+    if (FORMAL.test(text.replace(NOT_A_VERB, ' '))) {
+      formal.push({ file: rel, line: index + 1, excerpt: text.trim() });
+    }
+  });
+}
+
+if (hits.length === 0 && names.length === 0 && formal.length === 0) {
   console.log(
-    `${files.length} fichiers : commentaires en français, identifiants en anglais.`
+    `${files.length} fichiers : commentaires en français, identifiants en anglais, textes au tutoiement.`
   );
   process.exit(0);
 }
@@ -238,6 +292,14 @@ for (const { file, name } of names) console.error(`${file}  ${name}`);
 if (names.length > 0) {
   console.error(
     `\n${names.length} identifiant(s) français. La règle du projet les veut en anglais.`
+  );
+}
+for (const { file, line, excerpt } of formal) {
+  console.error(`${file}:${line}  ${excerpt.slice(0, 80)}`);
+}
+if (formal.length > 0) {
+  console.error(
+    `\n${formal.length} texte(s) au vouvoiement. Kettle tutoie tout le monde.`
   );
 }
 process.exit(1);

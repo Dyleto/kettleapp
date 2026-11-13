@@ -39,7 +39,7 @@ export const ClientPreview = ({ client }: ClientPreviewProps) => {
   if (!client) {
     return (
       <Text fontSize="sm" color="fg.muted">
-        Choisissez un client pour voir ses dernières séances.
+        Choisis un client pour voir ses dernières séances.
       </Text>
     );
   }
@@ -92,8 +92,8 @@ export const ClientPreview = ({ client }: ClientPreviewProps) => {
           </VStack>
         ) : history.length === 0 ? (
           <EmptyState
-            title="Aucune séance réalisée"
-            line="Les séances qu'il termine apparaîtront ici, avec ce qu'il en a dit."
+            title="Rien encore"
+            line="Les séances terminées apparaîtront ici, avec ce qui en a été dit."
           />
         ) : (
           <VStack align="stretch" gap={2}>
@@ -102,6 +102,7 @@ export const ClientPreview = ({ client }: ClientPreviewProps) => {
                 key={completed._id}
                 completed={completed}
                 variant="journal"
+                readOnly
               />
             ))}
           </VStack>

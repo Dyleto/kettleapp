@@ -269,7 +269,7 @@ const TemplateDetails = () => {
           ) : sessions.length === 0 ? (
             <EmptyState
               title="Ce modèle est vide"
-              line="Ajoutez une séance pour commencer à le composer."
+              line="Ajoute une séance pour commencer à le composer."
               action={
                 <Button
                   bg="app.primary"

@@ -206,8 +206,8 @@ const ClientDetails = () => {
             as="button"
             aria-label={
               client.unseenCount > 0
-                ? `Journal complet — ${client.unseenCount} séance${client.unseenCount > 1 ? 's' : ''} non vue${client.unseenCount > 1 ? 's' : ''}`
-                : 'Journal complet'
+                ? `Ressentis — ${client.unseenCount} séance${client.unseenCount > 1 ? 's' : ''} non vue${client.unseenCount > 1 ? 's' : ''}`
+                : 'Ressentis'
             }
             onClick={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
             color="fg.muted"
@@ -285,7 +285,7 @@ const ClientDetails = () => {
               css={{ [TOUCH]: { minHeight: '44px' } }}
               onClick={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
             >
-              Journal complet
+              Ressentis
             </Button>
           </HStack>
         </VStack>
@@ -358,7 +358,7 @@ const ClientDetails = () => {
             ) : sessions.length === 0 ? (
               <EmptyState
                 title="Ce programme est vide"
-                line="Ajoutez une séance pour commencer à le construire."
+                line="Ajoute une séance pour commencer à le construire."
                 action={
                   <Button
                     bg="app.primary"

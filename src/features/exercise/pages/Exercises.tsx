@@ -54,7 +54,7 @@ const INDEX_THRESHOLD = 25;
 const GUTTER = { base: 0, lg: 8 };
 
 const Exercises = () => {
-  useDocumentTitle('Bibliothèque');
+  useDocumentTitle('Exercices');
   // L'exercice ouvert vit dans l'URL et non dans un état : un lien vers une
   // fiche s'envoie, et le bouton retour du navigateur la referme.
   const { exerciseId } = useParams();
@@ -263,7 +263,7 @@ const Exercises = () => {
         <Grid templateColumns={COLUMNS} gap={GUTTER} alignItems="start">
           <VStack gap={4} align="stretch" minW={0}>
             {/* `space-between` sur une rangée qui ne se replie pas poussait
-                la page 27 px trop large à 360 : « Bibliothèque », le compte et
+                la page 27 px trop large à 360 : le titre, le compte et
                 « Nouvel exercice » n'y tiennent pas sur une ligne. `ml="auto"`
                 donne le même écart maximal quand ils tiennent, et laisse le
                 compte passer à la ligne quand ils ne tiennent pas. */}
@@ -275,11 +275,11 @@ const Exercises = () => {
               wrap="wrap"
             >
               {/* Le même nom que dans la navigation et dans l'onglet. L'écran
-              s'appelait « Mes exercices » alors qu'on y arrivait par
+              s'est appelé « Mes exercices » alors qu'on y arrivait par
               « Bibliothèque » : trois noms pour un seul endroit, dont deux à
-              un clic l'un de l'autre. */}
+              un clic l'un de l'autre. Il n'en reste qu'un. */}
               <Text as="h1" fontSize="lg" fontWeight="bold">
-                Bibliothèque
+                Exercices
               </Text>
               <HStack gap={3} flexShrink={0} ml="auto" align="center">
                 <Text fontSize="xs" color="fg.muted">
@@ -360,7 +360,7 @@ const Exercises = () => {
           />
         ) : filtered.length === 0 && !canCreate ? (
           <Box py={16} textAlign="center" color="fg.muted" fontSize="sm">
-            Aucun exercice — tapez un nom pour en créer un
+            Aucun exercice — tape un nom pour en créer un
           </Box>
         ) : (
           <>
@@ -412,7 +412,7 @@ const Exercises = () => {
                         </VStack>
                       )}
                       <Text fontSize="xs" color="fg.muted">
-                        Choisissez un exercice pour voir et modifier sa fiche.
+                        Choisis un exercice pour voir et modifier sa fiche.
                       </Text>
                     </VStack>
                   )}
@@ -514,8 +514,8 @@ const Exercises = () => {
               </Dialog.Header>
               <Dialog.Body>
                 <Text color="fg.muted" fontSize="sm">
-                  «&nbsp;{pendingDeletion?.name}&nbsp;» sera retiré de votre
-                  bibliothèque. Cette action est définitive.
+                  «&nbsp;{pendingDeletion?.name}&nbsp;» sera retiré de tes
+                  exercices. Cette action est définitive.
                 </Text>
               </Dialog.Body>
               <Dialog.Footer gap={2} flexWrap="wrap">

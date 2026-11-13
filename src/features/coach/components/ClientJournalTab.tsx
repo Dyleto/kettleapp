@@ -25,6 +25,10 @@ import { sessionTitle } from '@/features/program/sessionTitle';
 interface Props {
   history: CompletedSession[];
   clientId: string;
+  /** Pour nommer la personne dans l'état vide : « Sarah n'a encore rien
+   * fait » se lit, « votre client » tenait le coach à distance du sien.
+   * Absent quand le compte Google n'en porte pas. */
+  clientFirstName?: string;
 }
 
 interface JournalEntryProps {
@@ -111,7 +115,11 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
  * sélectionné, tout se lit comme avant — c'est ce qui permet de l'ignorer
  * quand on cherche simplement à faire défiler.
  */
-export const ClientJournalTab = ({ history, clientId }: Props) => {
+export const ClientJournalTab = ({
+  history,
+  clientId,
+  clientFirstName,
+}: Props) => {
   const { mutate: markHistoryAsViewed } = useMarkHistoryAsViewed(clientId);
   const [openCompleted, setOpenCompleted] = useState<CompletedSession | null>(
     null
@@ -134,8 +142,9 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
   if (history.length === 0) {
     return (
       <EmptyState
-        title="Aucune séance réalisée"
-        line="Les séances que votre client termine apparaîtront ici, avec ce qu'il a réellement fait."
+        mood="sleep"
+        title={`${clientFirstName ?? 'Ton client'} n'a encore rien fait`}
+        line="Sa première séance terminée apparaîtra ici, avec ses charges et son ressenti."
       />
     );
   }
@@ -190,7 +199,7 @@ export const ClientJournalTab = ({ history, clientId }: Props) => {
                 color="app.primary"
                 onClick={() => setSelectedDay(null)}
               >
-                tout le journal
+                toutes les séances
               </Box>
             )}
           </HStack>

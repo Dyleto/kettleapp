@@ -15,15 +15,6 @@ const api = axios.create({
 });
 
 /**
- * Kettle tutoie le client et vouvoie le coach.
- *
- * L'intercepteur est partagé par les deux espaces : il ne peut pas se fier au
- * rôle du compte — un compte porte souvent les deux — mais l'adresse dit où
- * l'on se trouve, et c'est la même règle que pour « Mon compte ».
- */
-const isClientArea = () => location.pathname.startsWith('/client');
-
-/**
  * Les deux pannes qu'un écran ne sait pas expliquer lui-même.
  *
  * Un 401 ne remonte à personne : la requête a échoué au milieu d'un écran qui
@@ -40,9 +31,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isPublicRoute(location.pathname)) {
       eventEmitter.emit('error', {
         title: 'Session expirée',
-        message: isClientArea()
-          ? 'Reconnecte-toi.'
-          : 'Veuillez vous reconnecter.',
+        message: 'Reconnecte-toi.',
       });
 
       setTimeout(() => {
@@ -55,9 +44,7 @@ api.interceptors.response.use(
         title: 'Accès refusé',
         message:
           error.response?.data?.message ||
-          (isClientArea()
-            ? "Tu n'as pas les droits nécessaires."
-            : "Vous n'avez pas les permissions nécessaires."),
+          "Tu n'as pas les droits nécessaires.",
       });
     }
 

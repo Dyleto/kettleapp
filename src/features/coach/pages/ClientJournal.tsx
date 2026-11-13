@@ -17,7 +17,7 @@ const ClientJournal = () => {
 
   const clientQuery = useClientDetails(clientId!);
   const { data: client, isLoading } = clientQuery;
-  useDocumentTitle(client ? `Journal de ${client.firstName}` : undefined);
+  useDocumentTitle(client ? `Ressentis de ${client.firstName}` : undefined);
   const { data: history = [], isLoading: isHistoryLoading } = useClientHistory(
     clientId!
   );
@@ -72,7 +72,7 @@ const ClientJournal = () => {
     >
       <VStack align="stretch" gap={1} mb={6}>
         {/* Le repère d'identité est dans le titre, pas dans la sortie. Ce
-            fut l'inverse : « Journal complet » en titre, le nom du client
+            fut l'inverse : le nom de l'écran en titre, le nom du client
             dans le bouton retour. Sur un écran qu'on parcourt client après
             client, on lisait donc le nom de celui qu'on quitte pour savoir
             celui qu'on regarde.
@@ -84,14 +84,18 @@ const ClientJournal = () => {
           onClick={() => navigate(COACH_ROUTES.clientSession(clientId!, 1))}
         />
         <Heading as="h1" size="lg">
-          Journal de {client.firstName}
+          Ressentis de {client.firstName}
         </Heading>
       </VStack>
 
       {isHistoryLoading ? (
         <Spinner size="lg" />
       ) : (
-        <ClientJournalTab history={history} clientId={clientId!} />
+        <ClientJournalTab
+          history={history}
+          clientId={clientId!}
+          clientFirstName={client.firstName}
+        />
       )}
     </Box>
   );

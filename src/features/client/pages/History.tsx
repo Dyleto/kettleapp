@@ -20,7 +20,7 @@ import { CLIENT_ROUTES } from '@/shared/config/routes';
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
 const History = () => {
-  useDocumentTitle('Historique');
+  useDocumentTitle('Progrès');
   const navigate = useNavigate();
   const { history } = useOutletContext<ClientSessionsData>();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -35,7 +35,7 @@ const History = () => {
     <Container maxW={CLIENT_GRID_MAX_W} py={8} px={4}>
       <VStack align="stretch" gap={4}>
         <Text as="h1" fontWeight="bold" fontSize="lg">
-          Historique
+          Progrès
         </Text>
 
         {history.length === 0 ? (

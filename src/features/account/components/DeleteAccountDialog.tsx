@@ -7,7 +7,6 @@ interface Props {
   onClose: () => void;
   /** Ce qui disparaît, énoncé, avec les vrais nombres. */
   consequences: string[];
-  informal: boolean;
 }
 
 /**
@@ -18,12 +17,7 @@ interface Props {
  * au-dessus d'« Annuler » — sur un téléphone le pouce tombe en bas, et c'est
  * là qu'on veut la sortie.
  */
-export const DeleteAccountDialog = ({
-  open,
-  onClose,
-  consequences,
-  informal,
-}: Props) => {
+export const DeleteAccountDialog = ({ open, onClose, consequences }: Props) => {
   const { mutate, isPending } = useDeleteAccount();
 
   return (
@@ -37,9 +31,7 @@ export const DeleteAccountDialog = ({
           maxW="sm"
         >
           <Dialog.Header>
-            <Dialog.Title>
-              Supprimer {informal ? 'ton' : 'votre'} compte ?
-            </Dialog.Title>
+            <Dialog.Title>Supprimer ton compte ?</Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
             <VStack align="stretch" gap={3}>

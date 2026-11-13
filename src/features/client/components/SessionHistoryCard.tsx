@@ -27,6 +27,14 @@ interface SessionHistoryCardProps {
    * de la flèche absente un signe — alors qu'elle ne voulait rien dire.
    */
   variant?: 'journal' | 'accueil';
+  /**
+   * La carte est lue par le coach, pas par celui qui a fait la séance.
+   *
+   * L'aperçu d'un client la réutilisait telle quelle, et elle ouvrait donc
+   * le bilan en mode modifiable : le coach y voyait « Modifier » et « Ton
+   * commentaire » sur la séance de quelqu'un d'autre.
+   */
+  readOnly?: boolean;
 }
 
 /**
@@ -41,6 +49,7 @@ export const SessionHistoryCard = ({
   completed,
   showUnseenIndicator = false,
   variant = 'journal',
+  readOnly = false,
 }: SessionHistoryCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -120,7 +129,7 @@ export const SessionHistoryCard = ({
         completed={completed}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
-        editable
+        editable={!readOnly}
       />
     </Card>
   );

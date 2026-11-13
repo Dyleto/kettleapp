@@ -85,7 +85,7 @@ export const CopySessionToClient = ({
       toaster.create({
         type: 'error',
         title: 'La copie a échoué',
-        description: 'Rien n’a été modifié. Réessayez dans un instant.',
+        description: 'Rien n’a été modifié. Réessaie dans un instant.',
       });
     },
     onSettled: () => setPendingId(null),
@@ -127,7 +127,7 @@ export const CopySessionToClient = ({
                 </HStack>
               ) : others.length === 0 ? (
                 <Text fontSize="sm" color="fg.muted">
-                  Vous n'avez pas d'autre client pour l'instant.
+                  Tu n'as pas d'autre client pour l'instant.
                 </Text>
               ) : (
                 <VStack align="stretch" gap={0}>

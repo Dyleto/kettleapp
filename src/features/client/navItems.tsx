@@ -1,5 +1,5 @@
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { LuHouse, LuListChecks, LuHistory } from 'react-icons/lu';
+import { LuHouse, LuListChecks, LuTrendingUp } from 'react-icons/lu';
 
 /**
  * Les destinations de l'espace client, à une seule adresse.
@@ -9,10 +9,13 @@ import { LuHouse, LuListChecks, LuHistory } from 'react-icons/lu';
  * au clavier mais introuvable au doigt.
  *
  * `end` sur « Aujourd'hui » parce que sa route est le préfixe de toutes les
- * autres : sans lui, l'onglet resterait allumé jusque dans l'historique.
+ * autres : sans lui, l'onglet resterait allumé jusque dans les progrès.
+ *
+ * « Progrès » et non « Historique » : l'écran montre des charges qui montent
+ * et un rythme tenu, pas une liste d'archives. Le mot dit pourquoi y aller.
  */
 export const CLIENT_NAV_ITEMS = [
   { to: CLIENT_ROUTES.today, label: "Aujourd'hui", icon: LuHouse, end: true },
   { to: CLIENT_ROUTES.program, label: 'Programme', icon: LuListChecks },
-  { to: CLIENT_ROUTES.history, label: 'Historique', icon: LuHistory },
+  { to: CLIENT_ROUTES.history, label: 'Progrès', icon: LuTrendingUp },
 ];

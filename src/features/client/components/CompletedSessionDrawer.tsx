@@ -136,7 +136,11 @@ interface CompletedSessionDrawerProps {
   completed: CompletedSession;
   isOpen: boolean;
   onClose: () => void;
-  /** Seul le client à qui appartient le bilan peut le corriger. */
+  /**
+   * Seul le client à qui appartient le bilan peut le corriger. C'est aussi
+   * ce qui dit à qui l'on parle : le mot du client est « ton mot » pour lui,
+   * « son mot » pour le coach qui le lit.
+   */
   editable?: boolean;
 }
 
@@ -343,7 +347,7 @@ export const CompletedSessionDrawer = ({
                       <VStack align="stretch" gap={3}>
                         {isEditing && sharesHealth ? (
                           <Box>
-                            <SectionTitle>Ton commentaire</SectionTitle>
+                            <SectionTitle>Ton mot</SectionTitle>
                             <AutoResizeTextarea
                               mt={1.5}
                               value={notes}
@@ -357,7 +361,9 @@ export const CompletedSessionDrawer = ({
                         ) : (
                           completed.clientNotes && (
                             <Box>
-                              <SectionTitle>Ton commentaire</SectionTitle>
+                              <SectionTitle>
+                                {editable ? 'Ton mot' : 'Son mot'}
+                              </SectionTitle>
                               <Text
                                 mt={1.5}
                                 fontSize="sm"

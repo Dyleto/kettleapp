@@ -94,7 +94,7 @@ const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
 );
 
 const Program = () => {
-  useDocumentTitle('Mon programme');
+  useDocumentTitle('Programme');
   const navigate = useNavigate();
   const { sessions, nextSession, history } =
     useOutletContext<ClientSessionsData>();
@@ -115,7 +115,7 @@ const Program = () => {
     <Container maxW={CLIENT_GRID_MAX_W} py={6} px={4}>
       <VStack align="stretch" gap={4}>
         <Text as="h1" fontWeight="bold" fontSize="lg">
-          Mon programme
+          Programme
         </Text>
 
         {sessions.length === 0 ? (

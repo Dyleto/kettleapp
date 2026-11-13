@@ -67,7 +67,7 @@ export const SessionCalendarFilter = ({
             <LuCalendarDays size={14} />
             <Text fontSize="sm">
               {selectedDay !== null
-                ? 'Voir tout le journal'
+                ? 'Voir toutes les séances'
                 : isFilterOpen
                   ? 'Masquer le calendrier'
                   : 'Filtrer par date'}
