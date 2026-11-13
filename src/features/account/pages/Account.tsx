@@ -220,7 +220,7 @@ const Account = ({ space }: Props) => {
                         </Text>
                         <Text fontSize="xs" color="fg.muted">
                           rattaché depuis le{' '}
-                          <Text as="span" fontFamily="mono">
+                          <Text as="span" fontVariantNumeric="tabular-nums">
                             {DAY_FORMAT.format(new Date(coach.linkedAt))}
                           </Text>
                         </Text>
@@ -251,7 +251,11 @@ const Account = ({ space }: Props) => {
             <InfoCard>
               <VStack align="start" gap={2}>
                 <HStack gap={2} align="baseline">
-                  <Text fontSize="2xl" fontWeight="bold" fontFamily="mono">
+                  <Text
+                    fontSize="2xl"
+                    fontWeight="bold"
+                    fontVariantNumeric="tabular-nums"
+                  >
                     {data.asCoach.clientCount}
                   </Text>
                   <Text fontSize="sm" color="fg.muted">
@@ -261,7 +265,7 @@ const Account = ({ space }: Props) => {
                 </HStack>
                 <Text fontSize="xs" color="fg.muted">
                   Espace ouvert le{' '}
-                  <Text as="span" fontFamily="mono">
+                  <Text as="span" fontVariantNumeric="tabular-nums">
                     {DAY_FORMAT.format(new Date(data.asCoach.since))}
                   </Text>
                 </Text>

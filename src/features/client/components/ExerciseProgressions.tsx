@@ -68,7 +68,7 @@ export const ExerciseProgressions = ({
                     )}
                     <Text
                       fontSize="sm"
-                      fontFamily="mono"
+                      fontVariantNumeric="tabular-nums"
                       color={
                         index === progression.points.length - 1
                           ? rising

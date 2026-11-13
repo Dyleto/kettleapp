@@ -57,7 +57,7 @@ export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
       }
       config={
         summary ? (
-          <Text fontSize="sm" fontFamily="mono" color="fg">
+          <Text fontSize="sm" fontVariantNumeric="tabular-nums" color="fg">
             {summary}
           </Text>
         ) : undefined

@@ -63,7 +63,7 @@ export const LegalLayout = ({
               </Heading>
               <Text fontSize="xs" color="fg.muted">
                 Dernière mise à jour :{' '}
-                <Text as="span" fontFamily="mono">
+                <Text as="span" fontVariantNumeric="tabular-nums">
                   {LEGAL.revisedAt}
                 </Text>
               </Text>
@@ -103,7 +103,12 @@ export const Article = ({
 }) => (
   <VStack align="stretch" gap={3} as="section">
     <Heading as="h2" size="md" fontWeight="bold" lineHeight="1.3">
-      <Text as="span" color="app.primary" fontFamily="mono" mr={2}>
+      <Text
+        as="span"
+        color="app.primary"
+        fontVariantNumeric="tabular-nums"
+        mr={2}
+      >
         {n}.
       </Text>
       {title}
@@ -192,7 +197,6 @@ export const LegalValue = ({ value }: { value: string }) =>
       borderRadius="sm"
       fontSize="xs"
       fontWeight="bold"
-      fontFamily="mono"
     >
       {TO_FILL}
     </Text>

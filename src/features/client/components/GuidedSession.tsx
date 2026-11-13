@@ -517,7 +517,7 @@ export const GuidedSession = ({
                 <Text
                   fontSize="xs"
                   color="fg.muted"
-                  fontFamily="mono"
+                  fontVariantNumeric="tabular-nums"
                   flexShrink={0}
                 >
                   {b.detail}
@@ -821,7 +821,7 @@ export const GuidedSession = ({
           </HStack>
           <Text
             fontSize="xs"
-            fontFamily="mono"
+            fontVariantNumeric="tabular-nums"
             flexShrink={0}
             color={isRest ? 'bg.canvas' : 'fg.muted'}
             opacity={isRest ? 0.75 : 1}

@@ -120,7 +120,7 @@ export const BlockExerciseRow = ({
                   fontSize="sm"
                   color="fg"
                   fontWeight="semibold"
-                  fontFamily="mono"
+                  fontVariantNumeric="tabular-nums"
                 >
                   {metric}
                 </Text>

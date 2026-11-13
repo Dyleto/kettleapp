@@ -72,7 +72,7 @@ const Field = ({
         _placeholder={{ color: 'fg.muted', opacity: 0.6 }}
         _focus={{ borderColor: 'app.primary.border', bg: 'whiteAlpha.100' }}
         borderRadius="md"
-        fontFamily="mono"
+        fontVariantNumeric="tabular-nums"
       />
       <Text fontSize="xs" color="fg.muted">
         {suffix}
@@ -213,7 +213,7 @@ export const PerformedFields = ({
                   « 21 15 9 » si. */}
               <Text
                 fontSize="xs"
-                fontFamily="mono"
+                fontVariantNumeric="tabular-nums"
                 color="fg.muted"
                 w={setLabels[index] ? '56px' : '16px'}
                 textAlign={setLabels[index] ? 'right' : 'left'}

@@ -8,6 +8,11 @@ const customConfig = defineConfig({
         app: {
           primary: {
             DEFAULT: { value: '{colors.amber}' },
+            // L'ambre en texte, quand il se pose sur sa propre teinte : une
+            // pastille ambre porte un fond ambre à 16 %, et le texte de la
+            // marque n'y tient que 5,1:1. Celui-ci y tient 7,0:1 — mesurés
+            // sur `surface.card`.
+            fg: { value: '#E9BE62' },
             hover: { value: '#DFB563' },
             active: { value: '#B3852F' },
             bg: { value: '#CF9F3F1A' },
@@ -41,11 +46,19 @@ const customConfig = defineConfig({
         bg: {
           canvas: { value: '#17181B' },
           surface: { value: '#26282D' },
+          // Ce qui se pose par-dessus une feuille : un menu, la bannière
+          // « Annuler ». Il fallait un troisième palier, sans quoi un menu
+          // ouvert sur une feuille se fondait dans elle.
+          raised: { value: '#31343A' },
         },
         surface: {
           wall: { value: '#17181B' },
           card: { value: '#1E2024' },
         },
+        // Le filet qui sépare deux zones d'une même carte. Une bordure prise
+        // dans `whiteAlpha` changeait de teinte selon le fond qu'elle
+        // traversait ; celle-ci est la même partout.
+        line: { value: '#2F3238' },
 
         fg: {
           DEFAULT: { value: '#ECE8DE' },
@@ -113,10 +126,58 @@ const customConfig = defineConfig({
             DEFAULT: { value: '#3FA8A0' },
             fg: { value: '#8FCFC8' },
           },
+          /**
+           * Le fond de la scène, selon ce qu'on y fait.
+           *
+           * Le chrono changeait de couleur au repos, pas l'écran : à deux
+           * mètres, téléphone posé au sol, un chiffre sarcelle et un chiffre
+           * crème se ressemblent. Un fond entier ne se confond pas. Les deux
+           * teintes sont assez sombres pour garder le texte lisible : mesuré
+           * 11:1 sur l'une comme sur l'autre.
+           */
+          effortBg: { value: '#3B2A12' },
+          restBg: { value: '#12322F' },
         },
       },
     },
     tokens: {
+      /**
+       * Deux polices, et plus aucune police de code.
+       *
+       * L'application héritait de la police du système : une typographie
+       * différente sur chaque appareil, et la chasse fixe pour toutes les
+       * doses, qui donnait à un programme de sport l'allure d'un fichier de
+       * configuration. La police de titre porte les titres et les grands
+       * chiffres ; l'autre porte tout ce qui se lit de près.
+       *
+       * Elles sont servies par l'application elle-même (`@fontsource`) et
+       * non par un tiers : une police chargée ailleurs transmet l'adresse du
+       * visiteur à cet ailleurs, et ne s'affiche pas hors connexion — or la
+       * séance guidée doit fonctionner sans réseau.
+       */
+      fonts: {
+        heading: {
+          value:
+            "'Bricolage Grotesque Variable', 'Trebuchet MS', system-ui, sans-serif",
+        },
+        body: {
+          value: "'Figtree Variable', 'Segoe UI', system-ui, sans-serif",
+        },
+      },
+      /**
+       * Les rayons du produit, nommés par ce qu'ils arrondissent.
+       *
+       * Ils valaient `md` ou `lg` selon l'humeur, soit 6 ou 8 px : assez
+       * pour ne pas être carré, trop peu pour être un parti pris. Les nommer
+       * par rôle évite qu'une carte et un bouton voisins s'arrondissent
+       * différemment sans raison.
+       */
+      radii: {
+        card: { value: '24px' },
+        button: { value: '22px' },
+        field: { value: '17px' },
+        sheet: { value: '30px' },
+      },
       colors: {
         /** L'ambre de la marque, à une seule adresse. */
         amber: { value: '#CF9F3F' },
@@ -165,6 +226,15 @@ const customConfig = defineConfig({
     'html, body': {
       backgroundColor: 'bg.canvas', // Utilise la valeur définie au-dessus
       color: 'fg',
+      fontFamily: 'body',
+    },
+    // Un titre se reconnaît à sa balise, pas au composant qui l'a posé. La
+    // recette `Heading` porte bien la police de titre, mais les titres de
+    // page sont presque tous des `<Text as="h1">` : mesuré sur l'accueil du
+    // client, aucun titre ne la prenait, et le navigateur ne la téléchargeait
+    // même pas.
+    'h1, h2, h3, h4': {
+      fontFamily: 'heading',
     },
     'input, textarea, select': {
       fontSize: '16px !important', // Empêche le zoom auto sur iOS

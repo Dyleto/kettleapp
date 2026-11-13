@@ -102,7 +102,6 @@ export const InvitationLinkDialog = ({ link, expiresAt, onClose }: Props) => {
                   <Text
                     ref={field}
                     fontSize="xs"
-                    fontFamily="mono"
                     wordBreak="break-all"
                     userSelect="all"
                   >

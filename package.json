@@ -14,6 +14,7 @@
     "format:check": "prettier --check src verify/*.mjs scripts/*.mjs",
     "verify": "node verify/runner.mjs --all",
     "contract:check": "node scripts/contract-check.mjs",
+    "precache:check": "node scripts/precache-check.mjs",
     "lint:langue": "node scripts/audit-langue.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -25,6 +26,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/figtree": "^5.3.0",
     "@tanstack/react-query": "^5.90.20",
     "axios": "^1.6.7",
     "react": "^18.2.0",

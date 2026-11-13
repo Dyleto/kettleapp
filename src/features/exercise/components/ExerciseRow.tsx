@@ -99,7 +99,7 @@ export const ExerciseRow = ({
         <Text as="span" fontSize="xs" whiteSpace="nowrap">
           {usage > 0 ? (
             <>
-              <Text as="span" fontFamily="mono">
+              <Text as="span" fontVariantNumeric="tabular-nums">
                 {usage}
               </Text>{' '}
               séance{usage > 1 ? 's' : ''}

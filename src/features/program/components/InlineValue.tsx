@@ -136,7 +136,7 @@ export const InlineValue = ({
         bg="whiteAlpha.100"
         borderColor="app.primary.border"
         borderRadius="sm"
-        fontFamily="mono"
+        fontVariantNumeric="tabular-nums"
         fontSize="sm"
       />
     );
@@ -163,7 +163,7 @@ export const InlineValue = ({
     >
       <Text
         as="span"
-        fontFamily="mono"
+        fontVariantNumeric="tabular-nums"
         fontSize="sm"
         fontWeight={isEmpty ? 'normal' : 'semibold'}
         color={isEmpty ? 'fg.muted' : 'fg'}
@@ -251,7 +251,7 @@ export const InlineSequence = ({
           bg="whiteAlpha.100"
           borderColor="app.primary.border"
           borderRadius="sm"
-          fontFamily="mono"
+          fontVariantNumeric="tabular-nums"
           fontSize="sm"
         />
         <Text fontSize="xs" color="fg.muted" mt={1} textAlign="right">
@@ -287,7 +287,7 @@ export const InlineSequence = ({
     >
       <Text
         as="span"
-        fontFamily="mono"
+        fontVariantNumeric="tabular-nums"
         fontSize="sm"
         color={isEmpty ? 'fg.muted' : 'fg'}
       >

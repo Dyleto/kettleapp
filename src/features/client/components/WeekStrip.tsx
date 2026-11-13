@@ -128,7 +128,7 @@ export const WeekStrip = ({
               </Text>
               <Text
                 fontSize="xs"
-                fontFamily="mono"
+                fontVariantNumeric="tabular-nums"
                 color={done.length > 0 ? 'fg' : 'whiteAlpha.600'}
                 fontWeight={isToday ? 'bold' : 'normal'}
                 aria-hidden

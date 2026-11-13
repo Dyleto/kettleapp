@@ -89,7 +89,7 @@ export const SessionRecap = ({
               <Text
                 fontSize="2xl"
                 fontWeight="800"
-                fontFamily="mono"
+                fontVariantNumeric="tabular-nums"
                 color={f.accent ? 'app.primary' : 'fg'}
                 lineHeight="1.1"
               >
@@ -123,7 +123,11 @@ export const SessionRecap = ({
               <Text fontSize="sm" flex={1} minW={0} lineClamp={1}>
                 {c.name}
               </Text>
-              <Text fontSize="sm" color="fg.muted" fontFamily="mono">
+              <Text
+                fontSize="sm"
+                color="fg.muted"
+                fontVariantNumeric="tabular-nums"
+              >
                 {c.load} kg
               </Text>
               <Box w="62px" flexShrink={0} textAlign="right">
@@ -132,7 +136,11 @@ export const SessionRecap = ({
                     1re fois
                   </Text>
                 ) : c.delta === 0 ? (
-                  <Text fontSize="sm" color="fg.muted" fontFamily="mono">
+                  <Text
+                    fontSize="sm"
+                    color="fg.muted"
+                    fontVariantNumeric="tabular-nums"
+                  >
                     =
                   </Text>
                 ) : (
@@ -146,7 +154,11 @@ export const SessionRecap = ({
                     ) : (
                       <LuArrowDown size={13} strokeWidth={3} />
                     )}
-                    <Text fontSize="sm" fontWeight="bold" fontFamily="mono">
+                    <Text
+                      fontSize="sm"
+                      fontWeight="bold"
+                      fontVariantNumeric="tabular-nums"
+                    >
                       {c.delta > 0 ? '+' : ''}
                       {c.delta} kg
                     </Text>

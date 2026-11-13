@@ -165,7 +165,7 @@ const MonthGrid = ({
                   <VStack gap={0.5}>
                     <Text
                       fontSize="xs"
-                      fontFamily="mono"
+                      fontVariantNumeric="tabular-nums"
                       color={
                         isActionable
                           ? 'fg'

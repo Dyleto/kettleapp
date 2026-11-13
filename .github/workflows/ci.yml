@@ -38,6 +38,11 @@ jobs:
       - run: npm run format:check
       - run: npm run build
 
+      # Le paquet construit, relu : les polices doivent être dans le cache du
+      # service worker, sans quoi la séance guidée perd sa typographie dès que
+      # le réseau tombe. Rien d'autre ne le voit — le banc tourne en ligne.
+      - run: npm run precache:check
+
       # La règle de langue, vérifiée plutôt que surveillée. Je l'ai annoncée
       # tenue trois fois sans qu'elle le soit : le détecteur que j'improvisais
       # avait chaque fois un angle mort. Voir scripts/audit-langue.mjs.

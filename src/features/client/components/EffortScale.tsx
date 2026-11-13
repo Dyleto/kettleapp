@@ -83,7 +83,11 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
               transition="background-color 0.15s, border-color 0.15s"
             >
               <VStack gap={0.5}>
-                <Text fontSize="lg" fontWeight="800" fontFamily="mono">
+                <Text
+                  fontSize="lg"
+                  fontWeight="800"
+                  fontVariantNumeric="tabular-nums"
+                >
                   {level.rank}
                 </Text>
                 {/* Le nom de chaque cran, et pas seulement des deux bouts : la

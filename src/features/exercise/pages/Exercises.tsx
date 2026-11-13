@@ -206,7 +206,6 @@ const Exercises = () => {
                   fontWeight="bold"
                   color="fg.muted"
                   letterSpacing="widest"
-                  fontFamily="mono"
                   flexShrink={0}
                 >
                   {letter}

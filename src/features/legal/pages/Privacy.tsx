@@ -107,7 +107,7 @@ const Privacy = () => (
         items={[
           <>
             Un cookie de session nommé{' '}
-            <Text as="span" fontFamily="mono">
+            <Text as="span" fontWeight="semibold">
               connect.sid
             </Text>
             , qui vous maintient connecté d'une page à l'autre
@@ -189,7 +189,7 @@ const Privacy = () => (
         Les vidéos d'exercices sont hébergées par YouTube. Le lecteur ne se
         charge qu'au moment où vous demandez la lecture, et il utilise le
         domaine{' '}
-        <Text as="span" fontFamily="mono">
+        <Text as="span" fontWeight="semibold">
           youtube-nocookie.com
         </Text>{' '}
         : tant que vous ne cliquez pas, aucun cookie YouTube n'est déposé sur
@@ -242,12 +242,12 @@ const Privacy = () => (
       <BulletList
         items={[
           <>
-            <Text as="span" fontFamily="mono">
+            <Text as="span" fontWeight="semibold">
               connect.sid
             </Text>{' '}
             — le cookie de session, qui vous maintient connecté pendant 7 jours.
             Il est
-            <Text as="span" fontFamily="mono">
+            <Text as="span" fontWeight="semibold">
               {' '}
               httpOnly
             </Text>

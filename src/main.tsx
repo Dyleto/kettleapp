@@ -1,4 +1,9 @@
 import ReactDOM from 'react-dom/client';
+// Les deux polices du produit, servies par l'application : voir `theme.ts`.
+// `wdth.css` et non l'entrée par défaut, qui n'embarque pas l'axe de largeur
+// dont les grands chiffres ont besoin.
+import '@fontsource-variable/bricolage-grotesque/wdth.css';
+import '@fontsource-variable/figtree';
 import App from './App.jsx';
 import { Provider } from './shared/components/ui/provider';
 import { AuthProvider } from './shared/contexts/AuthProvider';

@@ -67,7 +67,7 @@ const WeightField = ({
       w="76px"
       minH="44px"
       textAlign="center"
-      fontFamily="mono"
+      fontVariantNumeric="tabular-nums"
       fontWeight="bold"
       placeholder="—"
     />
@@ -212,7 +212,7 @@ export const BlockList = ({
                     <Text
                       fontSize="2xl"
                       fontWeight="800"
-                      fontFamily="mono"
+                      fontVariantNumeric="tabular-nums"
                       flexShrink={0}
                     >
                       {e.dose || '\u2014'}
@@ -318,7 +318,7 @@ export const BlockList = ({
                   <Text
                     fontSize="sm"
                     color="fg.muted"
-                    fontFamily="mono"
+                    fontVariantNumeric="tabular-nums"
                     flexShrink={0}
                   >
                     {e.dose}
@@ -451,7 +451,7 @@ export const BlockList = ({
                 <Text
                   fontSize="sm"
                   color="fg.muted"
-                  fontFamily="mono"
+                  fontVariantNumeric="tabular-nums"
                   flexShrink={0}
                 >
                   {value?.weight != null ? `${value.weight} kg` : e.dose}
@@ -471,7 +471,7 @@ export const BlockList = ({
                   <Text
                     fontSize="sm"
                     color="fg.muted"
-                    fontFamily="mono"
+                    fontVariantNumeric="tabular-nums"
                     flexShrink={0}
                     minW="62px"
                     textAlign="right"

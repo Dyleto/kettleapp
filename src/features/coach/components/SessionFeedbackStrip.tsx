@@ -70,7 +70,12 @@ const PerformedList = ({ completed }: { completed: CompletedSession }) => {
           <Text fontSize="xs" color="fg.muted" lineClamp={1}>
             {line.name}
           </Text>
-          <Text fontSize="xs" fontFamily="mono" color="fg" lineClamp={2}>
+          <Text
+            fontSize="xs"
+            fontVariantNumeric="tabular-nums"
+            color="fg"
+            lineClamp={2}
+          >
             {line.value}
           </Text>
         </Box>

@@ -173,7 +173,7 @@ export const Round = ({
                 <Text
                   fontSize="xl"
                   fontWeight="800"
-                  fontFamily="mono"
+                  fontVariantNumeric="tabular-nums"
                   flexShrink={0}
                 >
                   {roundDose(step.block, ex) || '—'}

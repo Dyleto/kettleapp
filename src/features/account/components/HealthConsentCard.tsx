@@ -106,7 +106,7 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
         {consent && (
           <Text fontSize="xs" color="fg.muted">
             {granted ? 'Accepté' : 'Refusé'} le{' '}
-            <Text as="span" fontFamily="mono">
+            <Text as="span" fontVariantNumeric="tabular-nums">
               {DAY_FORMAT.format(new Date(consent.decidedAt))}
             </Text>
           </Text>

@@ -319,7 +319,11 @@ export const CompletedSessionDrawer = ({
                             ).map((key) => (
                               <Text key={key} fontSize="xs" color="fg.muted">
                                 {LEGACY_METRIC_LABELS[key]}{' '}
-                                <Text as="span" color="fg" fontFamily="mono">
+                                <Text
+                                  as="span"
+                                  color="fg"
+                                  fontVariantNumeric="tabular-nums"
+                                >
                                   {completed.metrics?.[key]}/5
                                 </Text>
                               </Text>

@@ -36,12 +36,31 @@ export default defineConfig(({ mode }) => {
           "apple-touch-icon.png",
           "masked-icon.svg",
         ],
+        workbox: {
+          // Les polices du produit entrent dans le cache du service worker,
+          // sans quoi une séance guidée ouverte sans réseau retombait sur la
+          // police du système : la liste par défaut de Workbox ne retient que
+          // js, css et html. Mesuré : le premier paquet n'en précachait
+          // aucune des cinq.
+          //
+          // Seulement les deux sous-ensembles « latin » (98 Ko à eux deux),
+          // qui couvrent tout le français, « œ » compris. Les sous-ensembles
+          // étendu et vietnamien restent à la demande : le navigateur ne les
+          // télécharge que si un caractère de leur plage s'affiche.
+          globPatterns: [
+            "**/*.{js,css,html}",
+            "**/*-latin-w{dth,ght}-normal-*.woff2",
+          ],
+        },
         manifest: {
           name: "Kettle App",
           short_name: "Kettle",
           description: "Plateforme de coaching sportif personnalisé",
-          theme_color: "#18181b",
-          background_color: "#18181b",
+          // La couleur de `bg.canvas`, la même que la balise `theme-color` de
+          // `index.html` : l'écran de lancement et la barre du système
+          // prolongent la page au lieu de la border d'un gris voisin.
+          theme_color: "#17181B",
+          background_color: "#17181B",
           display: "standalone",
           icons: [
             {
