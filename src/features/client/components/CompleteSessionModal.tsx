@@ -264,7 +264,7 @@ export const CompleteSessionModal = ({
                 « Valider » grisé à côté porte le reste de la phrase. */}
             {effort === undefined && (
               <Text fontSize="xs" color="fg.muted" mr="auto" flexShrink={0}>
-                Choisis un cran.
+                Choisis un visage.
               </Text>
             )}
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>

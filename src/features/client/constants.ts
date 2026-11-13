@@ -17,6 +17,11 @@ export interface EffortLevel {
 // La cible est au centre et elle est nommée : il n'y a aucun « plus =
 // mieux » à interpréter. 1 et 5 sont deux problèmes différents, pas les deux
 // bouts d'une échelle de qualité.
+//
+// Cet ordre est le seul : celui des valeurs enregistrées, que le client
+// choisit et que le coach lit. Il a existé une seconde échelle, inversée et
+// numérotée à rebours pour l'affichage du client — « 1 » y voulait dire
+// « Trop dure », valeur 5. Deux sens pour une même réponse : elle est partie.
 export const EFFORT_LEVELS: EffortLevel[] = [
   {
     value: 1,
@@ -49,25 +54,6 @@ export const EFFORT_LEVELS: EffortLevel[] = [
     zone: 'hard',
   },
 ];
-
-/**
- * L'échelle telle qu'elle se lit : le plus dur à gauche.
- *
- * `value` reste la valeur enregistrée en base — 1 y veut toujours dire
- * « Trop facile », et aucun bilan déjà enregistré n'est réinterprété. `rank`
- * est le numéro affiché, et il compte dans l'autre sens : 1 = Trop dure.
- * Séparer les deux évite la seule chose dont on ne pourrait pas revenir —
- * une migration qui inverserait en silence le sens de tout l'historique.
- */
-export interface EffortScaleStep extends EffortLevel {
-  rank: number;
-}
-
-/** L'échelle inversée pour l'affichage, une fois pour toutes : chaque écran
- * qui la renverserait lui-même finirait par se tromper de sens. */
-export const EFFORT_SCALE: EffortScaleStep[] = [...EFFORT_LEVELS]
-  .reverse()
-  .map((level, index) => ({ ...level, rank: index + 1 }));
 
 // L'effort a sa propre échelle (voir `effort` dans le thème). Jusqu'ici il
 // empruntait l'ambre de la marque pour son milieu et les accents de bloc pour

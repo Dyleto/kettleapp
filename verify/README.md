@@ -1,6 +1,6 @@
 # Le banc d'essai
 
-Dix-huit suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
+Dix-neuf suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
 `npm test` à la racine, qui éprouve la logique pure en quelques secondes :
 une suite qui n'a pas besoin d'un navigateur n'a rien à faire ici. Il y en
 avait une — `verify_format.mjs`, qui empaquetait un module avec esbuild faute

@@ -188,7 +188,7 @@ const buttonBox = (p, name) =>
   // au corps, à chaque séance.
   const hint = await p.evaluate(() => {
     const el = [...document.querySelectorAll('*')].find(
-      (e) => e.children.length === 0 && /Choisis un cran/.test(e.textContent)
+      (e) => e.children.length === 0 && /Choisis un visage/.test(e.textContent)
     );
     return el ? Math.round(el.getBoundingClientRect().bottom) : null;
   });

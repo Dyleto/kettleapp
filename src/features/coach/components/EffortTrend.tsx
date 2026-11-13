@@ -141,12 +141,11 @@ export const EffortTrend = ({ history, limit = 5 }: EffortTrendProps) => {
         })}
       </Box>
 
-      {/* Les libellés viennent d'EFFORT_LEVELS — l'ordre des valeurs
-          enregistrées — et non d'EFFORT_SCALE, qui est l'échelle
-          d'*affichage* du client, inversée pour que « 1 » soit « Trop dure ».
-          Les prendre là plaçait le point rouge sous « Trop facile ». Ici la
-          position et le mot viennent de la même source, et le plus dur est à
-          droite : c'est le sens que la flèche de dérive annonce déjà. */}
+      {/* Les libellés viennent d'EFFORT_LEVELS, l'ordre des valeurs
+          enregistrées : la position et le mot viennent de la même source, et
+          le plus dur est à droite — le sens que la flèche de dérive annonce
+          déjà. Une échelle inversée a existé pour l'affichage du client ; y
+          prendre les libellés plaçait le point rouge sous « Trop facile ». */}
       <HStack justify="space-between" fontSize="10px" color="fg.muted">
         <Text>{EFFORT_LEVELS[0].label}</Text>
         <Text color={EFFORT_ZONE_COLOR.target}>
