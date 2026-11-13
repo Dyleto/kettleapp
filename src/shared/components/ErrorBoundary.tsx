@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { Box, Button, Heading, Text, VStack } from '@chakra-ui/react';
-import { toaster } from './ui/toasterInstance';
+import { ActionButton } from './ActionButton';
+import { FullScreenState } from './FullScreenState';
+import { CRASH_LINE, CRASH_TITLE } from './RouteError';
 
 interface Props {
   children?: ReactNode;
@@ -10,6 +11,15 @@ interface State {
   hasError: boolean;
 }
 
+/**
+ * Le dernier filet : ce qui plante hors du routeur — un fournisseur, la
+ * bannière de mise à jour — et que `RouteError` ne peut donc pas attraper.
+ *
+ * Il affichait aussi un toast, qui n'a jamais pu paraître : le composant
+ * qui dessine les toasts vit sous cette frontière, et disparaît avec tout le
+ * reste au moment précis où elle prend la main. L'écran dit seul ce qu'il y
+ * a à dire.
+ */
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
@@ -21,14 +31,6 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
-
-    toaster.create({
-      title: 'Une erreur est survenue',
-      description:
-        'Impossible de charger la ressource. Vérifiez votre connexion.',
-      type: 'error',
-      duration: 5000,
-    });
   }
 
   private handleReload = () => {
@@ -38,25 +40,16 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <Box
-          height="100vh"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          textAlign="center"
-          p={4}
-        >
-          <VStack gap={6}>
-            <Heading size="xl">Oups ! Quelque chose s'est cassé.</Heading>
-            <Text color="fg.muted" maxW="md">
-              Une erreur inattendue s'est produite (peut-être un problème de
-              connexion internet qui a empêché le chargement de la page).
-            </Text>
-            <Button onClick={this.handleReload} colorPalette="teal" size="lg">
-              Recharger la page
-            </Button>
-          </VStack>
-        </Box>
+        <FullScreenState
+          mood="oops"
+          title={CRASH_TITLE}
+          line={CRASH_LINE}
+          action={
+            <ActionButton size="md" onClick={this.handleReload}>
+              Recharger
+            </ActionButton>
+          }
+        />
       );
     }
 

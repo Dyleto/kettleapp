@@ -17,6 +17,8 @@ import { COACH_CONTENT_MAX_W } from '@/features/coach';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { touchHitArea } from '@/shared/components/hitArea';
 import { useTemplates } from '@/features/template/hooks/useTemplates';
+import { LoadFailure } from '@/shared/components/LoadFailure';
+import { isUnavailable } from '@/shared/utils/queryState';
 import {
   useCreateTemplate,
   useDeleteTemplate,
@@ -42,7 +44,9 @@ const sessionCount = (count: number) =>
 const Templates = () => {
   useDocumentTitle('Modèles de programme');
   const navigate = useNavigate();
-  const { data: templates = [], isLoading } = useTemplates();
+  const templatesQuery = useTemplates();
+  const { data: templates = [], isLoading } = templatesQuery;
+  const isDown = isUnavailable(templatesQuery);
   const { mutate: create, isPending: isCreating } = useCreateTemplate();
   const { mutate: remove } = useDeleteTemplate();
 
@@ -117,7 +121,14 @@ const Templates = () => {
           </Text>
         )}
 
-        {!isLoading && templates.length === 0 && (
+        {isDown && (
+          <LoadFailure
+            query={templatesQuery}
+            line="Tes modèles n'ont pas bougé. Vérifie ta connexion, puis réessaie."
+          />
+        )}
+
+        {!isLoading && !isDown && templates.length === 0 && (
           <Text fontSize="sm" color="fg.muted">
             Aucun modèle pour l’instant. Nomme-en un pour commencer.
           </Text>

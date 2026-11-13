@@ -19,6 +19,9 @@ import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStat
 import { BackLink } from '@/shared/components/BackLink';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { COACH_ROUTES } from '@/shared/config/routes';
+import { LoadFailure } from '@/shared/components/LoadFailure';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { useTemplate } from '@/features/template/hooks/useTemplates';
 import {
   useRenameTemplate,
@@ -110,7 +113,8 @@ const TemplateDetails = () => {
   const { templateId, sessionIndex } = useParams();
   const navigate = useNavigate();
 
-  const { data: template, isLoading } = useTemplate(templateId);
+  const templateQuery = useTemplate(templateId);
+  const { data: template, isLoading } = templateQuery;
   useDocumentTitle(template?.name);
 
   const { mutateAsync } = useUpdateTemplateSessions(templateId!);
@@ -162,6 +166,28 @@ const TemplateDetails = () => {
       >
         <Spinner size="xl" />
       </Box>
+    );
+  }
+
+  if (isUnavailable(templateQuery)) {
+    return (
+      <LoadFailure
+        query={templateQuery}
+        line="Ton modèle n'a pas bougé. Vérifie ta connexion, puis réessaie."
+        missing={{
+          title: "Ce modèle n'existe plus",
+          line: 'Il a peut-être été supprimé, ou le lien a vieilli.',
+          action: (
+            <ActionButton
+              tone="ghost"
+              size="md"
+              onClick={() => navigate(COACH_ROUTES.templates)}
+            >
+              Voir mes modèles
+            </ActionButton>
+          ),
+        }}
+      />
     );
   }
 

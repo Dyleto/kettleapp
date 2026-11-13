@@ -106,8 +106,9 @@ const Today = () => {
 
         {totalCount === 0 ? (
           <EmptyState
-            title="Pas encore de programme"
-            line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+            mood="sleep"
+            title="Ton programme arrive"
+            line="Ton coach prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici."
           />
         ) : (
           nextSession && (

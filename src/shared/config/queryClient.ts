@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { isRefusal } from '@/shared/utils/queryState';
 
 /**
  * Les réglages de React Query, à une seule adresse.
@@ -17,8 +18,10 @@ export const queryClient = new QueryClient({
       gcTime: 10 * 60 * 1000,
 
       // Trois tentatives : un réseau de salle de sport coupe souvent une
-      // requête sans que rien ne soit en panne.
-      retry: 3,
+      // requête sans que rien ne soit en panne. Sauf quand le serveur a
+      // répondu non : un 404 retenté trois fois reste un 404, et l'écran
+      // tournait sept secondes avant de dire que la page n'existe pas.
+      retry: (failureCount, error) => !isRefusal(error) && failureCount < 3,
 
       // L'attente double à chaque tentative, plafonnée à 30 s : enchaîner
       // trois requêtes immédiates sur un réseau qui tombe n'aide pas.

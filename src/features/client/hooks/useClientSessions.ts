@@ -14,6 +14,7 @@ import {
 import { buildLastPerformanceIndex } from '../lastPerformance';
 import { getSessionForToday } from '../weekPlan';
 import { forgetProgress } from '../sessionProgress';
+import { isUnavailable as hasNothingToShow } from '@/shared/utils/queryState';
 
 /**
  * Le programme du client, et laquelle de ses séances vient maintenant.
@@ -85,6 +86,18 @@ export const useClientSessions = () => {
 
   const isLoading = programQuery.isLoading || historyQuery.isLoading;
 
+  // L'historique compte autant que le programme : sans lui, « la prochaine »
+  // retombe sur la séance 1, et l'accueil affirmerait quelque chose de faux.
+  // Mieux vaut dire que rien ne répond.
+  const isUnavailable =
+    hasNothingToShow(programQuery) || hasNothingToShow(historyQuery);
+  const { refetch: refetchProgram } = programQuery;
+  const { refetch: refetchHistory } = historyQuery;
+  const retry = useCallback(() => {
+    void refetchProgram();
+    void refetchHistory();
+  }, [refetchProgram, refetchHistory]);
+
   // `/client/session` redirige maintenant vers l'identifiant de la prochaine
   // séance : l'écran a une source unique, l'URL.
   const activeSession = sessionId
@@ -95,8 +108,14 @@ export const useClientSessions = () => {
   // Un identifiant qui ne correspond à aucune séance (un lien périmé, une
   // séance que le coach a supprimée) ramène au programme plutôt que de rester
   // bloqué.
+  //
+  // Seulement quand le programme est là. Sans cette garde, une panne de
+  // réseau donnait une liste vide, donc « Séance introuvable — cette séance
+  // n'existe plus dans ton programme », suivi d'une redirection : l'écran
+  // accusait le coach d'avoir supprimé une séance qu'il n'avait pas pu lire.
+  const isProgramKnown = programQuery.data !== undefined;
   useEffect(() => {
-    if (!isLoading && sessionId && !activeSession) {
+    if (isProgramKnown && !isLoading && sessionId && !activeSession) {
       toaster.create({
         title: 'Séance introuvable',
         description: "Cette séance n'existe plus dans ton programme.",
@@ -104,7 +123,7 @@ export const useClientSessions = () => {
       });
       navigate(CLIENT_ROUTES.program, { replace: true });
     }
-  }, [isLoading, sessionId, activeSession, navigate]);
+  }, [isProgramKnown, isLoading, sessionId, activeSession, navigate]);
 
   const handleSubmitLog = useCallback(
     (
@@ -160,7 +179,9 @@ export const useClientSessions = () => {
     lastPerformance,
     handleSubmitLog,
     isLoading,
-    isError: programQuery.isError || historyQuery.isError,
+    isUnavailable,
+    retry,
+    isRetrying: programQuery.isRefetching || historyQuery.isRefetching,
     isSubmitting: completeSession.isPending,
   };
 };

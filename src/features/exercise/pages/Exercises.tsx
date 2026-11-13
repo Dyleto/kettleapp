@@ -5,7 +5,8 @@ import {
   useCreateExercise,
   useDeleteExercise,
 } from '@/features/exercise/hooks/useExerciseMutations';
-import { useToastError } from '@/shared/hooks/useToastError';
+import { LoadFailure } from '@/shared/components/LoadFailure';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { Exercise } from '@/shared/types';
 import {
   Box,
@@ -59,7 +60,8 @@ const Exercises = () => {
   const { exerciseId } = useParams();
   const navigate = useNavigate();
 
-  const { data: exercises = [], isLoading, error } = useExercises();
+  const exercisesQuery = useExercises();
+  const { data: exercises = [], isLoading } = exercisesQuery;
   const createMutation = useCreateExercise();
   const deleteMutation = useDeleteExercise();
 
@@ -68,8 +70,6 @@ const Exercises = () => {
 
   const openSheet = (id: string) => navigate(COACH_ROUTES.exerciseDetails(id));
   const closeSheet = () => navigate(COACH_ROUTES.exercises);
-
-  useToastError(error, 'Impossible de charger vos exercices');
 
   const isDesktop = useBreakpointValue({ base: false, lg: true });
 
@@ -350,6 +350,14 @@ const Exercises = () => {
 
         {isLoading ? (
           <ExerciseSectionSkeleton titleWidth="250px" count={8} />
+        ) : isUnavailable(exercisesQuery) ? (
+          // Une panne affichait la bibliothèque vide, avec l'invitation à
+          // créer un premier exercice : de quoi faire croire au coach que
+          // tout ce qu'il avait saisi avait disparu.
+          <LoadFailure
+            query={exercisesQuery}
+            line="Tes exercices n'ont pas bougé. Vérifie ta connexion, puis réessaie."
+          />
         ) : filtered.length === 0 && !canCreate ? (
           <Box py={16} textAlign="center" color="fg.muted" fontSize="sm">
             Aucun exercice — tapez un nom pour en créer un

@@ -45,6 +45,9 @@ const TemplateDetails = React.lazy(
 const ClientLayout = React.lazy(
   () => import('@/features/client/pages/ClientLayout')
 );
+const ClientProgramBoundary = React.lazy(
+  () => import('@/features/client/pages/ClientProgramBoundary')
+);
 const Today = React.lazy(() => import('@/features/client/pages/Today'));
 const Program = React.lazy(() => import('@/features/client/pages/Program'));
 const SessionScreen = React.lazy(
@@ -140,11 +143,16 @@ const router = createBrowserRouter(
 
       {/* Routes Client */}
       <Route path="client" element={<ClientLayout />}>
-        <Route index element={<Today />} />
-        <Route path="program" element={<Program />} />
-        <Route path="session" element={<SessionRedirect />} />
-        <Route path="session/:sessionId" element={<SessionScreen />} />
-        <Route path="history" element={<History />} />
+        {/* Tout ce qui lit le programme passe par cette porte : elle le
+            charge, et affiche la panne à la place de la page quand il ne
+            répond pas. Le compte reste dehors, pour rester joignable. */}
+        <Route element={<ClientProgramBoundary />}>
+          <Route index element={<Today />} />
+          <Route path="program" element={<Program />} />
+          <Route path="session" element={<SessionRedirect />} />
+          <Route path="session/:sessionId" element={<SessionScreen />} />
+          <Route path="history" element={<History />} />
+        </Route>
         <Route path="account" element={<Account space="client" />} />
       </Route>
 

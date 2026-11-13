@@ -5,6 +5,9 @@ import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { ClientJournalTab } from '@/features/coach/components/ClientJournalTab';
 import { COACH_ROUTES } from '@/shared/config/routes';
+import { LoadFailure } from '@/shared/components/LoadFailure';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { COACH_CONTENT_MAX_W } from '@/features/coach';
 import { BackLink } from '@/shared/components/BackLink';
 
@@ -12,7 +15,8 @@ const ClientJournal = () => {
   const { clientId } = useParams();
   const navigate = useNavigate();
 
-  const { data: client, isLoading } = useClientDetails(clientId!);
+  const clientQuery = useClientDetails(clientId!);
+  const { data: client, isLoading } = clientQuery;
   useDocumentTitle(client ? `Journal de ${client.firstName}` : undefined);
   const { data: history = [], isLoading: isHistoryLoading } = useClientHistory(
     clientId!
@@ -28,6 +32,28 @@ const ClientJournal = () => {
       >
         <Spinner size="xl" />
       </Box>
+    );
+  }
+
+  if (isUnavailable(clientQuery)) {
+    return (
+      <LoadFailure
+        query={clientQuery}
+        line="Ce que ton client a fait n'a pas bougé. Vérifie ta connexion, puis réessaie."
+        missing={{
+          title: 'Ce client est introuvable',
+          line: "Le lien a peut-être vieilli, ou ce client n'est plus rattaché à toi.",
+          action: (
+            <ActionButton
+              tone="ghost"
+              size="md"
+              onClick={() => navigate(COACH_ROUTES.clients)}
+            >
+              Voir mes clients
+            </ActionButton>
+          ),
+        }}
+      />
     );
   }
 

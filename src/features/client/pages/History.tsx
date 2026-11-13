@@ -1,4 +1,4 @@
-import { useOutletContext } from 'react-router';
+import { useNavigate, useOutletContext } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useState } from 'react';
 import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
@@ -13,10 +13,15 @@ import {
   useClientSessions,
 } from '@/features/client';
 
+import { EmptyState } from '@/shared/components/EmptyState';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { CLIENT_ROUTES } from '@/shared/config/routes';
+
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
 const History = () => {
   useDocumentTitle('Historique');
+  const navigate = useNavigate();
   const { history } = useOutletContext<ClientSessionsData>();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
@@ -34,9 +39,20 @@ const History = () => {
         </Text>
 
         {history.length === 0 ? (
-          <Box py={16} textAlign="center" color="fg.muted" fontSize="sm">
-            Aucune séance complétée pour l'instant.
-          </Box>
+          <EmptyState
+            mood="hello"
+            title="Rien à montrer encore"
+            line="Ta première séance apparaîtra ici, avec tes charges et ce que tu en as dit."
+            action={
+              <ActionButton
+                tone="ghost"
+                size="md"
+                onClick={() => navigate(CLIENT_ROUTES.program)}
+              >
+                Voir mon programme
+              </ActionButton>
+            }
+          />
         ) : (
           <Grid
             templateColumns={{

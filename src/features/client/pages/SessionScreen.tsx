@@ -37,6 +37,7 @@ import { buildGuidedSteps } from '@/features/client/guidedSteps';
 import { buildRecap } from '@/features/client/recap';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { hitArea } from '@/shared/components/hitArea';
 import { sessionTitle } from '@/features/program/sessionTitle';
 
@@ -167,38 +168,35 @@ const SessionScreen = () => {
     return (
       <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
         <EmptyState
-          title="Pas encore de programme"
-          line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+          mood="sleep"
+          title="Ton programme arrive"
+          line="Ton coach prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici."
         />
       </Container>
     );
   }
 
+  // La séance demandée n'est pas dans le programme : un lien périmé, ou une
+  // séance que le coach a retirée. Le programme, lui, est bien là — la porte
+  // au-dessus ne laisse pas monter cet écran sans lui.
   if (!activeSession) {
     return (
       <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
-        <Box
-          p={8}
-          textAlign="center"
-          bg="whiteAlpha.50"
-          borderRadius="xl"
-          borderWidth="1px"
-          borderColor="whiteAlpha.100"
-        >
-          <Text fontSize="lg" fontWeight="bold" mb={1}>
-            Séance introuvable
-          </Text>
-          <Text color="fg.muted" fontSize="sm" mb={4}>
-            Cette séance n'existe plus dans ton programme.
-          </Text>
-          <Button
-            variant="outline"
-            borderColor="whiteAlpha.200"
-            onClick={() => navigate(CLIENT_ROUTES.program)}
-          >
-            Voir le programme
-          </Button>
-        </Box>
+        <EmptyState
+          mood="oops"
+          headingLevel="h1"
+          title="Cette séance n'existe plus"
+          line="Ton coach l'a peut-être retirée de ton programme."
+          action={
+            <ActionButton
+              tone="ghost"
+              size="md"
+              onClick={() => navigate(CLIENT_ROUTES.program)}
+            >
+              Voir mon programme
+            </ActionButton>
+          }
+        />
       </Container>
     );
   }

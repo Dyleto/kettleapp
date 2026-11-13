@@ -120,8 +120,9 @@ const Program = () => {
 
         {sessions.length === 0 ? (
           <EmptyState
-            title="Pas encore de programme"
-            line="Ton coach n'a pas encore ajouté de séances. Reviens bientôt."
+            mood="sleep"
+            title="Ton programme arrive"
+            line="Ton coach prépare tes séances. Elles apparaîtront ici, dans l'ordre où les faire."
           />
         ) : (
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={3}>

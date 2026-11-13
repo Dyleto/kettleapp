@@ -2,6 +2,29 @@ import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react';
 
 const customConfig = defineConfig({
   theme: {
+    /**
+     * Les deux mouvements du personnage.
+     *
+     * Il se balance de quelques degrés et cligne des yeux toutes les quatre
+     * secondes : c'est ce qui fait qu'un écran vide a l'air d'attendre
+     * quelqu'un plutôt que d'être en panne. Le clignement tient dans les six
+     * derniers centièmes du cycle, sans quoi les yeux passeraient le plus
+     * clair de leur temps à moitié fermés.
+     *
+     * Ils sont déclarés ici et non dans le composant : une animation écrite
+     * dans une balise `<style>` par personnage serait émise autant de fois
+     * qu'il y a de personnages à l'écran.
+     */
+    keyframes: {
+      mascotSway: {
+        '0%, 100%': { transform: 'rotate(-3deg)' },
+        '50%': { transform: 'rotate(3deg)' },
+      },
+      mascotBlink: {
+        '0%, 94%, 100%': { transform: 'scaleY(1)' },
+        '97%': { transform: 'scaleY(0.1)' },
+      },
+    },
     semanticTokens: {
       colors: {
         // Couleurs principales

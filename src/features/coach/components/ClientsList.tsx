@@ -1,7 +1,6 @@
 import {
   Avatar,
   Box,
-  Button,
   Grid,
   HStack,
   Input,
@@ -14,7 +13,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { LuSearch, LuX } from 'react-icons/lu';
 import { useClients } from '@/features/coach/hooks/useClients';
-import { useToastError } from '@/shared/hooks/useToastError';
+import { LoadFailure } from '@/shared/components/LoadFailure';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/features/client/constants';
 import { Card } from '@/shared/components/Card';
 import { hitArea } from '@/shared/components/hitArea';
@@ -296,11 +296,10 @@ interface ClientsListProps {
  */
 export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
   const navigate = useNavigate();
-  const { data: clients = [], isLoading, error, refetch } = useClients();
+  const clientsQuery = useClients();
+  const { data: clients = [], isLoading } = clientsQuery;
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<ClientSort>('triage');
-
-  useToastError(error, 'Impossible de charger vos clients');
 
   const visibleClients = useMemo(
     () =>
@@ -339,19 +338,14 @@ export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
     );
   }
 
-  if (error) {
+  // L'écran dit la panne, et lui seul. Un toast l'annonçait en même temps :
+  // la même phrase deux fois, dont une qui s'effaçait avant d'être lue.
+  if (isUnavailable(clientsQuery)) {
     return (
-      <VStack gap={4} py={12} textAlign="center">
-        <Text color="app.error" fontWeight="bold">
-          Erreur de chargement
-        </Text>
-        <Text color="fg.muted" fontSize="sm">
-          Impossible de récupérer la liste de vos clients.
-        </Text>
-        <Button bg="app.primary" color="bg.canvas" onClick={() => refetch()}>
-          Réessayer
-        </Button>
-      </VStack>
+      <LoadFailure
+        query={clientsQuery}
+        line="Tes clients n'ont pas bougé. Vérifie ta connexion, puis réessaie."
+      />
     );
   }
 

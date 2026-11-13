@@ -28,13 +28,17 @@ import { Header } from '@/shared/components/Header';
 import { TOUCH, hitArea } from '@/shared/components/hitArea';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { COACH_ROUTES } from '@/shared/config/routes';
+import { LoadFailure } from '@/shared/components/LoadFailure';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { Session } from '@/shared/types';
 
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
   const navigate = useNavigate();
 
-  const { data: client, isLoading } = useClientDetails(clientId!);
+  const clientQuery = useClientDetails(clientId!);
+  const { data: client, isLoading } = clientQuery;
   const { data: history = [] } = useClientHistory(clientId!);
 
   // Le nom du client, et non « Séance 1 » : c'est ce qui distingue deux
@@ -131,6 +135,30 @@ const ClientDetails = () => {
       >
         <Spinner size="xl" />
       </Box>
+    );
+  }
+
+  // Une page blanche répondait ici à tout ce qui n'était pas un succès : la
+  // panne de réseau comme l'adresse d'un client qui n'existe plus.
+  if (isUnavailable(clientQuery)) {
+    return (
+      <LoadFailure
+        query={clientQuery}
+        line="Le programme de ton client n'a pas bougé. Vérifie ta connexion, puis réessaie."
+        missing={{
+          title: 'Ce client est introuvable',
+          line: "Le lien a peut-être vieilli, ou ce client n'est plus rattaché à toi.",
+          action: (
+            <ActionButton
+              tone="ghost"
+              size="md"
+              onClick={() => navigate(COACH_ROUTES.clients)}
+            >
+              Voir mes clients
+            </ActionButton>
+          ),
+        }}
+      />
     );
   }
 
