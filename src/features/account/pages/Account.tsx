@@ -15,6 +15,7 @@ import { LuChevronRight, LuTrash2 } from 'react-icons/lu';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { useAccount } from '@/features/account/hooks/useAccount';
 import { HealthConsentCard } from '@/features/account/components/HealthConsentCard';
+import { SoundSetting } from '@/features/client/components/SoundSetting';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
 import { BackLink } from '@/shared/components/BackLink';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
@@ -209,7 +210,7 @@ const Account = ({ space }: Props) => {
                           {name}
                         </Text>
                         <Text fontSize="xs" color="fg.muted">
-                          rattaché depuis le{' '}
+                          ton coach depuis le{' '}
                           <Text as="span" fontVariantNumeric="tabular-nums">
                             {DAY_FORMAT.format(new Date(coach.linkedAt))}
                           </Text>
@@ -230,6 +231,13 @@ const Account = ({ space }: Props) => {
               consent={data.asClient.healthConsent}
               healthDataCount={data.asClient.healthDataCount}
             />
+          </Section>
+        )}
+
+        {/* ── Réglages de l'appareil — côté client seulement ─────────── */}
+        {data?.asClient && (
+          <Section title="Sur cet appareil">
+            <SoundSetting />
           </Section>
         )}
 

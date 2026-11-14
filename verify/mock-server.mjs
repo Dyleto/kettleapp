@@ -716,24 +716,26 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/mock/put-count')
     return sendJson(res, 200, { count: PUT_COUNT });
 
+  // La forme exacte de `accountSummaryPayload` : les deux rôles à la racine.
+  // Ce décor les rangeait sous un champ `summary` que l'API n'envoie pas, si
+  // bien que « Mon compte » s'affichait sans aucune de ses sections — et
+  // qu'aucune suite ne pouvait y lire quoi que ce soit.
   if (pathname === '/api/account') {
     return sendJson(res, 200, {
-      summary: {
-        asClient: {
-          coaches: [
-            {
-              firstName: 'Julie',
-              lastName: 'Martin',
-              linkedAt: '2026-06-01T10:00:00.000Z',
-            },
-          ],
-          completedCount: HISTORY.length,
-          healthDataCount: HISTORY.filter((c) => c.feedback).length,
-          healthConsent: USER.healthConsent,
-          since: '2026-06-01T10:00:00.000Z',
-        },
-        asCoach: { clientCount: 7, since: '2026-06-01T10:00:00.000Z' },
+      asClient: {
+        coaches: [
+          {
+            firstName: 'Julie',
+            lastName: 'Martin',
+            linkedAt: '2026-06-01T10:00:00.000Z',
+          },
+        ],
+        completedCount: HISTORY.length,
+        healthDataCount: HISTORY.filter((c) => c.feedback).length,
+        healthConsent: USER.healthConsent,
+        since: '2026-06-01T10:00:00.000Z',
       },
+      asCoach: { clientCount: 7, since: '2026-06-01T10:00:00.000Z' },
     });
   }
 

@@ -20,6 +20,8 @@ import { LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
 import { LANDSCAPE } from './guided/media';
 import { Timer, OnDemandTimer } from './guided/Timer';
+import { playCue, unlockSound } from '../sound';
+import { SoundToggle } from './SoundToggle';
 import { Round } from './guided/Round';
 import { BlockList } from './guided/BlockList';
 import {
@@ -94,6 +96,21 @@ export const GuidedSession = ({
    * remontrer l'écran d'introduction reviendrait à lui dire qu'il n'a rien
    * fait.
    */
+  // La sortie audio s'ouvre à la première touche faite dans la séance. Un
+  // navigateur refuse tout son qu'aucun geste n'a autorisé, et le premier
+  // bip est déclenché par l'horloge, pas par un doigt : sans cette
+  // ouverture, il serait refusé. À l'échelle du document et en capture,
+  // parce que la séance se dessine dans plusieurs portails et qu'un seul
+  // écouteur doit tous les couvrir.
+  useEffect(() => {
+    document.addEventListener('click', unlockSound, true);
+    document.addEventListener('keydown', unlockSound, true);
+    return () => {
+      document.removeEventListener('click', unlockSound, true);
+      document.removeEventListener('keydown', unlockSound, true);
+    };
+  }, []);
+
   // L'heure de départ, posée une fois pour toutes : c'est elle qui permet de
   // dire, à la fin, combien de temps la séance a réellement duré.
   useEffect(() => {
@@ -287,6 +304,16 @@ export const GuidedSession = ({
     const blockOrder =
       target && target.type !== 'rest' ? target.block.order : null;
     if (blockOrder !== armedBlock) setArmedBlock(null);
+    // Deux notes quand on quitte un bloc vers l'avant. Revenir en arrière ne
+    // termine rien, et sortir d'un repos entre deux blocs non plus : son
+    // horloge a déjà sonné.
+    const current = steps[index];
+    const leavesBlock =
+      next > index &&
+      current !== undefined &&
+      current.type !== 'rest' &&
+      current.block.order !== blockOrder;
+    if (leavesBlock) playCue('blockEnd');
     setIndex(next);
     setDetail(null);
     writeSavedIndex(session._id, next);
@@ -297,6 +324,7 @@ export const GuidedSession = ({
       // On n'efface pas ici : le bilan qui suit se nourrit de ce qui vient
       // d'être noté. L'enregistrement part quand la séance part au
       // serveur.
+      playCue('sessionEnd');
       onFinish();
       return;
     }
@@ -683,6 +711,11 @@ export const GuidedSession = ({
   // Écrit une fois, monté à deux endroits selon l'orientation — jamais les
   // deux à la fois. Deux boutons identiques dans l'arbre annonceraient deux
   // sorties à un lecteur d'écran.
+  // Le son se coupe là où il s'entend. Monté une fois, à côté de « Quitter »,
+  // pour la même raison que lui : deux exemplaires dans l'arbre annonceraient
+  // deux réglages à un lecteur d'écran.
+  const soundToggle = <SoundToggle color={isRest ? 'bg.canvas' : 'fg.muted'} />;
+
   const quitButton = (
     <Button
       variant="ghost"
@@ -750,6 +783,7 @@ export const GuidedSession = ({
           p={4}
           css={{ [LANDSCAPE]: { display: 'none' } }}
         >
+          {soundToggle}
           {quitButton}
         </HStack>
 
@@ -835,7 +869,10 @@ export const GuidedSession = ({
             mt={-1}
             css={{ [LANDSCAPE]: { display: 'block' } }}
           >
-            {quitButton}
+            <HStack gap={0}>
+              {soundToggle}
+              {quitButton}
+            </HStack>
           </Box>
         </HStack>
 

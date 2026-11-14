@@ -3,6 +3,7 @@ import { Box, HStack, Text } from '@chakra-ui/react';
 import { formatCountdown } from '@/shared/utils/formatters';
 import { useEffect, useState } from 'react';
 import { LuTimer } from 'react-icons/lu';
+import { playCue } from '../../sound';
 
 interface TimerProps {
   duration: number;
@@ -56,7 +57,13 @@ export const Timer = ({
   onStart,
 }: TimerProps) => {
   const { remaining, isRunning, pause, resume } = useCountdown(duration, {
-    onComplete,
+    // Le bip long se joue ici, à l'instant où le décompte tombe à zéro, et
+    // non dans un effet : quand l'horloge mène, sa fin démonte le composant
+    // dans le même rendu, et un effet n'aurait jamais tourné.
+    onComplete: () => {
+      playCue('go');
+      onComplete?.();
+    },
     autoStart,
   });
   const isDone = remaining === 0;
@@ -65,11 +72,17 @@ export const Timer = ({
   // ce qu'il faut dire d'abord est « elle vous attend ».
   const [started, setStarted] = useState(autoStart);
 
+  // Les trois dernières secondes s'annoncent, au poignet et à l'oreille. Le
+  // son est ce qui manquait : Safari sur iPhone ne vibre pas, et un tour y
+  // changeait donc sans prévenir. Seulement quand l'horloge tourne — une
+  // horloge de trois secondes qui attend sa première touche n'a rien à
+  // annoncer.
   useEffect(() => {
-    if (remaining > 0 && remaining <= 3) {
+    if (isRunning && remaining > 0 && remaining <= 3) {
       navigator.vibrate?.(150);
+      playCue('tick');
     }
-  }, [remaining]);
+  }, [remaining, isRunning]);
 
   // Un décompte qui ne passe pas la main de lui-même l'annonce une fois,
   // simplement : personne ne regarde l'écran à ce moment-là.
