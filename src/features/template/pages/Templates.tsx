@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   Box,
-  Button,
   Container,
   Dialog,
   HStack,
@@ -18,6 +17,8 @@ import { COACH_ROUTES } from '@/shared/config/routes';
 import { touchHitArea } from '@/shared/components/hitArea';
 import { useTemplates } from '@/features/template/hooks/useTemplates';
 import { LoadFailure } from '@/shared/components/LoadFailure';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { isUnavailable } from '@/shared/utils/queryState';
 import {
   useCreateTemplate,
@@ -42,7 +43,7 @@ const sessionCount = (count: number) =>
  * dans l'atelier.
  */
 const Templates = () => {
-  useDocumentTitle('Modèles de programme');
+  useDocumentTitle('Modèles');
   const navigate = useNavigate();
   const templatesQuery = useTemplates();
   const { data: templates = [], isLoading } = templatesQuery;
@@ -82,11 +83,15 @@ const Templates = () => {
     <Container maxW={COACH_CONTENT_MAX_W} py={6}>
       <VStack align="stretch" gap={5}>
         <Box>
-          <Text fontSize="lg" fontWeight="bold">
-            Modèles de programme
+          {/* Le nom de l'onglet, et un vrai titre : l'écran s'appelait
+              « Modèles de programme » sous un onglet « Modèles », dans un
+              simple paragraphe — il n'avait donc aucun nom pour un lecteur
+              d'écran. */}
+          <Text as="h1" fontSize="lg" fontWeight="bold">
+            Modèles
           </Text>
           <Text fontSize="sm" color="fg.muted" mt={1}>
-            Des programmes préfaits, à importer chez un client pour lui servir
+            Des programmes tout faits, à importer chez un client pour lui servir
             de base. Les modifier ensuite chez le client ne touche pas le
             modèle.
           </Text>
@@ -105,14 +110,16 @@ const Templates = () => {
               }
             }}
           />
-          <Button
+          {/* Il était bleu, seul de son espèce dans toute l'application : la
+              palette par défaut du composant, que personne n'avait choisie. */}
+          <ActionButton
+            size="md"
             onClick={submit}
             disabled={!trimmed || isCreating}
-            colorPalette="blue"
             flexShrink={0}
           >
-            <LuPlus size={14} /> Créer
-          </Button>
+            <LuPlus size={16} /> Créer
+          </ActionButton>
         </HStack>
 
         {isLoading && (
@@ -128,10 +135,15 @@ const Templates = () => {
           />
         )}
 
+        {/* L'état vide dit à quoi sert un modèle, pas seulement qu'il n'y
+            en a pas : c'est le premier écran de la fonctionnalité, et « Aucun
+            modèle pour l'instant » ne donnait aucune raison d'en créer un. */}
         {!isLoading && !isDown && templates.length === 0 && (
-          <Text fontSize="sm" color="fg.muted">
-            Aucun modèle pour l’instant. Nomme-en un pour commencer.
-          </Text>
+          <EmptyState
+            mood="hello"
+            title="Écris-le une fois"
+            line="Un modèle est un programme tout fait. Tu l'importes chez un client, puis tu l'ajustes pour lui : le modèle, lui, ne bouge pas."
+          />
         )}
 
         <VStack align="stretch" gap={1}>
@@ -198,21 +210,23 @@ const Templates = () => {
                 </Text>
               </Dialog.Body>
               <Dialog.Footer>
-                <Button
-                  variant="ghost"
+                <ActionButton
+                  tone="ghost"
+                  size="sm"
                   onClick={() => setPendingDeletion(null)}
                 >
                   Annuler
-                </Button>
-                <Button
-                  colorPalette="red"
+                </ActionButton>
+                <ActionButton
+                  tone="danger"
+                  size="sm"
                   onClick={() => {
                     if (pendingDeletion) remove(pendingDeletion._id);
                     setPendingDeletion(null);
                   }}
                 >
                   <LuTrash2 size={14} /> Supprimer
-                </Button>
+                </ActionButton>
               </Dialog.Footer>
             </Dialog.Content>
           </Dialog.Positioner>

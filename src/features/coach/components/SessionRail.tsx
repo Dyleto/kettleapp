@@ -82,6 +82,15 @@ interface RowProps {
   index: number;
   isActive: boolean;
   tracking?: { count: number; lastAt?: string };
+  /**
+   * Le programme appartient à quelqu'un qui fait des séances.
+   *
+   * Sans cela, une séance jamais faite et un modèle ne se distinguaient
+   * pas : les deux n'avaient aucun relevé, et le rail d'un modèle écrivait
+   * « jamais faite » sous chacune de ses séances — une notion de client, sur
+   * un écran où il n'y a pas de client.
+   */
+  tracked: boolean;
   onSelect: () => void;
   sortable: boolean;
   /** Absent quand le rail se lit sans pouvoir supprimer. */
@@ -92,6 +101,7 @@ const RailRow = ({
   session,
   isActive,
   tracking,
+  tracked,
   onRequestDelete,
   onSelect,
   sortable,
@@ -152,18 +162,20 @@ const RailRow = ({
         {/* Un repère discret, pas une alerte : « jamais faite » est un
             fait, et « faite 4 fois » aussi. Ce qui compte est de pouvoir
             comparer les séances entre elles — donc de toutes les lire. */}
-        <Text
-          fontSize="xs"
-          color="fg.muted"
-          flexShrink={0}
-          title={
-            tracking
-              ? `Réalisée ${tracking.count} fois par ce client`
-              : 'Jamais réalisée par ce client'
-          }
-        >
-          {tracking ? `${tracking.count}×` : 'jamais faite'}
-        </Text>
+        {tracked && (
+          <Text
+            fontSize="xs"
+            color="fg.muted"
+            flexShrink={0}
+            title={
+              tracking
+                ? `Réalisée ${tracking.count} fois par ce client`
+                : 'Jamais réalisée par ce client'
+            }
+          >
+            {tracking ? `${tracking.count}×` : 'jamais faite'}
+          </Text>
+        )}
       </HStack>
       <HStack gap={1.5} align="baseline">
         <Text fontSize="xs" color="fg.muted">
@@ -297,6 +309,7 @@ export const SessionRail = ({
                 index={index}
                 isActive={index === activeIndex}
                 tracking={tracking?.get(session._id)}
+                tracked={tracking !== undefined}
                 onSelect={() => onSelect(index)}
                 sortable={!!onReorder}
                 onRequestDelete={
@@ -362,7 +375,11 @@ export const SessionRail = ({
               color={isActive ? 'bg.canvas' : 'fg.muted'}
               fontSize="sm"
               fontWeight="bold"
-              opacity={!tracking?.get(session._id) && !isActive ? 0.6 : 1}
+              // Estompée quand le client ne l'a jamais faite — et seulement
+              // s'il y a un client : dans un modèle, elles l'étaient toutes.
+              opacity={
+                tracking && !tracking.get(session._id) && !isActive ? 0.6 : 1
+              }
             >
               S{session.order}
             </Box>

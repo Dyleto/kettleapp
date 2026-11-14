@@ -19,7 +19,11 @@
  * 4. le nom du modèle s'édite là où il se lit ;
  * 5. l'atelier d'un modèle ne propose pas « copier vers un client », la seule
  *    chose de cet écran qui parle d'un client ;
- * 6. supprimer demande confirmation, et le serveur perd bien le modèle.
+ * 6. supprimer demande confirmation, et le serveur perd bien le modèle ;
+ * 7. l'écran porte le nom de son onglet, son bouton la couleur de
+ *    l'application, et une liste vide dit à quoi sert un modèle ;
+ * 8. le rail d'un modèle ne dit rien de ce qu'un client aurait fait — il
+ *    écrivait « jamais faite » sous chaque séance, sur un écran sans client.
  */
 import { BASE, launch, ok, failureCount, signIn, clean } from './common.mjs';
 
@@ -65,6 +69,15 @@ const main = async () => {
   });
   ok('la liste montre le modèle du coach', (await seeded.count()) === 1);
 
+  const title = clean(
+    await p
+      .locator('h1')
+      .first()
+      .innerText({ timeout: 3000 })
+      .catch(() => '')
+  );
+  ok("l'écran porte le nom de son onglet", title === 'Modèles', title);
+
   ok(
     '  → avec son nombre de séances',
     clean(await seeded.innerText()).includes('2 séances'),
@@ -74,6 +87,17 @@ const main = async () => {
   // ── 2. On crée en tapant un nom ──────────────────────────────────────────
   const field = p.getByRole('textbox', { name: 'Nom du nouveau modèle' });
   await field.fill('Hypertrophie haut du corps');
+  // L'ambre de la marque, lu sur le bouton lui-même. Il était bleu : la
+  // palette par défaut du composant, que personne n'avait choisie.
+  const createColor = await p
+    .getByRole('button', { name: 'Créer' })
+    .evaluate((button) => getComputedStyle(button).backgroundColor)
+    .catch(() => '');
+  ok(
+    "« Créer » est à la couleur de l'application",
+    createColor === 'rgb(207, 159, 63)',
+    createColor
+  );
   await field.press('Enter');
   await p.waitForTimeout(1800);
 
@@ -95,6 +119,13 @@ const main = async () => {
   // ── 3. Ce qu'on écrit arrive dans le modèle ──────────────────────────────
   await p.getByRole('button', { name: 'Ajouter une séance' }).click();
   await p.waitForTimeout(2000);
+
+  const templateRail = await body();
+  ok(
+    "le rail d'un modèle ne dit rien de ce qu'un client aurait fait",
+    templateRail.includes('Séance 1') && !/jamais faite/i.test(templateRail),
+    templateRail.match(/[^\n]*jamais faite[^\n]*/i)?.[0] ?? ''
+  );
 
   const withOne = await serverTemplate(createdId);
   ok(
@@ -157,6 +188,12 @@ const main = async () => {
     (await p.getByRole('button', { name: /Copier vers un client/ }).count()) >=
       1
   );
+  // La même contre-épreuve pour le rail : « jamais faite » doit rester là où
+  // il y a quelqu'un pour faire la séance.
+  ok(
+    '  → et que son rail dit bien ce qui n’a jamais été fait',
+    /jamais faite/i.test(await body())
+  );
 
   // ── 6. La suppression, et sa question ────────────────────────────────────
   await p.goto(`${BASE}/coach/templates`, { waitUntil: 'domcontentloaded' });
@@ -192,6 +229,30 @@ const main = async () => {
     left.length === 1 && left[0]?.name === 'Prise de masse',
     left.map((t) => t.name).join(', ')
   );
+
+  // ── 7. Une liste vide dit à quoi sert un modèle ──────────────────────────
+  {
+    const ctx = await browser.newContext();
+    await ctx.route(/\/api\/coach\/templates(\?|$)/, (r) =>
+      r.fulfill({ json: { templates: [] } })
+    );
+    const empty = await signIn(ctx);
+    await empty.goto(`${BASE}/coach/templates`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await empty.waitForTimeout(1500);
+    const text = clean(await empty.locator('body').innerText());
+    ok(
+      'sans modèle, la liste dit à quoi ils servent',
+      text.includes('Écris-le une fois') && text.includes("Tu l'importes"),
+      text.slice(0, 100).replace(/\n/g, ' · ')
+    );
+    ok(
+      '  → avec le personnage',
+      (await empty.locator('[data-mascot="hello"]').count()) === 1
+    );
+    await ctx.close();
+  }
 
   await browser.close();
   process.exit(failureCount() > 0 ? 1 : 0);
