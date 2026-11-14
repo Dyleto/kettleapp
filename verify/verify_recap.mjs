@@ -15,6 +15,7 @@ import {
   start,
   dialogs,
   skipRest,
+  finishFromPause,
 } from './common.mjs';
 
 const browser = await launch();
@@ -49,8 +50,7 @@ const runSess2 = async (p, goblet, lunges) => {
     await p.waitForTimeout(300);
     await skipRest(p);
   }
-  // « Terminer la séance » (la sortie de secours, en haut) et « Terminer »
-  // (le bouton principal) coexistent : le nom exact désigne le second.
+  // Le bouton principal, au dernier geste de la séance.
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1400);
 };
@@ -240,11 +240,8 @@ const runSess2 = async (p, goblet, lunges) => {
     await p.waitForTimeout(200);
   }
   // Rien n'a été coché : le bouton principal dit encore « Fait ». On sort
-  // par la sortie de secours, celle qui est toujours là.
-  await p
-    .getByRole('button', { name: 'Terminer la séance', exact: true })
-    .click();
-  await p.waitForTimeout(1300);
+  // par la pause, la sortie qui est toujours là.
+  await finishFromPause(p);
   const t = await dialogs(p);
   ok(
     'on propose encore de noter les charges',
@@ -286,10 +283,7 @@ const runSess2 = async (p, goblet, lunges) => {
     await plus.click();
     await p.waitForTimeout(150);
   }
-  await p
-    .getByRole('button', { name: 'Terminer la séance', exact: true })
-    .click();
-  await p.waitForTimeout(1400);
+  await finishFromPause(p);
   // Aucune charge notée ici : la question garde son sens, on la franchit.
   await p.getByRole('button', { name: /Passer au ressenti/ }).click();
   await p.waitForTimeout(900);

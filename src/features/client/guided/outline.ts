@@ -213,3 +213,39 @@ export const firstGesture = (
       .join(' · '),
   };
 };
+
+/** « Série 3 sur 4 » au milieu d'une phrase : « série 3 sur 4 ». */
+const lowerFirst = (text: string): string =>
+  text.charAt(0).toLowerCase() + text.slice(1);
+
+/**
+ * Où l'on en est, dit en blocs et en séries : « Bloc 2 sur 3 · série 3 sur
+ * 4 ».
+ *
+ * C'est ce que la pause affiche, et ce que la reprise annoncera. L'écran
+ * disait « 9 / 9 » en entrant dans un bloc où il restait sept séries, et à
+ * la reprise « Tu t'étais arrêté à l'étape 9 sur 9 » : il comptait ses
+ * écrans. Personne ne compte des étapes ; on compte des blocs, puis des
+ * séries, des tours ou des paliers.
+ *
+ * `round` est fourni quand l'horloge mène le bloc : on y est à un tour, pas
+ * à une série.
+ */
+export const positionLabel = (
+  session: Pick<Session, 'blocks'>,
+  block: SessionBlock,
+  doneKeys: readonly string[] = [],
+  round?: { rank: number; total: number }
+): string => {
+  const blocks = sorted(session.blocks);
+  const rank = blocks.findIndex((b) => b.order === block.order) + 1;
+  const where = `Bloc ${rank} sur ${blocks.length}`;
+
+  if (round) return `${where} · tour ${round.rank} sur ${round.total}`;
+  if (isRoundBased(block) || block.type === 'amrap') return where;
+
+  const sets = setsOfBlock(block);
+  const next = sets.find((set) => !doneKeys.includes(set.key));
+  if (!next) return sets.length > 0 ? `${where} · terminé` : where;
+  return `${where} · ${lowerFirst(rankLabel(block, next, sets))}`;
+};

@@ -26,7 +26,7 @@
  * une seconde d'écart. Écrit pour que personne ne le croie couvert.
  */
 import { describe, expect, it } from 'vitest';
-import { secondsLeft } from './useCountdown';
+import { secondsLeft, thawedDeadline } from './useCountdown';
 
 /** Une horloge arbitraire, mais fixe : les écarts seuls comptent. */
 const T0 = 1_800_000_000_000;
@@ -89,5 +89,39 @@ describe('un tick manqué ne coûte rien', () => {
     const remaining = 42;
     const resumedAt = T0 + 9_000;
     expect(secondsLeft(resumedAt + remaining * 1000, resumedAt)).toBe(42);
+  });
+});
+
+describe('l’échéance au sortir d’une pause', () => {
+  it('recule d’exactement la durée de la pause', () => {
+    // Un tour d'une minute, mis en pause à sa vingtième seconde pendant
+    // quarante secondes : il doit lui rester quarante secondes, pas zéro.
+    const endAt = T0 + 60_000;
+    const frozenAt = T0 + 20_000;
+    const resumedAt = frozenAt + 40_000;
+    const thawed = thawedDeadline(endAt, frozenAt, resumedAt);
+    expect(thawed).toBe(endAt + 40_000);
+    expect(secondsLeft(thawed, resumedAt)).toBe(40);
+  });
+
+  it('ne gagne ni ne perd rien sur une fraction de seconde', () => {
+    // Reprendre depuis les secondes affichées — arrondies vers le haut —
+    // offrait jusqu'à une seconde par pause. Ici la milliseconde est gardée.
+    const endAt = T0 + 60_000;
+    const frozenAt = T0 + 20_300;
+    const resumedAt = frozenAt + 5_000;
+    const thawed = thawedDeadline(endAt, frozenAt, resumedAt);
+    expect(thawed - resumedAt).toBe(endAt - frozenAt);
+  });
+
+  it('ne recule pas pour une pause de durée nulle ou négative', () => {
+    // Une horloge système qui recule pendant la pause ne doit pas avancer
+    // l'échéance.
+    expect(thawedDeadline(T0 + 60_000, T0 + 20_000, T0 + 20_000)).toBe(
+      T0 + 60_000
+    );
+    expect(thawedDeadline(T0 + 60_000, T0 + 20_000, T0 + 10_000)).toBe(
+      T0 + 60_000
+    );
   });
 });

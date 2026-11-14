@@ -110,6 +110,38 @@ export const skipCountdown = async (p) => {
 };
 
 /**
+ * Quitter la séance en la gardant sur l'appareil : la pause, puis
+ * « Arrêter et reprendre plus tard ».
+ *
+ * « Quitter » n'existe plus ; la pause le remplace, et c'est elle qui dit
+ * qu'on reprendra. Les suites qui sortent puis reviennent passent par ici.
+ */
+export const leaveSession = async (p) => {
+  await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
+  await p.waitForTimeout(400);
+  await p
+    .getByRole('button', { name: 'Arrêter et reprendre plus tard' })
+    .click();
+  await p.waitForTimeout(900);
+};
+
+/**
+ * Terminer la séance en route, par la pause.
+ *
+ * C'est la sortie qui existe toujours, quel que soit le bloc et quoi que
+ * dise le bouton principal : elle était un lien dans la scène, partagé avec
+ * « Passer ce bloc » sous un libellé qui changeait selon le bloc.
+ */
+export const finishFromPause = async (p) => {
+  await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
+  await p.waitForTimeout(400);
+  await p
+    .getByRole('button', { name: 'Terminer la séance maintenant' })
+    .click();
+  await p.waitForTimeout(1300);
+};
+
+/**
  * Ouvrir une séance et entrer en mode guidé.
  *
  * Les attentes sont des durées et non des sélecteurs : la séance charge son

@@ -7,6 +7,7 @@ import {
   firstGesture,
   openingEyebrow,
   openingTitle,
+  positionLabel,
   rankLabel,
 } from './outline';
 import { setsOfBlock } from '../guidedSteps';
@@ -297,5 +298,55 @@ describe('firstGesture', () => {
       title: 'Classique',
       detail: '',
     });
+  });
+});
+
+describe('positionLabel', () => {
+  const classic = makeBlock({
+    order: 2,
+    exercises: [makeBlockExercise({ sets: 4 })],
+  });
+  const session = makeSession({
+    blocks: [
+      makeBlock({ _id: 'bloc-0', order: 1, type: 'warmup' }),
+      classic,
+      makeBlock({ _id: 'bloc-3', order: 3, type: 'emom', rounds: 10 }),
+    ],
+  });
+
+  it('compte en blocs, puis en séries', () => {
+    const [first, second] = setsOfBlock(classic);
+    expect(positionLabel(session, classic, [first.key, second.key])).toBe(
+      'Bloc 2 sur 3 · série 3 sur 4'
+    );
+  });
+
+  it('compte en tours quand l’horloge mène', () => {
+    expect(
+      positionLabel(session, session.blocks[2], [], { rank: 3, total: 10 })
+    ).toBe('Bloc 3 sur 3 · tour 3 sur 10');
+  });
+
+  it('dit qu’un bloc est terminé quand tout y est coché', () => {
+    const keys = setsOfBlock(classic).map((set) => set.key);
+    expect(positionLabel(session, classic, keys)).toBe(
+      'Bloc 2 sur 3 · terminé'
+    );
+  });
+
+  it('s’en tient au bloc pour un AMRAP, qui ne se compte pas en séries', () => {
+    const amrap = makeBlock({ order: 1, type: 'amrap', durationMinutes: 12 });
+    expect(positionLabel(makeSession({ blocks: [amrap] }), amrap)).toBe(
+      'Bloc 1 sur 1'
+    );
+  });
+
+  it('range les blocs par leur ordre, pas par leur position dans le tableau', () => {
+    const shuffled = makeSession({
+      blocks: [session.blocks[2], session.blocks[0], classic],
+    });
+    expect(positionLabel(shuffled, classic).startsWith('Bloc 2 sur 3')).toBe(
+      true
+    );
   });
 });

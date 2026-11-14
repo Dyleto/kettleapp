@@ -24,6 +24,18 @@ const customConfig = defineConfig({
         '0%, 94%, 100%': { transform: 'scaleY(1)' },
         '97%': { transform: 'scaleY(0.1)' },
       },
+      // La feuille basse monte et dépasse à peine avant de se poser : c'est
+      // ce léger rebond qui la fait lire comme un objet qu'on a tiré, pas
+      // comme un panneau qui apparaît.
+      sheetRise: {
+        '0%': { transform: 'translateY(100%)' },
+        '70%': { transform: 'translateY(-6px)' },
+        '100%': { transform: 'translateY(0)' },
+      },
+      scrimFade: {
+        from: { opacity: 0 },
+        to: { opacity: 1 },
+      },
     },
     semanticTokens: {
       colors: {

@@ -4,6 +4,7 @@ import { formatCountdown } from '@/shared/utils/formatters';
 import { useEffect, useState } from 'react';
 import { LuTimer } from 'react-icons/lu';
 import { playCue } from '../../sound';
+import { useScenePaused } from '../../guided/PauseContext';
 
 interface TimerProps {
   duration: number;
@@ -56,7 +57,9 @@ export const Timer = ({
   autoStart = true,
   onStart,
 }: TimerProps) => {
+  const frozen = useScenePaused();
   const { remaining, isRunning, pause, resume } = useCountdown(duration, {
+    frozen,
     // Le bip long se joue ici, à l'instant où le décompte tombe à zéro, et
     // non dans un effet : quand l'horloge mène, sa fin démonte le composant
     // dans le même rendu, et un effet n'aurait jamais tourné.

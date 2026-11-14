@@ -12,6 +12,15 @@ interface UseCountdownOptions {
    * travail.
    */
   autoStart?: boolean;
+  /**
+   * Gelé de l'extérieur : la séance est en pause.
+   *
+   * Distinct de `pause()`, qui est le geste de quelqu'un sur cette horloge.
+   * Ici c'est toute la scène qui s'arrête — une feuille s'est ouverte
+   * par-dessus — et chaque horloge doit s'arrêter avec elle sans qu'on ait
+   * à les connaître une à une.
+   */
+  frozen?: boolean;
 }
 
 /**
@@ -37,6 +46,23 @@ export const secondsLeft = (endAt: number, now: number): number =>
   Math.max(0, Math.ceil((endAt - now) / 1000));
 
 /**
+ * L'échéance d'un décompte qui sort d'un gel.
+ *
+ * Elle recule d'exactement la durée du gel : une pause de quarante secondes
+ * ne doit rien coûter au tour, et ne rien lui offrir non plus. La première
+ * écriture relisait les secondes affichées à la reprise — arrondies vers le
+ * haut, donc jusqu'à une seconde gagnée par pause.
+ *
+ * Hors du hook pour la même raison que `secondsLeft` : c'est une décision,
+ * et elle se vérifie sans monter de composant.
+ */
+export const thawedDeadline = (
+  endAt: number,
+  frozenAt: number,
+  now: number
+): number => endAt + Math.max(0, now - frozenAt);
+
+/**
  * Un décompte qui survit à l'écran éteint.
  *
  * Le hook ne fait que le câblage : poser l'échéance au premier démarrage,
@@ -44,11 +70,13 @@ export const secondsLeft = (endAt: number, now: number): number =>
  */
 export function useCountdown(
   seconds: number,
-  { onComplete, autoStart = true }: UseCountdownOptions = {}
+  { onComplete, autoStart = true, frozen = false }: UseCountdownOptions = {}
 ) {
   const [remaining, setRemaining] = useState(seconds);
   const [isRunning, setIsRunning] = useState(autoStart);
   const endAtRef = useRef<number | null>(null);
+  /** L'instant où le gel a commencé, tant qu'il dure. */
+  const frozenAtRef = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
@@ -64,6 +92,21 @@ export function useCountdown(
     }
     if (!isRunning) return;
 
+    // Gelé : on note quand, et l'on ne bat plus. Au dégel, l'échéance recule
+    // de la durée du gel avant que le battement ne reprenne.
+    if (frozen) {
+      frozenAtRef.current ??= Date.now();
+      return;
+    }
+    if (frozenAtRef.current !== null && endAtRef.current !== null) {
+      endAtRef.current = thawedDeadline(
+        endAtRef.current,
+        frozenAtRef.current,
+        Date.now()
+      );
+    }
+    frozenAtRef.current = null;
+
     const tick = () => {
       const endAt = endAtRef.current ?? Date.now();
       const left = secondsLeft(endAt, Date.now());
@@ -76,7 +119,7 @@ export function useCountdown(
 
     const interval = setInterval(tick, 250);
     return () => clearInterval(interval);
-  }, [isRunning, seconds]);
+  }, [isRunning, seconds, frozen]);
 
   const pause = useCallback(() => setIsRunning(false), []);
   const resume = useCallback(() => {

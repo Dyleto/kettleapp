@@ -14,7 +14,7 @@ import { hitArea } from '@/shared/components/hitArea';
 import { formatDuration } from '@/shared/utils/duration';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LuX } from 'react-icons/lu';
+import { LuPause, LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
 import { LANDSCAPE } from './guided/media';
 import { Timer, OnDemandTimer } from './guided/Timer';
@@ -22,7 +22,10 @@ import { playCue, unlockSound } from '../sound';
 import { SoundToggle } from './SoundToggle';
 import { Opening } from './scene/Opening';
 import { Countdown } from './scene/Countdown';
-import { firstGesture } from '../guided/outline';
+import { firstGesture, positionLabel } from '../guided/outline';
+import { PauseSheet } from './scene/PauseSheet';
+import { PauseContext } from '../guided/PauseContext';
+import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { Round } from './guided/Round';
 import { BlockList } from './guided/BlockList';
 import {
@@ -77,7 +80,14 @@ export const GuidedSession = ({
     Math.min(readSavedIndex(session._id), Math.max(0, steps.length - 1))
   );
   const [index, setIndex] = useState(0);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  // La pause : une feuille par-dessus la scène, qui reste montée dessous.
+  // L'ancienne question de sortie remplaçait la scène tout entière, et
+  // démontait donc ses horloges — un tour d'EMOM repartait de zéro quand on
+  // répondait « Continuer la séance ».
+  const [showPause, setShowPause] = useState(false);
+  // Le décompte qui précède la reprise d'un bloc mené par l'horloge : la
+  // scène reste figée pendant qu'il compte.
+  const [resuming, setResuming] = useState(false);
   // La consigne du coach est écrite pour ce moment précis — en plein effort,
   // les mains occupées. C'était pourtant le seul contenu de la séance
   // inatteignable depuis le plein écran : il fallait en sortir, et donc perdre
@@ -142,6 +152,32 @@ export const GuidedSession = ({
       writeProgress(session._id, { startedAt: Date.now() });
     }
   }, [session._id, showIntro]);
+
+  // Le retour du téléphone et la touche Échap ouvrent la pause : ils ne
+  // quittent jamais directement. Sur Android, retour est le geste
+  // d'annulation universel, et rien ne lui répondait ici — il quittait la
+  // page, donc la séance, sans un mot. Une fois la pause ouverte, le même
+  // geste la referme ; depuis l'ouverture, il revient à la fiche.
+  const sceneActive =
+    !showIntro && !showResume && !counting && steps.length > 0;
+  useBackDismiss(showIntro, onExit);
+  useBackDismiss(sceneActive && !showPause, () => setShowPause(true));
+  useBackDismiss(sceneActive && showPause, () => setShowPause(false));
+  useEffect(() => {
+    if (!sceneActive) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      // La consigne d'un exercice est ouverte : Échap la referme d'abord,
+      // comme n'importe quelle couche du dessus.
+      if (detail) {
+        setDetail(null);
+        return;
+      }
+      setShowPause((open) => !open);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [sceneActive, detail]);
 
   const [keptCount] = useState(() =>
     countRecorded(readProgress(session._id)?.performed ?? {})
@@ -303,16 +339,36 @@ export const GuidedSession = ({
 
   const goPrev = () => goTo(Math.max(0, index - 1));
 
-  // On demande toujours. À la première étape il n'y a rien à perdre, mais
-  // on vient d'entrer dans un plein écran : en sortir sans un mot sur un faux
-  // doigt, c'est voir disparaître la séance qu'on croyait avoir commencée.
-  const handleExitClick = () => setShowExitConfirm(true);
-
-  // Quitter n'efface plus rien. Sortir pour répondre au téléphone, ou parce
+  // Quitter n'efface rien. Sortir pour répondre au téléphone, ou parce
   // qu'un doigt a glissé, ne doit pas coûter la séance : on retrouve sa place
-  // et ses charges en revenant. Pour repartir de zéro, l'écran de reprise
-  // propose « Recommencer depuis le début ».
-  const confirmExit = () => onExit();
+  // et ses charges en revenant.
+  const leave = () => onExit();
+
+  // Reprendre. Quand l'horloge mène le bloc et qu'elle tournait, trois
+  // secondes d'abord : on ne repart pas au milieu d'un tour le téléphone à
+  // la main.
+  const resume = () => {
+    const clockRuns =
+      step !== undefined &&
+      step.type !== 'rest' &&
+      armedBlock === step.block.order;
+    if (clockRuns) {
+      setResuming(true);
+      return;
+    }
+    setShowPause(false);
+  };
+
+  // Le premier écran du bloc suivant, quand il y en a un : c'est là que mène
+  // « Passer ce bloc », d'où que l'on soit dans le bloc courant.
+  const currentBlockOrder =
+    step && step.type !== 'rest' ? step.block.order : null;
+  const nextBlockIndex = steps.findIndex(
+    (candidate, i) =>
+      i > index &&
+      candidate.type !== 'rest' &&
+      candidate.block.order !== currentBlockOrder
+  );
 
   // Le plein écran se posait par-dessus la page sans la neutraliser :
   // quatre tabulations suffisaient à en sortir, on atterrissait dans la barre
@@ -512,60 +568,6 @@ export const GuidedSession = ({
     );
   }
 
-  if (showExitConfirm) {
-    return overlay(
-      <Box
-        role="dialog"
-        aria-modal="true"
-        aria-label="Quitter le mode guidé ?"
-        position="fixed"
-        inset={0}
-        zIndex={50}
-        bg="bg.canvas"
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="safe center"
-        overflowY="auto"
-        py={6}
-        px={8}
-        gap={6}
-        textAlign="center"
-      >
-        <Text fontSize="lg" fontWeight="bold">
-          Quitter le mode guidé ?
-        </Text>
-        <Text fontSize="sm" color="fg.muted">
-          {/* Ce message annonçait une perte qui n'a plus lieu — et qui,
-              quand elle avait lieu, était pire qu'il ne le laissait entendre :
-              les charges partaient avec. */}
-          {index > 0
-            ? 'Tu retrouveras ta séance là où tu la laisses, charges comprises.'
-            : "Tu n'as pas encore commencé — tu retrouveras la séance telle quelle."}
-        </Text>
-        <VStack gap={2} w="full" maxW="280px">
-          <Button
-            w="full"
-            bg="app.primary"
-            color="bg.canvas"
-            fontWeight="bold"
-            onClick={confirmExit}
-          >
-            Quitter
-          </Button>
-          <Button
-            w="full"
-            variant="ghost"
-            color="fg.muted"
-            onClick={() => setShowExitConfirm(false)}
-          >
-            Continuer la séance
-          </Button>
-        </VStack>
-      </Box>
-    );
-  }
-
   const isRest = step.type === 'rest';
 
   // Écrit une fois, monté à deux endroits selon l'orientation — jamais les
@@ -576,469 +578,438 @@ export const GuidedSession = ({
   // deux réglages à un lecteur d'écran.
   const soundToggle = <SoundToggle color={isRest ? 'bg.canvas' : 'fg.muted'} />;
 
-  const quitButton = (
-    <Button
-      variant="ghost"
-      size="sm"
-      minH="44px"
-      onClick={handleExitClick}
-      color={isRest ? 'bg.canvas' : 'fg.muted'}
+  const pauseButton = (
+    <Box
+      as="button"
+      // « la séance », pour ne pas se confondre avec l'horloge d'un tour, qui
+      // porte déjà « Mettre en pause — 57 s restant » : deux commandes au
+      // même nom, l'une figeant tout et l'autre une seule horloge.
+      aria-label="Mettre la séance en pause"
+      display="grid"
+      placeItems="center"
+      w="44px"
+      h="44px"
+      flexShrink={0}
+      borderRadius="full"
+      bg={isRest ? 'blackAlpha.300' : 'bg.surface'}
+      color={isRest ? 'bg.canvas' : 'fg'}
+      onClick={() => setShowPause(true)}
     >
-      Quitter
-    </Button>
+      <LuPause size={20} />
+    </Box>
   );
 
+  const paused = showPause || resuming;
+  const position =
+    step.type === 'rest'
+      ? step.blockLabel
+      : positionLabel(
+          session,
+          step.block,
+          done,
+          step.type === 'round'
+            ? { rank: step.round, total: step.rounds }
+            : undefined
+        );
+
   return overlay(
-    <Box
-      role="dialog"
-      aria-modal="true"
-      aria-label="Séance guidée"
-      position="fixed"
-      inset={0}
-      zIndex={50}
-      bg={{ base: isRest ? 'session.rest' : 'bg.canvas', md: 'blackAlpha.800' }}
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent={{ base: 'stretch', md: 'center' }}
-      // Un iPhone posé à plat fait 844 px de large : il franchit le seuil `md`
-      // et recevait la mise en page de bureau — une carte flottante de 560 px
-      // sur un fond assombri, haute comme 90 % d'un écran qui n'a déjà pas
-      // beaucoup de hauteur. Le seuil regarde la largeur ; ici c'est la
-      // hauteur qui décide.
-      css={{
-        [LANDSCAPE]: { justifyContent: 'stretch', background: 'transparent' },
-      }}
-    >
+    <PauseContext.Provider value={paused}>
       <Box
-        w="full"
-        maxW={{ base: 'full', md: '560px' }}
-        h={{ base: 'full', md: '90vh' }}
-        maxH={{ base: 'full', md: '720px' }}
-        css={{
-          [LANDSCAPE]: {
-            maxWidth: '100%',
-            height: '100%',
-            maxHeight: '100%',
-            borderRadius: 0,
-            boxShadow: 'none',
-          },
+        role="dialog"
+        aria-modal="true"
+        aria-label="Séance guidée"
+        position="fixed"
+        inset={0}
+        zIndex={50}
+        bg={{
+          base: isRest ? 'session.rest' : 'bg.canvas',
+          md: 'blackAlpha.800',
         }}
-        bg={isRest ? 'session.rest' : 'bg.canvas'}
-        borderRadius={{ base: 0, md: '2xl' }}
-        boxShadow={{ md: '0 24px 64px rgba(0,0,0,0.5)' }}
         display="flex"
         flexDirection="column"
-        overflow="hidden"
-        position="relative"
+        alignItems="center"
+        justifyContent={{ base: 'stretch', md: 'center' }}
+        // Un iPhone posé à plat fait 844 px de large : il franchit le seuil `md`
+        // et recevait la mise en page de bureau — une carte flottante de 560 px
+        // sur un fond assombri, haute comme 90 % d'un écran qui n'a déjà pas
+        // beaucoup de hauteur. Le seuil regarde la largeur ; ici c'est la
+        // hauteur qui décide.
+        css={{
+          [LANDSCAPE]: { justifyContent: 'stretch', background: 'transparent' },
+        }}
       >
-        {/* En portrait, « Quitter » a sa propre ligne : c'est la maquette
+        <Box
+          w="full"
+          maxW={{ base: 'full', md: '560px' }}
+          h={{ base: 'full', md: '90vh' }}
+          maxH={{ base: 'full', md: '720px' }}
+          css={{
+            [LANDSCAPE]: {
+              maxWidth: '100%',
+              height: '100%',
+              maxHeight: '100%',
+              borderRadius: 0,
+              boxShadow: 'none',
+            },
+          }}
+          bg={isRest ? 'session.rest' : 'bg.canvas'}
+          borderRadius={{ base: 0, md: '2xl' }}
+          boxShadow={{ md: '0 24px 64px rgba(0,0,0,0.5)' }}
+          display="flex"
+          flexDirection="column"
+          overflow="hidden"
+          position="relative"
+        >
+          {/* En portrait, « Quitter » a sa propre ligne : c'est la maquette
             validée, et elle ne change pas. Posé à plat, cette ligne coûte
             76 px sur 390 — un cinquième de l'écran pour un mot — le bouton
             rejoint donc la barre de progression, qui a de la largeur à
             revendre. Un seul des deux est monté à la fois : l'autre est retiré
             de l'arbre, pas seulement masqué. */}
-        <HStack
-          justify="flex-end"
-          p={4}
-          css={{ [LANDSCAPE]: { display: 'none' } }}
-        >
-          {soundToggle}
-          {quitButton}
-        </HStack>
-
-        <HStack gap={3} px={5} pt={2} align="center">
           <HStack
-            gap={1.5}
-            flex={1}
-            role="progressbar"
-            aria-label="Avancement de la séance"
-            aria-valuemin={1}
-            aria-valuemax={steps.length}
-            aria-valuenow={index + 1}
-            aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}
+            justify="flex-end"
+            p={4}
+            css={{ [LANDSCAPE]: { display: 'none' } }}
           >
-            {blockRuns.map((block) => {
-              const isCurrent =
-                index >= block.start && index < block.start + block.size;
-              // Ce qu'on a derrière soi dans ce bloc, entre 0 et 1.
-              //
-              // Le nombre d'étapes ne suffit plus : un bloc en liste n'en fait
-              // qu'une, donc le remplissage sautait de rien à tout pendant
-              // qu'on y coche sept séries. Quand le bloc courant a des séries,
-              // ce sont elles qui parlent.
-              const part =
-                isCurrent && sets.length > 0
-                  ? doneInBlock / sets.length
-                  : Math.max(0, Math.min(block.size, index - block.start)) /
-                    block.size;
-              return (
-                <Box
-                  key={`${block.label}-${block.start}`}
-                  flex={block.weight}
-                  // Proportionnel, mais jamais au point de disparaître : un
-                  // échauffement de deux pages dans une séance de trente-cinq
-                  // se réduirait à un point.
-                  minW="20px"
-                  h="4px"
-                  borderRadius="full"
-                  // La piste du bloc courant est légèrement plus claire : à la
-                  // première étape d'un bloc, le remplissage est nul et rien
-                  // d'autre ne dirait où l'on est.
-                  bg={
-                    isRest
-                      ? isCurrent
-                        ? 'bg.canvas/40'
-                        : 'bg.canvas/20'
-                      : isCurrent
-                        ? 'whiteAlpha.400'
-                        : 'whiteAlpha.200'
-                  }
-                  overflow="hidden"
-                >
+            {soundToggle}
+            {pauseButton}
+          </HStack>
+
+          <HStack gap={3} px={5} pt={2} align="center">
+            <HStack
+              gap={1.5}
+              flex={1}
+              role="progressbar"
+              aria-label="Avancement de la séance"
+              aria-valuemin={1}
+              aria-valuemax={steps.length}
+              aria-valuenow={index + 1}
+              aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}
+            >
+              {blockRuns.map((block) => {
+                const isCurrent =
+                  index >= block.start && index < block.start + block.size;
+                // Ce qu'on a derrière soi dans ce bloc, entre 0 et 1.
+                //
+                // Le nombre d'étapes ne suffit plus : un bloc en liste n'en fait
+                // qu'une, donc le remplissage sautait de rien à tout pendant
+                // qu'on y coche sept séries. Quand le bloc courant a des séries,
+                // ce sont elles qui parlent.
+                const part =
+                  isCurrent && sets.length > 0
+                    ? doneInBlock / sets.length
+                    : Math.max(0, Math.min(block.size, index - block.start)) /
+                      block.size;
+                return (
                   <Box
-                    h="100%"
+                    key={`${block.label}-${block.start}`}
+                    flex={block.weight}
+                    // Proportionnel, mais jamais au point de disparaître : un
+                    // échauffement de deux pages dans une séance de trente-cinq
+                    // se réduirait à un point.
+                    minW="20px"
+                    h="4px"
                     borderRadius="full"
-                    w={`${part * 100}%`}
+                    // La piste du bloc courant est légèrement plus claire : à la
+                    // première étape d'un bloc, le remplissage est nul et rien
+                    // d'autre ne dirait où l'on est.
                     bg={
                       isRest
-                        ? 'bg.canvas'
+                        ? isCurrent
+                          ? 'bg.canvas/40'
+                          : 'bg.canvas/20'
                         : isCurrent
-                          ? 'app.primary'
-                          : 'session.rest'
+                          ? 'whiteAlpha.400'
+                          : 'whiteAlpha.200'
                     }
-                    transition="width 0.25s"
-                  />
-                </Box>
-              );
-            })}
-          </HStack>
-          <Text
-            fontSize="xs"
-            fontVariantNumeric="tabular-nums"
-            flexShrink={0}
-            color={isRest ? 'bg.canvas' : 'fg.muted'}
-            opacity={isRest ? 0.75 : 1}
-            aria-hidden="true"
-          >
-            {index + 1} / {steps.length}
-          </Text>
-          <Box
-            display="none"
-            flexShrink={0}
-            mt={-1}
-            css={{ [LANDSCAPE]: { display: 'block' } }}
-          >
-            <HStack gap={0}>
-              {soundToggle}
-              {quitButton}
+                    overflow="hidden"
+                  >
+                    <Box
+                      h="100%"
+                      borderRadius="full"
+                      w={`${part * 100}%`}
+                      bg={
+                        isRest
+                          ? 'bg.canvas'
+                          : isCurrent
+                            ? 'app.primary'
+                            : 'session.rest'
+                      }
+                      transition="width 0.25s"
+                    />
+                  </Box>
+                );
+              })}
             </HStack>
-          </Box>
-        </HStack>
+            <Text
+              fontSize="xs"
+              fontVariantNumeric="tabular-nums"
+              flexShrink={0}
+              color={isRest ? 'bg.canvas' : 'fg.muted'}
+              opacity={isRest ? 0.75 : 1}
+              aria-hidden="true"
+            >
+              {index + 1} / {steps.length}
+            </Text>
+            <Box
+              display="none"
+              flexShrink={0}
+              mt={-1}
+              css={{ [LANDSCAPE]: { display: 'block' } }}
+            >
+              <HStack gap={0}>
+                {soundToggle}
+                {pauseButton}
+              </HStack>
+            </Box>
+          </HStack>
 
-        {step.type === 'block' && step.shape === 'list' ? (
-          <>
-            <VStack align="stretch" gap={0.5} px={5} pt={4} pb={1}>
-              <Text
-                fontSize="xs"
-                letterSpacing="2px"
-                textTransform="uppercase"
-                fontWeight="800"
-                color="session.work"
-              >
-                {step.blockLabel}
-                {step.block.label ? ` · ${step.block.label}` : ''}
-              </Text>
-              <HStack justify="space-between" align="center" gap={3}>
-                <Text fontSize="sm" color="fg.muted">
-                  {doneInBlock} sur {step.sets.length} faits dans ce bloc
+          {step.type === 'block' && step.shape === 'list' ? (
+            <>
+              <VStack align="stretch" gap={0.5} px={5} pt={4} pb={1}>
+                <Text
+                  fontSize="xs"
+                  letterSpacing="2px"
+                  textTransform="uppercase"
+                  fontWeight="800"
+                  color="session.work"
+                >
+                  {step.blockLabel}
+                  {step.block.label ? ` · ${step.block.label}` : ''}
                 </Text>
-                {/* Le passage.
-                    « Suivant » le portait sans le dire, et le remplacer par
-                    « Fait » l'a retiré sans qu'on le remarque : on restait
-                    bloqué sur un échauffement tant que ses deux lignes
-                    n'étaient pas cochées. Un client saute un mouvement, change
-                    d'avis, arrive en retard — il doit pouvoir passer.
-
-                    Discret et à l'écart du geste principal : c'est une sortie
-                    de secours, pas une invitation. */}
-                <Box
-                  as="button"
-                  onClick={goNext}
-                  color="fg.muted"
-                  fontSize="sm"
-                  flexShrink={0}
-                  css={hitArea(44)}
-                  _hover={{ color: 'fg' }}
-                >
-                  {/* Au dernier bloc, « passer » ne veut rien dire : il n'y a rien
-                      après. Mais la sortie doit exister quand même — elle y
-                      était cachée, et il fallait cocher les sept paliers d'une
-                      pyramide pour gagner le droit de terminer. */}
-                  {isLast ? 'Terminer la séance' : 'Passer ce bloc'}
-                </Box>
-              </HStack>
-            </VStack>
-            <BlockList
-              block={step.block}
-              sets={step.sets}
-              done={doneKeys}
-              current={current}
-              performed={performed}
-              onPerformedChange={onPerformedChange}
-              lastPerformance={lastPerformance}
-              onOpenDetail={setDetail}
-              rest={rest}
-              onRestDone={() => setRest(null)}
-              onUndo={undoSet}
-            />
-          </>
-        ) : step.type === 'block' ? (
-          /*
-           * Un bloc entier, lu d'un coup.
-           *
-           * C'est la carte de la fiche de séance — celle que le client lit
-           * avant de commencer — posée ici sans changement. Un seul rendu pour
-           * les deux écrans : ce qu'il a mémorisé en se préparant, il le
-           * retrouve pendant. Consignes et vidéos s'y déplient déjà, ligne par
-           * ligne, ce que le plein écran ne savait faire que pour le seul
-           * exercice affiché.
-           */
-          <VStack
-            flex={1}
-            align="stretch"
-            gap={5}
-            px={5}
-            py={2}
-            overflowY="auto"
-          >
-            {/* La sortie, ici aussi.
-                Sur une boucle, le bouton principal compte les tours : rien
-                d'autre ne terminerait la séance sans cela. Le troisième
-                endroit où un geste principal qui change de sens a emporté
-                celui qu'il remplaçait. */}
-            {step.shape === 'loop' && (
-              <HStack justify="flex-end">
-                <Box
-                  as="button"
-                  onClick={goNext}
-                  color="fg.muted"
-                  fontSize="sm"
-                  css={hitArea(44)}
-                  _hover={{ color: 'fg' }}
-                >
-                  {isLast ? 'Terminer la séance' : 'Passer ce bloc'}
-                </Box>
-              </HStack>
-            )}
-            {/* L'horloge d'un bloc chronométré : dans un AMRAP, c'est elle qui
+                <HStack justify="space-between" align="center" gap={3}>
+                  <Text fontSize="sm" color="fg.muted">
+                    {doneInBlock} sur {step.sets.length} faits dans ce bloc
+                  </Text>
+                </HStack>
+              </VStack>
+              <BlockList
+                block={step.block}
+                sets={step.sets}
+                done={doneKeys}
+                current={current}
+                performed={performed}
+                onPerformedChange={onPerformedChange}
+                lastPerformance={lastPerformance}
+                onOpenDetail={setDetail}
+                rest={rest}
+                onRestDone={() => setRest(null)}
+                onUndo={undoSet}
+              />
+            </>
+          ) : step.type === 'block' ? (
+            /*
+             * Un bloc entier, lu d'un coup.
+             *
+             * C'est la carte de la fiche de séance — celle que le client lit
+             * avant de commencer — posée ici sans changement. Un seul rendu pour
+             * les deux écrans : ce qu'il a mémorisé en se préparant, il le
+             * retrouve pendant. Consignes et vidéos s'y déplient déjà, ligne par
+             * ligne, ce que le plein écran ne savait faire que pour le seul
+             * exercice affiché.
+             */
+            <VStack
+              flex={1}
+              align="stretch"
+              gap={5}
+              px={5}
+              py={2}
+              overflowY="auto"
+            >
+              {/* L'horloge d'un bloc chronométré : dans un AMRAP, c'est elle qui
                 dit quand s'arrêter. Plus petite qu'en plein écran — on est
                 venu lire la liste, pas l'horloge. */}
-            {blockHasClock(step.block.type) && step.block.durationMinutes ? (
+              {blockHasClock(step.block.type) && step.block.durationMinutes ? (
+                <Timer
+                  key={index}
+                  duration={step.block.durationMinutes * 60}
+                  color="fg"
+                  holdLabel="Temps écoulé"
+                  // Pas le nom du bloc : la carte juste en dessous le porte déjà,
+                  // et l'écran le disait deux fois. Ce qui manquait, c'est ce
+                  // que l'horloge mesure — un AMRAP s'arrête à zéro.
+                  title={
+                    <Text
+                      fontSize="xs"
+                      letterSpacing="2px"
+                      textTransform="uppercase"
+                      fontWeight="800"
+                      color="fg.muted"
+                    >
+                      Temps restant
+                    </Text>
+                  }
+                  compact
+                />
+              ) : null}
+              {/* Le compteur de tours.
+                C'est le score de la séance, et il n'avait aucune place : ni à
+                l'écran ni dans le modèle. Le client le gardait en tête ou sur
+                un carnet. En grand, sous l'horloge, et à côté du bouton qui
+                l'incrémente — on le tape à bout de souffle. */}
+              {step.shape === 'loop' && (
+                <HStack justify="space-between" align="center" gap={4}>
+                  <HStack align="baseline" gap={2}>
+                    <Text
+                      fontSize="54px"
+                      fontWeight="800"
+                      lineHeight="1"
+                      color="app.primary"
+                      fontVariantNumeric="tabular-nums"
+                    >
+                      {rounds[String(step.block.order)] ?? 0}
+                    </Text>
+                    <Text fontSize="sm" color="fg.muted">
+                      tour
+                      {(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
+                      &nbsp;bouclé
+                      {(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
+                    </Text>
+                  </HStack>
+                  {/* Redescendre doit rester possible — un doigt glisse, et perdre
+                    un tour qu'on a fait est pire que d'en compter un de trop.
+                    Discret : ce n'est pas le geste qu'on répète. */}
+                  {(rounds[String(step.block.order)] ?? 0) > 0 && (
+                    <Box
+                      as="button"
+                      aria-label="Retirer un tour"
+                      onClick={() => countOneRound(step.block.order, -1)}
+                      color="fg.muted"
+                      fontSize="sm"
+                      css={hitArea(44)}
+                      _hover={{ color: 'fg' }}
+                    >
+                      − 1
+                    </Box>
+                  )}
+                </HStack>
+              )}
+              <BlockCard
+                block={step.block}
+                renderExerciseExtra={({ blockOrder, exerciseOrder }) => {
+                  const prescribed = step.block.exercises.find(
+                    (e) => e.order === exerciseOrder
+                  );
+                  if (!prescribed) return null;
+                  const key = performedKey(blockOrder, exerciseOrder);
+                  const rest = restBetweenSetsOf(step.block, prescribed);
+                  return (
+                    <>
+                      {performed && onPerformedChange && (
+                        <PerformedFields
+                          value={performed[key] ?? { sets: [] }}
+                          onChange={(next) => onPerformedChange(key, next)}
+                          setLabels={prescribedSetLabels(
+                            step.block,
+                            prescribed
+                          )}
+                          isTimed={prescribed.duration !== undefined}
+                        />
+                      )}
+                      {/* Le travail chronométré d'abord, le repos ensuite : c'est
+                        l'ordre dans lequel on les vit. */}
+                      {prescribed.duration ? (
+                        <OnDemandTimer
+                          duration={prescribed.duration}
+                          label={formatDuration(prescribed.duration)}
+                          color="app.primary"
+                        />
+                      ) : null}
+                      {rest ? (
+                        <OnDemandTimer
+                          duration={rest}
+                          label={`rest ${formatDuration(rest)}`}
+                          color="session.rest"
+                        />
+                      ) : null}
+                    </>
+                  );
+                }}
+              />
+            </VStack>
+          ) : step.type === 'round' ? (
+            <Round
+              step={step}
+              onDone={goNext}
+              lastPerformance={lastPerformance}
+              onOpenDetail={setDetail}
+              armed={armedBlock === step.block.order}
+              onArm={() => setArmedBlock(step.block.order)}
+            />
+          ) : (
+            <VStack
+              flex={1}
+              justify="center"
+              align="center"
+              gap={6}
+              px={8}
+              textAlign="center"
+            >
               <Timer
                 key={index}
-                duration={step.block.durationMinutes * 60}
-                color="fg"
-                holdLabel="Temps écoulé"
-                // Pas le nom du bloc : la carte juste en dessous le porte déjà,
-                // et l'écran le disait deux fois. Ce qui manquait, c'est ce
-                // que l'horloge mesure — un AMRAP s'arrête à zéro.
+                duration={step.duration}
+                color="bg.canvas"
+                // Le fond est ici la couleur du repos : une piste claire y
+                // disparaîtrait. C'est le seul écran où la jauge s'inverse.
+                track="blackAlpha.400"
+                onComplete={goNext}
                 title={
                   <Text
                     fontSize="xs"
                     letterSpacing="2px"
                     textTransform="uppercase"
                     fontWeight="800"
-                    color="fg.muted"
+                    color="bg.canvas"
                   >
-                    Temps restant
+                    Repos
                   </Text>
                 }
-                compact
               />
-            ) : null}
-            {/* Le compteur de tours.
-                C'est le score de la séance, et il n'avait aucune place : ni à
-                l'écran ni dans le modèle. Le client le gardait en tête ou sur
-                un carnet. En grand, sous l'horloge, et à côté du bouton qui
-                l'incrémente — on le tape à bout de souffle. */}
-            {step.shape === 'loop' && (
-              <HStack justify="space-between" align="center" gap={4}>
-                <HStack align="baseline" gap={2}>
-                  <Text
-                    fontSize="54px"
-                    fontWeight="800"
-                    lineHeight="1"
-                    color="app.primary"
-                    fontVariantNumeric="tabular-nums"
-                  >
-                    {rounds[String(step.block.order)] ?? 0}
-                  </Text>
-                  <Text fontSize="sm" color="fg.muted">
-                    tour{(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
-                    &nbsp;bouclé
-                    {(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
-                  </Text>
-                </HStack>
-                {/* Redescendre doit rester possible — un doigt glisse, et perdre
-                    un tour qu'on a fait est pire que d'en compter un de trop.
-                    Discret : ce n'est pas le geste qu'on répète. */}
-                {(rounds[String(step.block.order)] ?? 0) > 0 && (
-                  <Box
-                    as="button"
-                    aria-label="Retirer un tour"
-                    onClick={() => countOneRound(step.block.order, -1)}
-                    color="fg.muted"
-                    fontSize="sm"
-                    css={hitArea(44)}
-                    _hover={{ color: 'fg' }}
-                  >
-                    − 1
-                  </Box>
-                )}
-              </HStack>
-            )}
-            <BlockCard
-              block={step.block}
-              renderExerciseExtra={({ blockOrder, exerciseOrder }) => {
-                const prescribed = step.block.exercises.find(
-                  (e) => e.order === exerciseOrder
-                );
-                if (!prescribed) return null;
-                const key = performedKey(blockOrder, exerciseOrder);
-                const rest = restBetweenSetsOf(step.block, prescribed);
-                return (
-                  <>
-                    {performed && onPerformedChange && (
-                      <PerformedFields
-                        value={performed[key] ?? { sets: [] }}
-                        onChange={(next) => onPerformedChange(key, next)}
-                        setLabels={prescribedSetLabels(step.block, prescribed)}
-                        isTimed={prescribed.duration !== undefined}
-                      />
-                    )}
-                    {/* Le travail chronométré d'abord, le repos ensuite : c'est
-                        l'ordre dans lequel on les vit. */}
-                    {prescribed.duration ? (
-                      <OnDemandTimer
-                        duration={prescribed.duration}
-                        label={formatDuration(prescribed.duration)}
-                        color="app.primary"
-                      />
-                    ) : null}
-                    {rest ? (
-                      <OnDemandTimer
-                        duration={rest}
-                        label={`rest ${formatDuration(rest)}`}
-                        color="session.rest"
-                      />
-                    ) : null}
-                  </>
-                );
-              }}
-            />
-          </VStack>
-        ) : step.type === 'round' ? (
-          <Round
-            step={step}
-            onDone={goNext}
-            lastPerformance={lastPerformance}
-            onOpenDetail={setDetail}
-            armed={armedBlock === step.block.order}
-            onArm={() => setArmedBlock(step.block.order)}
-          />
-        ) : (
-          <VStack
-            flex={1}
-            justify="center"
-            align="center"
-            gap={6}
-            px={8}
-            textAlign="center"
-          >
-            <Timer
-              key={index}
-              duration={step.duration}
-              color="bg.canvas"
-              // Le fond est ici la couleur du repos : une piste claire y
-              // disparaîtrait. C'est le seul écran où la jauge s'inverse.
-              track="blackAlpha.400"
-              onComplete={goNext}
-              title={
-                <Text
-                  fontSize="xs"
-                  letterSpacing="2px"
-                  textTransform="uppercase"
-                  fontWeight="800"
-                  color="bg.canvas"
-                >
-                  Repos
+              {step.nextExerciseName && (
+                <Text fontSize="sm" color="bg.canvas" opacity={0.75}>
+                  Ensuite : {step.nextExerciseName}
                 </Text>
-              }
-            />
-            {step.nextExerciseName && (
-              <Text fontSize="sm" color="bg.canvas" opacity={0.75}>
-                Ensuite : {step.nextExerciseName}
-              </Text>
-            )}
-          </VStack>
-        )}
+              )}
+            </VStack>
+          )}
 
-        {detail && (
-          <Box
-            position="absolute"
-            inset={0}
-            bg="bg.canvas"
-            zIndex={1}
-            overflowY="auto"
-            p={5}
-          >
-            <HStack justify="space-between" align="flex-start" mb={4}>
-              <Text fontSize="xl" fontWeight="800" maxW="20ch">
-                {detail.exercise.name}
-              </Text>
-              <Box
-                as="button"
-                aria-label="Revenir à la séance"
-                onClick={() => setDetail(null)}
-                color="fg.muted"
-                flexShrink={0}
-                css={hitArea(44)}
-              >
-                <LuX size={20} />
-              </Box>
-            </HStack>
+          {detail && (
+            <Box
+              position="absolute"
+              inset={0}
+              bg="bg.canvas"
+              zIndex={1}
+              overflowY="auto"
+              p={5}
+            >
+              <HStack justify="space-between" align="flex-start" mb={4}>
+                <Text fontSize="xl" fontWeight="800" maxW="20ch">
+                  {detail.exercise.name}
+                </Text>
+                <Box
+                  as="button"
+                  aria-label="Revenir à la séance"
+                  onClick={() => setDetail(null)}
+                  color="fg.muted"
+                  flexShrink={0}
+                  css={hitArea(44)}
+                >
+                  <LuX size={20} />
+                </Box>
+              </HStack>
 
-            {/* Ce que le coach a écrit pour cette séance vient en premier,
+              {/* Ce que le coach a écrit pour cette séance vient en premier,
                 reconnaissable à la barre ambre. La technique du mouvement, qui
                 vient de la bibliothèque, reste du texte simple en dessous. */}
-            {detail.note?.trim() && (
-              <Box
-                p={3}
-                bg="whiteAlpha.50"
-                borderRadius="md"
-                borderLeft="2px solid"
-                borderLeftColor="app.primary.border"
-                mb={4}
-              >
-                <Text
-                  fontSize="2xs"
-                  color="fg.muted"
-                  fontWeight="bold"
-                  letterSpacing="wide"
-                  textTransform="uppercase"
-                  mb={1}
+              {detail.note?.trim() && (
+                <Box
+                  p={3}
+                  bg="whiteAlpha.50"
+                  borderRadius="md"
+                  borderLeft="2px solid"
+                  borderLeftColor="app.primary.border"
+                  mb={4}
                 >
-                  Consigne du coach
-                </Text>
-                <Text fontSize="sm" color="fg" whiteSpace="pre-wrap">
-                  {detail.note}
-                </Text>
-              </Box>
-            )}
-            {detail.exercise.description?.trim() && (
-              <>
-                {detail.note?.trim() && (
                   <Text
                     fontSize="2xs"
                     color="fg.muted"
@@ -1047,79 +1018,129 @@ export const GuidedSession = ({
                     textTransform="uppercase"
                     mb={1}
                   >
-                    Le mouvement
+                    Consigne du coach
                   </Text>
-                )}
-                <Text
-                  fontSize="sm"
-                  color={detail.note?.trim() ? 'fg.muted' : 'fg'}
-                  whiteSpace="pre-wrap"
-                  mb={4}
-                >
-                  {detail.exercise.description}
-                </Text>
-              </>
-            )}
-            {detail.exercise.videoUrl?.trim() && (
-              <VideoPlayer url={detail.exercise.videoUrl} />
-            )}
-          </Box>
-        )}
+                  <Text fontSize="sm" color="fg" whiteSpace="pre-wrap">
+                    {detail.note}
+                  </Text>
+                </Box>
+              )}
+              {detail.exercise.description?.trim() && (
+                <>
+                  {detail.note?.trim() && (
+                    <Text
+                      fontSize="2xs"
+                      color="fg.muted"
+                      fontWeight="bold"
+                      letterSpacing="wide"
+                      textTransform="uppercase"
+                      mb={1}
+                    >
+                      Le mouvement
+                    </Text>
+                  )}
+                  <Text
+                    fontSize="sm"
+                    color={detail.note?.trim() ? 'fg.muted' : 'fg'}
+                    whiteSpace="pre-wrap"
+                    mb={4}
+                  >
+                    {detail.exercise.description}
+                  </Text>
+                </>
+              )}
+              {detail.exercise.videoUrl?.trim() && (
+                <VideoPlayer url={detail.exercise.videoUrl} />
+              )}
+            </Box>
+          )}
 
-        {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
+          {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
             touche les mains moites. C'est la marge qui cède, pas le
             bouton. */}
-        <HStack p={4} gap={3} css={{ [LANDSCAPE]: { padding: '8px 12px' } }}>
-          {/* Un contour, comme celui de « J'ai terminé cette séance ». Du
+          <HStack p={4} gap={3} css={{ [LANDSCAPE]: { padding: '8px 12px' } }}>
+            {/* Un contour, comme celui de « J'ai terminé cette séance ». Du
               texte gris sans cadre, à côté d'un « Suivant » ambre plein deux
               fois plus large, se lit « indisponible » : le contraste était
               conforme, la hiérarchie mentait. Secondaire et indisponible
               doivent rester deux choses distinctes — le bouton porte donc son
               cadre, et ne s'efface vraiment qu'à la première étape, où il est
               réellement désactivé. */}
-          <Button
-            variant="outline"
-            borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}
-            onClick={goPrev}
-            disabled={index === 0}
-            flexShrink={0}
-            minH="52px"
-            color={isRest ? 'bg.canvas' : 'fg'}
-          >
-            Précédent
-          </Button>
-          {/* Un seul bouton principal, toujours au même endroit, et la forme
+            <Button
+              variant="outline"
+              borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}
+              onClick={goPrev}
+              disabled={index === 0}
+              flexShrink={0}
+              minH="52px"
+              color={isRest ? 'bg.canvas' : 'fg'}
+            >
+              Précédent
+            </Button>
+            {/* Un seul bouton principal, toujours au même endroit, et la forme
               du bloc dit ce qu'il fait : « Fait » tant qu'il reste une série à
               cocher, puis passer. Le client n'a jamais à choisir où
               appuyer. */}
-          <Button
-            flex={1}
-            minH="52px"
-            bg={isRest ? 'bg.canvas' : 'app.primary'}
-            color={isRest ? 'fg' : 'bg.canvas'}
-            _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
-            onClick={
-              isLoop && step.type === 'block'
-                ? () => countOneRound(step.block.order, 1)
+            <Button
+              flex={1}
+              minH="52px"
+              bg={isRest ? 'bg.canvas' : 'app.primary'}
+              color={isRest ? 'fg' : 'bg.canvas'}
+              _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
+              onClick={
+                isLoop && step.type === 'block'
+                  ? () => countOneRound(step.block.order, 1)
+                  : current
+                    ? markDone
+                    : goNext
+              }
+            >
+              {isLoop
+                ? '+1 tour'
                 : current
-                  ? markDone
-                  : goNext
-            }
-          >
-            {isLoop
-              ? '+1 tour'
-              : current
-                ? 'Fait'
-                : isLast
-                  ? 'Terminer'
-                  : blockFinished
-                    ? 'Bloc suivant'
-                    : step.type === 'rest'
-                      ? 'Passer'
-                      : 'Suivant'}
-          </Button>
-        </HStack>
+                  ? 'Fait'
+                  : isLast
+                    ? 'Terminer'
+                    : blockFinished
+                      ? 'Bloc suivant'
+                      : step.type === 'rest'
+                        ? 'Passer'
+                        : 'Suivant'}
+            </Button>
+          </HStack>
+        </Box>
       </Box>
-    </Box>
+
+      {resuming && step.type !== 'rest' ? (
+        <Countdown
+          title={step.blockLabel}
+          detail={position}
+          onDone={() => {
+            setResuming(false);
+            setShowPause(false);
+          }}
+        />
+      ) : (
+        showPause && (
+          <PauseSheet
+            position={position}
+            onResume={resume}
+            onLeave={leave}
+            onSkipBlock={
+              nextBlockIndex === -1
+                ? undefined
+                : () => {
+                    setShowPause(false);
+                    goTo(nextBlockIndex);
+                  }
+            }
+            onFinish={() => {
+              setShowPause(false);
+              onFinish();
+            }}
+          />
+        )
+      )}
+    </PauseContext.Provider>
   );
 };

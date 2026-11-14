@@ -59,6 +59,34 @@ const boxOf = (p, selector) =>
   }, selector);
 
 /** Le bouton principal, mesuré par son nom. */
+/**
+ * Le bouton de pause, mesuré. Il n'a pas de texte — c'est une icône —
+ * donc on le trouve par son nom accessible plutôt que par ce qu'il affiche.
+ */
+const pauseBox = (p) =>
+  p.evaluate(() => {
+    const el = [
+      ...document.querySelectorAll(
+        'button[aria-label="Mettre la séance en pause"]'
+      ),
+    ].find((e) => e.offsetParent !== null);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {
+      top: Math.round(r.top),
+      h: Math.round(r.height),
+      belowFold: Math.max(0, Math.round(r.bottom - innerHeight)),
+      aboveFold: Math.max(0, Math.round(-r.top)),
+    };
+  });
+
+/** Combien de boutons de pause sont visibles à la fois. */
+const visiblePauseButtons = (p) =>
+  p.$$eval(
+    'button[aria-label="Mettre la séance en pause"]',
+    (l) => l.filter((e) => e.offsetParent !== null).length
+  );
+
 const buttonBox = (p, pattern) =>
   p.evaluate((m) => {
     const el = [...document.querySelectorAll('button')]
@@ -211,25 +239,29 @@ const cutWithNoRecourse = (p) =>
     );
   }
 
-  // 3. La confirmation de sortie.
-  await p.getByRole('button', { name: /^Quitter$/ }).click();
-  await p.waitForTimeout(500);
+  // 3. La pause, qui remplace la confirmation de sortie. Téléphone couché,
+  //    une feuille basse n'a que 390 px de haut pour ses cinq commandes : la
+  //    dernière, « Terminer la séance maintenant », doit rester atteignable.
+  await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
+  await p.waitForTimeout(600);
   const leaving = await cutWithNoRecourse(p);
   ok(
-    'la confirmation de sortie ne coupe rien',
+    'la pause ne coupe rien sans recours',
     leaving === null,
     leaving
       ? `${leaving.tag} : ${leaving.seen} px vus sur ${leaving.content} — « ${leaving.txt} »`
       : ''
   );
-  const quit = await buttonBox(p, '^Quitter$');
+  const resumeBox = await buttonBox(p, '^Reprendre$');
   ok(
-    "  → et ses deux réponses sont dans l'écran",
-    quit && quit.belowFold === 0 && quit.aboveFold === 0,
-    quit ? `bas à ${quit.bottom} sur 390` : '(introuvable)'
+    "  → et « Reprendre » est dans l'écran",
+    resumeBox && resumeBox.belowFold === 0 && resumeBox.aboveFold === 0,
+    resumeBox ? `bas à ${resumeBox.bottom} sur 390` : '(introuvable)'
   );
-  await p.getByRole('button', { name: /^Quitter$/ }).click();
-  await p.waitForTimeout(700);
+  await p
+    .getByRole('button', { name: 'Arrêter et reprendre plus tard' })
+    .click();
+  await p.waitForTimeout(900);
 
   // 4. L'écran de reprise.
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
@@ -287,22 +319,16 @@ for (const [name, vp] of [
       : '(introuvable)'
   );
 
-  const q = await buttonBox(p, '^Quitter$');
+  const q = await pauseBox(p);
   ok(
-    '  → et la sortie reste atteignable',
+    '  → et la pause reste atteignable',
     q && q.belowFold === 0 && q.aboveFold === 0 && q.h >= 44,
     q ? `${q.h} px, haut à ${q.top}` : '(introuvable)'
   );
 
-  const duplicates = await p.$$eval(
-    'button',
-    (l) =>
-      l.filter(
-        (e) => e.offsetParent !== null && e.innerText.trim() === 'Quitter'
-      ).length
-  );
+  const duplicates = await visiblePauseButtons(p);
   ok(
-    "  → une sortie dans l'arbre, pas deux",
+    "  → une pause dans l'arbre, pas deux",
     duplicates === 1,
     `${duplicates} bouton(s)`
   );
@@ -427,7 +453,7 @@ for (const [name, vp] of [
     };
   });
   ok(
-    '« Quitter » garde une ligne à lui',
+    'la pause et le son gardent une ligne à eux',
     measures.heights[0] === 76,
     `${measures.heights[0]} px`
   );
@@ -436,14 +462,8 @@ for (const [name, vp] of [
     measures.size === '72px',
     measures.size ?? '(aucune)'
   );
-  const q = await p.$$eval(
-    'button',
-    (l) =>
-      l.filter(
-        (e) => e.offsetParent !== null && e.innerText.trim() === 'Quitter'
-      ).length
-  );
-  ok('  → une sortie ici aussi', q === 1, `${q} bouton(s)`);
+  const q = await visiblePauseButtons(p);
+  ok('  → une pause ici aussi', q === 1, `${q} bouton(s)`);
   await ctx.close();
 }
 

@@ -1,7 +1,7 @@
 /**
  * Reprendre, ou recommencer.
  *
- * Quitter le mode guidé n'efface rien : on retrouve sa place et ses charges
+ * Arrêter le mode guidé n'efface rien : on retrouve sa place et ses charges
  * en revenant. Pour repartir de zéro, l'écran de reprise le propose — et
  * « recommencer » doit alors réellement tout remettre à zéro.
  *
@@ -20,6 +20,7 @@ import {
   where,
   guidedScreen,
   skipRest,
+  leaveSession,
 } from './common.mjs';
 
 const browser = await launch();
@@ -33,10 +34,7 @@ const record = (p, sess) =>
 
 /** Quitte la séance, y revient, et clique « Recommencer ». */
 const startOver = async (p) => {
-  await p.getByRole('button', { name: /^Quitter$/ }).click();
-  await p.waitForTimeout(300);
-  await p.getByRole('button', { name: /^Quitter$/ }).click();
-  await p.waitForTimeout(900);
+  await leaveSession(p);
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(900);
   await p.getByRole('button', { name: /Recommencer depuis le début/ }).click();
@@ -170,10 +168,7 @@ const startOver = async (p) => {
   await skipRest(p);
   await startOver(p);
 
-  await p.getByRole('button', { name: /^Quitter$/ }).click();
-  await p.waitForTimeout(300);
-  await p.getByRole('button', { name: /^Quitter$/ }).click();
-  await p.waitForTimeout(900);
+  await leaveSession(p);
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(900);
   const panel = await p.evaluate(() => {
