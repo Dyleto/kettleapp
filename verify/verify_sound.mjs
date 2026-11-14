@@ -16,6 +16,7 @@
  * la suite inutilisable, et surtout elle ne dirait pas à quelle seconde un
  * bip est parti.
  *
+ * 0. le décompte d'ouverture donne un bip par chiffre, puis un bip long ;
  * 1. valider une série ne sonne pas — c'est un geste, pas une annonce ;
  * 2. quitter un bloc joue deux notes montantes ;
  * 3. un tour se déroule en silence, puis trois bips courts sur ses trois
@@ -82,19 +83,102 @@ const settle = (p) => p.waitForTimeout(250);
 const browser = await launch();
 
 {
+  console.log('\n── le décompte : trois chiffres, trois bips, puis le départ');
+  const ctx = await browser.newContext(MOBILE);
+  await listen(ctx);
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await p.goto(`${BASE}/client/session/sess1`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await p.waitForTimeout(1700);
+  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.waitForTimeout(800);
+  const now = await p.evaluate(() => Date.now());
+  await p.clock.pauseAt(now + 1000);
+
+  await p.getByRole('button', { name: /C'est parti/ }).click();
+  await settle(p);
+  const digit = () =>
+    p
+      .getByRole('button', { name: /^Départ dans/ })
+      .getAttribute('aria-label', { timeout: 1000 })
+      .then((label) => label.match(/Départ dans (\d)/)?.[1] ?? '')
+      .catch(() => '');
+  ok('le décompte part de 3', (await digit()) === '3', await digit());
+  ok(
+    '  → avec un premier bip court',
+    pitches(await heard(p)) === `${TICK}`,
+    pitches(await heard(p))
+  );
+
+  await p.clock.runFor(1000);
+  await settle(p);
+  await p.clock.runFor(1000);
+  await settle(p);
+  ok(
+    'chaque chiffre donne le sien',
+    pitches(await heard(p)) === `${TICK} ${TICK} ${TICK}`,
+    pitches(await heard(p))
+  );
+
+  await p.clock.runFor(1000);
+  await settle(p);
+  const all = await heard(p);
+  ok(
+    'le départ donne un bip long, plus aigu',
+    all.length === 4 && all[3].frequency === GO && all[3].duration > 300,
+    `${pitches(all)} — ${all[3]?.duration} ms`
+  );
+  ok(
+    '  → et la séance commence',
+    (await digit()) === '' && /Étape 1 sur/.test(await where(p)),
+    await where(p)
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── toucher le décompte le passe');
+  const ctx = await browser.newContext(MOBILE);
+  await listen(ctx);
+  const p = await signIn(ctx);
+  await p.goto(`${BASE}/client/session/sess1`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await p.waitForTimeout(1700);
+  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.waitForTimeout(800);
+  await p.getByRole('button', { name: /C'est parti/ }).click();
+  await p.waitForTimeout(300);
+  const countdown = p.getByRole('button', { name: /^Départ dans/ });
+  ok('le décompte est à l’écran', (await countdown.count()) === 1);
+  if (await countdown.count()) await countdown.click();
+  await p.waitForTimeout(400);
+  ok(
+    'une touche mène tout de suite à la séance',
+    (await countdown.count()) === 0 && /Étape 1 sur/.test(await where(p)),
+    await where(p)
+  );
+  await ctx.close();
+}
+
+{
   console.log("\n── un bloc, puis un tour d'EMOM");
   const ctx = await browser.newContext(MOBILE);
   await listen(ctx);
   const p = await signIn(ctx);
   await p.clock.install();
   await start(p, 'sess1');
+  // Le décompte d'ouverture a sonné : on ne compte qu'à partir d'ici.
+  const opened = (await heard(p)).length;
 
   // L'échauffement, série par série, jusqu'à l'EMOM. On relève ce qui a
   // sonné tant qu'on y est encore, puis ce que le changement de bloc ajoute.
   let duringWarmup = [];
   for (let i = 0; i < 6; i++) {
     if (/— EMOM$/.test(await where(p))) break;
-    duringWarmup = await heard(p);
+    duringWarmup = await heard(p, opened);
     const next = p.getByRole('button', {
       name: /^(Fait|Suivant|Bloc suivant)$/,
     });
@@ -109,7 +193,7 @@ const browser = await launch();
     duringWarmup.length === 0,
     pitches(duringWarmup)
   );
-  const blockEnd = await heard(p);
+  const blockEnd = await heard(p, opened);
   ok(
     'quitter le bloc joue deux notes montantes',
     blockEnd.length === 2 && blockEnd[1].frequency > blockEnd[0].frequency,
@@ -119,7 +203,7 @@ const browser = await launch();
   // Le temps ne s'écoule plus que sur ordre.
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 1000);
-  let mark = blockEnd.length;
+  let mark = opened + blockEnd.length;
 
   const startedAt = await where(p);
   await p.getByRole('button', { name: /Lancer le décompte/ }).click();
@@ -231,6 +315,7 @@ const browser = await launch();
   const p = await signIn(ctx);
   // La séance 5 est une échelle : un seul bloc, sept paliers.
   await start(p, 'sess5');
+  const opened = (await heard(p)).length;
   for (let i = 0; i < 7; i++) {
     const done = p.getByRole('button', { name: /^Fait$/ });
     if (!(await done.count())) break;
@@ -238,7 +323,7 @@ const browser = await launch();
     await p.waitForTimeout(300);
     await skipRest(p);
   }
-  const rungs = await heard(p);
+  const rungs = await heard(p, opened);
   ok(
     'valider sept paliers ne fait rien sonner',
     rungs.length === 0,
@@ -248,7 +333,7 @@ const browser = await launch();
   const finish = p.getByRole('button', { name: 'Terminer', exact: true });
   if (await finish.count()) await finish.click();
   await p.waitForTimeout(600);
-  const ending = await heard(p);
+  const ending = await heard(p, opened);
   ok(
     'terminer joue trois notes montantes',
     ending.length === 3 &&

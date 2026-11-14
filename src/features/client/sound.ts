@@ -131,6 +131,46 @@ export const unlockSound = (): void => {
   }
 };
 
+/** Programmer les notes d'un signal sur la sortie ouverte. */
+const schedule = (output: AudioContext, cue: Cue): void => {
+  sounding.forEach((oscillator) => {
+    try {
+      oscillator.stop();
+    } catch {
+      // Déjà terminé.
+    }
+  });
+  sounding = [];
+
+  const now = output.currentTime;
+  for (const note of CUES[cue]) {
+    const start = now + note.at / 1000;
+    const end = start + note.duration / 1000;
+
+    const oscillator = output.createOscillator();
+    const gain = output.createGain();
+    // Un triangle plutôt qu'une sinusoïde : ses harmoniques le font
+    // ressortir sur le petit haut-parleur d'un téléphone, sans la dureté
+    // d'un signal carré.
+    oscillator.type = 'triangle';
+    oscillator.frequency.value = note.frequency;
+
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(PEAK, start + ATTACK);
+    gain.gain.setValueAtTime(PEAK, Math.max(start + ATTACK, end - RELEASE));
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+    oscillator.connect(gain);
+    gain.connect(output.destination);
+    oscillator.start(start);
+    oscillator.stop(end + 0.02);
+    sounding.push(oscillator);
+  }
+};
+
+/** Au-delà, un signal resté en attente n'annonce plus rien d'actuel. */
+const STALE_AFTER = 400;
+
 /**
  * Jouer un signal.
  *
@@ -140,47 +180,34 @@ export const unlockSound = (): void => {
  * indistinct. Le second est le plus précis des deux, et c'est lui qu'on
  * entend.
  *
+ * Quand la sortie est encore en train de s'ouvrir, le signal attend qu'elle
+ * le soit — mais pas longtemps. Le premier bip du décompte est demandé dans
+ * le geste même qui ouvre la sortie, une fraction de seconde trop tôt : sans
+ * cette attente il était perdu. Sans la limite, un bip demandé alors que
+ * rien n'autorisait le son serait joué des minutes plus tard, à la première
+ * touche.
+ *
  * Elle respecte le bouton silencieux du téléphone, et c'est voulu : un son
  * qui passerait outre serait un son qu'on ne peut plus faire taire.
  */
 export const playCue = (cue: Cue): void => {
-  if (!isSoundEnabled()) return;
-  if (!context || context.state !== 'running') return;
+  if (!isSoundEnabled() || !context) return;
+  const output = context;
   try {
-    sounding.forEach((oscillator) => {
-      try {
-        oscillator.stop();
-      } catch {
-        // Déjà terminé.
-      }
-    });
-    sounding = [];
-
-    const now = context.currentTime;
-    for (const note of CUES[cue]) {
-      const start = now + note.at / 1000;
-      const end = start + note.duration / 1000;
-
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      // Un triangle plutôt qu'une sinusoïde : ses harmoniques le font
-      // ressortir sur le petit haut-parleur d'un téléphone, sans la dureté
-      // d'un signal carré.
-      oscillator.type = 'triangle';
-      oscillator.frequency.value = note.frequency;
-
-      gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(PEAK, start + ATTACK);
-      gain.gain.setValueAtTime(PEAK, Math.max(start + ATTACK, end - RELEASE));
-      gain.gain.exponentialRampToValueAtTime(0.0001, end);
-
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start(start);
-      oscillator.stop(end + 0.02);
-      sounding.push(oscillator);
+    if (output.state === 'running') {
+      schedule(output, cue);
+      return;
     }
+    const askedAt = Date.now();
+    void output
+      .resume()
+      .then(() => {
+        if (Date.now() - askedAt <= STALE_AFTER) schedule(output, cue);
+      })
+      .catch(() => {
+        // La sortie reste fermée : pas de son, pas de panne.
+      });
   } catch {
-    // Même règle que plus haut : un signal manqué ne doit rien casser.
+    // Un signal manqué ne doit rien casser.
   }
 };

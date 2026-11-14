@@ -95,6 +95,21 @@ export const signIn = async (ctx) => {
 };
 
 /**
+ * Franchir le décompte 3, 2, 1 sans l'attendre.
+ *
+ * Toucher l'écran passe tout de suite à la suite : c'est le geste de
+ * quelqu'un qui est déjà en place, et c'est celui du banc, qui n'a aucune
+ * raison de passer trois secondes par séance à regarder des chiffres.
+ */
+export const skipCountdown = async (p) => {
+  const countdown = p.getByRole('button', { name: /^Départ dans/ });
+  if (await countdown.count()) {
+    await countdown.click();
+    await p.waitForTimeout(300);
+  }
+};
+
+/**
  * Ouvrir une séance et entrer en mode guidé.
  *
  * Les attentes sont des durées et non des sélecteurs : la séance charge son
@@ -110,10 +125,11 @@ export const start = async (p, sess) => {
   await p.waitForTimeout(800);
   // L'écran d'ouverture porte la note du coach : on le franchit pour
   // atteindre la séance elle-même.
-  const c = p.getByRole('button', { name: /^Commencer$/ });
+  const c = p.getByRole('button', { name: /C'est parti/ });
   if (await c.count()) {
     await c.click();
-    await p.waitForTimeout(400);
+    await p.waitForTimeout(300);
+    await skipCountdown(p);
   }
 };
 

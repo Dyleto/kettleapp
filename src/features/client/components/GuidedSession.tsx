@@ -2,9 +2,7 @@ import { BlockExercise, PerformedValues, Session } from '@/shared/types';
 import { buildGuidedSteps } from '../guidedSteps';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import {
-  BLOCK_ACCENT_COLOR,
   blockHasClock,
-  getBlockAccent,
   prescribedSetLabels,
   restBetweenSetsOf,
 } from '@/features/program/constants';
@@ -22,6 +20,9 @@ import { LANDSCAPE } from './guided/media';
 import { Timer, OnDemandTimer } from './guided/Timer';
 import { playCue, unlockSound } from '../sound';
 import { SoundToggle } from './SoundToggle';
+import { Opening } from './scene/Opening';
+import { Countdown } from './scene/Countdown';
+import { firstGesture } from '../guided/outline';
 import { Round } from './guided/Round';
 import { BlockList } from './guided/BlockList';
 import {
@@ -111,14 +112,6 @@ export const GuidedSession = ({
     };
   }, []);
 
-  // L'heure de départ, posée une fois pour toutes : c'est elle qui permet de
-  // dire, à la fin, combien de temps la séance a réellement duré.
-  useEffect(() => {
-    if (readProgress(session._id)?.startedAt === undefined) {
-      writeProgress(session._id, { startedAt: Date.now() });
-    }
-  }, [session._id]);
-
   const [alreadyStarted] = useState(() => {
     const saved = readProgress(session._id);
     return (saved?.step ?? 0) > 0 || (saved?.done.length ?? 0) > 0;
@@ -132,47 +125,24 @@ export const GuidedSession = ({
    * douzième série.
    */
   const [showIntro, setShowOuverture] = useState(() => !alreadyStarted);
+  // Le décompte qui suit « C'est parti ». Une séance reprise n'en a pas :
+  // on y revient au milieu d'un bloc, pas à son premier geste.
+  const [counting, setCounting] = useState(false);
 
-  /** Ce qui attend le client : un aperçu des blocs, et le total à faire. */
-  const blockPreview = useMemo(
-    () =>
-      steps.reduce<
-        { start: number; label: string; color: string; detail: string }[]
-      >((acc, step, i) => {
-        if (step.type === 'rest') return acc;
-        const last = acc[acc.length - 1];
-        if (last?.label === step.blockLabel) return acc;
-        acc.push({
-          start: i,
-          label: step.blockLabel,
-          color: BLOCK_ACCENT_COLOR[getBlockAccent(step.block.type)],
-          detail:
-            step.type === 'round'
-              ? `${step.rounds} tours`
-              : step.shape === 'loop'
-                ? `${step.block.durationMinutes ?? '?'} min`
-                : `${step.sets.length} exercices`,
-        });
-        return acc;
-      }, []),
-    [steps]
-  );
+  // L'heure de départ, posée une fois pour toutes : c'est elle qui permet de
+  // dire, à la fin, combien de temps la séance a réellement duré.
+  //
+  // Elle se pose quand l'ouverture est franchie, pas quand elle s'affiche.
+  // Posée au montage, elle faisait d'un simple coup d'œil une séance
+  // commencée : on ouvrait pour voir ce qui attendait, on refermait, et
+  // l'appareil gardait une séance en cours dont la durée courait déjà.
+  useEffect(() => {
+    if (showIntro) return;
+    if (readProgress(session._id)?.startedAt === undefined) {
+      writeProgress(session._id, { startedAt: Date.now() });
+    }
+  }, [session._id, showIntro]);
 
-  const totalSets = useMemo(
-    () =>
-      steps.reduce(
-        (n, step) =>
-          n +
-          (step.type === 'round'
-            ? 1
-            : step.type === 'block'
-              ? step.sets.length
-              : 0),
-        0
-      ),
-    [steps]
-  );
-  // Lu une fois, à l'ouverture : c'est l'état précédent qu'on annonce.
   const [keptCount] = useState(() =>
     countRecorded(readProgress(session._id)?.performed ?? {})
   );
@@ -436,140 +406,30 @@ export const GuidedSession = ({
     );
   }
 
-  // L'écran d'introduction.
-  //
-  // La note que le coach a écrite pour cette séance-là était inatteignable
-  // depuis le mode guidé : s'il écrivait « aujourd'hui on garde 2 reps en
-  // réserve sur tout », le client ne pouvait pas la relire en plein effort.
-  // Elle ouvre donc le parcours — on lit le briefing au moment où il sert,
-  // avant de commencer.
-  //
-  // C'est aussi le seul endroit qui rappelle qu'un humain a écrit cette
-  // séance. Aucune application de fitness générique ne peut en dire autant, et
-  // le mode guidé ne s'en servait nulle part.
+  // L'ouverture, puis trois secondes pour poser le téléphone. Rien de la
+  // scène n'est monté pendant ce temps : aucune horloge ne peut tourner
+  // derrière un décompte.
   if (showIntro) {
     return overlay(
-      <Box
-        role="dialog"
-        aria-modal="true"
-        aria-label="Avant de commencer"
-        position="fixed"
-        inset={0}
-        zIndex={50}
-        bg="bg.canvas"
-        display="flex"
-        flexDirection="column"
-      >
-        <HStack justify="flex-end" p={4}>
-          <Button
-            variant="ghost"
-            size="sm"
-            minH="44px"
-            onClick={onExit}
-            color="fg.muted"
-          >
-            Quitter
-          </Button>
-        </HStack>
+      <Opening
+        session={session}
+        onClose={onExit}
+        onStart={() => {
+          setShowOuverture(false);
+          setCounting(true);
+        }}
+      />
+    );
+  }
 
-        {/* `flex: 1` sans `min-height: 0` ne rétrécit jamais sous son
-            contenu : sur un écran posé à plat, le corps poussait
-            « Commencer » hors de l'écran — le bouton existait, figurait dans
-            l'arbre, et ne pouvait pas être touché. `safe center` centre tant
-            qu'il y a la place et se rabat en haut quand il n'y en a plus, au
-            lieu de couper des deux côtés. */}
-        <VStack
-          flex={1}
-          minH={0}
-          overflowY="auto"
-          justifyContent="safe center"
-          align="stretch"
-          gap={7}
-          px={7}
-          pb={6}
-        >
-          <VStack align="start" gap={1.5}>
-            <Text
-              fontSize="xs"
-              fontWeight="800"
-              letterSpacing="2px"
-              color="fg.muted"
-            >
-              SÉANCE {session.order}
-            </Text>
-            {session.name?.trim() && (
-              <Text fontSize="3xl" fontWeight="800" lineHeight="1.15">
-                {session.name.trim()}
-              </Text>
-            )}
-            {/* Ce qui attend le client, avant qu'il ne s'engage. Aucun écran
-                ne le disait : on commençait sans savoir si c'était dix minutes
-                ou quarante. */}
-            <Text fontSize="sm" color="fg.muted">
-              {session.blocks.length} bloc
-              {session.blocks.length > 1 ? 's' : ''} · {totalSets} exercice
-              {totalSets > 1 ? 's' : ''}
-            </Text>
-          </VStack>
-
-          {session.notes?.trim() && (
-            <Box
-              bg="surface.card"
-              borderLeftWidth="3px"
-              borderLeftColor="app.primary"
-              borderRadius="lg"
-              p={4}
-            >
-              <Text fontSize="xs" color="fg.muted" mb={2}>
-                Ton coach te dit&nbsp;:
-              </Text>
-              <Text fontSize="lg" lineHeight="1.5" whiteSpace="pre-wrap">
-                {session.notes}
-              </Text>
-            </Box>
-          )}
-
-          <VStack align="stretch" gap={2.5}>
-            {blockPreview.map((b) => (
-              <HStack key={b.start} gap={3}>
-                <Box
-                  w="10px"
-                  h="10px"
-                  borderRadius="sm"
-                  bg={b.color}
-                  flexShrink={0}
-                />
-                <Text fontSize="sm" flex={1} minW={0} lineClamp={1}>
-                  {b.label}
-                </Text>
-                <Text
-                  fontSize="xs"
-                  color="fg.muted"
-                  fontVariantNumeric="tabular-nums"
-                  flexShrink={0}
-                >
-                  {b.detail}
-                </Text>
-              </HStack>
-            ))}
-          </VStack>
-        </VStack>
-
-        <Box p={4}>
-          <Button
-            w="full"
-            minH="56px"
-            bg="app.primary"
-            color="bg.canvas"
-            fontWeight="bold"
-            fontSize="lg"
-            _hover={{ bg: 'app.primary.hover' }}
-            onClick={() => setShowOuverture(false)}
-          >
-            Commencer
-          </Button>
-        </Box>
-      </Box>
+  if (counting && step && step.type !== 'rest') {
+    const gesture = firstGesture(step.block, done);
+    return overlay(
+      <Countdown
+        title={gesture.title}
+        detail={gesture.detail}
+        onDone={() => setCounting(false)}
+      />
     );
   }
 

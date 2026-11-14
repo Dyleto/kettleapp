@@ -180,7 +180,7 @@ const startOver = async (p) => {
     const d = [...document.querySelectorAll('div')].filter(
       (e) =>
         getComputedStyle(e).position === 'fixed' &&
-        /Reprendre|Commencer/.test(e.innerText)
+        /Reprendre|C'est parti/.test(e.innerText)
     );
     return d[d.length - 1]?.innerText ?? '';
   });
@@ -228,7 +228,7 @@ const startOver = async (p) => {
     const d = [...document.querySelectorAll('div')].filter(
       (e) =>
         getComputedStyle(e).position === 'fixed' &&
-        /Reprendre|Commencer/.test(e.innerText)
+        /Reprendre|C'est parti/.test(e.innerText)
     );
     return (d[d.length - 1]?.innerText ?? '').replace(/\u00A0/g, ' ');
   });

@@ -19,6 +19,7 @@ import {
   signIn,
   start,
   skipRest,
+  skipCountdown,
 } from './common.mjs';
 
 const browser = await launch();
@@ -161,9 +162,9 @@ const cutWithNoRecourse = (p) =>
         ? `${overflow.tag} : ${overflow.seen} px vus sur ${overflow.content} — « ${overflow.txt} »`
         : ''
     );
-    const begin = await buttonBox(p, '^Commencer$');
+    const begin = await buttonBox(p, "C'est parti");
     ok(
-      "  → et « Commencer » est dans l'écran",
+      "  → et « C'est parti » est dans l'écran",
       begin && begin.belowFold === 0 && begin.aboveFold === 0,
       begin ? `de ${begin.top} à ${begin.bottom} sur 390` : '(introuvable)'
     );
@@ -177,10 +178,11 @@ const cutWithNoRecourse = (p) =>
   await p.getByRole('button', { name: /Démarrer la séance/ }).click();
   await p.waitForTimeout(800);
   await p
-    .getByRole('button', { name: /^(Commencer|Reprendre)$/ })
+    .getByRole('button', { name: /^(C'est parti|Reprendre)$/ })
     .first()
     .click();
-  await p.waitForTimeout(600);
+  await p.waitForTimeout(400);
+  await skipCountdown(p);
 
   // 2. Le repos déclenché par « Fait ».
   const kg = p

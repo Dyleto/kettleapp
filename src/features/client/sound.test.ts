@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   CUES,
   isSoundEnabled,
+  playCue,
   setSoundEnabled,
   subscribeToSound,
+  unlockSound,
   type Note,
 } from './sound';
 
@@ -111,5 +113,114 @@ describe('le réglage du son', () => {
     unsubscribe();
     setSoundEnabled(true);
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * Une sortie audio simulée, qui ne s'ouvre que lorsqu'on le lui dit.
+ *
+ * Le banc ne peut pas éprouver ce cas : dans son navigateur la sortie
+ * s'ouvre dans l'instant, et le chemin d'attente n'est jamais emprunté.
+ * C'est pourtant celui d'un téléphone, où le premier bip du décompte est
+ * demandé dans le geste même qui ouvre la sortie.
+ */
+class SlowOutput {
+  state: 'suspended' | 'running' = 'suspended';
+  currentTime = 0;
+  destination = {};
+  /** La hauteur de chaque note effectivement lancée. */
+  started: number[] = [];
+  private pending: (() => void)[] = [];
+
+  resume() {
+    return new Promise<void>((resolve) => {
+      this.pending.push(() => {
+        this.state = 'running';
+        resolve();
+      });
+    });
+  }
+
+  /** La sortie finit de s'ouvrir. */
+  async open() {
+    this.pending.splice(0).forEach((finish) => finish());
+    await Promise.resolve();
+    await Promise.resolve();
+  }
+
+  createOscillator() {
+    const { started } = this;
+    return {
+      type: '',
+      frequency: { value: 0 },
+      connect() {},
+      start() {
+        started.push(this.frequency.value);
+      },
+      stop() {},
+    };
+  }
+
+  createGain() {
+    return {
+      gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+      connect() {},
+    };
+  }
+}
+
+describe('le lecteur, pendant que la sortie s’ouvre', () => {
+  // Le module garde une seule sortie pour toute sa vie : les deux cas
+  // partagent donc la même, refermée entre les deux.
+  let output: SlowOutput;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.stubGlobal('localStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    });
+    // Une fonction qui rend la sortie simulée : `new` rend alors cet objet,
+    // et le test garde la main dessus sans que le module en sache rien.
+    vi.stubGlobal('window', {
+      AudioContext: function SimulatedContext() {
+        output = new SlowOutput();
+        return output;
+      },
+    });
+    unlockSound();
+    output.state = 'suspended';
+    output.started.length = 0;
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('joue le signal demandé un instant avant que la sortie soit ouverte', async () => {
+    playCue('tick');
+    expect(output.started).toEqual([]);
+
+    vi.advanceTimersByTime(120);
+    await output.open();
+    expect(output.started).toEqual([CUES.tick[0].frequency]);
+  });
+
+  it('ne joue pas un signal resté en attente trop longtemps', async () => {
+    // Personne n'a touché l'écran pendant une minute : ce bip-là
+    // n'annonce plus rien, et le jouer à la première touche serait un
+    // bruit sans cause.
+    playCue('tick');
+    vi.advanceTimersByTime(60_000);
+    await output.open();
+    expect(output.started).toEqual([]);
+  });
+
+  it('joue tout de suite quand la sortie est déjà ouverte', () => {
+    output.state = 'running';
+    playCue('go');
+    expect(output.started).toEqual([CUES.go[0].frequency]);
   });
 });
