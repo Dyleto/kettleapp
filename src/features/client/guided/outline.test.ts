@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   blockMarker,
+  blockSegments,
   blockTitle,
   distinctExerciseCount,
   estimatedMinutes,
@@ -348,5 +349,46 @@ describe('positionLabel', () => {
     expect(positionLabel(shuffled, classic).startsWith('Bloc 2 sur 3')).toBe(
       true
     );
+  });
+});
+
+describe('blockSegments', () => {
+  const block = (order: number) => ({
+    type: 'block' as const,
+    block: { order },
+  });
+  const round = (order: number) => ({
+    type: 'round' as const,
+    block: { order },
+  });
+  const rest = { type: 'rest' as const };
+
+  it('donne un segment par bloc, même quand deux blocs voisins ont le même format', () => {
+    // Le défaut d'origine : regroupés par nom de format, deux blocs
+    // classiques se fondaient en un seul segment.
+    expect(blockSegments([block(1), block(2), block(3)])).toEqual([
+      { order: 1, start: 0, size: 1 },
+      { order: 2, start: 1, size: 1 },
+      { order: 3, start: 2, size: 1 },
+    ]);
+  });
+
+  it('rattache un repos au bloc qui le précède', () => {
+    expect(
+      blockSegments([block(1), rest, round(2), round(2), round(2)])
+    ).toEqual([
+      { order: 1, start: 0, size: 2 },
+      { order: 2, start: 2, size: 3 },
+    ]);
+  });
+
+  it('ignore un repos qui ne suit aucun bloc', () => {
+    expect(blockSegments([rest, block(1)])).toEqual([
+      { order: 1, start: 1, size: 1 },
+    ]);
+  });
+
+  it('ne rend rien pour une séance sans écran', () => {
+    expect(blockSegments([])).toEqual([]);
   });
 });

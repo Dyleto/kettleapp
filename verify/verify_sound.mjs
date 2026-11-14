@@ -132,7 +132,7 @@ const browser = await launch();
   );
   ok(
     '  → et la séance commence',
-    (await digit()) === '' && /Étape 1 sur/.test(await where(p)),
+    (await digit()) === '' && /^Bloc 1 sur 3/.test(await where(p)),
     await where(p)
   );
   await ctx.close();
@@ -157,7 +157,7 @@ const browser = await launch();
   await p.waitForTimeout(400);
   ok(
     'une touche mène tout de suite à la séance',
-    (await countdown.count()) === 0 && /Étape 1 sur/.test(await where(p)),
+    (await countdown.count()) === 0 && /^Bloc 1 sur 3/.test(await where(p)),
     await where(p)
   );
   await ctx.close();
@@ -273,7 +273,7 @@ const browser = await launch();
   );
   ok(
     '  → et le tour a bien changé quand même',
-    /Étape 4 /.test(await where(p)),
+    /tour 3 sur 10/.test(await where(p)),
     await where(p)
   );
 

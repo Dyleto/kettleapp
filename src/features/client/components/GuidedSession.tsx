@@ -22,17 +22,18 @@ import { playCue, unlockSound } from '../sound';
 import { SoundToggle } from './SoundToggle';
 import { Opening } from './scene/Opening';
 import { Countdown } from './scene/Countdown';
-import { firstGesture, positionLabel } from '../guided/outline';
+import {
+  blockSegments,
+  blockTitle,
+  firstGesture,
+  positionLabel,
+} from '../guided/outline';
 import { PauseSheet } from './scene/PauseSheet';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { Round } from './guided/Round';
 import { BlockList } from './guided/BlockList';
-import {
-  readSavedIndex,
-  writeSavedIndex,
-  splitIntoBlockRuns,
-} from './guided/progress';
+import { readSavedIndex, writeSavedIndex } from './guided/progress';
 
 interface GuidedSessionProps {
   session: Session;
@@ -75,7 +76,7 @@ export const GuidedSession = ({
 }: GuidedSessionProps) => {
   const [steps] = useState(() => buildGuidedSteps(session));
   // Les blocs ne changent pas pendant la séance : on les découpe une fois.
-  const [blockRuns] = useState(() => splitIntoBlockRuns(steps));
+  const [segments] = useState(() => blockSegments(steps));
   const [savedIndex] = useState(() =>
     Math.min(readSavedIndex(session._id), Math.max(0, steps.length - 1))
   );
@@ -600,9 +601,26 @@ export const GuidedSession = ({
   );
 
   const paused = showPause || resuming;
+  const segmentIndex = Math.max(
+    0,
+    segments.findIndex(
+      (segment) =>
+        index >= segment.start && index < segment.start + segment.size
+    )
+  );
+  // Un repos n'a pas de bloc à lui : il porte le titre du bloc qu'il
+  // termine.
+  const titledStep = steps
+    .slice(0, index + 1)
+    .reverse()
+    .find((candidate) => candidate.type !== 'rest');
+  // TypeScript déduit de `find` que l'écran trouvé n'est pas un repos.
+  const currentTitle = titledStep
+    ? blockTitle(titledStep.block)
+    : step.blockLabel;
   const position =
     step.type === 'rest'
-      ? step.blockLabel
+      ? 'Repos'
       : positionLabel(
           session,
           step.block,
@@ -660,97 +678,107 @@ export const GuidedSession = ({
           overflow="hidden"
           position="relative"
         >
-          {/* En portrait, « Quitter » a sa propre ligne : c'est la maquette
-            validée, et elle ne change pas. Posé à plat, cette ligne coûte
-            76 px sur 390 — un cinquième de l'écran pour un mot — le bouton
-            rejoint donc la barre de progression, qui a de la largeur à
-            revendre. Un seul des deux est monté à la fois : l'autre est retiré
-            de l'arbre, pas seulement masqué. */}
+          {/* Le haut de la scène dit dans quel bloc on est — son rang et son
+              nom — avec le son et la pause à droite. Il disait « 9 / 12 » :
+              un compteur d'écrans, qui annonçait « 9 / 9 » en entrant dans
+              un bloc où il restait sept séries. On compte en blocs.
+
+              Posé à plat, cette ligne coûterait un cinquième des 390 px de
+              haut : elle disparaît, le titre du bloc se lit dans la scène et
+              les deux boutons rejoignent la barre. Un seul exemplaire de
+              chaque bouton est monté à la fois. */}
           <HStack
-            justify="flex-end"
-            p={4}
+            px={5}
+            pt="18px"
+            pb={3}
+            minH="66px"
+            gap={2.5}
             css={{ [LANDSCAPE]: { display: 'none' } }}
           >
+            <VStack align="start" gap="6px" flex={1} minW={0}>
+              <Text
+                fontSize="11px"
+                fontWeight="800"
+                letterSpacing="0.14em"
+                textTransform="uppercase"
+                lineHeight="1"
+                color={isRest ? 'bg.canvas' : 'fg.muted'}
+                opacity={isRest ? 0.75 : 1}
+              >
+                Bloc {segmentIndex + 1} sur {segments.length}
+              </Text>
+              <Text
+                as="h2"
+                fontSize="18px"
+                fontWeight="bold"
+                lineHeight="1.1"
+                lineClamp={1}
+                color={isRest ? 'bg.canvas' : 'fg'}
+              >
+                {currentTitle}
+              </Text>
+            </VStack>
             {soundToggle}
             {pauseButton}
           </HStack>
 
-          <HStack gap={3} px={5} pt={2} align="center">
+          <HStack
+            gap={3}
+            px={5}
+            align="center"
+            css={{ [LANDSCAPE]: { paddingTop: '10px' } }}
+          >
+            {/* Un segment par bloc, tous de la même largeur : la barre dit
+                « bloc 2 sur 3 », pas la durée de chacun. Fait : sarcelle. En
+                cours : ambre, rempli au prorata des séries cochées ou des
+                tours passés. Le reste : la piste. */}
             <HStack
-              gap={1.5}
+              gap="5px"
               flex={1}
               role="progressbar"
               aria-label="Avancement de la séance"
-              aria-valuemin={1}
-              aria-valuemax={steps.length}
-              aria-valuenow={index + 1}
-              aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}
+              aria-valuemin={0}
+              aria-valuemax={segments.length}
+              aria-valuenow={segmentIndex}
+              aria-valuetext={`${position} — ${step.blockLabel}`}
             >
-              {blockRuns.map((block) => {
-                const isCurrent =
-                  index >= block.start && index < block.start + block.size;
-                // Ce qu'on a derrière soi dans ce bloc, entre 0 et 1.
-                //
-                // Le nombre d'étapes ne suffit plus : un bloc en liste n'en fait
-                // qu'une, donc le remplissage sautait de rien à tout pendant
-                // qu'on y coche sept séries. Quand le bloc courant a des séries,
-                // ce sont elles qui parlent.
-                const part =
-                  isCurrent && sets.length > 0
-                    ? doneInBlock / sets.length
-                    : Math.max(0, Math.min(block.size, index - block.start)) /
-                      block.size;
+              {segments.map((segment, i) => {
+                const isDone = i < segmentIndex;
+                const isCurrent = i === segmentIndex;
+                const part = isDone
+                  ? 1
+                  : !isCurrent
+                    ? 0
+                    : sets.length > 0
+                      ? doneInBlock / sets.length
+                      : (index - segment.start) / segment.size;
                 return (
                   <Box
-                    key={`${block.label}-${block.start}`}
-                    flex={block.weight}
-                    // Proportionnel, mais jamais au point de disparaître : un
-                    // échauffement de deux pages dans une séance de trente-cinq
-                    // se réduirait à un point.
-                    minW="20px"
-                    h="4px"
-                    borderRadius="full"
-                    // La piste du bloc courant est légèrement plus claire : à la
-                    // première étape d'un bloc, le remplissage est nul et rien
-                    // d'autre ne dirait où l'on est.
-                    bg={
-                      isRest
-                        ? isCurrent
-                          ? 'bg.canvas/40'
-                          : 'bg.canvas/20'
-                        : isCurrent
-                          ? 'whiteAlpha.400'
-                          : 'whiteAlpha.200'
-                    }
+                    key={segment.order}
+                    flex={1}
+                    h="6px"
+                    borderRadius="3px"
+                    bg={isRest ? 'bg.canvas/20' : 'bg.surface'}
                     overflow="hidden"
                   >
                     <Box
                       h="100%"
-                      borderRadius="full"
+                      borderRadius="3px"
                       w={`${part * 100}%`}
                       bg={
                         isRest
                           ? 'bg.canvas'
-                          : isCurrent
-                            ? 'app.primary'
-                            : 'session.rest'
+                          : isDone
+                            ? 'session.rest'
+                            : 'app.primary'
                       }
                       transition="width 0.25s"
+                      _motionReduce={{ transition: 'none' }}
                     />
                   </Box>
                 );
               })}
             </HStack>
-            <Text
-              fontSize="xs"
-              fontVariantNumeric="tabular-nums"
-              flexShrink={0}
-              color={isRest ? 'bg.canvas' : 'fg.muted'}
-              opacity={isRest ? 0.75 : 1}
-              aria-hidden="true"
-            >
-              {index + 1} / {steps.length}
-            </Text>
             <Box
               display="none"
               flexShrink={0}
@@ -767,7 +795,11 @@ export const GuidedSession = ({
           {step.type === 'block' && step.shape === 'list' ? (
             <>
               <VStack align="stretch" gap={0.5} px={5} pt={4} pb={1}>
+                {/* Le nom du bloc est dans le haut de la scène ; il ne se
+                    répète ici que téléphone couché, où ce haut disparaît. */}
                 <Text
+                  display="none"
+                  css={{ [LANDSCAPE]: { display: 'block' } }}
                   fontSize="xs"
                   letterSpacing="2px"
                   textTransform="uppercase"
@@ -1113,7 +1145,7 @@ export const GuidedSession = ({
 
       {resuming && step.type !== 'rest' ? (
         <Countdown
-          title={step.blockLabel}
+          title={currentTitle}
           detail={position}
           onDone={() => {
             setResuming(false);

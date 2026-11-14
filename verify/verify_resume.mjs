@@ -148,7 +148,7 @@ const startOver = async (p) => {
   );
   ok(
     '  → et la barre de progression le dit',
-    /Étape 1 sur/.test(await where(p)),
+    /^Bloc 1 sur 3 · exercice 1 sur 2/.test(await where(p)),
     await where(p)
   );
   await ctx.close();

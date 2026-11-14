@@ -126,7 +126,7 @@ const browser = await launch();
   );
   ok(
     '  → et la scène est restée sur le même tour',
-    /Étape 2 sur/.test(await where(p)),
+    /tour 1 sur 10/.test(await where(p)),
     await where(p)
   );
 

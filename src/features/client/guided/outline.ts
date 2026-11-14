@@ -249,3 +249,43 @@ export const positionLabel = (
   if (!next) return sets.length > 0 ? `${where} · terminé` : where;
   return `${where} · ${lowerFirst(rankLabel(block, next, sets))}`;
 };
+
+/** Un bloc tel que la barre du haut le dessine : où il commence parmi les
+ * écrans de la séance, et combien il en occupe. */
+export interface BlockSegment {
+  /** L'ordre du bloc dans la séance — son identité. */
+  order: number;
+  start: number;
+  size: number;
+}
+
+/**
+ * Les segments de la barre du haut : un par bloc.
+ *
+ * Ils étaient regroupés par nom de format, et deux blocs voisins du même
+ * format — deux blocs classiques, un échauffement suivi d'un autre — se
+ * fondaient en un seul segment : la barre annonçait deux blocs pour une
+ * séance qui en compte trois. Ils se regroupent maintenant par bloc.
+ *
+ * Un repos appartient au bloc qui le précède : c'est la fin de ce bloc
+ * qu'on y attend, pas le début du suivant.
+ */
+export const blockSegments = (
+  steps: readonly (
+    | { type: 'rest' }
+    | { type: 'round' | 'block'; block: Pick<SessionBlock, 'order'> }
+  )[]
+): BlockSegment[] => {
+  const segments: BlockSegment[] = [];
+  steps.forEach((step, index) => {
+    const last = segments[segments.length - 1];
+    const order = step.type === 'rest' ? last?.order : step.block.order;
+    if (order === undefined) return;
+    if (last && last.order === order) {
+      last.size += 1;
+      return;
+    }
+    segments.push({ order, start: index, size: 1 });
+  });
+  return segments;
+};

@@ -452,9 +452,11 @@ for (const [name, vp] of [
       size: clock ? getComputedStyle(clock).fontSize : null,
     };
   });
+  // 18 px au-dessus, 12 au-dessous, et les boutons de 44 px : la ligne du
+  // haut — rang du bloc, nom, son et pause — ne doit pas grandir.
   ok(
-    'la pause et le son gardent une ligne à eux',
-    measures.heights[0] === 76,
+    'le haut de la séance tient sur une ligne de 74 px',
+    measures.heights[0] === 74,
     `${measures.heights[0]} px`
   );
   ok(

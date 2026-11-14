@@ -166,10 +166,13 @@ export const start = async (p, sess) => {
 };
 
 /**
- * Où l'on en est, lu sur la barre de progression.
+ * Où l'on en est, lu sur la barre de progression : « Bloc 2 sur 3 · tour 3
+ * sur 10 — EMOM ».
  *
  * C'est le seul repère fiable : le texte de l'écran annonce le bloc suivant
- * dès le dernier tour, ce qui donne l'impression qu'on y est déjà.
+ * dès le dernier tour, ce qui donne l'impression qu'on y est déjà. Le format
+ * du bloc vient en dernier, pour qu'un motif comme `/— EMOM$/` le désigne
+ * sans dépendre du rang.
  */
 export const where = (p) =>
   p.evaluate(

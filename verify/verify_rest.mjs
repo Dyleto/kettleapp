@@ -88,9 +88,11 @@ const tickOneSet = async (p) => {
     /Fentes marchées/.test(screen) && /série 4 \/ 4/.test(screen),
     lines.filter((l) => /Fentes/.test(l)).length + ' ligne(s) de fentes'
   );
+  // Le nom du bloc est dans le haut de la scène, sous son rang. `innerText`
+  // rend le rang en capitales, comme il s'affiche.
   ok(
     "  → y compris l'en-tête du bloc et sa progression",
-    /CLASSIQUE/.test(screen) && /1 sur 7 faits/.test(screen),
+    /BLOC 2 SUR 2\s+Renfo/.test(screen) && /1 sur 7 faits/.test(screen),
     lines.find((l) => /faits dans ce bloc/.test(l)) ?? '(rien)'
   );
 
