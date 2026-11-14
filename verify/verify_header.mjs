@@ -100,7 +100,7 @@ const browser = await launch();
 
   // Une série cochée sur deux : le bloc courant est à moitié rempli, en
   // ambre.
-  await press(p, /^Fait$/);
+  await press(p, /^(Fait|Série faite|Palier fait)$/);
   h = await header(p);
   ok(
     'le bloc en cours se remplit au prorata, en ambre',
@@ -109,7 +109,7 @@ const browser = await launch();
   );
 
   // Le bloc suivant : le premier segment est fait, en sarcelle.
-  await press(p, /^(Fait|Bloc suivant)$/);
+  await press(p, /^(Fait|Série faite|Palier fait|Bloc suivant)$/);
   await press(p, /^Bloc suivant$/);
   h = await header(p);
   ok('on passe au bloc 2', clean(h.rank) === 'BLOC 2 SUR 3', h.rank);
@@ -199,7 +199,7 @@ const browser = await launch();
 
   // La série, puis le bloc fini : on arrive sur le repos entre les deux
   // blocs.
-  await press(p, /^Fait$/);
+  await press(p, /^(Fait|Série faite|Palier fait)$/);
   await press(p, /^Bloc suivant$/);
   const resting = await header(p);
   ok(

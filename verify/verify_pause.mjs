@@ -67,7 +67,7 @@ const reachEmom = async (p) => {
   for (let i = 0; i < 6; i++) {
     if (/— EMOM$/.test(await where(p))) return;
     const next = p.getByRole('button', {
-      name: /^(Fait|Suivant|Bloc suivant)$/,
+      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
     });
     if (!(await next.count())) return;
     await next.first().click();

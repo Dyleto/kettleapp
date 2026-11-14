@@ -220,7 +220,11 @@ const cutWithNoRecourse = (p) =>
     await kg.fill('20');
     await p.waitForTimeout(200);
   }
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(500);
   const skip = await buttonBox(p, 'Passer le repos');
   if (skip) {
@@ -294,7 +298,7 @@ for (const [name, vp] of [
   await start(p, 'sess1');
   for (let i = 0; i < 3; i++) {
     const btn = p.getByRole('button', {
-      name: /^(Fait|Suivant|Bloc suivant)$/,
+      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
     });
     if (await btn.count()) {
       await btn.first().click();
@@ -363,9 +367,9 @@ for (const [name, vp] of [
     field && field.belowFold === 0 && field.aboveFold === 0,
     field ? `de ${field.top} à ${field.bottom} sur 390` : '(aucun champ)'
   );
-  const btn = await buttonBox(p, '^Fait$');
+  const btn = await buttonBox(p, '^(Fait|Série faite|Palier fait)$');
   ok(
-    '  → et « Fait » reste entier',
+    '  → et le geste principal reste entier',
     btn && btn.belowFold === 0 && btn.h >= 44,
     btn ? `${btn.h} px, bas à ${btn.bottom}` : '(introuvable)'
   );
@@ -388,7 +392,9 @@ for (const [name, vp] of [
       await kg.fill(String(10 + i));
       await p.waitForTimeout(150);
     }
-    const done = p.getByRole('button', { name: /^Fait$/ });
+    const done = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (!(await done.count())) break;
     await done.click();
     await p.waitForTimeout(250);
@@ -430,7 +436,7 @@ for (const [name, vp] of [
   await start(p, 'sess1');
   for (let i = 0; i < 3; i++) {
     const btn = p.getByRole('button', {
-      name: /^(Fait|Suivant|Bloc suivant)$/,
+      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
     });
     if (await btn.count()) {
       await btn.first().click();

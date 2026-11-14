@@ -51,6 +51,13 @@ const startOver = async (p) => {
   const p = await signIn(ctx);
   await start(p, 'sess3');
   for (let i = 0; i < 3; i++) {
+    // Un mouvement qui n'a jamais porté de charge n'affiche pas de champ,
+    // seulement « Noter une charge » : on le demande d'abord.
+    const ask = p.getByRole('button', { name: 'Noter une charge' });
+    if (await ask.count()) {
+      await ask.click();
+      await p.waitForTimeout(150);
+    }
     const kg = p
       .locator(
         '[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]'
@@ -60,7 +67,11 @@ const startOver = async (p) => {
       await kg.fill(String(20 + i));
       await p.waitForTimeout(150);
     }
-    await p.getByRole('button', { name: /^Fait$/ }).click();
+    await p
+      .getByRole('button', {
+        name: /^(Fait|Série faite|Palier fait)$/,
+      })
+      .click();
     await p.waitForTimeout(280);
     await skipRest(p);
   }
@@ -117,7 +128,7 @@ const startOver = async (p) => {
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
     const btn = p.getByRole('button', {
-      name: /^(Suivant|Fait|Bloc suivant)$/,
+      name: /^(Suivant|Fait|Série faite|Palier fait|Bloc suivant)$/,
     });
     if (!(await btn.count())) break;
     await btn.first().click();
@@ -163,7 +174,11 @@ const startOver = async (p) => {
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(300);
   await skipRest(p);
   await startOver(p);
@@ -256,7 +271,11 @@ const startOver = async (p) => {
 
   // La première écriture réécrit l'enregistrement au nouveau format, sans
   // rien perdre de ce qu'il portait.
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(400);
   const migrated = await record(p, 'sess3');
   ok(

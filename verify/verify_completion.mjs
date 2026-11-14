@@ -42,7 +42,9 @@ const finishSess3 = async (p) => {
       await kg.fill(String(10 + i));
       await p.waitForTimeout(150);
     }
-    const done = p.getByRole('button', { name: /^Fait$/ });
+    const done = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (!(await done.count())) break;
     await done.click();
     await p.waitForTimeout(250);

@@ -33,7 +33,11 @@ const tickOneSet = async (p) => {
     .first()
     .fill('26');
   await p.waitForTimeout(200);
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(600);
 };
 
@@ -182,7 +186,11 @@ const tickOneSet = async (p) => {
   // Le chipper de la séance 3 ne prescrit aucun repos entre ses
   // mouvements.
   await start(p, 'sess3');
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(600);
   ok(
     "un bloc sans repos prescrit n'affiche aucune bande",

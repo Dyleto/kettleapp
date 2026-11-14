@@ -112,6 +112,7 @@ describe('l’aller-retour', () => {
       performed: { '1:1': { sets: [{ weight: 20 }] } },
       done: [],
       rounds: {},
+      skipped: [],
       updatedAt: expect.any(Number),
     });
   });
@@ -193,6 +194,7 @@ describe('un enregistrement d’avant le passage aux noms anglais', () => {
       performed: { '1:1': { sets: [{ weight: 37 }] } },
       done: ['1:1:1', '1:2:1'],
       rounds: { '3': 5 },
+      skipped: [],
       startedAt: 1_700_000_000_000,
       updatedAt: expect.any(Number),
     });
@@ -280,9 +282,29 @@ describe('ce qu’on redresse plutôt que de refuser', () => {
       performed: {},
       done: [],
       rounds: {},
+      skipped: [],
       startedAt: undefined,
       updatedAt: expect.any(Number),
     });
+  });
+
+  it('un enregistrement d’avant les mouvements passés en a une liste vide', () => {
+    // Le champ est arrivé après coup : un client en pleine séance au moment
+    // de la mise à jour ne doit rien perdre, ni voir sa séance refusée.
+    storage.put(KEY, withFields({ done: ['1:1:1'] }));
+    const read = readProgress('sess1');
+    expect(read?.skipped).toEqual([]);
+    expect(read?.done).toEqual(['1:1:1']);
+  });
+
+  it('ne garde que des clés dans les mouvements passés', () => {
+    storage.put(KEY, withFields({ skipped: ['2:1', 3, null, '2:2'] }));
+    expect(readProgress('sess1')?.skipped).toEqual(['2:1', '2:2']);
+  });
+
+  it('des mouvements passés qui ne sont pas un tableau deviennent vides', () => {
+    storage.put(KEY, withFields({ skipped: 'tout' }));
+    expect(readProgress('sess1')?.skipped).toEqual([]);
   });
 });
 

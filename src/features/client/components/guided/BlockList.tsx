@@ -1,18 +1,13 @@
 import { BlockExercise, PerformedValues, SessionBlock } from '@/shared/types';
 import { type GuidedSet } from '../../guidedSteps';
 import { blockDefinesOwnMetrics } from '@/features/program/constants';
-import {
-  formatLastPerformance,
-  LastPerformance,
-  performedKey,
-} from '../../lastPerformance';
+import { performedKey } from '../../lastPerformance';
 import { Box, HStack, Input, VStack, Text } from '@chakra-ui/react';
 import { hitArea } from '@/shared/components/hitArea';
 import { formatDuration } from '@/shared/utils/duration';
 import { Fragment, useState } from 'react';
 import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
-import { LuCheck, LuInfo, LuTimer } from 'react-icons/lu';
-import { OnDemandTimer } from './Timer';
+import { LuCheck } from 'react-icons/lu';
 import { RestStrip } from './RestStrip';
 
 /**
@@ -23,10 +18,10 @@ import { RestStrip } from './RestStrip';
  * Mesuré sur une pyramide de sept paliers : une ligne de 14 px et 511 px de
  * noir. Une feuille de papier faisait mieux — on pouvait y rayer.
  *
- * Une seule série est « en cours ». C'est la seule écrite en grand, et la
- * seule à porter un champ : la hiérarchie vient de l'état, pas d'un choix
- * typographique arbitraire, et la liste redevient lisible parce qu'un
- * formulaire ne la coupe plus à chaque ligne.
+ * Une seule série est « en cours ». Elle s'écrit en grand au-dessus de la
+ * liste (`SetHero`), avec sa charge ; ici elle n'est qu'une ligne marquée.
+ * La liste reste lisible parce qu'aucun formulaire ne la coupe : seule une
+ * série déjà faite, rouverte pour corriger sa charge, porte un champ.
  */
 /**
  * Le champ de charge d'une série.
@@ -81,7 +76,6 @@ export const BlockList = ({
   current,
   performed,
   onPerformedChange,
-  lastPerformance,
   onOpenDetail,
   rest,
   onRestDone,
@@ -93,7 +87,6 @@ export const BlockList = ({
   current: GuidedSet | undefined;
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
-  lastPerformance?: Map<string, LastPerformance>;
   onOpenDetail: (ex: BlockExercise) => void;
   /** Le repos en cours, et la série qu'il suit. */
   rest: { afterKey: string; duration: number; nextUp: string } | null;
@@ -148,7 +141,7 @@ export const BlockList = ({
   };
 
   return (
-    <VStack align="stretch" gap={1} flex={1} px={5} py={2} overflowY="auto">
+    <VStack align="stretch" gap={1}>
       {sets.map((e) => {
         const isDone = done.has(e.key);
         const isCurrent = current?.key === e.key;
@@ -166,128 +159,52 @@ export const BlockList = ({
             />
           ) : null;
 
+        // La série en cours est écrite en grand au-dessus de la liste. Ici
+        // elle n'est qu'un repère : on voit où l'on est dans le bloc, et
+        // ce qui suit.
         if (isCurrent) {
-          const last = formatLastPerformance(
-            lastPerformance?.get(e.exercise.exercise._id)
-          );
-          const hasDetail =
-            !!e.exercise.note?.trim() ||
-            !!e.exercise.exercise.description?.trim() ||
-            !!e.exercise.exercise.videoUrl?.trim();
           return (
             <Fragment key={e.key}>
-              <Box
-                bg="surface.card"
-                borderWidth="1px"
-                borderColor="app.primary"
-                borderRadius="xl"
-                p={4}
-                my={1}
+              <HStack
+                gap={3}
+                minH="44px"
+                px={4}
+                py={2}
+                borderRadius="lg"
+                bg="app.primary.bg"
+                aria-current="step"
               >
-                <VStack align="stretch" gap={3}>
-                  <HStack justify="space-between" align="baseline" gap={3}>
-                    {hasDetail ? (
-                      <Box
-                        as="button"
-                        textAlign="left"
-                        minW={0}
-                        aria-label={`Voir la consigne — ${e.name}`}
-                        onClick={() => onOpenDetail(e.exercise)}
-                        css={hitArea(44)}
-                      >
-                        <HStack gap={1.5} align="center">
-                          <Text fontSize="xl" fontWeight="800">
-                            {e.name}
-                          </Text>
-                          <Box color="app.primary" flexShrink={0}>
-                            <LuInfo size={15} />
-                          </Box>
-                        </HStack>
-                      </Box>
-                    ) : (
-                      <Text fontSize="xl" fontWeight="800" minW={0}>
-                        {e.name}
-                      </Text>
-                    )}
-                    <Text
-                      fontSize="2xl"
-                      fontWeight="800"
-                      fontVariantNumeric="tabular-nums"
-                      flexShrink={0}
-                    >
-                      {e.dose || '\u2014'}
-                    </Text>
-                  </HStack>
-
-                  {(rank || onPerformedChange) && (
-                    <HStack justify="space-between" align="center" gap={3}>
-                      <Text fontSize="sm" color="fg.muted">
-                        {rank}
-                      </Text>
-                      {onPerformedChange && (
-                        <HStack gap={2}>
-                          <Text fontSize="sm" color="fg.muted">
-                            Fait à
-                          </Text>
-                          <WeightField
-                            label={`Poids utilisé, en kilos — ${e.name} ${rank}`}
-                            value={value?.weight}
-                            onChange={(next) => writeWeight(e, next)}
-                          />
-                          <Text fontSize="sm" color="fg.muted">
-                            kg
-                          </Text>
-                        </HStack>
-                      )}
-                    </HStack>
-                  )}
-
-                  {/* Une série dont la dose est une durée demande à être
-                    chronométrée. Le repos automatique couvre le repos, pas le
-                    travail : remplacer la carte de prescription par les
-                    séries avait retiré en silence le minuteur de « 2 min de
-                    corde à sauter ». Proposé, jamais imposé — on le lance en
-                    y arrivant. */}
-                  {e.exercise.duration ? (
-                    <Box ml={-4}>
-                      <OnDemandTimer
-                        duration={e.exercise.duration}
-                        label={formatDuration(e.exercise.duration)}
-                        color="app.primary"
-                      />
-                    </Box>
-                  ) : null}
-
-                  <HStack justify="space-between" align="center" gap={3}>
-                    {last ? (
-                      <Text fontSize="xs" color="fg.muted">
-                        la dernière fois&nbsp;: {last}
-                      </Text>
-                    ) : (
-                      <Box />
-                    )}
-                    {/* Ce que « Fait » déclenche : sans cette ligne, le repos
-                      plein écran arrive par surprise. */}
-                    {e.restAfter && (
-                      <HStack gap={1.5} color="session.rest" flexShrink={0}>
-                        <LuTimer size={13} />
-                        <Text fontSize="xs" fontWeight="bold">
-                          puis {formatDuration(e.restAfter)} de repos
-                        </Text>
-                      </HStack>
-                    )}
-                  </HStack>
-                </VStack>
-              </Box>
+                <Box
+                  w="16px"
+                  h="16px"
+                  borderRadius="full"
+                  bg="app.primary"
+                  boxShadow="0 0 0 3px rgba(207, 159, 63, 0.25)"
+                  flexShrink={0}
+                />
+                <Text fontSize="sm" fontWeight="bold" minW={0}>
+                  {e.name}
+                </Text>
+                {rank && (
+                  <Text fontSize="sm" color="fg.muted" flexShrink={0}>
+                    · {rank}
+                  </Text>
+                )}
+                <Box flex={1} />
+                <Text
+                  fontSize="sm"
+                  fontWeight="bold"
+                  fontVariantNumeric="tabular-nums"
+                  flexShrink={0}
+                >
+                  {e.dose}
+                </Text>
+              </HStack>
               {restHere}
             </Fragment>
           );
         }
 
-        // Une série cochée se rouvre : on la relit, on corrige sa charge, on
-        // la refait. C'était une ligne morte — et les trois choses qu'on veut
-        // réellement en faire n'ont rien à voir avec le curseur, elles se
-        // font donc sur place plutôt qu'en le déplaçant.
         if (isDone && opened === e.key) {
           return (
             <Fragment key={e.key}>
@@ -426,10 +343,9 @@ export const BlockList = ({
                   />
                 )}
               </Box>
-              {/* Le nom peut être tronqué, le rang non : c'est le rang qui dit
-                où l'on en est, et « Fentes marchées · série… » n'apprend
-                rien. */}
-              <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1}>
+              {/* Le nom n'est plus coupé : « Goblet… », « Fentes… » se
+                devinaient. Il passe à la ligne, et le rang garde sa place. */}
+              <Text fontSize="sm" color="fg.muted" minW={0}>
                 {e.name}
               </Text>
               {rank && (

@@ -1,5 +1,5 @@
 import { BlockExercise, PerformedValues, Session } from '@/shared/types';
-import { buildGuidedSteps } from '../guidedSteps';
+import { buildGuidedSteps, type GuidedSet } from '../guidedSteps';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import {
   blockHasClock,
@@ -14,7 +14,7 @@ import { hitArea } from '@/shared/components/hitArea';
 import { formatDuration } from '@/shared/utils/duration';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LuPause, LuX } from 'react-icons/lu';
+import { LuCheck, LuPause, LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
 import { LANDSCAPE } from './guided/media';
 import { Timer, OnDemandTimer } from './guided/Timer';
@@ -29,6 +29,9 @@ import {
   positionLabel,
 } from '../guided/outline';
 import { PauseSheet } from './scene/PauseSheet';
+import { SetHero } from './scene/SetHero';
+import { heaviest, loadLegend, proposedLoad } from '../guided/load';
+import { ActionButton } from '@/shared/components/ActionButton';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { Round } from './guided/Round';
@@ -195,6 +198,21 @@ export const GuidedSession = ({
     () => readProgress(session._id)?.done ?? []
   );
   const doneKeys = useMemo(() => new Set(done), [done]);
+
+  // Les mouvements qu'on a choisi de passer : leurs séries restent non
+  // faites, mais ne se présentent plus comme la suivante.
+  const [skipped, setSkipped] = useState<string[]>(
+    () => readProgress(session._id)?.skipped ?? []
+  );
+  const skippedKeys = useMemo(() => new Set(skipped), [skipped]);
+
+  // Les séries dont on a effacé la charge proposée. Sans cela, effacer la
+  // charge la faisait reparaître aussitôt — proposée de nouveau, d'après la
+  // série d'avant — et une série au poids du corps restait impossible à
+  // noter.
+  const [declined, setDeclined] = useState<ReadonlySet<string>>(new Set());
+  // Les mouvements où l'on a demandé « Noter une charge ».
+  const [askedLoad, setAskedLoad] = useState<ReadonlySet<string>>(new Set());
   // Le repos déclenché par « Fait » : il n'a pas d'étape à lui, il
   // appartient à la série qui vient de finir.
   const [rest, setRest] = useState<{
@@ -243,15 +261,67 @@ export const GuidedSession = ({
 
   // La première non faite : on ne force pas l'ordre, on le suggère.
   const sets = step?.type === 'block' ? step.sets : [];
-  const current = sets.find((e) => !doneKeys.has(e.key));
+  const exerciseKeyOf = (set: { blockOrder: number; exerciseOrder: number }) =>
+    performedKey(set.blockOrder, set.exerciseOrder);
+  const current = sets.find(
+    (e) => !doneKeys.has(e.key) && !skippedKeys.has(exerciseKeyOf(e))
+  );
   const blockFinished = sets.length > 0 && !current;
   const doneInBlock = sets.filter((e) => doneKeys.has(e.key)).length;
   // Un AMRAP ne se termine pas en cochant : c'est le client qui décide de
   // s'arrêter, ou l'horloge. Le bouton principal compte, le secondaire sort.
   const isLoop = step?.type === 'block' && step.shape === 'loop';
 
+  const notedOfCurrent = current
+    ? performed?.[exerciseKeyOf(current)]?.sets
+    : undefined;
+  const lastTimeOfCurrent = current
+    ? lastPerformance?.get(current.exercise.exercise._id)?.sets
+    : undefined;
+  const ownNoted = current
+    ? notedOfCurrent?.[current.rank - 1]?.weight
+    : undefined;
+  const currentLoad =
+    !current || declined.has(current.key)
+      ? undefined
+      : (ownNoted ??
+        proposedLoad(notedOfCurrent, current.rank, lastTimeOfCurrent));
+
+  /** Écrit la charge d'une série dans ce qui a été noté. */
+  const writeLoad = (set: GuidedSet, weight: number | undefined) => {
+    if (!onPerformedChange) return;
+    const key = exerciseKeyOf(set);
+    const noted = [...(performed?.[key]?.sets ?? [])];
+    while (noted.length < set.rank) noted.push({});
+    noted[set.rank - 1] = { ...noted[set.rank - 1], weight };
+    onPerformedChange(key, { sets: noted });
+  };
+
+  const changeLoad = (next: number | undefined) => {
+    if (!current) return;
+    const nextDeclined = new Set(declined);
+    if (next === undefined) nextDeclined.add(current.key);
+    else nextDeclined.delete(current.key);
+    setDeclined(nextDeclined);
+    writeLoad(current, next);
+  };
+
+  /** Ce qui reste à faire dans le bloc une fois `doneNow` et `skippedNow`
+   * pris en compte. */
+  const remainsAfter = (doneNow: string[], skippedNow: string[]) =>
+    sets.some(
+      (e) => !doneNow.includes(e.key) && !skippedNow.includes(exerciseKeyOf(e))
+    );
+
   const markDone = () => {
     if (!current) return;
+    // La charge affichée est enregistrée avec la série : c'est celle qu'on a
+    // sous les yeux, proposée ou corrigée. Rien n'était noté tant qu'on ne
+    // tapait pas dans le champ, et « tes charges sont déjà enregistrées »
+    // n'était vrai que pour qui avait tout ressaisi.
+    if (ownNoted === undefined && currentLoad !== undefined) {
+      writeLoad(current, currentLoad);
+    }
     const next = [...done, current.key];
     setDone(next);
     writeProgress(session._id, { done: next });
@@ -267,7 +337,7 @@ export const GuidedSession = ({
     // Seulement quand il y a où aller. Au dernier bloc de la séance,
     // « Terminer » reste un acte délibéré : finir une séance est une décision,
     // pas l'effet de bord d'une case cochée.
-    if (next.length === sets.length && !isLast) {
+    if (!remainsAfter(next, skipped) && !isLast) {
       goNext();
       return;
     }
@@ -298,9 +368,32 @@ export const GuidedSession = ({
     const next = done.filter((k) => k !== key);
     setDone(next);
     writeProgress(session._id, { done: next });
+    // Refaire une série d'un mouvement qu'on avait passé, c'est revenir sur
+    // ce choix : sans cela la série redevenait à faire sans jamais se
+    // présenter.
+    const undone = sets.find((e) => e.key === key);
+    if (undone && skippedKeys.has(exerciseKeyOf(undone))) {
+      const unskipped = skipped.filter((k) => k !== exerciseKeyOf(undone));
+      setSkipped(unskipped);
+      writeProgress(session._id, { skipped: unskipped });
+    }
     // Un repos qui appartenait à la série qu'on vient de décocher ne veut
     // plus rien dire.
     if (rest?.afterKey === key) setRest(null);
+  };
+
+  /** La dernière série faite de ce bloc, pour « Série précédente ». */
+  const lastDoneInBlock = [...done]
+    .reverse()
+    .find((key) => sets.some((e) => e.key === key));
+
+  const skipExercise = () => {
+    if (!current) return;
+    const next = [...skipped, exerciseKeyOf(current)];
+    setSkipped(next);
+    writeProgress(session._id, { skipped: next });
+    if (rest) setRest(null);
+    if (!remainsAfter(done, next) && !isLast) goNext();
   };
 
   const goTo = (next: number) => {
@@ -601,6 +694,27 @@ export const GuidedSession = ({
   );
 
   const paused = showPause || resuming;
+
+  // Le geste principal dit ce qu'il coche : une série, un palier, ou un
+  // exercice qui n'en a qu'une. « Fait » valait pour les trois, et ne disait
+  // pas qu'il en restait.
+  const isLadder = step.type === 'block' && step.block.type === 'ladder';
+  const singleMovement =
+    step.type === 'block' && step.block.exercises.length === 1;
+  const doneLabel = !current
+    ? ''
+    : isLadder
+      ? singleMovement
+        ? 'Palier fait'
+        : 'Fait'
+      : current.total > 1
+        ? 'Série faite'
+        : 'Fait';
+  const previousLabel = isLadder
+    ? 'Palier précédent'
+    : current && current.total > 1
+      ? 'Série précédente'
+      : 'Exercice précédent';
   const segmentIndex = Math.max(
     0,
     segments.findIndex(
@@ -793,42 +907,92 @@ export const GuidedSession = ({
           </HStack>
 
           {step.type === 'block' && step.shape === 'list' ? (
-            <>
-              <VStack align="stretch" gap={0.5} px={5} pt={4} pb={1}>
-                {/* Le nom du bloc est dans le haut de la scène ; il ne se
-                    répète ici que téléphone couché, où ce haut disparaît. */}
-                <Text
-                  display="none"
-                  css={{ [LANDSCAPE]: { display: 'block' } }}
-                  fontSize="xs"
-                  letterSpacing="2px"
-                  textTransform="uppercase"
-                  fontWeight="800"
-                  color="session.work"
-                >
-                  {step.blockLabel}
-                  {step.block.label ? ` · ${step.block.label}` : ''}
+            // Un seul défilement pour la série en cours et le bloc entier :
+            // la série se lit en grand, et la liste reste juste en dessous.
+            // Le terrain l'avait demandé — « voir toutes les infos d'un
+            // coup » — et c'est ce qu'il a validé.
+            <VStack
+              flex={1}
+              minH={0}
+              overflowY="auto"
+              align="stretch"
+              gap={4}
+              px={5}
+              pt={4}
+              pb={2}
+            >
+              {/* Le nom du bloc est dans le haut de la scène ; il ne se
+                  répète ici que téléphone couché, où ce haut disparaît. */}
+              <Text
+                display="none"
+                css={{ [LANDSCAPE]: { display: 'block' } }}
+                fontSize="xs"
+                letterSpacing="2px"
+                textTransform="uppercase"
+                fontWeight="800"
+                color="session.work"
+              >
+                {step.blockLabel}
+                {step.block.label ? ` · ${step.block.label}` : ''}
+              </Text>
+              {current && (
+                <SetHero
+                  key={current.key}
+                  block={step.block}
+                  set={current}
+                  blockSets={step.sets}
+                  doneKeys={doneKeys}
+                  load={currentLoad}
+                  legend={loadLegend(currentLoad, lastTimeOfCurrent)}
+                  showLoad={
+                    !!onPerformedChange &&
+                    (askedLoad.has(exerciseKeyOf(current)) ||
+                      heaviest(lastTimeOfCurrent) !== undefined ||
+                      heaviest(notedOfCurrent) !== undefined)
+                  }
+                  offerLoad={
+                    !!onPerformedChange &&
+                    (!current.exercise.duration ||
+                      heaviest(lastTimeOfCurrent) !== undefined)
+                  }
+                  onAskLoad={() =>
+                    setAskedLoad(
+                      new Set([...askedLoad, exerciseKeyOf(current)])
+                    )
+                  }
+                  onLoadChange={changeLoad}
+                  loadLabel={`Poids utilisé, en kilos — ${current.name} ${
+                    current.total > 1
+                      ? `${isLadder ? 'palier' : 'série'} ${current.rank} / ${current.total}`
+                      : ''
+                  }`}
+                  onOpenDetail={
+                    current.exercise.note?.trim() ||
+                    current.exercise.exercise.description?.trim() ||
+                    current.exercise.exercise.videoUrl?.trim()
+                      ? () => setDetail(current.exercise)
+                      : undefined
+                  }
+                />
+              )}
+              <VStack align="stretch" gap={1}>
+                <Text fontSize="sm" color="fg.muted">
+                  {doneInBlock} sur {step.sets.length} faits dans ce bloc
                 </Text>
-                <HStack justify="space-between" align="center" gap={3}>
-                  <Text fontSize="sm" color="fg.muted">
-                    {doneInBlock} sur {step.sets.length} faits dans ce bloc
-                  </Text>
-                </HStack>
+                <BlockList
+                  block={step.block}
+                  sets={step.sets}
+                  done={doneKeys}
+                  current={current}
+                  performed={performed}
+                  onPerformedChange={onPerformedChange}
+                  onOpenDetail={setDetail}
+                  rest={rest}
+                  onRestDone={() => setRest(null)}
+                  onUndo={undoSet}
+                />
               </VStack>
-              <BlockList
-                block={step.block}
-                sets={step.sets}
-                done={doneKeys}
-                current={current}
-                performed={performed}
-                onPerformedChange={onPerformedChange}
-                lastPerformance={lastPerformance}
-                onOpenDetail={setDetail}
-                rest={rest}
-                onRestDone={() => setRest(null)}
-                onUndo={undoSet}
-              />
-            </>
+            </VStack>
           ) : step.type === 'block' ? (
             /*
              * Un bloc entier, lu d'un coup.
@@ -1087,59 +1251,106 @@ export const GuidedSession = ({
             </Box>
           )}
 
-          {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
+          {step.type === 'block' && step.shape === 'list' && current ? (
+            // Une série : un seul geste principal, en très grand, et deux
+            // liens discrets dessous. « Précédent » prenait un tiers de la
+            // largeur pour un geste rare, à côté du seul qu'on fait vingt
+            // fois par séance.
+            <VStack
+              align="stretch"
+              gap={1}
+              px={4}
+              pt={3}
+              pb={3}
+              css={{ [LANDSCAPE]: { padding: '6px 12px', gap: '0' } }}
+            >
+              <ActionButton
+                size="xl"
+                w="full"
+                onClick={markDone}
+                css={{ [LANDSCAPE]: { minHeight: '52px' } }}
+              >
+                <LuCheck size={22} />
+                {doneLabel}
+              </ActionButton>
+              <HStack justify="space-between" gap={4}>
+                {lastDoneInBlock ? (
+                  <FooterLink onClick={() => undoSet(lastDoneInBlock)}>
+                    {previousLabel}
+                  </FooterLink>
+                ) : index > 0 ? (
+                  <FooterLink onClick={goPrev}>Bloc précédent</FooterLink>
+                ) : (
+                  <Box />
+                )}
+                {!isLadder && (
+                  <FooterLink onClick={skipExercise}>
+                    Passer cet exercice
+                  </FooterLink>
+                )}
+              </HStack>
+            </VStack>
+          ) : (
+            <>
+              {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
             touche les mains moites. C'est la marge qui cède, pas le
             bouton. */}
-          <HStack p={4} gap={3} css={{ [LANDSCAPE]: { padding: '8px 12px' } }}>
-            {/* Un contour, comme celui de « J'ai terminé cette séance ». Du
+              <HStack
+                p={4}
+                gap={3}
+                css={{ [LANDSCAPE]: { padding: '8px 12px' } }}
+              >
+                {/* Un contour, comme celui de « J'ai terminé cette séance ». Du
               texte gris sans cadre, à côté d'un « Suivant » ambre plein deux
               fois plus large, se lit « indisponible » : le contraste était
               conforme, la hiérarchie mentait. Secondaire et indisponible
               doivent rester deux choses distinctes — le bouton porte donc son
               cadre, et ne s'efface vraiment qu'à la première étape, où il est
               réellement désactivé. */}
-            <Button
-              variant="outline"
-              borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}
-              onClick={goPrev}
-              disabled={index === 0}
-              flexShrink={0}
-              minH="52px"
-              color={isRest ? 'bg.canvas' : 'fg'}
-            >
-              Précédent
-            </Button>
-            {/* Un seul bouton principal, toujours au même endroit, et la forme
+                <Button
+                  variant="outline"
+                  borderColor={isRest ? 'blackAlpha.400' : 'whiteAlpha.300'}
+                  onClick={goPrev}
+                  disabled={index === 0}
+                  flexShrink={0}
+                  minH="52px"
+                  color={isRest ? 'bg.canvas' : 'fg'}
+                >
+                  Précédent
+                </Button>
+                {/* Un seul bouton principal, toujours au même endroit, et la forme
               du bloc dit ce qu'il fait : « Fait » tant qu'il reste une série à
               cocher, puis passer. Le client n'a jamais à choisir où
               appuyer. */}
-            <Button
-              flex={1}
-              minH="52px"
-              bg={isRest ? 'bg.canvas' : 'app.primary'}
-              color={isRest ? 'fg' : 'bg.canvas'}
-              _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
-              onClick={
-                isLoop && step.type === 'block'
-                  ? () => countOneRound(step.block.order, 1)
-                  : current
-                    ? markDone
-                    : goNext
-              }
-            >
-              {isLoop
-                ? '+1 tour'
-                : current
-                  ? 'Fait'
-                  : isLast
-                    ? 'Terminer'
-                    : blockFinished
-                      ? 'Bloc suivant'
-                      : step.type === 'rest'
-                        ? 'Passer'
-                        : 'Suivant'}
-            </Button>
-          </HStack>
+                <Button
+                  flex={1}
+                  minH="52px"
+                  bg={isRest ? 'bg.canvas' : 'app.primary'}
+                  color={isRest ? 'fg' : 'bg.canvas'}
+                  _hover={{ bg: isRest ? 'bg.canvas' : 'app.primary.hover' }}
+                  onClick={
+                    isLoop && step.type === 'block'
+                      ? () => countOneRound(step.block.order, 1)
+                      : current
+                        ? markDone
+                        : goNext
+                  }
+                >
+                  {isLoop
+                    ? '+1 tour'
+                    : current
+                      ? 'Fait'
+                      : isLast
+                        ? 'Terminer'
+                        : blockFinished
+                          ? 'Bloc suivant'
+                          : step.type === 'rest'
+                            ? 'Passer'
+                            : 'Suivant'}
+                </Button>
+              </HStack>
+            </>
+          )}
         </Box>
       </Box>
 
@@ -1176,3 +1387,31 @@ export const GuidedSession = ({
     </PauseContext.Provider>
   );
 };
+
+/**
+ * Un lien du pied de scène : un geste secondaire, à l'écart du principal.
+ *
+ * 44 px de haut, réels et non débordants : la zone tactile d'un lien de
+ * 13 px serait sinon le lien lui-même.
+ */
+const FooterLink = ({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) => (
+  <Box
+    as="button"
+    minH="44px"
+    display="inline-flex"
+    alignItems="center"
+    fontSize="13px"
+    fontWeight="bold"
+    color="fg.muted"
+    onClick={onClick}
+    _hover={{ color: 'fg' }}
+  >
+    {children}
+  </Box>
+);

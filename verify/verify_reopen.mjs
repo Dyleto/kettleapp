@@ -46,7 +46,11 @@ const tickTwoSets = async (p) => {
       await kg.fill(String(24 + i));
       await p.waitForTimeout(250);
     }
-    await p.getByRole('button', { name: /^Fait$/ }).click();
+    await p
+      .getByRole('button', {
+        name: /^(Fait|Série faite|Palier fait)$/,
+      })
+      .click();
     await p.waitForTimeout(300);
     await skipRest(p);
   }

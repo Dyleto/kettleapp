@@ -88,7 +88,11 @@ const recordedWeights = (p) =>
   // Et elle survit à la sortie du champ, qui rend la main à la valeur
   // enregistrée : si le brouillon n'était pas relâché proprement, le champ
   // afficherait autre chose que ce que porte la séance.
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(600);
   const after = await recordedWeights(p);
   ok(

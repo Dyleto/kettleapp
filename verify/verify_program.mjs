@@ -158,7 +158,9 @@ const cards = async (p) => {
   // La séance 5 est une échelle : un bloc, sept paliers.
   await start(p, 'sess5');
   for (let i = 0; i < 7; i++) {
-    const f = p.getByRole('button', { name: /^Fait$/ });
+    const f = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (!(await f.count())) break;
     await f.click();
     await p.waitForTimeout(300);

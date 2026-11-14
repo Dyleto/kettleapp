@@ -44,7 +44,11 @@ const record = (p, sess) =>
   );
 
   // L'échauffement porte deux mouvements.
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(450);
   await skipRest(p);
   ok(
@@ -53,7 +57,11 @@ const record = (p, sess) =>
     await where(p)
   );
 
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(700);
   ok(
     '  → après le dernier, on est sur le bloc suivant',
@@ -93,7 +101,9 @@ const record = (p, sess) =>
   // La séance 5 est une échelle : un bloc, sept paliers.
   await start(p, 'sess5');
   for (let i = 0; i < 7; i++) {
-    const f = p.getByRole('button', { name: /^Fait$/ });
+    const f = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (!(await f.count())) break;
     await f.click();
     await p.waitForTimeout(350);
@@ -127,7 +137,7 @@ const record = (p, sess) =>
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
     const btn = p.getByRole('button', {
-      name: /^(Suivant|Fait|Bloc suivant)$/,
+      name: /^(Suivant|Fait|Série faite|Palier fait|Bloc suivant)$/,
     });
     if (!(await btn.count())) break;
     await btn.first().click();
@@ -155,10 +165,18 @@ const record = (p, sess) =>
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess1');
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(400);
   await skipRest(p);
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(700);
   ok("on est passé à l'EMOM", /— EMOM$/.test(await where(p)), await where(p));
 

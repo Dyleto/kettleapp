@@ -40,6 +40,19 @@ interface SessionProgress {
    */
   rounds: Record<string, number>;
   /**
+   * Les mouvements passés, par `performedKey`.
+   *
+   * « Passer cet exercice » laisse ses séries non faites — elles le sont —
+   * mais elles ne doivent plus se présenter comme la suivante. Sans cette
+   * liste, la série passée revenait aussitôt au premier plan, et passer ne
+   * passait rien. Elle est gardée avec le reste : une séance reprise ne doit
+   * pas ramener devant un mouvement qu'on a choisi de laisser.
+   *
+   * Ajoutée après coup, et lue avec indulgence : un enregistrement qui ne la
+   * porte pas en a une vide, sans changer de version.
+   */
+  skipped: string[];
+  /**
    * Quand la séance a commencé, en millisecondes.
    *
    * Posé à la première ouverture et jamais redéfini : ce qu'on veut annoncer
@@ -70,6 +83,7 @@ const empty = (): SessionProgress => ({
   performed: {},
   done: [],
   rounds: {},
+  skipped: [],
   updatedAt: Date.now(),
 });
 
@@ -135,6 +149,9 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
       performed: stored.performed ?? {},
       done: Array.isArray(done) ? done : [],
       rounds: rounds ?? {},
+      skipped: Array.isArray(stored.skipped)
+        ? stored.skipped.filter((k): k is string => typeof k === 'string')
+        : [],
       startedAt: typeof startedAt === 'number' ? startedAt : undefined,
       updatedAt,
     };

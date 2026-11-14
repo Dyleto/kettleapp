@@ -180,7 +180,7 @@ const browser = await launch();
     if (/— EMOM$/.test(await where(p))) break;
     duringWarmup = await heard(p, opened);
     const next = p.getByRole('button', {
-      name: /^(Fait|Suivant|Bloc suivant)$/,
+      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
     });
     if (!(await next.count())) break;
     await next.first().click();
@@ -317,7 +317,9 @@ const browser = await launch();
   await start(p, 'sess5');
   const opened = (await heard(p)).length;
   for (let i = 0; i < 7; i++) {
-    const done = p.getByRole('button', { name: /^Fait$/ });
+    const done = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (!(await done.count())) break;
     await done.click();
     await p.waitForTimeout(300);

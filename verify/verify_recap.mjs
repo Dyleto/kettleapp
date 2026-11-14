@@ -43,7 +43,9 @@ const runSess2 = async (p, goblet, lunges) => {
       await kg.fill(String(i < 4 ? goblet : lunges));
       await p.waitForTimeout(200);
     }
-    const done = p.getByRole('button', { name: /^Fait$/ });
+    const done = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (await done.count()) {
       await done.click();
     } else break;
@@ -198,6 +200,13 @@ const runSess2 = async (p, goblet, lunges) => {
   await start(p, 'sess3');
   // Un chipper : quatre mouvements. Seul le Kettlebell Swing a un passé.
   for (let i = 0; i < 4; i++) {
+    // Un mouvement qui n'a jamais porté de charge n'affiche pas de champ,
+    // seulement « Noter une charge » : on le demande d'abord.
+    const ask = p.getByRole('button', { name: 'Noter une charge' });
+    if (await ask.count()) {
+      await ask.click();
+      await p.waitForTimeout(200);
+    }
     const kg = p
       .locator(
         '[aria-label="Séance guidée"] input[aria-label^="Poids utilisé, en kilos"]'
@@ -207,7 +216,9 @@ const runSess2 = async (p, goblet, lunges) => {
       await kg.fill(String(10 + i));
       await p.waitForTimeout(200);
     }
-    const done = p.getByRole('button', { name: /^Fait$/ });
+    const done = p.getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    });
     if (!(await done.count())) break;
     await done.click();
     await p.waitForTimeout(280);
@@ -269,7 +280,7 @@ const runSess2 = async (p, goblet, lunges) => {
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
     const btn = p.getByRole('button', {
-      name: /^(Suivant|Fait|Bloc suivant|Passer)$/,
+      name: /^(Suivant|Fait|Série faite|Palier fait|Bloc suivant|Passer)$/,
     });
     if (!(await btn.count())) break;
     await btn.first().click();

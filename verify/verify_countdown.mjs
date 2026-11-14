@@ -53,7 +53,7 @@ const goToEmom = async (p) => {
   for (let i = 0; i < 6; i++) {
     if (/— EMOM$/.test(await where(p))) return;
     const btn = p.getByRole('button', {
-      name: /^(Fait|Suivant|Bloc suivant)$/,
+      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
     });
     if (!(await btn.count())) return;
     await btn.first().click();
@@ -180,7 +180,11 @@ const goToEmom = async (p) => {
     await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
     await p.waitForTimeout(180);
   }
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(2200);
   const r = await clock(p);
   ok(

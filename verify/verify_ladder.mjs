@@ -34,10 +34,16 @@ const orderOnScreen = (p) =>
   p.evaluate(() => {
     const screen = document.querySelector('[aria-label="Séance guidée"]');
     if (!screen) return [];
-    return [...screen.querySelectorAll('*')]
-      .filter((el) => el.children.length === 0)
-      .map((el) => (el.textContent ?? '').trim())
-      .filter((t) => t === 'Pompes' || t === 'Planche');
+    return (
+      [...screen.querySelectorAll('*')]
+        // La série en cours est aussi écrite en grand au-dessus de la liste :
+        // on ne lit que la liste, qui seule dit l'ordre.
+        .filter(
+          (el) => el.children.length === 0 && !el.closest('[data-set-hero]')
+        )
+        .map((el) => (el.textContent ?? '').trim())
+        .filter((t) => t === 'Pompes' || t === 'Planche')
+    );
   });
 
 {
@@ -91,7 +97,11 @@ const orderOnScreen = (p) =>
 
   // Premier mouvement du premier palier : aucun repos ne doit suivre, le
   // second mouvement vient tout de suite.
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(600);
   const betweenMovements = await restStrips();
   ok(
@@ -101,7 +111,11 @@ const orderOnScreen = (p) =>
   );
 
   // Second mouvement du palier : là, le repos est prescrit.
-  await p.getByRole('button', { name: /^Fait$/ }).click();
+  await p
+    .getByRole('button', {
+      name: /^(Fait|Série faite|Palier fait)$/,
+    })
+    .click();
   await p.waitForTimeout(700);
   const afterRung = await restStrips();
   ok(
