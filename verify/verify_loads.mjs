@@ -155,7 +155,7 @@ const chips = (p, key) =>
   await p.waitForTimeout(800);
   ok(
     '« Continuer » mène au ressenti',
-    /Cette séance, c'était/.test(await dialogs(p))
+    /Alors, cette séance/.test(await dialogs(p))
   );
   await ctx.close();
 

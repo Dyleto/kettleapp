@@ -1,5 +1,4 @@
 export { SessionHistoryCard } from './components/SessionHistoryCard';
-export { CompleteSessionModal } from './components/CompleteSessionModal';
 export { CompletedSessionDrawer } from './components/CompletedSessionDrawer';
 export { EffortScale } from './components/EffortScale';
 export { FeedbackTags } from './components/FeedbackTags';

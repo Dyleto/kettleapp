@@ -13,7 +13,6 @@ import {
 import { LuArrowLeft } from 'react-icons/lu';
 import {
   CLIENT_CONTENT_MAX_W,
-  CompleteSessionModal,
   GuidedSession,
   SessionDetail,
   SuggestedDays,
@@ -36,6 +35,7 @@ import { buildGuidedSteps } from '@/features/client/guidedSteps';
 import { buildRecap, highlightOf } from '@/features/client/recap';
 import { Celebration } from '@/features/client/components/end/Celebration';
 import { Loads } from '@/features/client/components/end/Loads';
+import { Feeling } from '@/features/client/components/end/Feeling';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -108,6 +108,8 @@ const SessionScreen = () => {
   const [flow, setFlow] = useState<
     'idle' | 'celebrate' | 'loads' | 'record' | 'review'
   >('idle');
+  /** Le dernier envoi du ressenti n'est pas parti. */
+  const [sendFailed, setSendFailed] = useState(false);
 
   // Ce qui a été noté ne vit plus dans la seule mémoire.
   //
@@ -413,22 +415,30 @@ const SessionScreen = () => {
         />
       )}
 
-      <CompleteSessionModal
-        isOpen={flow === 'review'}
-        onClose={() => setFlow('idle')}
-        onSubmit={(feedback, notes, completedAt) => {
-          handleSubmitLog(
-            feedback,
-            notes,
-            completedAt,
-            toPerformedEntries(performed),
-            toRoundsDone(readProgress(activeSession._id)?.rounds),
-            toLadderDone(readProgress(activeSession._id)?.ladder)
-          );
-          setFlow('idle');
-        }}
-        isLoading={isSubmitting}
-      />
+      {flow === 'review' && (
+        <Feeling
+          isSending={isSubmitting}
+          failed={sendFailed}
+          onClose={() => {
+            setSendFailed(false);
+            setFlow('idle');
+          }}
+          onSubmit={(feedback, notes, completedAt) => {
+            setSendFailed(false);
+            // L'écran reste jusqu'à la réponse : réussi, on part vers
+            // l'accueil ; manqué, il le dit et l'on réessaie d'une touche.
+            handleSubmitLog(
+              feedback,
+              notes,
+              completedAt,
+              toPerformedEntries(performed),
+              toRoundsDone(readProgress(activeSession._id)?.rounds),
+              toLadderDone(readProgress(activeSession._id)?.ladder),
+              () => setSendFailed(true)
+            );
+          }}
+        />
+      )}
     </Container>
   );
 };

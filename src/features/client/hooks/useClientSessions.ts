@@ -133,7 +133,10 @@ export const useClientSessions = () => {
       completedAt?: string,
       performed?: PerformedEntry[],
       roundsDone?: RoundsDoneEntry[],
-      ladderDone?: LadderDoneEntry[]
+      ladderDone?: LadderDoneEntry[],
+      // L'écran du ressenti reste ouvert jusqu'à la réponse : c'est lui qui
+      // dit qu'un envoi n'est pas parti, et qui le refait.
+      onError?: () => void
     ) => {
       if (!activeSession) return;
       completeSession.mutate(
@@ -167,6 +170,7 @@ export const useClientSessions = () => {
             });
             navigate(CLIENT_ROUTES.today);
           },
+          onError,
         }
       );
     },

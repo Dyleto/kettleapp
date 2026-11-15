@@ -174,7 +174,7 @@ const cards = async (p) => {
   await reachFeeling(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.waitForTimeout(200);
-  await p.getByRole('button', { name: /^Valider$/ }).click();
+  await p.getByRole('button', { name: /^Envoyer à ton coach$/ }).click();
   await p.waitForTimeout(2200);
 
   const after = await cards(p);

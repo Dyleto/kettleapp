@@ -29,13 +29,9 @@ export const useCompleteSession = () => {
         queryKey: queryKeys.client.history.all(),
       });
     },
-    onError: () => {
-      toaster.create({
-        title: 'Erreur',
-        description: 'Impossible de valider la séance, réessaie.',
-        type: 'error',
-      });
-    },
+    // Pas de toast en cas d'échec : l'écran du ressenti reste ouvert et le
+    // dit lui-même, avec ce qui est sauf. Le toast arrivait sur un écran où
+    // le ressenti avait déjà disparu.
   });
 };
 

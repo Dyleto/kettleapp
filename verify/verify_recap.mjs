@@ -133,13 +133,13 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   const t = await dialogs(p);
   ok(
     '« Continuer » mène au ressenti',
-    /Cette séance, c'était/.test(t),
+    /Alors, cette séance/.test(t),
     t.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
-  const submit = p.getByRole('button', { name: /^Valider$/ });
+  const submit = p.getByRole('button', { name: /^Envoyer à ton coach$/ });
   const box = await submit.boundingBox();
   ok(
-    "  → et « Valider » est dans l'écran",
+    "  → et « Envoyer à ton coach » est dans l'écran",
     !!box && box.y + box.height <= 844,
     box ? `bas à ${Math.round(box.y + box.height)} px` : '(introuvable)'
   );
@@ -168,7 +168,7 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   await p.waitForTimeout(600);
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.waitForTimeout(200);
-  await p.getByRole('button', { name: /^Valider$/ }).click();
+  await p.getByRole('button', { name: /^Envoyer à ton coach$/ }).click();
   await p.waitForTimeout(2200);
 
   // Les fentes à 18 ne battent plus rien : 18 est désormais le meilleur.

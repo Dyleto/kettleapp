@@ -250,7 +250,7 @@ const climb = async (p) => {
     .nth(2)
     .click()
     .catch(() => {});
-  await press(p, 'Valider');
+  await press(p, 'Envoyer à ton coach');
   await p.clock.runFor(2_000);
   await p.waitForTimeout(900);
   ok(

@@ -1,21 +1,16 @@
 /**
- * Le bilan de fin de séance, sur un téléphone tenu droit.
+ * Le ressenti, sur un téléphone tenu droit.
  *
- * Retour du terrain : « la modale est un poil trop petite, et quand on clique
- * pour mettre une autre date il y a un petit scroll, c'est dommage. »
+ * Retour du terrain, du temps où c'était une boîte de dialogue : « la
+ * modale est un poil trop petite, et quand on clique pour mettre une autre
+ * date il y a un petit scroll, c'est dommage. » C'est maintenant un écran
+ * entier, et ce que la plainte visait se vérifie toujours : déplier la date
+ * ne fait rien sauter sous le pouce.
  *
- * Mesuré, la plainte portait sur deux choses, et c'est la seconde qui se
- * voit. Le corps débordait déjà de 261 px avant qu'on ne touche à quoi que ce
- * soit — un récapitulatif, une échelle, les étiquettes, un commentaire et une
- * date ne tiennent pas dans 610 px. Mais déplier la date ajoutait ensuite
- * 48 px, et ce qu'on remarque n'est pas une barre de défilement qui était
- * déjà là : c'est tout le bilan qui saute sous le pouce à l'instant précis où
- * on le vise.
- *
- * La rangée garde donc sa hauteur, ouverte ou fermée, et le pied cesse de
- * prendre des lignes au corps — un pied ne défile pas, chaque ligne sur
- * laquelle il se replie est donc une ligne que le corps perd, à chaque
- * séance.
+ * Un envoi manqué fermait la boîte avant la réponse, puis un toast disait
+ * « Erreur » sur un écran où le ressenti avait disparu. L'écran reste, dit
+ * ce qui est sauf, et réessaie d'une touche : c'est ce que vérifie la
+ * deuxième partie, en refusant l'envoi une fois.
  */
 import {
   launch,
@@ -25,11 +20,12 @@ import {
   signIn,
   start,
   skipRest,
+  clean,
 } from './common.mjs';
 
 const browser = await launch();
 
-/** Termine le chipper de la séance 3 et ouvre le bilan. */
+/** Termine le chipper de la séance 3 et ouvre le ressenti. */
 const finishSess3 = async (p) => {
   await start(p, 'sess3');
   for (let i = 0; i < 4; i++) {
@@ -52,156 +48,173 @@ const finishSess3 = async (p) => {
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1500);
-  // L'écran de fin vient d'abord ; le bilan, que cette suite mesure, suit
-  // « Continuer ».
+  // L'écran de fin vient d'abord ; le ressenti, que cette suite éprouve,
+  // suit « Continuer ».
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
   await p.waitForTimeout(800);
 };
 
-/** La boîte, son corps qui défile, et ce qui dépasse de l'écran. */
+const SEND = /^(Envoyer à ton coach|Réessayer)$/;
+
+/** L'écran du ressenti : sa place, et la hauteur de ce qui y défile. */
 const measure = (p) =>
   p.evaluate(() => {
-    const content = document.querySelector('[role="dialog"]');
-    if (!content) return null;
-    const body = [...content.querySelectorAll('*')].find((e) => {
-      const st = getComputedStyle(e);
-      return st.overflowY === 'auto' || st.overflowY === 'scroll';
-    });
-    const r = content.getBoundingClientRect();
-    const cs = getComputedStyle(content);
+    const scene = document.querySelector(
+      '[role="dialog"][aria-label="Le ressenti"]'
+    );
+    if (!scene) return null;
+    const body = scene.querySelector('[data-feeling-body]');
+    const r = scene.getBoundingClientRect();
     return {
       screen: window.innerHeight,
       top: Math.round(r.top),
       bottom: Math.round(r.bottom),
-      marginTop: Math.round(parseFloat(cs.marginTop)),
-      marginBottom: Math.round(parseFloat(cs.marginBottom)),
-      seen: body?.clientHeight ?? null,
       content: body?.scrollHeight ?? null,
     };
   });
 
-/** La géométrie d'un bouton visible, et de combien il sort de l'écran —
- * en haut comme en bas. */
-const buttonBox = (p, name) =>
-  p.evaluate((n) => {
-    const el = [...document.querySelectorAll('button')].find(
-      (e) => e.offsetParent !== null && e.innerText.trim() === n
+const sendBox = (p) =>
+  p.evaluate(() => {
+    const el = [...document.querySelectorAll('button')].find((e) =>
+      /^(Envoyer à ton coach|Réessayer)$/.test(e.innerText.trim())
     );
     if (!el) return null;
     const r = el.getBoundingClientRect();
     return {
-      h: Math.round(r.height),
-      bottom: Math.round(r.bottom),
+      text: el.innerText.trim(),
+      disabled: el.disabled,
       belowFold: Math.round(Math.max(0, r.bottom - window.innerHeight)),
       aboveFold: Math.round(Math.max(0, -r.top)),
     };
-  }, name);
+  });
 
-// ── Déplier la date ne doit rien déplacer ───────────────────────────────
+const progressKept = (p) =>
+  p.evaluate(() => localStorage.getItem('kettle-seance-sess3') !== null);
+
+// ── Un écran entier, et la date qui ne fait rien sauter ─────────────────
 {
-  console.log('\n── mettre une autre date ne coûte aucune hauteur');
+  console.log('\n── le ressenti, et la date qui se déplie sans rien déplacer');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await finishSess3(p);
 
   const before = await measure(p);
-  ok('le bilan est ouvert', before !== null);
   ok(
-    "  → et tient dans l'écran",
-    before && before.bottom <= before.screen && before.top >= 0,
+    'le ressenti prend tout l’écran',
+    before && before.top === 0 && before.bottom === before.screen,
     before
       ? `${before.top} → ${before.bottom} sur ${before.screen}`
-      : '(aucune)'
+      : '(absent)'
   );
-
-  // La hauteur doit être ce qu'il reste une fois retirée la marge propre de
-  // la boîte, et non une fraction de tout l'écran. `maxH="90dvh"` ignorait
-  // 64 px de marge à chaque bout et laissait la boîte dépasser — invisible en
-  // portrait, fatal en paysage, où « Valider » sortait de la fenêtre. On
-  // vérifie ici que la boîte prend la place qu'elle a sans déborder de sa
-  // marge.
-  const room = before.screen - before.marginTop - before.marginBottom;
-  const used = before.bottom - before.top;
+  const send = await sendBox(p);
   ok(
-    '  → elle remplit la place que sa marge lui laisse, et pas plus',
-    used <= room + 1,
-    `${used} px occupés pour ${room} px de place ` +
-      `(marge ${before.marginTop}/${before.marginBottom})`
+    "« Envoyer à ton coach » est entier et dans l'écran",
+    send && send.belowFold === 0 && send.aboveFold === 0,
+    JSON.stringify(send)
   );
   ok(
-    '  → et elle prend bien cette place, au lieu de la laisser vide',
-    used >= room - 1 || before.content <= before.seen,
-    `${used} px occupés pour ${room} px de place`
+    '  → et attend un visage : rien n’est choisi d’avance',
+    send?.disabled === true,
+    JSON.stringify(send)
   );
 
   await p.getByRole('button', { name: /Ce n.était pas aujourd/ }).click();
   await p.waitForTimeout(500);
   const after = await measure(p);
-
-  // Tout l'enjeu de la correction : le contenu fait la même taille avant et
-  // après, donc rien ne bouge sous le pouce.
   ok(
     'le corps fait exactement la même hauteur une fois la date ouverte',
     before && after && after.content === before.content,
     `${before?.content} → ${after?.content}`
   );
   // Le sélecteur de date de Chakra rend un champ de texte et non un
-  // `type="date"` : on le trouve par le nom sous lequel il est annoncé, qui
-  // est aussi celui qu'emploie un lecteur d'écran.
+  // `type="date"` : on le trouve par le nom sous lequel il est annoncé.
   const field = p.getByRole('textbox', {
     name: 'Date de réalisation de la séance',
   });
   ok(
-    "  → et le champ s'est bien ouvert",
-    (await field.count()) === 1,
-    `${await field.count()} champ(s)`
-  );
-  ok(
-    '  → portant la date du jour',
-    /\d{2}\/\d{2}\/\d{4}/.test(await field.inputValue()),
-    await field.inputValue()
-  );
-  ok(
-    "  → la boîte tient toujours dans l'écran",
-    after && after.bottom <= after.screen && after.top >= 0,
-    after ? `${after.top} → ${after.bottom} sur ${after.screen}` : '(aucune)'
+    "  → le champ s'est ouvert, sur la date du jour",
+    (await field.count()) === 1 &&
+      /\d{2}\/\d{2}\/\d{4}/.test(await field.inputValue()),
+    (await field.count()) ? await field.inputValue() : '(absent)'
   );
   await ctx.close();
 }
 
-// ── Le pied tient sur une rangée, le corps garde sa hauteur ─────────────
+// ── Un envoi manqué ne perd rien ────────────────────────────────────────
 {
-  console.log('\n── le pied ne prend pas de lignes au corps');
+  console.log("\n── l'envoi échoue une fois : on reste, et on réessaie");
+  const ctx = await browser.newContext(MOBILE);
+  let refuse = true;
+  await ctx.route(/\/api\/client\/sessions\/[^/]+\/complete$/, (r) =>
+    refuse
+      ? r.fulfill({ status: 500, json: { message: 'panne' } })
+      : r.continue()
+  );
+  const p = await signIn(ctx);
+  await finishSess3(p);
+  await p.getByRole('radio', { name: /Juste/ }).click();
+  await p.waitForTimeout(200);
+  await p.getByRole('button', { name: SEND }).click();
+  // Une mutation est reprise deux fois avant d'échouer : on attend ce que
+  // l'écran dit, pas un délai choisi au hasard.
+  await p
+    .getByRole('alert')
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+
+  const said = clean(
+    await p
+      .getByRole('alert')
+      .innerText()
+      .catch(() => '')
+  );
+  ok(
+    "l'écran reste, et dit que l'envoi n'est pas parti",
+    /L’envoi n’est pas parti/.test(said) &&
+      (await p.locator('[role="dialog"][aria-label="Le ressenti"]').count()) ===
+        1,
+    said || '(rien)'
+  );
+  ok(
+    '  → et ce qui est sauf : rien n’est perdu',
+    /rien n’est perdu/.test(said) && (await progressKept(p))
+  );
+  const retry = await sendBox(p);
+  ok(
+    '  → le bouton redevient actif : « Réessayer »',
+    retry?.text === 'Réessayer' && retry.disabled === false,
+    JSON.stringify(retry)
+  );
+  ok(
+    '  → le visage choisi est toujours là',
+    (await p
+      .getByRole('radio', { name: /Juste/ })
+      .getAttribute('aria-checked')) === 'true'
+  );
+
+  refuse = false;
+  await p.getByRole('button', { name: SEND }).click();
+  await p.waitForTimeout(2200);
+  ok(
+    'la seconde fois, il part : l’accueil, et la séance effacée du téléphone',
+    !/\/session\//.test(new URL(p.url()).pathname) && !(await progressKept(p)),
+    new URL(p.url()).pathname
+  );
+  await ctx.close();
+}
+
+// ── Quitter sans envoyer garde la séance ────────────────────────────────
+{
+  console.log('\n── quitter sans envoyer');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await finishSess3(p);
-
-  const submit = await buttonBox(p, 'Valider');
-  const cancel = await buttonBox(p, 'Annuler');
+  await p.getByRole('button', { name: 'Quitter sans envoyer' }).click();
+  await p.waitForTimeout(500);
   ok(
-    "« Valider » est entier et dans l'écran",
-    submit && submit.belowFold === 0 && submit.aboveFold === 0,
-    submit ? `bas à ${submit.bottom}` : '(introuvable)'
-  );
-  ok(
-    "  → « Annuler » partage sa rangée plutôt que d'en prendre une",
-    submit && cancel && Math.abs(submit.bottom - cancel.bottom) < 4,
-    submit && cancel ? `${cancel.bottom} vs ${submit.bottom}` : '(introuvable)'
-  );
-
-  // Rien n'a encore été choisi, l'indication est donc à l'écran. Elle doit
-  // tenir sur la rangée des boutons : sur une rangée à elle, elle coûte 30 px
-  // au corps, à chaque séance.
-  const hint = await p.evaluate(() => {
-    const el = [...document.querySelectorAll('*')].find(
-      (e) => e.children.length === 0 && /Choisis un visage/.test(e.textContent)
-    );
-    return el ? Math.round(el.getBoundingClientRect().bottom) : null;
-  });
-  ok(
-    "  → et l'indication la partage aussi",
-    hint !== null && submit && Math.abs(hint - submit.bottom) < 24,
-    hint === null ? '(aucune indication)' : `${hint} vs ${submit?.bottom}`
+    'la croix referme le ressenti sans rien envoyer',
+    (await p.locator('[role="dialog"]').count()) === 0 &&
+      (await progressKept(p))
   );
   await ctx.close();
 }
