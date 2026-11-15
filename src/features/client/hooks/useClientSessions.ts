@@ -135,8 +135,9 @@ export const useClientSessions = () => {
       roundsDone?: RoundsDoneEntry[],
       ladderDone?: LadderDoneEntry[],
       // L'écran du ressenti reste ouvert jusqu'à la réponse : c'est lui qui
-      // dit qu'un envoi n'est pas parti, et qui le refait.
-      onError?: () => void
+      // dit qu'un envoi n'est pas parti, et qui le refait. Réussi, c'est à
+      // lui de dire où aller — la semaine qui avance.
+      callbacks: { onSuccess?: () => void; onError?: () => void } = {}
     ) => {
       if (!activeSession) return;
       completeSession.mutate(
@@ -156,6 +157,10 @@ export const useClientSessions = () => {
             // quitter le mode guidé ne doit rien coûter, et sortir pour
             // répondre au téléphone non plus.
             forgetProgress(activeSession._id);
+            if (callbacks.onSuccess) {
+              callbacks.onSuccess();
+              return;
+            }
             // Le seul endroit du parcours client où quelque chose partait
             // sans accusé de réception : on se retrouvait sur l'accueil, et
             // rien ne disait que le bilan était parti.
@@ -170,7 +175,7 @@ export const useClientSessions = () => {
             });
             navigate(CLIENT_ROUTES.today);
           },
-          onError,
+          onError: callbacks.onError,
         }
       );
     },

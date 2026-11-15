@@ -196,9 +196,13 @@ const progressKept = (p) =>
   await p.getByRole('button', { name: SEND }).click();
   await p.waitForTimeout(2200);
   ok(
-    'la seconde fois, il part : l’accueil, et la séance effacée du téléphone',
-    !/\/session\//.test(new URL(p.url()).pathname) && !(await progressKept(p)),
-    new URL(p.url()).pathname
+    'la seconde fois, il part : la semaine, et la séance effacée du téléphone',
+    (await p.locator('[role="dialog"][aria-label="Ta semaine"]').count()) ===
+      1 && !(await progressKept(p)),
+    (await p
+      .locator('[role="dialog"]')
+      .getAttribute('aria-label')
+      .catch(() => null)) ?? '(aucun écran)'
   );
   await ctx.close();
 }

@@ -36,6 +36,14 @@ import { buildRecap, highlightOf } from '@/features/client/recap';
 import { Celebration } from '@/features/client/components/end/Celebration';
 import { Loads } from '@/features/client/components/end/Loads';
 import { Feeling } from '@/features/client/components/end/Feeling';
+import { Week } from '@/features/client/components/end/Week';
+import {
+  daysDone,
+  doneInWeek,
+  plannedDays,
+  weekStreak,
+  weekTarget,
+} from '@/features/client/weekRing';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -106,10 +114,37 @@ const SessionScreen = () => {
   // (`celebrate`) ; « Compléter mes charges » y mène à la saisie (`loads`),
   // qui y revient.
   const [flow, setFlow] = useState<
-    'idle' | 'celebrate' | 'loads' | 'record' | 'review'
+    'idle' | 'celebrate' | 'loads' | 'record' | 'review' | 'week'
   >('idle');
   /** Le dernier envoi du ressenti n'est pas parti. */
   const [sendFailed, setSendFailed] = useState(false);
+  /** La semaine telle que l'envoi l'a laissée, pour son dernier écran. */
+  const [week, setWeek] = useState<Omit<
+    React.ComponentProps<typeof Week>,
+    'onFinish'
+  > | null>(null);
+
+  /**
+   * La semaine, avant et après la séance qu'on vient d'envoyer.
+   *
+   * Calculée sur l'historique tel qu'il était à l'envoi, plus cette séance
+   * à sa date — celle du jour, ou celle de « Ce n'était pas aujourd'hui ».
+   * Relire l'historique une fois rechargé l'aurait comptée deux fois, ou
+   * pas du tout selon le moment où il revient.
+   */
+  const weekAfter = (completedAt?: string) => {
+    const when = completedAt ? new Date(`${completedAt}T12:00:00`) : new Date();
+    const withThis = [...history, { completedAt: when.toISOString() }];
+    const target = weekTarget(sessions);
+    return {
+      target,
+      before: doneInWeek(history),
+      after: doneInWeek(withThis),
+      streak: weekStreak(withThis, target),
+      doneDays: daysDone(withThis),
+      plannedDays: plannedDays(sessions),
+    };
+  };
 
   // Ce qui a été noté ne vit plus dans la seule mémoire.
   //
@@ -434,10 +469,20 @@ const SessionScreen = () => {
               toPerformedEntries(performed),
               toRoundsDone(readProgress(activeSession._id)?.rounds),
               toLadderDone(readProgress(activeSession._id)?.ladder),
-              () => setSendFailed(true)
+              {
+                onError: () => setSendFailed(true),
+                onSuccess: () => {
+                  setWeek(weekAfter(completedAt));
+                  setFlow('week');
+                },
+              }
             );
           }}
         />
+      )}
+
+      {flow === 'week' && week && (
+        <Week {...week} onFinish={() => navigate(CLIENT_ROUTES.today)} />
       )}
     </Container>
   );
