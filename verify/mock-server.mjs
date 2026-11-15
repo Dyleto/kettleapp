@@ -392,6 +392,16 @@ const withRounds = (blocks, entries) =>
     return hit ? { ...b, performedRounds: hit.rounds } : b;
   });
 
+// Le pendant d'`applyLadderDone` côté API : les paliers faits et le temps
+// d'une échelle bornée, posés sur le bloc à côté de sa prescription.
+const withLadder = (blocks, entries) =>
+  blocks.map((b) => {
+    const hit = (entries || []).find((r) => r.blockOrder === b.order);
+    return hit
+      ? { ...b, performedRungs: hit.rungs, performedSeconds: hit.seconds }
+      : b;
+  });
+
 let HISTORY = EMPTY_PROGRAM
   ? []
   : [
@@ -751,9 +761,12 @@ const server = http.createServer(async (req, res) => {
       originalSessionId: source._id,
       sessionOrder: source.order,
       sessionName: source.name,
-      blocks: withRounds(
-        withPerformed(snapshot(source), body.performed || []),
-        body.roundsDone || []
+      blocks: withLadder(
+        withRounds(
+          withPerformed(snapshot(source), body.performed || []),
+          body.roundsDone || []
+        ),
+        body.ladderDone || []
       ),
       coachNotes: '',
       feedback: body.feedback,

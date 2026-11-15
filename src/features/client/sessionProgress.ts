@@ -53,6 +53,16 @@ interface SessionProgress {
    */
   skipped: string[];
   /**
+   * Ce qu'une échelle bornée a donné, par rang de bloc : les paliers
+   * entièrement faits et le temps au chrono, en secondes.
+   *
+   * Posé par la feuille de fin de l'échelle, envoyé avec le bilan
+   * (`ladderDone`). Ajouté après coup et lu avec indulgence, comme
+   * `skipped` : un enregistrement qui ne le porte pas en a un vide, et une
+   * entrée abîmée est écartée plutôt que d'envoyer n'importe quoi.
+   */
+  ladder: Record<string, { rungs: number; seconds: number }>;
+  /**
    * Quand la séance a commencé, en millisecondes.
    *
    * Posé à la première ouverture et jamais redéfini : ce qu'on veut annoncer
@@ -84,6 +94,7 @@ const empty = (): SessionProgress => ({
   done: [],
   rounds: {},
   skipped: [],
+  ladder: {},
   updatedAt: Date.now(),
 });
 
@@ -111,6 +122,23 @@ interface LegacyProgress {
   debutLe?: number;
   majLe: number;
 }
+
+/** Les résultats d'échelle lisibles, et eux seuls. */
+const readLadder = (raw: unknown): SessionProgress['ladder'] => {
+  if (!raw || typeof raw !== 'object') return {};
+  const kept: SessionProgress['ladder'] = {};
+  for (const [order, entry] of Object.entries(raw)) {
+    const { rungs, seconds } = (entry ?? {}) as Record<string, unknown>;
+    if (
+      Number.isInteger(rungs) &&
+      Number.isInteger(seconds) &&
+      (rungs as number) >= 0 &&
+      (seconds as number) >= 0
+    )
+      kept[order] = { rungs: rungs as number, seconds: seconds as number };
+  }
+  return kept;
+};
 
 /** L'enregistrement de cette séance, s'il est encore d'actualité. */
 export const readProgress = (sessionId: string): SessionProgress | null => {
@@ -152,6 +180,7 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
       skipped: Array.isArray(stored.skipped)
         ? stored.skipped.filter((k): k is string => typeof k === 'string')
         : [],
+      ladder: readLadder(stored.ladder),
       startedAt: typeof startedAt === 'number' ? startedAt : undefined,
       updatedAt,
     };

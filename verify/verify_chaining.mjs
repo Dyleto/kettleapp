@@ -113,11 +113,13 @@ const record = (p, sess) =>
     await p.waitForTimeout(350);
     await skipRest(p);
   }
+  // L'échelle a sa scène : elle annonce ses paliers au-dessus des marches,
+  // « 7 paliers sur 7 », là où la liste disait « 7 sur 7 faits ».
   const screen = await guidedScreen(p);
   ok(
     'les sept paliers sont cochés',
-    /7 sur 7 faits/.test(screen),
-    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
+    /7 paliers sur 7/i.test(screen),
+    (screen.match(/[^\n]*paliers? \d+ sur \d+[^\n]*/i) ?? ['(rien)'])[0]
   );
   ok(
     '  → on est toujours dans la séance',

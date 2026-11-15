@@ -2,6 +2,7 @@
 import {
   ClientProgram,
   CompletedSession,
+  LadderDoneEntry,
   PerformedEntry,
   RoundsDoneEntry,
   SessionFeedback,
@@ -20,6 +21,8 @@ export interface CompleteSessionPayload {
   performed?: PerformedEntry[];
   /** Le score des blocs qui se comptent en tours — un AMRAP. */
   roundsDone?: RoundsDoneEntry[];
+  /** Ce qu'une échelle bornée a donné : paliers faits et temps. */
+  ladderDone?: LadderDoneEntry[];
   clientNotes?: string;
   completedAt?: string;
 }

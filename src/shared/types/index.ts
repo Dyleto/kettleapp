@@ -161,3 +161,16 @@ export interface RoundsDoneEntry {
   blockOrder: number;
   rounds: number;
 }
+
+/**
+ * Ce qu'une échelle bornée a donné, tel que le client l'envoie : les paliers
+ * entièrement faits et le temps au chrono, en secondes. Des paliers faits
+ * plutôt que « le palier atteint » : « 7 sur 7 » dit alors sans ambiguïté
+ * que l'échelle est bouclée. L'instantané les rend en `performedRungs` et
+ * `performedSeconds`.
+ */
+export interface LadderDoneEntry {
+  blockOrder: number;
+  rungs: number;
+  seconds: number;
+}

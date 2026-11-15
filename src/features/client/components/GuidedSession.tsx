@@ -38,6 +38,7 @@ import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { TimedBlock } from './scene/TimedBlock';
 import { AmrapBlock } from './scene/AmrapBlock';
+import { LadderBlock } from './scene/LadderBlock';
 import { BlockList } from './guided/BlockList';
 import { readSavedIndex, writeSavedIndex } from './guided/progress';
 
@@ -650,7 +651,12 @@ export const GuidedSession = ({
           // premier bloc à horloge — tours chronométrés ou AMRAP : un second
           // décompte, juste derrière, ne ferait que redemander ce qui vient
           // d'être décidé.
-          if (step.type === 'round' || isLoop) setArmedBlock(step.block.order);
+          if (
+            step.type === 'round' ||
+            isLoop ||
+            (step.block.type === 'ladder' && step.block.durationMinutes)
+          )
+            setArmedBlock(step.block.order);
         }}
       />
     );
@@ -768,21 +774,13 @@ export const GuidedSession = ({
 
   const paused = showPause || resuming;
 
-  // Le geste principal dit ce qu'il coche : une série, un palier, ou un
-  // exercice qui n'en a qu'une. « Fait » valait pour les trois, et ne disait
-  // pas qu'il en restait.
+  // L'échelle a sa propre scène : ses paliers se cochent entiers, un par
+  // geste, et ne passent jamais par la liste.
   const isLadder = step.type === 'block' && step.block.type === 'ladder';
-  const singleMovement =
-    step.type === 'block' && step.block.exercises.length === 1;
-  const doneLabel = !current
-    ? ''
-    : isLadder
-      ? singleMovement
-        ? 'Palier fait'
-        : 'Fait'
-      : current.total > 1
-        ? 'Série faite'
-        : 'Fait';
+  // Le geste principal dit ce qu'il coche : une série, ou un exercice qui
+  // n'en a qu'une. « Fait » valait pour les deux, et ne disait pas qu'il en
+  // restait.
+  const doneLabel = !current ? '' : current.total > 1 ? 'Série faite' : 'Fait';
   const showLoad =
     !!current &&
     !!onPerformedChange &&
@@ -796,16 +794,11 @@ export const GuidedSession = ({
   // Le même nom que dans les autres écrans du mouvement : « série 2 / 4 ».
   const loadLabel = current
     ? `Poids utilisé, en kilos — ${current.name} ${
-        current.total > 1
-          ? `${isLadder ? 'palier' : 'série'} ${current.rank} / ${current.total}`
-          : ''
+        current.total > 1 ? `série ${current.rank} / ${current.total}` : ''
       }`
     : '';
-  const previousLabel = isLadder
-    ? 'Palier précédent'
-    : current && current.total > 1
-      ? 'Série précédente'
-      : 'Exercice précédent';
+  const previousLabel =
+    current && current.total > 1 ? 'Série précédente' : 'Exercice précédent';
   const segmentIndex = Math.max(
     0,
     segments.findIndex(
@@ -1008,7 +1001,33 @@ export const GuidedSession = ({
             </Box>
           </HStack>
 
-          {step.type === 'block' && step.shape === 'list' ? (
+          {step.type === 'block' && isLadder ? (
+            <LadderBlock
+              key={step.block.order}
+              step={step}
+              done={done}
+              onDoneChange={(next) => {
+                setDone(next);
+                writeProgress(session._id, { done: next });
+              }}
+              onResult={(result) =>
+                writeProgress(session._id, {
+                  ladder: {
+                    ...(readProgress(session._id)?.ladder ?? {}),
+                    [String(step.block.order)]: result,
+                  },
+                })
+              }
+              onFinish={goNext}
+              isLastBlock={isLast}
+              armed={armedBlock === step.block.order}
+              onArm={() => setArmedBlock(step.block.order)}
+              onPrevious={index > 0 ? goPrev : undefined}
+              headerSlot={headerSlot}
+              lastPerformance={lastPerformance}
+              onOpenDetail={setDetail}
+            />
+          ) : step.type === 'block' && step.shape === 'list' ? (
             // Un seul défilement pour la série en cours et le bloc entier :
             // la série se lit en grand, et la liste reste juste en dessous.
             // Le terrain l'avait demandé — « voir toutes les infos d'un
@@ -1275,7 +1294,9 @@ export const GuidedSession = ({
             </Box>
           )}
 
-          {step.type === 'block' && step.shape === 'list' && rest ? (
+          {isLadder ? null : step.type === 'block' &&
+            step.shape === 'list' &&
+            rest ? (
             // Le repos : rallonger, ou repartir. Aucun bouton ne coche la
             // série suivante pendant qu'on souffle — « Fait » restait là, au
             // même endroit, et se touchait par habitude.
@@ -1337,11 +1358,9 @@ export const GuidedSession = ({
                 ) : (
                   <Box />
                 )}
-                {!isLadder && (
-                  <FooterLink onClick={skipExercise}>
-                    Passer cet exercice
-                  </FooterLink>
-                )}
+                <FooterLink onClick={skipExercise}>
+                  Passer cet exercice
+                </FooterLink>
               </HStack>
             </VStack>
           ) : step.type === 'round' || isLoop ? null : (

@@ -8,6 +8,7 @@ import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useCompleteSession } from './useCompleteSession';
 import {
   PerformedEntry,
+  LadderDoneEntry,
   RoundsDoneEntry,
   SessionFeedback,
 } from '@/shared/types';
@@ -131,7 +132,8 @@ export const useClientSessions = () => {
       clientNotes: string,
       completedAt?: string,
       performed?: PerformedEntry[],
-      roundsDone?: RoundsDoneEntry[]
+      roundsDone?: RoundsDoneEntry[],
+      ladderDone?: LadderDoneEntry[]
     ) => {
       if (!activeSession) return;
       completeSession.mutate(
@@ -142,6 +144,7 @@ export const useClientSessions = () => {
           completedAt,
           ...(performed && performed.length > 0 ? { performed } : {}),
           ...(roundsDone && roundsDone.length > 0 ? { roundsDone } : {}),
+          ...(ladderDone && ladderDone.length > 0 ? { ladderDone } : {}),
         },
         {
           onSuccess: () => {

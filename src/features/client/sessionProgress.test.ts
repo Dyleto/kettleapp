@@ -113,6 +113,7 @@ describe('l’aller-retour', () => {
       done: [],
       rounds: {},
       skipped: [],
+      ladder: {},
       updatedAt: expect.any(Number),
     });
   });
@@ -195,6 +196,7 @@ describe('un enregistrement d’avant le passage aux noms anglais', () => {
       done: ['1:1:1', '1:2:1'],
       rounds: { '3': 5 },
       skipped: [],
+      ladder: {},
       startedAt: 1_700_000_000_000,
       updatedAt: expect.any(Number),
     });
@@ -283,6 +285,7 @@ describe('ce qu’on redresse plutôt que de refuser', () => {
       done: [],
       rounds: {},
       skipped: [],
+      ladder: {},
       startedAt: undefined,
       updatedAt: expect.any(Number),
     });
@@ -305,6 +308,30 @@ describe('ce qu’on redresse plutôt que de refuser', () => {
   it('des mouvements passés qui ne sont pas un tableau deviennent vides', () => {
     storage.put(KEY, withFields({ skipped: 'tout' }));
     expect(readProgress('sess1')?.skipped).toEqual([]);
+  });
+
+  it('relit le résultat d’une échelle, et écarte une entrée abîmée', () => {
+    // Ce qui part avec le bilan doit être un entier positif : une entrée
+    // abîmée serait refusée par le serveur et ferait échouer tout l'envoi.
+    storage.put(
+      KEY,
+      withFields({
+        ladder: {
+          '1': { rungs: 4, seconds: 720 },
+          '2': { rungs: 'quatre', seconds: 720 },
+          '3': { rungs: 2, seconds: -1 },
+          '4': null,
+        },
+      })
+    );
+    expect(readProgress('sess1')?.ladder).toEqual({
+      '1': { rungs: 4, seconds: 720 },
+    });
+  });
+
+  it('un enregistrement d’avant l’échelle bornée en a une forme vide', () => {
+    storage.put(KEY, withFields({ ladder: 'rien' }));
+    expect(readProgress('sess1')?.ladder).toEqual({});
   });
 });
 

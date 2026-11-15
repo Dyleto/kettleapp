@@ -25,6 +25,7 @@ import {
 import {
   PerformedEntry,
   PerformedValues,
+  LadderDoneEntry,
   RoundsDoneEntry,
 } from '@/shared/types';
 import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
@@ -56,6 +57,15 @@ const toRoundsDone = (rounds?: Record<string, number>): RoundsDoneEntry[] =>
   Object.entries(rounds ?? {}).map(([blockOrder, rounds]) => ({
     blockOrder: Number(blockOrder),
     rounds,
+  }));
+
+/** Ce que les échelles bornées ont donné, tel que l'API l'attend. */
+const toLadderDone = (
+  ladder?: Record<string, { rungs: number; seconds: number }>
+): LadderDoneEntry[] =>
+  Object.entries(ladder ?? {}).map(([blockOrder, result]) => ({
+    blockOrder: Number(blockOrder),
+    ...result,
   }));
 
 const toPerformedEntries = (
@@ -381,7 +391,8 @@ const SessionScreen = () => {
             notes,
             completedAt,
             toPerformedEntries(performed),
-            toRoundsDone(readProgress(activeSession._id)?.rounds)
+            toRoundsDone(readProgress(activeSession._id)?.rounds),
+            toLadderDone(readProgress(activeSession._id)?.ladder)
           );
           setFlow('idle');
         }}
