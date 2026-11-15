@@ -84,6 +84,13 @@ describe('blockMarker', () => {
     ).toBe('6 tours · 12 min');
   });
 
+  it('dit qu’un EMOM sans nombre de tours est sans limite', () => {
+    // « 1 tour » s'affichait : le défaut du champ vide, lu comme un tour.
+    expect(blockMarker(makeBlock({ type: 'emom', intervalMinutes: 1 }))).toBe(
+      'sans limite'
+    );
+  });
+
   it('compte un Tabata avec son repos', () => {
     // 8 × (20 s + 10 s) = 4 min : le temps réel du bloc, repos compris.
     expect(
@@ -326,6 +333,12 @@ describe('positionLabel', () => {
     expect(
       positionLabel(session, session.blocks[2], [], { rank: 3, total: 10 })
     ).toBe('Bloc 3 sur 3 · tour 3 sur 10');
+  });
+
+  it('ne dit pas « sur » quand le bloc est sans limite', () => {
+    expect(
+      positionLabel(session, session.blocks[2], [], { rank: 7, total: null })
+    ).toBe('Bloc 3 sur 3 · tour 7');
   });
 
   it('dit qu’un bloc est terminé quand tout y est coché', () => {

@@ -80,6 +80,24 @@ describe('readClock', () => {
   });
 });
 
+describe('readClock, sans limite', () => {
+  const open: TimedPlan = { work: 60, rest: 0, rounds: null };
+
+  it('compte les tours sans jamais finir', () => {
+    expect(readClock(open, 25 * 60_000 + 18_000)).toEqual({
+      round: 26,
+      phase: 'work',
+      remaining: 42,
+      length: 60,
+      finished: false,
+    });
+  });
+
+  it('place un tour lointain sans le borner', () => {
+    expect(roundStart(open, 40)).toBe(39 * 60_000);
+  });
+});
+
 describe('roundStart', () => {
   it('place chaque tour à un intervalle du précédent', () => {
     expect(roundStart(emom, 1)).toBe(0);

@@ -152,11 +152,29 @@ describe('un bloc mené par le minuteur devient une suite de tours', () => {
     expect(blocksOf(steps)).toHaveLength(1);
   });
 
-  it('un bloc à tours sans nombre de tours aussi', () => {
+  it('un Tabata sans nombre de tours aussi', () => {
     const steps = buildGuidedSteps(
       makeSession({ blocks: [makeBlock({ type: 'tabata' })] })
     );
     expect(blocksOf(steps)).toHaveLength(1);
+  });
+
+  it("un EMOM sans nombre de tours est sans limite : une étape, menée par l'horloge", () => {
+    // Il tombait dans la liste : des séries à cocher, et aucune minute qui
+    // tourne. Ses tours ne se dénombrent pas d'avance : une seule étape.
+    const steps = roundsOf(
+      buildGuidedSteps(
+        makeSession({
+          blocks: [makeBlock({ type: 'emom', intervalMinutes: 2 })],
+        })
+      )
+    );
+    expect(steps).toHaveLength(1);
+    expect(steps[0]).toMatchObject({
+      round: 1,
+      rounds: null,
+      workSeconds: 120,
+    });
   });
 });
 

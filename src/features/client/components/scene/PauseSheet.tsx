@@ -14,6 +14,12 @@ interface PauseSheetProps {
   /** Absent au dernier bloc : il n'y a rien après à quoi passer. */
   onSkipBlock?: () => void;
   onFinish: () => void;
+  /**
+   * Un EMOM sans limite ne finit que si on le finit : c'est ici, à l'abri
+   * d'un toucher accidentel, et non sur la scène, où l'écran entier met en
+   * pause. Absent partout ailleurs.
+   */
+  onEndBlock?: () => void;
 }
 
 /** Un lien discret du bas de la feuille. */
@@ -65,6 +71,7 @@ export const PauseSheet = ({
   onLeave,
   onSkipBlock,
   onFinish,
+  onEndBlock,
 }: PauseSheetProps) => {
   const [soundEnabled, setSoundEnabled] = useSoundSetting();
 
@@ -97,6 +104,11 @@ export const PauseSheet = ({
         <LuPlay size={18} fill="currentColor" />
         Reprendre
       </ActionButton>
+      {onEndBlock && (
+        <ActionButton tone="soft" w="full" onClick={onEndBlock}>
+          Terminer le bloc
+        </ActionButton>
+      )}
       <ActionButton tone="ghost" size="md" w="full" onClick={onLeave}>
         Arrêter et reprendre plus tard
       </ActionButton>

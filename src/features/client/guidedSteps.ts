@@ -98,7 +98,13 @@ export type GuidedStep =
       /** Compté à partir de 1, comme on le dit à voix haute : « Tour 3 / 10 ».
        * Les rangs de l'éditeur partent de 1 eux aussi, donc rien à décaler. */
       round: number;
-      rounds: number;
+      /**
+       * `null` : sans limite. Un EMOM dont le coach n'a pas fixé le nombre
+       * de tours — « jusqu'à ce que ça casse » — tourne tant que le client
+       * ne l'arrête pas. Il ne fait alors qu'une étape : ses tours ne se
+       * dénombrent pas d'avance, c'est l'horloge qui les compte.
+       */
+      rounds: number | null;
       /** Ce qu'il y a à faire dans ce tour, dans l'ordre. */
       exercises: BlockExercise[];
       /**
@@ -346,12 +352,34 @@ export function buildGuidedSteps(session: Session): GuidedStep[] {
     // La forme suit le bloc. Un rythme mené par un minuteur se déroule tour
     // par tour, l'horloge au milieu de l'écran et les mains occupées. Tout le
     // reste est une liste, et se lit comme telle.
+    //
+    // Un EMOM sans nombre de tours est sans limite, et se déroule lui aussi
+    // tour par tour. Il tombait dans la liste : le client y cochait des
+    // séries sans jamais voir de minute tourner. Un Tabata ou un On-Off en
+    // ont toujours un — l'éditeur ne permet pas de le vider.
+    const unbounded =
+      (block.type === 'emom' || block.type === 'every') &&
+      block.rounds === undefined;
     const timed =
-      ROUND_BASED_TYPES.includes(block.type) && (block.rounds ?? 1) > 1;
+      ROUND_BASED_TYPES.includes(block.type) &&
+      (unbounded || (block.rounds ?? 1) > 1);
 
     let blockSteps: GuidedStep[];
 
-    if (timed) {
+    if (timed && unbounded) {
+      blockSteps = [
+        {
+          type: 'round' as const,
+          blockLabel,
+          block,
+          round: 1,
+          rounds: null,
+          exercises,
+          ...roundTime(block),
+          nextLabel: nextBlock ? getBlockLabel(nextBlock.type) : null,
+        },
+      ];
+    } else if (timed) {
       const rounds = block.rounds ?? 1;
       const { workSeconds, restSeconds } = roundTime(block);
       blockSteps = Array.from({ length: rounds }, (_, i) => ({

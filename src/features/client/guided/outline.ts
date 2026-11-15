@@ -54,6 +54,10 @@ const isRoundBased = (block: SessionBlock): boolean =>
  */
 const fixedSeconds = (block: SessionBlock): number | undefined => {
   if (isRoundBased(block)) {
+    // Un EMOM sans nombre de tours dure ce que le client décide : rien ne
+    // le fixe.
+    if (block.rounds === undefined && !blockSupportsRepsOnly(block.type))
+      return undefined;
     const rounds = block.rounds ?? 1;
     if (blockSupportsRepsOnly(block.type)) {
       return rounds * ((block.workDuration ?? 0) + (block.restDuration ?? 0));
@@ -81,6 +85,8 @@ export const blockMarker = (block: SessionBlock): string => {
   const seconds = fixedSeconds(block);
 
   if (isRoundBased(block)) {
+    if (block.rounds === undefined && !blockSupportsRepsOnly(block.type))
+      return 'sans limite';
     const rounds = plural(block.rounds ?? 1, 'tour');
     return seconds ? `${rounds} · ${wholeMinutes(seconds)}` : rounds;
   }
@@ -235,13 +241,16 @@ export const positionLabel = (
   session: Pick<Session, 'blocks'>,
   block: SessionBlock,
   doneKeys: readonly string[] = [],
-  round?: { rank: number; total: number }
+  round?: { rank: number; total: number | null }
 ): string => {
   const blocks = sorted(session.blocks);
   const rank = blocks.findIndex((b) => b.order === block.order) + 1;
   const where = `Bloc ${rank} sur ${blocks.length}`;
 
-  if (round) return `${where} · tour ${round.rank} sur ${round.total}`;
+  if (round)
+    return round.total === null
+      ? `${where} · tour ${round.rank}`
+      : `${where} · tour ${round.rank} sur ${round.total}`;
   if (isRoundBased(block) || block.type === 'amrap') return where;
 
   const sets = setsOfBlock(block);

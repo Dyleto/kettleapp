@@ -18,7 +18,8 @@ export interface TimedPlan {
   /** Le repos imposé après le travail ; zéro sur un EMOM, dont le repos est
    * ce qu'il reste de la minute. */
   rest: number;
-  rounds: number;
+  /** `null` : sans limite — l'horloge tourne jusqu'à ce qu'on l'arrête. */
+  rounds: number | null;
 }
 
 /** Ce que l'horloge affiche à un instant donné. */
@@ -45,7 +46,7 @@ const periodOf = (plan: TimedPlan): number =>
  * — reprendre une séance au tour 4 — et à se recaler d'un tour.
  */
 export const roundStart = (plan: TimedPlan, round: number): number =>
-  (Math.min(Math.max(1, round), plan.rounds) - 1) * periodOf(plan);
+  (Math.min(Math.max(1, round), plan.rounds ?? Infinity) - 1) * periodOf(plan);
 
 /**
  * Où en est le bloc, `elapsed` millisecondes après son origine.
@@ -58,10 +59,9 @@ export const readClock = (plan: TimedPlan, elapsed: number): ClockReading => {
   const work = Math.max(1, plan.work) * 1000;
   const rest = Math.max(0, plan.rest) * 1000;
   const period = work + rest;
-  const total = period * plan.rounds;
   const at = Math.max(0, elapsed);
 
-  if (at >= total) {
+  if (plan.rounds !== null && at >= period * plan.rounds) {
     const phase = rest > 0 ? 'rest' : 'work';
     return {
       round: plan.rounds,

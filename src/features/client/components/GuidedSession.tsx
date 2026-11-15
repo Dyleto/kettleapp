@@ -235,6 +235,16 @@ export const GuidedSession = ({
    */
   const [armedBlock, setArmedBlock] = useState<number | null>(null);
 
+  /**
+   * Le tour d'un EMOM sans limite, tel que son horloge le lit.
+   *
+   * Un tel bloc n'est qu'une étape — ses tours ne se dénombrent pas — et
+   * l'index ne peut donc pas suivre l'horloge comme ailleurs. Sans ce
+   * relevé, la pause et la barre du haut annonceraient « tour 1 » pendant
+   * tout le bloc.
+   */
+  const [liveRound, setLiveRound] = useState<number | null>(null);
+
   /** La ligne du haut, où une scène peut poser une puce — le temps d'un
    * AMRAP. Un état et non une référence : la scène doit être rendue de
    * nouveau quand l'emplacement existe. */
@@ -408,6 +418,7 @@ export const GuidedSession = ({
     const blockOrder =
       target && target.type !== 'rest' ? target.block.order : null;
     if (blockOrder !== armedBlock) setArmedBlock(null);
+    setLiveRound(null);
     // Deux notes quand on quitte un bloc vers l'avant. Revenir en arrière ne
     // termine rien, et sortir d'un repos entre deux blocs non plus : son
     // horloge a déjà sonné.
@@ -441,6 +452,10 @@ export const GuidedSession = ({
   // consigne refermée : on reste dans le même bloc, et une consigne ouverte
   // pendant un EMOM se refermait à chaque minute.
   const goToRound = (blockOrder: number, round: number) => {
+    if (step?.type === 'round' && step.rounds === null) {
+      setLiveRound(round);
+      return;
+    }
     const target = steps.findIndex(
       (candidate) =>
         candidate.type === 'round' &&
@@ -816,7 +831,11 @@ export const GuidedSession = ({
           step.block,
           done,
           step.type === 'round'
-            ? { rank: step.round, total: step.rounds }
+            ? {
+                rank:
+                  step.rounds === null ? (liveRound ?? step.round) : step.round,
+                total: step.rounds,
+              }
             : undefined
         );
 
@@ -1416,6 +1435,14 @@ export const GuidedSession = ({
               setShowPause(false);
               onFinish();
             }}
+            onEndBlock={
+              step.type === 'round' && step.rounds === null
+                ? () => {
+                    setShowPause(false);
+                    finishTimedBlock(step.block.order);
+                  }
+                : undefined
+            }
           />
         )
       )}

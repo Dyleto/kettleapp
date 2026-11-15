@@ -288,5 +288,97 @@ const pauseOpen = (p) =>
   await ctx.close();
 }
 
+// ── Un EMOM sans limite ─────────────────────────────────────────────────
+//
+// Le coach peut vider le nombre de tours : l'éditeur affiche alors « sans
+// limite ». Le mode guidé en faisait une liste à cocher, sans horloge. Le
+// décor n'a pas de séance de cette forme : on la compose.
+{
+  console.log("\n── un EMOM sans limite tourne jusqu'à ce qu'on l'arrête");
+  const { program } = await (
+    await fetch('http://localhost:3001/api/client/program')
+  ).json();
+  const base = program.sessions.find((s) => s._id === 'sess1');
+  const emomBlock = base.blocks.find((b) => b.type === 'emom');
+  const amrapBlock = base.blocks.find((b) => b.type === 'amrap');
+  const open = {
+    ...base,
+    _id: 'sess-open',
+    order: 9,
+    name: 'Jusqu’à ce que ça casse',
+    blocks: [
+      { ...emomBlock, order: 1, rounds: undefined },
+      { ...amrapBlock, order: 2 },
+    ],
+  };
+  const ctx = await browser.newContext(MOBILE);
+  await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
+    r.fulfill({
+      json: { program: { ...program, sessions: [...program.sessions, open] } },
+    })
+  );
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await start(p, 'sess-open');
+  await freeze(p);
+  ok(
+    'il tourne, et ne dit pas « sur »',
+    /^Tour 1 — \d+ secondes restantes$/.test((await timerLabel(p)) ?? ''),
+    await timerLabel(p)
+  );
+  const track = await p.evaluate(
+    () => document.querySelector('[data-round-track]')?.dataset.roundTrack
+  );
+  ok(
+    '  → sans points ni barre : il n’y a pas de fin à dessiner',
+    track === 'open',
+    track
+  );
+  await p.clock.fastForward(25 * 60_000 + 18_000);
+  await settle(p);
+  ok(
+    'vingt-cinq minutes plus tard, le tour 26',
+    (await timerLabel(p)) === 'Tour 26 — 42 secondes restantes',
+    await timerLabel(p)
+  );
+  ok(
+    '  → et la séance le sait',
+    /^Bloc 1 sur 2 · tour 26 — EMOM$/.test(await where(p)),
+    await where(p)
+  );
+  await p
+    .getByRole('button', { name: 'Mettre la séance en pause', exact: true })
+    .click();
+  await settle(p);
+  const end = p.getByRole('button', { name: 'Terminer le bloc', exact: true });
+  ok("la pause propose d'y mettre fin", (await end.count()) === 1);
+  if (await end.count()) await end.click();
+  await settle(p);
+  ok(
+    '  → et on passe au bloc suivant',
+    /— AMRAP$/.test(await where(p)),
+    await where(p)
+  );
+  await ctx.close();
+}
+
+// ── Ailleurs, la pause ne propose pas de terminer le bloc ───────────────
+{
+  console.log('\n── un bloc à tours comptés se termine de lui-même');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await emom(ctx);
+  await p
+    .getByRole('button', { name: 'Mettre la séance en pause', exact: true })
+    .click();
+  await settle(p);
+  ok(
+    '« Terminer le bloc » n’apparaît que sans limite',
+    (await p
+      .getByRole('button', { name: 'Terminer le bloc', exact: true })
+      .count()) === 0
+  );
+  await ctx.close();
+}
+
 await browser.close();
 process.exit(failureCount() ? 1 : 0);

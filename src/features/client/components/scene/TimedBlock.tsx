@@ -153,7 +153,7 @@ export const TimedBlock = ({
   // malheureux coûterait plus que de passer par la pause.
   const shift = (delta: number) => {
     const from = running ? reading.round : step.round;
-    const target = Math.min(plan.rounds, Math.max(1, from + delta));
+    const target = Math.min(plan.rounds ?? Infinity, Math.max(1, from + delta));
     if (target === from) return;
     const offset = roundStart(plan, target);
     const fresh = readClock(plan, offset);
@@ -202,11 +202,16 @@ export const TimedBlock = ({
   const resting = running && shown.phase === 'rest';
   const hot = running && !shown.finished && shown.remaining <= 3;
   const face = clockFace(shown, workRest);
-  const roundLine = `Tour ${shown.round} sur ${plan.rounds}`;
+  const unbounded = plan.rounds === null;
+  const lastRound = plan.rounds ?? Infinity;
+  // Sans limite, pas de « sur » : il n'y a pas de total à annoncer.
+  const roundLine = unbounded
+    ? `Tour ${shown.round}`
+    : `Tour ${shown.round} sur ${plan.rounds}`;
   const upcoming =
     shown.phase === 'work' && plan.rest > 0
       ? 'Repos'
-      : shown.round < plan.rounds
+      : shown.round < lastRound
         ? `Tour ${shown.round + 1}`
         : 'Fin du bloc';
   const hotLine = `${upcoming} dans ${plural(shown.remaining, 'seconde')}`;
@@ -330,10 +335,12 @@ export const TimedBlock = ({
               {hot
                 ? hotLine
                 : resting
-                  ? shown.round < plan.rounds
+                  ? shown.round < lastRound
                     ? `Ensuite · ${
                         only ? `${only.exercise.name}, ` : ''
-                      }tour ${shown.round + 1} sur ${plan.rounds}`
+                      }tour ${shown.round + 1}${
+                        unbounded ? '' : ` sur ${plan.rounds}`
+                      }`
                     : nextLine
                   : roundLine}
             </Text>
@@ -512,11 +519,19 @@ const RoundTrack = ({
   onShift,
 }: {
   round: number;
-  rounds: number;
+  /** `null` : sans limite — ni points ni barre, il n'y a pas de fin à
+   * dessiner ; les flèches restent. */
+  rounds: number | null;
   running: boolean;
   onShift: (delta: number) => void;
 }) => (
-  <HStack justify="center" gap={1}>
+  <HStack
+    justify="center"
+    gap={1}
+    data-round-track={
+      rounds === null ? 'open' : rounds <= MAX_DOTS ? 'dots' : 'bar'
+    }
+  >
     <TrackArrow
       label="Tour précédent"
       hidden={round <= 1}
@@ -524,7 +539,9 @@ const RoundTrack = ({
     >
       <LuChevronLeft size={18} />
     </TrackArrow>
-    {rounds <= MAX_DOTS ? (
+    {rounds === null ? (
+      <Box w="44px" />
+    ) : rounds <= MAX_DOTS ? (
       <Dots
         marks={Array.from({ length: rounds }, (_, i) =>
           i < round - 1 ? 'done' : i === round - 1 && running ? 'now' : 'todo'
@@ -552,7 +569,7 @@ const RoundTrack = ({
     )}
     <TrackArrow
       label="Tour suivant"
-      hidden={round >= rounds}
+      hidden={rounds !== null && round >= rounds}
       onClick={() => onShift(1)}
     >
       <LuChevronRight size={18} />
