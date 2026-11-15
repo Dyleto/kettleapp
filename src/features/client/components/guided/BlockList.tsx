@@ -8,7 +8,6 @@ import { formatDuration } from '@/shared/utils/duration';
 import { Fragment, useState } from 'react';
 import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
 import { LuCheck } from 'react-icons/lu';
-import { RestStrip } from './RestStrip';
 
 /**
  * Un bloc qu'on coche, série par série.
@@ -77,8 +76,6 @@ export const BlockList = ({
   performed,
   onPerformedChange,
   onOpenDetail,
-  rest,
-  onRestDone,
   onUndo,
 }: {
   block: SessionBlock;
@@ -88,9 +85,6 @@ export const BlockList = ({
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   onOpenDetail: (ex: BlockExercise) => void;
-  /** Le repos en cours, et la série qu'il suit. */
-  rest: { afterKey: string; duration: number; nextUp: string } | null;
-  onRestDone: () => void;
   /** Décocher une série : elle redevient quelque chose à faire. */
   onUndo: (key: string) => void;
 }) => {
@@ -149,15 +143,6 @@ export const BlockList = ({
         const rank = rankOf(e);
         // Le repos appartient à la série qu'il suit, il se dessine donc juste
         // après elle — l'intervalle est là où est l'intervalle.
-        const restHere =
-          rest && rest.afterKey === e.key ? (
-            <RestStrip
-              key={`rest-${e.key}`}
-              duration={rest.duration}
-              nextUp={rest.nextUp}
-              onDone={onRestDone}
-            />
-          ) : null;
 
         // La série en cours est écrite en grand au-dessus de la liste. Ici
         // elle n'est qu'un repère : on voit où l'on est dans le bloc, et
@@ -200,7 +185,6 @@ export const BlockList = ({
                   {e.dose}
                 </Text>
               </HStack>
-              {restHere}
             </Fragment>
           );
         }
@@ -301,7 +285,6 @@ export const BlockList = ({
                   </Box>
                 </HStack>
               </VStack>
-              {restHere}
             </Fragment>
           );
         }
@@ -397,7 +380,6 @@ export const BlockList = ({
                 </>
               )}
             </HStack>
-            {restHere}
           </Fragment>
         );
       })}

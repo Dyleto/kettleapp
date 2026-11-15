@@ -173,10 +173,10 @@ export const LoadStepper = ({
             bg="transparent"
             textAlign="right"
             fontFamily="heading"
-            // La règle globale pose 16 px `!important` sur tous les champs,
-            // pour empêcher iOS de zoomer : il faut la même force pour la
-            // dépasser. Au-dessus de 16 px, iOS ne zoome pas.
-            css={{ fontSize: '42px !important' }}
+            // Exclu de la règle qui ramène les champs à 16 px contre le zoom
+            // d'iOS (voir `theme.ts`) : au-dessus de 16 px, iOS ne zoome pas.
+            data-big-number=""
+            fontSize="42px"
             fontWeight="800"
             fontStretch="76%"
             fontVariantNumeric="tabular-nums"

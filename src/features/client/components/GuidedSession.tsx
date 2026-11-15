@@ -27,10 +27,18 @@ import {
   blockTitle,
   firstGesture,
   positionLabel,
+  rankLabel,
 } from '../guided/outline';
 import { PauseSheet } from './scene/PauseSheet';
 import { SetHero } from './scene/SetHero';
-import { heaviest, loadLegend, proposedLoad } from '../guided/load';
+import { RestHero } from './scene/RestHero';
+import { LoadStepper } from './scene/LoadStepper';
+import {
+  formatWeight,
+  heaviest,
+  loadLegend,
+  proposedLoad,
+} from '../guided/load';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
@@ -218,7 +226,8 @@ export const GuidedSession = ({
   const [rest, setRest] = useState<{
     afterKey: string;
     duration: number;
-    nextUp: string;
+    /** Les secondes ajoutées par « + 15 s ». */
+    bonus: number;
   } | null>(null);
 
   /**
@@ -345,12 +354,7 @@ export const GuidedSession = ({
     // Le repos prescrit démarre de lui-même : c'est le geste que le client
     // ferait de toute façon, et l'oublier coûte la série suivante.
     if (current.restAfter) {
-      const after = sets[sets.indexOf(current) + 1];
-      setRest({
-        afterKey: current.key,
-        duration: current.restAfter,
-        nextUp: after ? `${after.name} · ${after.dose}` : '',
-      });
+      setRest({ afterKey: current.key, duration: current.restAfter, bonus: 0 });
     }
   };
 
@@ -710,6 +714,24 @@ export const GuidedSession = ({
       : current.total > 1
         ? 'Série faite'
         : 'Fait';
+  const showLoad =
+    !!current &&
+    !!onPerformedChange &&
+    (askedLoad.has(exerciseKeyOf(current)) ||
+      heaviest(lastTimeOfCurrent) !== undefined ||
+      heaviest(notedOfCurrent) !== undefined);
+  const offerLoad =
+    !!current &&
+    !!onPerformedChange &&
+    (!current.exercise.duration || heaviest(lastTimeOfCurrent) !== undefined);
+  // Le même nom que dans les autres écrans du mouvement : « série 2 / 4 ».
+  const loadLabel = current
+    ? `Poids utilisé, en kilos — ${current.name} ${
+        current.total > 1
+          ? `${isLadder ? 'palier' : 'série'} ${current.rank} / ${current.total}`
+          : ''
+      }`
+    : '';
   const previousLabel = isLadder
     ? 'Palier précédent'
     : current && current.total > 1
@@ -935,45 +957,70 @@ export const GuidedSession = ({
                 {step.blockLabel}
                 {step.block.label ? ` · ${step.block.label}` : ''}
               </Text>
-              {current && (
-                <SetHero
-                  key={current.key}
-                  block={step.block}
-                  set={current}
-                  blockSets={step.sets}
-                  doneKeys={doneKeys}
-                  load={currentLoad}
-                  legend={loadLegend(currentLoad, lastTimeOfCurrent)}
-                  showLoad={
-                    !!onPerformedChange &&
-                    (askedLoad.has(exerciseKeyOf(current)) ||
-                      heaviest(lastTimeOfCurrent) !== undefined ||
-                      heaviest(notedOfCurrent) !== undefined)
-                  }
-                  offerLoad={
-                    !!onPerformedChange &&
-                    (!current.exercise.duration ||
-                      heaviest(lastTimeOfCurrent) !== undefined)
-                  }
-                  onAskLoad={() =>
-                    setAskedLoad(
-                      new Set([...askedLoad, exerciseKeyOf(current)])
-                    )
-                  }
-                  onLoadChange={changeLoad}
-                  loadLabel={`Poids utilisé, en kilos — ${current.name} ${
-                    current.total > 1
-                      ? `${isLadder ? 'palier' : 'série'} ${current.rank} / ${current.total}`
+              {rest ? (
+                <RestHero
+                  key={rest.afterKey}
+                  duration={rest.duration}
+                  bonus={rest.bonus}
+                  nextTitle={
+                    current
+                      ? `${current.name} · ${lowerFirst(
+                          rankLabel(step.block, current, step.sets)
+                        )}`
                       : ''
-                  }`}
-                  onOpenDetail={
-                    current.exercise.note?.trim() ||
-                    current.exercise.exercise.description?.trim() ||
-                    current.exercise.exercise.videoUrl?.trim()
-                      ? () => setDetail(current.exercise)
-                      : undefined
                   }
-                />
+                  nextDetail={
+                    current
+                      ? [
+                          current.dose,
+                          currentLoad !== undefined
+                            ? `à ${formatWeight(currentLoad)} kg`
+                            : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')
+                      : ''
+                  }
+                  onDone={() => setRest(null)}
+                >
+                  {current && showLoad && (
+                    <LoadStepper
+                      key={current.key}
+                      value={currentLoad}
+                      onChange={changeLoad}
+                      legend={loadLegend(currentLoad, lastTimeOfCurrent)}
+                      label={loadLabel}
+                    />
+                  )}
+                </RestHero>
+              ) : (
+                current && (
+                  <SetHero
+                    key={current.key}
+                    block={step.block}
+                    set={current}
+                    blockSets={step.sets}
+                    doneKeys={doneKeys}
+                    load={currentLoad}
+                    legend={loadLegend(currentLoad, lastTimeOfCurrent)}
+                    showLoad={showLoad}
+                    offerLoad={offerLoad}
+                    onAskLoad={() =>
+                      setAskedLoad(
+                        new Set([...askedLoad, exerciseKeyOf(current)])
+                      )
+                    }
+                    onLoadChange={changeLoad}
+                    loadLabel={loadLabel}
+                    onOpenDetail={
+                      current.exercise.note?.trim() ||
+                      current.exercise.exercise.description?.trim() ||
+                      current.exercise.exercise.videoUrl?.trim()
+                        ? () => setDetail(current.exercise)
+                        : undefined
+                    }
+                  />
+                )
               )}
               <VStack align="stretch" gap={1}>
                 <Text fontSize="sm" color="fg.muted">
@@ -987,8 +1034,6 @@ export const GuidedSession = ({
                   performed={performed}
                   onPerformedChange={onPerformedChange}
                   onOpenDetail={setDetail}
-                  rest={rest}
-                  onRestDone={() => setRest(null)}
                   onUndo={undoSet}
                 />
               </VStack>
@@ -1251,7 +1296,37 @@ export const GuidedSession = ({
             </Box>
           )}
 
-          {step.type === 'block' && step.shape === 'list' && current ? (
+          {step.type === 'block' && step.shape === 'list' && rest ? (
+            // Le repos : rallonger, ou repartir. Aucun bouton ne coche la
+            // série suivante pendant qu'on souffle — « Fait » restait là, au
+            // même endroit, et se touchait par habitude.
+            <HStack
+              gap={2.5}
+              px={4}
+              pt={3}
+              pb={3}
+              css={{ [LANDSCAPE]: { padding: '6px 12px' } }}
+            >
+              <ActionButton
+                tone="ghost"
+                size="xl"
+                aria-label="Quinze secondes de repos de plus"
+                onClick={() => setRest({ ...rest, bonus: rest.bonus + 15 })}
+                css={{ [LANDSCAPE]: { minHeight: '52px' } }}
+              >
+                + 15 s
+              </ActionButton>
+              <ActionButton
+                tone="soft"
+                size="xl"
+                flex={1}
+                onClick={() => setRest(null)}
+                css={{ [LANDSCAPE]: { minHeight: '52px' } }}
+              >
+                Passer
+              </ActionButton>
+            </HStack>
+          ) : step.type === 'block' && step.shape === 'list' && current ? (
             // Une série : un seul geste principal, en très grand, et deux
             // liens discrets dessous. « Précédent » prenait un tiers de la
             // largeur pour un geste rare, à côté du seul qu'on fait vingt
@@ -1415,3 +1490,7 @@ const FooterLink = ({
     {children}
   </Box>
 );
+
+/** « Série 3 sur 4 » au milieu d'une phrase : « série 3 sur 4 ». */
+const lowerFirst = (text: string): string =>
+  text.charAt(0).toLowerCase() + text.slice(1);

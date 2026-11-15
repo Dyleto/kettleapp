@@ -126,11 +126,18 @@ export function useCountdown(
     endAtRef.current = Date.now() + remaining * 1000;
     setIsRunning(true);
   }, [remaining]);
+  // Repousser l'échéance : « + 15 s » sur un repos. On décale l'échéance
+  // elle-même plutôt que les secondes affichées, pour la même raison que
+  // partout ailleurs ici — l'affichage est arrondi, l'échéance non.
+  const extend = useCallback((seconds: number) => {
+    if (endAtRef.current !== null) endAtRef.current += seconds * 1000;
+    setRemaining((left) => left + seconds);
+  }, []);
   const skip = useCallback(() => {
     setIsRunning(false);
     setRemaining(0);
     onCompleteRef.current?.();
   }, []);
 
-  return { remaining, isRunning, pause, resume, skip };
+  return { remaining, isRunning, pause, resume, skip, extend };
 }

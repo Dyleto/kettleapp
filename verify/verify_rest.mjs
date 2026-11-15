@@ -1,200 +1,221 @@
 /**
- * Le repos entre deux séries, posé à l'intérieur de la liste.
+ * Le repos entre deux séries : une carte à la place de la série en cours,
+ * et le bloc toujours lisible dessous.
  *
- * Il prenait tout l'écran : on cochait « Fait », et le bloc qu'on était en
+ * Il a pris tout l'écran : on cochait « Fait », et le bloc qu'on était en
  * train de lire disparaissait derrière un mur turquoise. Retour du terrain :
  * « pas agréable de se retrouver d'un coup avec un REPOS en pleine page ».
+ * Il est ensuite devenu une bande de 56 px glissée dans la liste, qu'on ne
+ * lisait pas de loin, et pendant laquelle « Fait » restait sous le pouce :
+ * on cochait la série suivante par habitude, en soufflant.
  *
- * Un repos n'est pas un événement, c'est un intervalle entre deux séries — et
- * il appartient là où cet intervalle se trouve.
+ * Il est maintenant une carte : l'anneau et les secondes, ce qui vient, et
+ * la charge de la série suivante — c'est en soufflant qu'on charge sa
+ * barre. La liste reste dessous, et le pied ne propose que « + 15 s » et
+ * « Passer ».
+ *
+ * Le temps est mené à la main pour la fin du repos : on y vérifie que la
+ * série suivante revient d'elle-même, sans geste.
  */
-import {
-  launch,
-  MOBILE,
-  ok,
-  failureCount,
-  signIn,
-  start,
-  guidedScreen,
-} from './common.mjs';
+import { launch, MOBILE, ok, failureCount, signIn, start } from './common.mjs';
+
+const CARD = '[data-rest]';
+
+/** Les secondes que la carte annonce, lues sur son nom. */
+const restSeconds = (p) =>
+  p
+    .locator(CARD)
+    .getAttribute('aria-label', { timeout: 1000 })
+    .then((label) => Number(label?.match(/(\d+) secondes/)?.[1] ?? NaN))
+    .catch(() => NaN);
+
+const press = async (p, name) => {
+  const button = p.getByRole('button', { name, exact: true });
+  if (!(await button.count())) return false;
+  await button
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p.waitForTimeout(300);
+  return true;
+};
+
+/** La séance 2, au bloc « Renfo », et sa première série cochée à 26 kg. */
+const tickOneSet = async (p) => {
+  await start(p, 'sess2');
+  await press(p, 'Mettre la séance en pause');
+  await p
+    .locator('[role="dialog"][aria-label="Pause"]')
+    .getByRole('button', { name: 'Passer ce bloc' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p.waitForTimeout(400);
+  await p
+    .locator('[data-set-hero] input')
+    .fill('26')
+    .catch(() => {});
+  await p.waitForTimeout(200);
+  await press(p, 'Série faite');
+  await p.waitForTimeout(300);
+};
+
+/** Ce qui a été noté pour le Goblet Squat, série par série. */
+const gobletWeights = (p) =>
+  p.evaluate(() => {
+    const raw = localStorage.getItem('kettle-seance-sess2');
+    const stored = raw ? JSON.parse(raw) : null;
+    return (stored?.performed?.['2:1']?.sets ?? []).map((s) => s?.weight);
+  });
 
 const browser = await launch();
 
-/** Marche jusqu'au bloc classique de la séance 2 et coche la première
- * série. */
-const tickOneSet = async (p) => {
-  await start(p, 'sess2');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(180);
-  }
-  await p
-    .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
-    .first()
-    .fill('26');
-  await p.waitForTimeout(200);
-  await p
-    .getByRole('button', {
-      name: /^(Fait|Série faite|Palier fait)$/,
-    })
-    .click();
-  await p.waitForTimeout(600);
-};
-
-// ── Le repos ne cache plus le bloc ──────────────────────────────────────
 {
-  console.log('\n── le repos se pose dans la liste, il ne la couvre plus');
+  console.log('\n── le repos prend la place de la série, pas celle du bloc');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await tickOneSet(p);
 
-  const screen = await guidedScreen(p);
-  const lines = screen.split('\n').filter(Boolean);
-
-  const strips = await p
-    .getByRole('button', { name: 'Passer', exact: true })
-    .count();
   ok(
-    'une bande de repos apparaît dans la liste',
-    strips === 1,
-    `${strips} bande(s)`
+    'une carte de repos apparaît après la série',
+    (await p.locator(CARD).count()) === 1
   );
+  const seconds = await restSeconds(p);
   ok(
-    '  → portant ce qui vient ensuite',
-    /ensuite Goblet Squat/i.test(screen),
-    (lines.find((l) => /ensuite/i.test(l)) ?? '(rien)').slice(0, 60)
+    '  → avec le repos prescrit : une minute',
+    seconds >= 58 && seconds <= 60,
+    `${seconds} s`
+  );
+  const card = (
+    await p
+      .locator(CARD)
+      .innerText()
+      .catch(() => '')
+  )
+    .replace(/[\u00A0\u202F]/g, ' ')
+    .replace(/\n+/g, ' | ');
+  ok(
+    '  → et ce qui vient, avec sa charge',
+    card.includes('Goblet Squat · série 2 sur 4') &&
+      card.includes('10 reps à 26 kg'),
+    card
   );
 
-  // Le cœur du sujet : tout le bloc reste lisible pendant le repos.
-  // `innerText` lit aussi ce qui est caché derrière un panneau : il faut donc
-  // demander au navigateur sur quoi un doigt tomberait réellement à cet
-  // endroit.
-  const trulyVisible = await p.evaluate(() => {
-    const root = document.querySelector('[aria-label="Séance guidée"]');
-    const target = [...root.querySelectorAll('*')].find(
-      (e) => e.children.length === 0 && /Fentes marchées/.test(e.textContent)
+  // La liste du bloc reste à l'écran, sous la carte.
+  const next = await p.evaluate(() => {
+    const row = document.querySelector(
+      '[aria-label="Séance guidée"] [aria-current="step"]'
     );
-    if (!target) return { found: false };
-    const r = target.getBoundingClientRect();
-    const onTop = document.elementFromPoint(r.left + 4, r.top + r.height / 2);
+    if (!row) return null;
+    const r = row.getBoundingClientRect();
+    const onTop = document.elementFromPoint(r.left + 8, r.top + r.height / 2);
     return {
-      found: true,
-      covered: onTop !== target && !target.contains(onTop),
+      visible: r.top >= 0 && r.bottom <= innerHeight - 90,
+      covered: !row.contains(onTop),
     };
   });
   ok(
-    'le bloc reste entièrement lisible pendant le repos',
-    trulyVisible.found && !trulyVisible.covered,
-    JSON.stringify(trulyVisible)
+    'la série suivante reste lisible dans la liste, sous le repos',
+    next !== null && next.visible && !next.covered,
+    JSON.stringify(next)
   );
   ok(
-    '  → et ses dernières lignes aussi',
-    /Fentes marchées/.test(screen) && /série 4 \/ 4/.test(screen),
-    lines.filter((l) => /Fentes/.test(l)).length + ' ligne(s) de fentes'
-  );
-  // Le nom du bloc est dans le haut de la scène, sous son rang. `innerText`
-  // rend le rang en capitales, comme il s'affiche.
-  ok(
-    "  → y compris l'en-tête du bloc et sa progression",
-    /BLOC 2 SUR 2\s+Renfo/.test(screen) && /1 sur 7 faits/.test(screen),
-    lines.find((l) => /faits dans ce bloc/.test(l)) ?? '(rien)'
+    '  → et toutes les séries du bloc y sont',
+    (await p
+      .locator('[aria-label="Séance guidée"]')
+      .getByText(/série \d \/ [34]/)
+      .count()) === 7
   );
 
-  // Il se place entre la série cochée et celle qui suit.
-  const iDone = lines.findIndex((l) => /^26 kg$/.test(l.trim()));
-  const iRest = lines.findIndex((l) => /REPOS/i.test(l));
-  const iNext = lines.findIndex((l) => /série 2 \/ 4/.test(l));
   ok(
-    "  → exactement entre la série qui vient d'être faite et la suivante",
-    iDone >= 0 && iDone < iRest && iRest < iNext,
-    `faite ${iDone}, repos ${iRest}, suivante ${iNext}`
+    'pendant le repos, aucun bouton ne coche la série suivante',
+    (await p
+      .getByRole('button', { name: /^(Fait|Série faite|Palier fait)$/ })
+      .count()) === 0
   );
-
-  // Aucun panneau ne recouvre le bloc.
-  const overlays = await p.evaluate(() => {
-    const root = document.querySelector('[aria-label="Séance guidée"]');
-    return [...root.querySelectorAll('div')].some((e) => {
-      const st = getComputedStyle(e);
-      const r = e.getBoundingClientRect();
-      return (
-        st.position === 'absolute' &&
-        r.height > 300 &&
-        /repos/i.test(e.innerText || '')
-      );
-    });
-  });
-  ok('  → et rien ne se superpose au bloc', !overlays);
   await ctx.close();
 }
 
-// ── On peut travailler pendant le repos ─────────────────────────────────
-//
-// C'est ce que paie le fait de l'avoir posé dans la liste : corriger une
-// charge, relire la dose du mouvement suivant, rouvrir une consigne — ce
-// qu'on fait réellement en attendant.
 {
-  console.log('\n── pendant le repos, la séance reste utilisable');
+  console.log('\n── on prépare la série suivante en soufflant');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await tickOneSet(p);
 
-  const field = p
-    .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
-    .first();
-  ok('la série en cours porte toujours son champ', (await field.count()) > 0);
-  await field.fill('28');
+  await press(p, 'Un kilo de plus');
+  await press(p, 'Un kilo de plus');
+  ok(
+    'la charge de la série suivante se règle pendant le repos',
+    (await gobletWeights(p))[1] === 28,
+    JSON.stringify(await gobletWeights(p))
+  );
+  ok(
+    '  → sans toucher à celle de la série faite',
+    (await gobletWeights(p))[0] === 26,
+    JSON.stringify(await gobletWeights(p))
+  );
+
+  const before = await restSeconds(p);
+  await press(p, 'Quinze secondes de repos de plus');
+  const after = await restSeconds(p);
+  ok(
+    '« + 15 s » rallonge le repos de quinze secondes',
+    after - before >= 14 && after - before <= 15,
+    `${before} s → ${after} s`
+  );
+
+  await press(p, 'Passer');
+  ok('« Passer » termine le repos', (await p.locator(CARD).count()) === 0);
+  const hero = await p
+    .locator('[data-set-hero]')
+    .innerText({ timeout: 2000 })
+    .catch(() => '');
+  ok(
+    '  → la série suivante revient en grand, avec la charge réglée',
+    /SÉRIE 2 SUR 4/.test(hero) &&
+      (await p.locator('[data-set-hero] input').inputValue()) === '28',
+    hero.replace(/\n+/g, ' | ')
+  );
+  ok(
+    '  → et la série cochée le reste',
+    /1 sur 7 faits/.test(
+      await p.locator('[aria-label="Séance guidée"]').innerText()
+    )
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── la fin du repos ramène la série, sans geste');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await tickOneSet(p);
+  ok('le repos a commencé', (await p.locator(CARD).count()) === 1);
+  await p.clock.runFor(61_000);
   await p.waitForTimeout(300);
   ok(
-    '  → et une charge se saisit sans attendre la fin du repos',
-    (await field.inputValue()) === '28',
-    await field.inputValue()
+    'à zéro, la carte de repos s’efface d’elle-même',
+    (await p.locator(CARD).count()) === 0
   );
   ok(
-    '  → pendant que la bande de repos continue de tourner',
-    (await p.getByRole('button', { name: 'Passer', exact: true }).count()) === 1
+    '  → et la série suivante est là',
+    (await p.locator('[data-set-hero]').count()) === 1
   );
   await ctx.close();
 }
 
-// ── « Passer » rend la main sans rien défaire ───────────────────────────
 {
-  console.log('\n── passer le repos ne défait rien');
-  const ctx = await browser.newContext(MOBILE);
-  const p = await signIn(ctx);
-  await tickOneSet(p);
-  await p.getByRole('button', { name: 'Passer', exact: true }).click();
-  await p.waitForTimeout(400);
-  const screen = await guidedScreen(p);
-  ok(
-    'la bande de repos disparaît',
-    (await p.getByRole('button', { name: 'Passer', exact: true }).count()) === 0
-  );
-  ok(
-    '  → la série cochée le reste',
-    /1 sur 7 faits/.test(screen),
-    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
-  );
-  ok('  → et la charge notée est toujours là', /26 kg/.test(screen));
-  await ctx.close();
-}
-
-// ── Aucun repos là où le coach n'en a prescrit aucun ────────────────────
-{
-  console.log('\n── aucun repos inventé après le dernier exercice');
+  console.log('\n── aucun repos là où le coach n’en a prescrit aucun');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   // Le chipper de la séance 3 ne prescrit aucun repos entre ses
   // mouvements.
   await start(p, 'sess3');
-  await p
-    .getByRole('button', {
-      name: /^(Fait|Série faite|Palier fait)$/,
-    })
-    .click();
-  await p.waitForTimeout(600);
+  await press(p, 'Fait');
   ok(
-    "un bloc sans repos prescrit n'affiche aucune bande",
-    (await p.getByRole('button', { name: 'Passer', exact: true }).count()) === 0
+    "un bloc sans repos prescrit n'affiche aucune carte de repos",
+    (await p.locator(CARD).count()) === 0 &&
+      (await p.locator('[data-set-hero]').count()) === 1
   );
   await ctx.close();
 }

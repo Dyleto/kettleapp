@@ -186,13 +186,19 @@ const goToEmom = async (p) => {
     })
     .click();
   await p.waitForTimeout(2200);
-  const r = await clock(p);
+  // Le repos est une carte qui annonce ses secondes, et non plus une
+  // horloge à bouton : on lit ce qu'elle annonce.
+  const label = await p
+    .locator('[data-rest]')
+    .getAttribute('aria-label', { timeout: 1000 })
+    .catch(() => null);
+  const seconds = Number(label?.match(/(\d+) secondes/)?.[1] ?? NaN);
+  ok('le décompte du repos est là dès la série cochée', label !== null, label);
   ok(
-    "le décompte du repos tourne dès qu'il apparaît",
-    /^Mettre en pause/.test(r.name ?? ''),
-    r.name
+    '  → et il tourne sans qu’on le lance',
+    seconds >= 50 && seconds <= 58,
+    `${seconds} s sur 60, deux secondes après`
   );
-  ok('  → et il a bien démarré', /5[0-9] s restant/.test(r.name ?? ''), r.name);
   await ctx.close();
 }
 

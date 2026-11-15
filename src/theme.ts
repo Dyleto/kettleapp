@@ -271,8 +271,14 @@ const customConfig = defineConfig({
     'h1, h2, h3, h4': {
       fontFamily: 'heading',
     },
-    'input, textarea, select': {
-      fontSize: '16px !important', // Empêche le zoom auto sur iOS
+    // iOS zoome sur tout champ écrit sous 16 px : on les y ramène tous. Sauf
+    // ceux qui affichent un grand nombre — la charge d'une série, en 42 px —
+    // et qui ne risquent pas le zoom. Il faut les exclure ici : cette règle
+    // vit dans une couche, et un `!important` en couche l'emporte sur tout
+    // `!important` posé hors couche, y compris sur l'élément lui-même.
+    // Mesuré : la charge s'affichait en 16 px malgré son propre 42 px.
+    'input:not([data-big-number]), textarea, select': {
+      fontSize: '16px !important',
     },
   },
 });
