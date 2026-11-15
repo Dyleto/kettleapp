@@ -174,6 +174,24 @@ export const BlockConfigInline = ({
               clearable
             />
           </HStack>
+          {/* La limite, réglée comme sur un chipper. L'échelle avec un
+              chrono et sa limite est le format que le terrain a demandé :
+              la séance guidée en tire un compte à rebours, et le bilan le
+              palier atteint et le temps. Vide, l'échelle reste une suite
+              de paliers à cocher, sans chrono. */}
+          <HStack gap={1} flexShrink={0}>
+            <InlineValue
+              value={block.durationMinutes}
+              onChange={(v) => onUpdate({ durationMinutes: v })}
+              suffix="min"
+              format={inMinutes}
+              emptyLabel="sans limite"
+              ariaLabel="Limite de temps en minutes"
+              min={1}
+              clearable
+            />
+            {block.durationMinutes !== undefined && <Sep>max</Sep>}
+          </HStack>
         </Flex>
       );
   }

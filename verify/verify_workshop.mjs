@@ -165,6 +165,39 @@ const main = async () => {
     `le serveur porte « ${final[0]?.name} »`
   );
 
+  // ── Une limite de temps sur l'échelle ───────────────────────────────────
+  //
+  // L'échelle se court contre la montre quand le coach le veut : la limite
+  // se règle dans l'en-tête du bloc, comme sur un chipper, et c'est elle
+  // que la séance guidée décompte.
+  await p.goto(`${BASE}/coach/clients/${CLIENT}/s/5`, {
+    waitUntil: 'domcontentloaded',
+  });
+  const limit = p.getByRole('button', { name: 'Limite de temps en minutes' });
+  await limit.waitFor({ timeout: 6000 }).catch(() => {});
+  ok(
+    "l'en-tête de l'échelle propose une limite, vide d'abord",
+    (await limit.count()) === 1 &&
+      clean(await limit.textContent()) === 'sans limite',
+    (await limit.count()) ? clean(await limit.textContent()) : '(absente)'
+  );
+  if (await limit.count()) {
+    await limit.click();
+    const field = p.getByRole('textbox', {
+      name: 'Limite de temps en minutes',
+    });
+    await field.fill('12');
+    await field.press('Enter');
+  }
+  await awaitSaved(p);
+  await p.waitForTimeout(600);
+  const ladder = (await serverSessions()).find((s) => s.order === 5)?.blocks[0];
+  ok(
+    '  → douze minutes, enregistrées sur le bloc',
+    ladder?.durationMinutes === 12,
+    `durationMinutes = ${ladder?.durationMinutes}`
+  );
+
   await browser.close();
   process.exit(failureCount() > 0 ? 1 : 0);
 };

@@ -152,6 +152,18 @@ describe('blockMarker', () => {
     ).toBe('3 mouvements · 20 min');
   });
 
+  it('ajoute sa limite à une échelle bornée', () => {
+    expect(
+      blockMarker(
+        makeBlock({
+          type: 'ladder',
+          repsScheme: [2, 4, 6, 8, 6, 4, 2],
+          durationMinutes: 12,
+        })
+      )
+    ).toBe('7 paliers · 12 min');
+  });
+
   it('s’accorde au singulier', () => {
     expect(blockMarker(makeBlock({ type: 'emom', rounds: 1 }))).toBe(
       '1 tour · 1 min'
