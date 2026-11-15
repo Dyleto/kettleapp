@@ -2,7 +2,6 @@ import { useCountdown } from '../../useCountdown';
 import { Box, HStack, Text } from '@chakra-ui/react';
 import { formatCountdown } from '@/shared/utils/formatters';
 import { useEffect, useState } from 'react';
-import { LuTimer } from 'react-icons/lu';
 import { playCue } from '../../sound';
 import { useScenePaused } from '../../guided/PauseContext';
 
@@ -178,70 +177,6 @@ export const Timer = ({
           {holdLabel}
         </Text>
       ) : null}
-    </Box>
-  );
-};
-
-/**
- * Un décompte proposé plutôt qu'imposé.
- *
- * Le déroulé page à page donnait un chronomètre plein écran à chaque série
- * chronométrée et à chaque repos. C'est cette mise en scène que le retour du
- * terrain refusait — « pas 7 reps back squat, puis 120 s de repos, puis 6
- * reps » — pas le chronomètre lui-même, qui était utile. Le retirer avec
- * l'écran jetterait la chose utile avec sa mauvaise présentation.
- *
- * Il vit donc sous la ligne qui le prescrit : « 2 min » pour le travail,
- * « 45 s de repos » pour ce qui suit. On le lance en y arrivant, et il
- * redevient un bouton une fois fini — parce qu'il reste trois séries.
- */
-export const OnDemandTimer = ({
-  duration,
-  label,
-  color,
-}: {
-  duration: number;
-  label: string;
-  color: string;
-}) => {
-  const [isCurrent, setIsCurrent] = useState(false);
-
-  if (isCurrent)
-    return (
-      <Box pl={4} py={1}>
-        <Timer
-          duration={duration}
-          color={color}
-          onComplete={() => {
-            // Personne ne regarde l'écran à ce moment-là : on le dit au
-            // poignet. `Timer` ne le fait lui-même que sans `onComplete`.
-            navigator.vibrate?.([120, 80, 120]);
-            setIsCurrent(false);
-          }}
-          compact
-        />
-      </Box>
-    );
-
-  return (
-    <Box pl={4}>
-      <Box
-        as="button"
-        onClick={() => setIsCurrent(true)}
-        aria-label={`Lancer le décompte — ${label}`}
-        minH="44px"
-        display="flex"
-        alignItems="center"
-        fontSize="xs"
-        color={color}
-        fontWeight="bold"
-        _hover={{ opacity: 0.8 }}
-      >
-        <HStack gap={1.5}>
-          <LuTimer size={13} />
-          <Text as="span">{label}</Text>
-        </HStack>
-      </Box>
     </Box>
   );
 };

@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuChevronLeft, LuChevronRight, LuInfo, LuPlay } from 'react-icons/lu';
+import { LuChevronLeft, LuChevronRight, LuPlay } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
 import { ActionButton } from '@/shared/components/ActionButton';
-import { formatCountdown } from '@/shared/utils/duration';
 import { blockSupportsRepsOnly } from '@/features/program/constants';
 import type { GuidedStep } from '../../guidedSteps';
 import type { LastPerformance } from '../../lastPerformance';
 import { playCue } from '../../sound';
 import { useSoundSetting } from '../../useSoundSetting';
 import { useScenePaused } from '../../guided/PauseContext';
+import { useBlockClock } from '../../guided/useBlockClock';
 import {
   clockFace,
   readClock,
@@ -18,10 +18,10 @@ import {
   type TimedPlan,
 } from '../../guided/clock';
 import { blockTitle } from '../../guided/outline';
-import { formatWeight, heaviest } from '../../guided/load';
 import { LANDSCAPE } from '../guided/media';
 import { Countdown } from './Countdown';
 import { Dots } from './Dots';
+import { ExerciseLines } from './ExerciseLines';
 import { Ring } from './Ring';
 
 type RoundStep = Extract<GuidedStep, { type: 'round' }>;
@@ -74,15 +74,6 @@ const AMBER = 'var(--chakra-colors-app-primary)';
 const plural = (n: number, word: string) =>
   `${n}\u00A0${word}${n > 1 ? 's' : ''}`;
 
-/** La dose d'une ligne, sans unité quand ce sont des répétitions : « 15 ». */
-const lineDose = (exercise: BlockExercise): string => {
-  if (exercise.reps) return String(exercise.reps);
-  if (exercise.duration) return formatCountdown(exercise.duration);
-  if (exercise.customMetric)
-    return `${exercise.customMetric.value}\u00A0${exercise.customMetric.unit}`;
-  return '';
-};
-
 /**
  * Un bloc mené par l'horloge : EMOM, Every, Tabata, On-Off.
  *
@@ -110,82 +101,49 @@ export const TimedBlock = ({
   const plan = planOf(step);
   const paused = useScenePaused();
   const [sound] = useSoundSetting();
-  const [running, setRunning] = useState(armed);
   const [launching, setLaunching] = useState(false);
   const [reading, setReading] = useState<ClockReading>(() =>
     readClock(plan, roundStart(plan, step.round))
   );
-
-  /** D'où part l'horloge si elle démarre au montage : le tour affiché. */
-  const startOffsetRef = useRef(roundStart(plan, step.round));
-  /** L'instant où le premier tour aurait commencé ; posé au départ. */
-  const originRef = useRef<number | null>(null);
-  /** L'instant où la scène s'est figée, tant qu'elle l'est. */
-  const frozenAtRef = useRef<number | null>(null);
   /** La lecture précédente : les bips naissent de ce qui change. */
   const previousRef = useRef(reading);
 
-  // Le battement. Il lit l'heure et non un compteur : un onglet en
-  // arrière-plan bat une fois par minute, et la lecture suivante doit tout
-  // de même dire le bon tour.
-  const beat = () => {
-    if (originRef.current === null) return;
-    const next = readClock(plan, Date.now() - originRef.current);
-    const previous = previousRef.current;
-    previousRef.current = next;
-    setReading(next);
-    if (next.finished) {
-      playCue('go');
-      navigator.vibrate?.([120, 80, 120]);
-      setRunning(false);
-      onFinish();
-      return;
-    }
-    if (next.round !== previous.round || next.phase !== previous.phase) {
-      playCue('go');
-      navigator.vibrate?.([120, 80, 120]);
-    } else if (next.remaining !== previous.remaining && next.remaining <= 3) {
-      playCue('tick');
-      navigator.vibrate?.(150);
-    }
-    if (next.round !== previous.round) onRound(next.round);
-  };
-  const beatRef = useRef(beat);
-  useEffect(() => {
-    beatRef.current = beat;
+  const clock = useBlockClock({
+    initialOffset: roundStart(plan, step.round),
+    armed,
+    // Le battement. Il relit l'heure : un téléphone resté verrouillé trois
+    // tours retrouve le bon, et la séance avance avec lui.
+    onBeat: (elapsed) => {
+      const next = readClock(plan, elapsed);
+      const previous = previousRef.current;
+      previousRef.current = next;
+      setReading(next);
+      if (next.finished) {
+        playCue('go');
+        navigator.vibrate?.([120, 80, 120]);
+        clock.stop();
+        onFinish();
+        return;
+      }
+      if (next.round !== previous.round || next.phase !== previous.phase) {
+        playCue('go');
+        navigator.vibrate?.([120, 80, 120]);
+      } else if (next.remaining !== previous.remaining && next.remaining <= 3) {
+        playCue('tick');
+        navigator.vibrate?.(150);
+      }
+      if (next.round !== previous.round) onRound(next.round);
+    },
   });
-
-  // L'horloge bat tant qu'elle tourne et que rien ne la fige. Une pause
-  // décale l'origine d'exactement sa durée : elle ne coûte rien au tour, et
-  // ne lui offre rien non plus.
-  const ticking = running && !paused;
-  useEffect(() => {
-    if (!ticking) return;
-    const now = Date.now();
-    if (originRef.current === null) {
-      originRef.current = now - startOffsetRef.current;
-    } else if (frozenAtRef.current !== null) {
-      originRef.current += now - frozenAtRef.current;
-    }
-    frozenAtRef.current = null;
-    const first = setTimeout(() => beatRef.current(), 0);
-    const interval = setInterval(() => beatRef.current(), 250);
-    return () => {
-      clearTimeout(first);
-      clearInterval(interval);
-      frozenAtRef.current = Date.now();
-    };
-  }, [ticking]);
+  const running = clock.running;
 
   const start = () => {
     const offset = roundStart(plan, step.round);
     const first = readClock(plan, offset);
-    originRef.current = Date.now() - offset;
-    frozenAtRef.current = null;
     previousRef.current = first;
     setReading(first);
     setLaunching(false);
-    setRunning(true);
+    clock.start(offset);
     onArm();
   };
 
@@ -199,7 +157,7 @@ export const TimedBlock = ({
     if (target === from) return;
     const offset = roundStart(plan, target);
     const fresh = readClock(plan, offset);
-    if (running) originRef.current = Date.now() - offset;
+    if (running) clock.rebase(offset);
     previousRef.current = fresh;
     setReading(fresh);
     onRound(target);
@@ -630,98 +588,4 @@ const TrackArrow = ({
   >
     {children}
   </Box>
-);
-
-/**
- * Ce qu'il y a à faire dans un tour : la dose en ambre devant le nom.
- *
- * La charge du dernier bilan se lit dessous, pour mémoire — on ne saisit
- * rien pendant un bloc chronométré, les mains sont prises. Avant le départ
- * elle dit d'où elle vient, « la dernière fois 20 kg » ; ensuite le chiffre
- * suffit.
- */
-const ExerciseLines = ({
-  exercises,
-  lastPerformance,
-  running,
-  onOpenDetail,
-}: {
-  exercises: BlockExercise[];
-  lastPerformance?: Map<string, LastPerformance>;
-  running: boolean;
-  onOpenDetail: (exercise: BlockExercise) => void;
-}) => (
-  <VStack
-    align="stretch"
-    gap={3.5}
-    bg="bg.surface"
-    borderRadius="xl"
-    px={4}
-    py={3.5}
-    textAlign="left"
-  >
-    {exercises.map((exercise) => {
-      const dose = lineDose(exercise);
-      const load = heaviest(lastPerformance?.get(exercise.exercise._id)?.sets);
-      const hasDetail =
-        !!exercise.note?.trim() ||
-        !!exercise.exercise.description?.trim() ||
-        !!exercise.exercise.videoUrl?.trim();
-      return (
-        <HStack
-          key={`${exercise.order}-${exercise.exercise._id}`}
-          align="baseline"
-          gap={2.5}
-        >
-          {dose && (
-            <Text
-              fontFamily="heading"
-              fontSize="36px"
-              fontWeight="800"
-              fontStretch="76%"
-              lineHeight="0.9"
-              fontVariantNumeric="tabular-nums"
-              color="app.primary.fg"
-              minW="54px"
-              flexShrink={0}
-            >
-              {dose}
-            </Text>
-          )}
-          <VStack align="start" gap={1} minW={0} flex={1}>
-            {hasDetail ? (
-              <Box
-                as="button"
-                textAlign="left"
-                minH="44px"
-                my="-12px"
-                aria-label={`Voir la consigne — ${exercise.exercise.name}`}
-                onClick={() => onOpenDetail(exercise)}
-              >
-                <HStack gap={1.5}>
-                  <Text fontSize="19px" fontWeight="bold">
-                    {exercise.exercise.name}
-                  </Text>
-                  <Box color="app.primary" flexShrink={0}>
-                    <LuInfo size={15} />
-                  </Box>
-                </HStack>
-              </Box>
-            ) : (
-              <Text fontSize="19px" fontWeight="bold">
-                {exercise.exercise.name}
-              </Text>
-            )}
-            {load !== undefined && (
-              <Text fontSize="sm" color="fg.muted">
-                {running
-                  ? `${formatWeight(load)}\u00A0kg`
-                  : `la dernière fois ${formatWeight(load)}\u00A0kg`}
-              </Text>
-            )}
-          </VStack>
-        </HStack>
-      );
-    })}
-  </VStack>
 );

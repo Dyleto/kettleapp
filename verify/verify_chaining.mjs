@@ -21,6 +21,7 @@ import {
   skipRest,
   advance,
   timerLabel,
+  launchClock,
 } from './common.mjs';
 
 const browser = await launch();
@@ -139,14 +140,18 @@ const record = (p, sess) =>
   const p = await signIn(ctx);
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
-    if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
+    if (await p.getByRole('button', { name: /^Ajouter un tour/ }).count())
+      break;
     await advance(p);
     await skipRest(p);
   }
+  // Le rond ne compte qu'une fois l'horloge lancée : rien ne part sans un
+  // geste, pas plus dans un AMRAP qu'ailleurs.
+  await launchClock(p);
   ok('on atteint la boucle', /— AMRAP$/.test(await where(p)), await where(p));
   const before = await where(p);
   for (let i = 0; i < 4; i++) {
-    await p.getByRole('button', { name: /^\+1 tour$/ }).click();
+    await p.getByRole('button', { name: /^Ajouter un tour/ }).click();
     await p.waitForTimeout(150);
   }
   ok(

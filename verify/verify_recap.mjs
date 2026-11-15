@@ -18,6 +18,7 @@ import {
   finishFromPause,
   passBlock,
   advance,
+  launchClock,
 } from './common.mjs';
 
 const browser = await launch();
@@ -275,11 +276,15 @@ const runSess2 = async (p, goblet, lunges) => {
   const p = await signIn(ctx);
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
-    if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
+    if (await p.getByRole('button', { name: /^Ajouter un tour/ }).count())
+      break;
     await advance(p);
     await skipRest(p);
   }
-  const plus = p.getByRole('button', { name: /^\+1 tour$/ });
+  // Le rond ne compte qu'une fois l'horloge lancée : rien ne part sans un
+  // geste, pas plus dans un AMRAP qu'ailleurs.
+  await launchClock(p);
+  const plus = p.getByRole('button', { name: /^Ajouter un tour/ });
   ok('on atteint la boucle', (await plus.count()) > 0);
   for (let i = 0; i < 6; i++) {
     await plus.click();

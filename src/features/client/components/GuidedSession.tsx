@@ -1,23 +1,16 @@
 import { BlockExercise, PerformedValues, Session } from '@/shared/types';
 import { buildGuidedSteps, type GuidedSet } from '../guidedSteps';
-import { BlockCard } from '@/features/program/components/BlockCard';
-import {
-  blockHasClock,
-  prescribedSetLabels,
-  restBetweenSetsOf,
-} from '@/features/program/constants';
-import { PerformedFields } from './PerformedFields';
+
 import { LastPerformance, performedKey } from '../lastPerformance';
 import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
 import VideoPlayer from '@/shared/components/VideoPlayer';
 import { hitArea } from '@/shared/components/hitArea';
-import { formatDuration } from '@/shared/utils/duration';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuCheck, LuPause, LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
 import { LANDSCAPE } from './guided/media';
-import { Timer, OnDemandTimer } from './guided/Timer';
+import { Timer } from './guided/Timer';
 import { playCue, unlockSound } from '../sound';
 import { SoundToggle } from './SoundToggle';
 import { Opening } from './scene/Opening';
@@ -44,6 +37,7 @@ import { ActionButton } from '@/shared/components/ActionButton';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { TimedBlock } from './scene/TimedBlock';
+import { AmrapBlock } from './scene/AmrapBlock';
 import { BlockList } from './guided/BlockList';
 import { readSavedIndex, writeSavedIndex } from './guided/progress';
 
@@ -240,6 +234,11 @@ export const GuidedSession = ({
    * un EMOM dix minutes plus tard, l'horloge vous attend de nouveau.
    */
   const [armedBlock, setArmedBlock] = useState<number | null>(null);
+
+  /** La ligne du haut, où une scène peut poser une puce — le temps d'un
+   * AMRAP. Un état et non une référence : la scène doit être rendue de
+   * nouveau quand l'emplacement existe. */
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
 
   /**
    * Les tours bouclés, par bloc.
@@ -633,9 +632,10 @@ export const GuidedSession = ({
         onDone={() => {
           setCounting(false);
           // « C'est parti » et ses trois secondes valent le « Lancer » d'un
-          // premier bloc chronométré : un second décompte, juste derrière,
-          // ne ferait que redemander ce qui vient d'être décidé.
-          if (step.type === 'round') setArmedBlock(step.block.order);
+          // premier bloc à horloge — tours chronométrés ou AMRAP : un second
+          // décompte, juste derrière, ne ferait que redemander ce qui vient
+          // d'être décidé.
+          if (step.type === 'round' || isLoop) setArmedBlock(step.block.order);
         }}
       />
     );
@@ -912,6 +912,9 @@ export const GuidedSession = ({
                 {currentTitle}
               </Text>
             </VStack>
+            {/* La place d'une puce que la scène y pose : le temps d'un
+                AMRAP. Vide ailleurs. */}
+            <Box ref={setHeaderSlot} display="contents" />
             {soundToggle}
             {pauseButton}
           </HStack>
@@ -1098,135 +1101,24 @@ export const GuidedSession = ({
               </VStack>
             </VStack>
           ) : step.type === 'block' ? (
-            /*
-             * Un bloc entier, lu d'un coup.
-             *
-             * C'est la carte de la fiche de séance — celle que le client lit
-             * avant de commencer — posée ici sans changement. Un seul rendu pour
-             * les deux écrans : ce qu'il a mémorisé en se préparant, il le
-             * retrouve pendant. Consignes et vidéos s'y déplient déjà, ligne par
-             * ligne, ce que le plein écran ne savait faire que pour le seul
-             * exercice affiché.
-             */
-            <VStack
-              flex={1}
-              align="stretch"
-              gap={5}
-              px={5}
-              py={2}
-              overflowY="auto"
-            >
-              {/* L'horloge d'un bloc chronométré : dans un AMRAP, c'est elle qui
-                dit quand s'arrêter. Plus petite qu'en plein écran — on est
-                venu lire la liste, pas l'horloge. */}
-              {blockHasClock(step.block.type) && step.block.durationMinutes ? (
-                <Timer
-                  key={index}
-                  duration={step.block.durationMinutes * 60}
-                  color="fg"
-                  holdLabel="Temps écoulé"
-                  // Pas le nom du bloc : la carte juste en dessous le porte déjà,
-                  // et l'écran le disait deux fois. Ce qui manquait, c'est ce
-                  // que l'horloge mesure — un AMRAP s'arrête à zéro.
-                  title={
-                    <Text
-                      fontSize="xs"
-                      letterSpacing="2px"
-                      textTransform="uppercase"
-                      fontWeight="800"
-                      color="fg.muted"
-                    >
-                      Temps restant
-                    </Text>
-                  }
-                  compact
-                />
-              ) : null}
-              {/* Le compteur de tours.
-                C'est le score de la séance, et il n'avait aucune place : ni à
-                l'écran ni dans le modèle. Le client le gardait en tête ou sur
-                un carnet. En grand, sous l'horloge, et à côté du bouton qui
-                l'incrémente — on le tape à bout de souffle. */}
-              {step.shape === 'loop' && (
-                <HStack justify="space-between" align="center" gap={4}>
-                  <HStack align="baseline" gap={2}>
-                    <Text
-                      fontSize="54px"
-                      fontWeight="800"
-                      lineHeight="1"
-                      color="app.primary"
-                      fontVariantNumeric="tabular-nums"
-                    >
-                      {rounds[String(step.block.order)] ?? 0}
-                    </Text>
-                    <Text fontSize="sm" color="fg.muted">
-                      tour
-                      {(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
-                      &nbsp;bouclé
-                      {(rounds[String(step.block.order)] ?? 0) > 1 ? 's' : ''}
-                    </Text>
-                  </HStack>
-                  {/* Redescendre doit rester possible — un doigt glisse, et perdre
-                    un tour qu'on a fait est pire que d'en compter un de trop.
-                    Discret : ce n'est pas le geste qu'on répète. */}
-                  {(rounds[String(step.block.order)] ?? 0) > 0 && (
-                    <Box
-                      as="button"
-                      aria-label="Retirer un tour"
-                      onClick={() => countOneRound(step.block.order, -1)}
-                      color="fg.muted"
-                      fontSize="sm"
-                      css={hitArea(44)}
-                      _hover={{ color: 'fg' }}
-                    >
-                      − 1
-                    </Box>
-                  )}
-                </HStack>
-              )}
-              <BlockCard
-                block={step.block}
-                renderExerciseExtra={({ blockOrder, exerciseOrder }) => {
-                  const prescribed = step.block.exercises.find(
-                    (e) => e.order === exerciseOrder
-                  );
-                  if (!prescribed) return null;
-                  const key = performedKey(blockOrder, exerciseOrder);
-                  const rest = restBetweenSetsOf(step.block, prescribed);
-                  return (
-                    <>
-                      {performed && onPerformedChange && (
-                        <PerformedFields
-                          value={performed[key] ?? { sets: [] }}
-                          onChange={(next) => onPerformedChange(key, next)}
-                          setLabels={prescribedSetLabels(
-                            step.block,
-                            prescribed
-                          )}
-                          isTimed={prescribed.duration !== undefined}
-                        />
-                      )}
-                      {/* Le travail chronométré d'abord, le repos ensuite : c'est
-                        l'ordre dans lequel on les vit. */}
-                      {prescribed.duration ? (
-                        <OnDemandTimer
-                          duration={prescribed.duration}
-                          label={formatDuration(prescribed.duration)}
-                          color="app.primary"
-                        />
-                      ) : null}
-                      {rest ? (
-                        <OnDemandTimer
-                          duration={rest}
-                          label={`rest ${formatDuration(rest)}`}
-                          color="session.rest"
-                        />
-                      ) : null}
-                    </>
-                  );
-                }}
-              />
-            </VStack>
+            <AmrapBlock
+              key={step.block.order}
+              step={step}
+              armed={armedBlock === step.block.order}
+              onArm={() => setArmedBlock(step.block.order)}
+              rounds={rounds[String(step.block.order)] ?? 0}
+              onRoundsChange={(next) =>
+                countOneRound(
+                  step.block.order,
+                  next - (rounds[String(step.block.order)] ?? 0)
+                )
+              }
+              onDone={goNext}
+              onPrevious={index > 0 ? goPrev : undefined}
+              headerSlot={headerSlot}
+              lastPerformance={lastPerformance}
+              onOpenDetail={setDetail}
+            />
           ) : step.type === 'round' ? (
             <TimedBlock
               key={step.block.order}
@@ -1433,7 +1325,7 @@ export const GuidedSession = ({
                 )}
               </HStack>
             </VStack>
-          ) : step.type === 'round' ? null : (
+          ) : step.type === 'round' || isLoop ? null : (
             <>
               {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
             touche les mains moites. C'est la marge qui cède, pas le
