@@ -26,6 +26,7 @@ import {
   signIn,
   MOBILE,
   clean,
+  reachFeeling,
 } from './common.mjs';
 
 const ORDER = ['Trop facile', 'Facile', 'Juste', 'Dure', 'Trop dure'];
@@ -82,8 +83,8 @@ const browser = await launch();
   await p.waitForTimeout(1700);
   await press(p, /J'ai terminé cette séance/);
   await p.waitForTimeout(900);
-  await press(p, /Passer au ressenti/);
-  await p.waitForTimeout(900);
+  // Les charges d'abord, sans question : on les franchit.
+  await reachFeeling(p);
 
   const initial = await steps(p);
   ok(

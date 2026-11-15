@@ -313,7 +313,7 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   await p.waitForTimeout(800);
   ok(
     '« Compléter mes charges » ouvre la saisie',
-    /Tes charges/.test(await dialogs(p)),
+    /Mes charges/.test(await dialogs(p)),
     (await dialogs(p)).split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   await p.getByRole('button', { name: 'OK', exact: true }).click();

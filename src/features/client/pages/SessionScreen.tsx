@@ -15,7 +15,6 @@ import {
   CLIENT_CONTENT_MAX_W,
   CompleteSessionModal,
   GuidedSession,
-  RecordPerformed,
   SessionDetail,
   SuggestedDays,
   getSessionSummary,
@@ -36,6 +35,7 @@ import {
 import { buildGuidedSteps } from '@/features/client/guidedSteps';
 import { buildRecap, highlightOf } from '@/features/client/recap';
 import { Celebration } from '@/features/client/components/end/Celebration';
+import { Loads } from '@/features/client/components/end/Loads';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -294,7 +294,7 @@ const SessionScreen = () => {
 
       {/* En lecture, une séance se lit : pas de champ vide sous chaque
           exercice avant même d'avoir commencé. La saisie vient à la fin, dans
-          RecordPerformed — mais ce qu'on a mis la dernière fois s'affiche dès
+          « Mes charges » — mais ce qu'on a mis la dernière fois s'affiche dès
           maintenant, parce que c'est là qu'on en a besoin. */}
       <SessionDetail
         session={activeSession}
@@ -357,7 +357,7 @@ const SessionScreen = () => {
             setIsGuidedOpen(false);
             // L'écran de fin d'abord : la séance vient d'être menée, elle a
             // de quoi être fêtée. La question des charges ne se pose plus —
-            // elle se notent en route, et le reste est un lien.
+            // elles se notent en route, et le reste est un lien.
             setFlow(
               readProgress(activeSession._id)
                 ? 'celebrate'
@@ -387,31 +387,31 @@ const SessionScreen = () => {
         />
       )}
 
-      <RecordPerformed
-        key={flow === 'loads' ? 'loads-open' : 'loads-closed'}
-        session={activeSession}
-        isOpen={flow === 'loads'}
-        startRecording
-        continueLabel="OK"
-        performed={performed}
-        onPerformedChange={handlePerformedChange}
-        lastPerformance={lastPerformance}
-        onCancel={() => setFlow('celebrate')}
-        onContinue={() => setFlow('celebrate')}
-      />
+      {flow === 'loads' && (
+        <Loads
+          session={activeSession}
+          performed={performed}
+          onPerformedChange={handlePerformedChange}
+          lastPerformance={lastPerformance}
+          from="end"
+          onDone={() => setFlow('celebrate')}
+          onBack={() => setFlow('celebrate')}
+        />
+      )}
 
-      {/* Remonté à chaque ouverture : la question repart de zéro plutôt
-          que de rouvrir sur la saisie déjà dépliée. */}
-      <RecordPerformed
-        key={flow === 'record' ? 'record-open' : 'record-closed'}
-        session={activeSession}
-        isOpen={flow === 'record'}
-        performed={performed}
-        onPerformedChange={handlePerformedChange}
-        lastPerformance={lastPerformance}
-        onCancel={() => setFlow('idle')}
-        onContinue={() => setFlow('review')}
-      />
+      {/* Déclarée faite sans le mode guidé : pas d'écran de fête, les
+          charges d'abord, puis le ressenti. */}
+      {flow === 'record' && (
+        <Loads
+          session={activeSession}
+          performed={performed}
+          onPerformedChange={handlePerformedChange}
+          lastPerformance={lastPerformance}
+          from="declared"
+          onDone={() => setFlow('review')}
+          onBack={() => setFlow('idle')}
+        />
+      )}
 
       <CompleteSessionModal
         isOpen={flow === 'review'}
