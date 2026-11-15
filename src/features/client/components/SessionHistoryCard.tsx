@@ -3,7 +3,6 @@ import { CompletedSession } from '@/shared/types';
 import {
   getCompletedSessionBlockTypes,
   getEffortSummary,
-  getRelativeDate,
 } from '@/features/client';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronRight } from 'react-icons/lu';
@@ -16,18 +15,6 @@ interface SessionHistoryCardProps {
   completed: CompletedSession;
   showUnseenIndicator?: boolean;
   /**
-   * `journal` sur l'historique : la date exacte, et le commentaire s'il y en
-   * a un — on est venu lire. `accueil` sur la page du jour : la date en forme
-   * relative, parce qu'on y répond à « c'était quand », et pas de
-   * commentaire, parce qu'on ne fait que passer.
-   *
-   * Le reste ne change pas, et c'est tout l'intérêt : l'accueil dessinait sa
-   * propre carte, sans chevron ni libellé d'action, à côté d'une carte qui en
-   * avait un. Deux cartes voisines qui ne suivent pas la même convention font
-   * de la flèche absente un signe — alors qu'elle ne voulait rien dire.
-   */
-  variant?: 'journal' | 'accueil';
-  /**
    * La carte est lue par le coach, pas par celui qui a fait la séance.
    *
    * L'aperçu d'un client la réutilisait telle quelle, et elle ouvrait donc
@@ -38,29 +25,26 @@ interface SessionHistoryCardProps {
 }
 
 /**
- * Une séance terminée, en carte. Deux variantes, une seule convention.
+ * Une séance terminée, en carte : la date exacte et le commentaire, parce
+ * qu'on est venu lire.
  *
- * `journal` sur l'historique, `accueil` sur la page du jour : ce qui change
- * est ce qui se lit, jamais la forme. L'accueil dessinait autrefois sa propre
- * carte, sans chevron, à côté d'une carte qui en avait un — et la flèche
- * absente devenait un signe alors qu'elle ne voulait rien dire.
+ * Elle avait une variante pour l'accueil, à la date relative et sans
+ * commentaire. L'accueil ne montre plus que la dernière séance, dans sa
+ * propre carte (`LastSessionCard`) qui porte ce que celle-ci ne dit pas —
+ * le coach a-t-il lu ? —, et la variante n'avait plus de lecteur.
  */
 export const SessionHistoryCard = ({
   completed,
   showUnseenIndicator = false,
-  variant = 'journal',
   readOnly = false,
 }: SessionHistoryCardProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const completedDate =
-    variant === 'accueil'
-      ? getRelativeDate(completed.completedAt)
-      : new Intl.DateTimeFormat('fr-FR', {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-        }).format(new Date(completed.completedAt));
+  const completedDate = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(completed.completedAt));
 
   // Un mot que le client et le coach lisent de la même façon, au lieu d'un
   // nombre que ni l'un ni l'autre ne peut interpréter.
@@ -111,7 +95,7 @@ export const SessionHistoryCard = ({
           {completedDate} · {getCompletedSessionBlockTypes(completed)}
         </Text>
 
-        {variant === 'journal' && completed.clientNotes && (
+        {completed.clientNotes && (
           <Text fontSize="xs" color="fg.muted" fontStyle="italic" lineClamp={2}>
             "{completed.clientNotes}"
           </Text>

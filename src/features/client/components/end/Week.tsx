@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuCheck, LuFlame } from 'react-icons/lu';
+import { LuFlame } from 'react-icons/lu';
 import { ActionButton } from '@/shared/components/ActionButton';
-import { WEEKDAY_LETTERS } from '../../sessionDates';
+import { mondayIndex, startOfWeek, WEEKDAY_LETTERS } from '../../sessionDates';
+import { WeekBubbles } from '../WeekBubbles';
 import { countWord } from '../../weekRing';
 import { Ring } from '../scene/Ring';
 
@@ -52,6 +53,11 @@ export const Week = ({
     return () => cancelAnimationFrame(frame);
   }, [after, target]);
 
+  // La semaine qu'on affiche est celle d'aujourd'hui, même quand la séance
+  // envoyée est datée d'un autre jour de la semaine.
+  const now = new Date();
+  const monday = startOfWeek(now);
+  const todayIndex = mondayIndex(now);
   const full = target > 0 && after >= target;
   const title =
     target === 0 || after > target
@@ -118,41 +124,23 @@ export const Week = ({
           </VStack>
         </HStack>
 
-        <HStack
-          justify="space-between"
-          bg="bg.surface"
-          borderRadius="xl"
-          px={4}
-          py={3.5}
-          aria-hidden
-        >
-          {WEEKDAY_LETTERS.map((letter, day) => {
-            const done = doneDays.has(day);
-            const planned = plannedDays.has(day);
-            return (
-              <VStack key={day} gap={2}>
-                <Text fontSize="xs" color="fg.muted" fontWeight="bold">
-                  {letter}
-                </Text>
-                <Box
-                  w="28px"
-                  h="28px"
-                  borderRadius="full"
-                  display="grid"
-                  placeItems="center"
-                  bg={done ? 'session.rest' : 'transparent'}
-                  color="bg.canvas"
-                  borderWidth={done ? 0 : '1.5px'}
-                  borderStyle={planned ? 'solid' : 'dashed'}
-                  borderColor={planned ? 'app.primary.border' : 'line'}
-                  data-day={done ? 'done' : planned ? 'planned' : 'free'}
-                >
-                  {done && <LuCheck size={16} strokeWidth={3} />}
-                </Box>
-              </VStack>
-            );
-          })}
-        </HStack>
+        <Box bg="bg.surface" borderRadius="20px" px={4} py="14px" aria-hidden>
+          <WeekBubbles
+            days={WEEKDAY_LETTERS.map((_, day) => ({
+              date: new Date(
+                monday.getFullYear(),
+                monday.getMonth(),
+                monday.getDate() + day
+              ),
+              state: doneDays.has(day)
+                ? 'done'
+                : plannedDays.has(day)
+                  ? 'planned'
+                  : 'free',
+              today: day === todayIndex,
+            }))}
+          />
+        </Box>
 
         {streak >= 2 && (
           <HStack

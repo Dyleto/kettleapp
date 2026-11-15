@@ -1,231 +1,288 @@
 import { useOutletContext, useNavigate } from 'react-router';
-import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useMemo, useState } from 'react';
-import { useAuth } from '@/shared/contexts/useAuth';
-import { CompletedSession, Session } from '@/shared/types';
-import {
-  CLIENT_CONTENT_MAX_W,
-  CompletedSessionDrawer,
-  getSessionBlockTypes,
-  getSessionSummary,
-  SessionHistoryCard,
-  useClientSessions,
-  WeekStrip,
-} from '@/features/client';
-import { buildWeekPlan } from '@/features/client/weekPlan';
-import { mondayIndex } from '@/features/client/sessionDates';
+import { useState } from 'react';
 import {
   Box,
   Container,
+  Grid,
   HStack,
   Skeleton,
   Text,
+  VisuallyHidden,
   VStack,
 } from '@chakra-ui/react';
-import { LuArrowRight } from 'react-icons/lu';
+import { LuFlame } from 'react-icons/lu';
+import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import { useAuth } from '@/shared/contexts/useAuth';
+import type { CompletedSession, Session } from '@/shared/types';
+import {
+  CLIENT_CONTENT_MAX_W,
+  CLIENT_GRID_MAX_W,
+  CompletedSessionDrawer,
+  useClientSessions,
+} from '@/features/client';
+import { buildWeekPlan } from '@/features/client/weekPlan';
+import { dayKey, WEEKDAY_FULL } from '@/features/client/sessionDates';
+import { doneInWeek, weekStreak, weekTarget } from '@/features/client/weekRing';
+import { homeFocus, weekWords } from '@/features/client/home';
+import {
+  estimatedMinutes,
+  openingTitle,
+} from '@/features/client/guided/outline';
+import { getBlockLabel } from '@/features/program/constants';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { sessionTitle } from '@/features/program/sessionTitle';
+import { Mascot } from '@/shared/components/Mascot';
+import { hitArea } from '@/shared/components/hitArea';
+import type { WeekBubble } from '@/features/client/components/WeekBubbles';
+import { WeekCard } from '@/features/client/components/home/WeekCard';
+import {
+  HeroCard,
+  HomeChip,
+} from '@/features/client/components/home/HomeCards';
+import {
+  FullCard,
+  HowItWorks,
+  RestCard,
+} from '@/features/client/components/home/DayCards';
+import { LastSessionCard } from '@/features/client/components/home/LastSessionCard';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
+/** Les formats d'une séance, sans doublon, dans l'ordre des blocs. */
+const formats = (session: Session): string[] => [
+  ...new Set(
+    [...session.blocks]
+      .sort((a, b) => a.order - b.order)
+      .map((block) => getBlockLabel(block.type))
+  ),
+];
+
+const startable = (session: Session) =>
+  session.blocks.some((block) => block.exercises.length > 0);
+
+const capitalized = (text: string) =>
+  text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * L'accueil du client : une seule question, « qu'est-ce que je fais
+ * maintenant ? ».
+ *
+ * Une séance à démarrer ou à reprendre, la semaine en un anneau, et la
+ * dernière séance. Tout le reste — l'historique, les records, le
+ * calendrier — est dans Progrès ; l'accueil en montrait trois cartes, qui
+ * repoussaient la séance du jour sous le pli.
+ */
 const Today = () => {
   useDocumentTitle('Aujourd’hui');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { sessions, nextSession, history, isLoading } =
     useOutletContext<ClientSessionsData>();
+  const [opened, setOpened] = useState<CompletedSession | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const totalCount = sessions.length;
-  const recentSessions = history.slice(0, 3);
-
-  // La semaine ne vit nulle part en base : on la recompose à chaque rendu
-  // depuis le programme et l'historique déjà chargés.
-  const weekDays = useMemo(
-    () => buildWeekPlan(sessions, history),
-    [sessions, history]
-  );
-
-  // « La prochaine » devient « Aujourd'hui » quand c'est le jour que le
-  // coach a conseillé pour cette séance : la même carte, une raison de plus.
-  const isSuggestedToday =
-    !!nextSession &&
-    (nextSession.suggestedDays ?? []).includes(mondayIndex(new Date()));
-
-  const [selectedCompleted, setSelectedCompleted] =
-    useState<CompletedSession | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const openDrawer = (completed: CompletedSession) => {
-    setSelectedCompleted(completed);
-    setIsDrawerOpen(true);
+  const openCompleted = (completed: CompletedSession) => {
+    setOpened(completed);
+    setDrawerOpen(true);
   };
-
-  const openSession = (session: Session) => {
+  const openSheet = (session: Session) =>
     navigate(CLIENT_ROUTES.sessionById(session._id));
-  };
+  // Démarrer depuis l'accueil ouvre la séance guidée sur son écran
+  // d'ouverture : la fiche est là-dessous, et la refermer y ramène.
+  const startGuided = (session: Session) =>
+    navigate(CLIENT_ROUTES.sessionById(session._id), {
+      state: { guided: 'start' },
+    });
+
+  // Le prénom seul, jamais l'adresse : un compte créé par Google peut ne pas
+  // en avoir, et « Salut corentin.lm@… » se lirait comme une erreur.
+  const firstName = user?.firstName?.trim();
+  const greeting = firstName ? `Salut ${firstName}` : 'Salut';
 
   if (isLoading) {
     return (
-      <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
-        <VStack align="stretch" gap={6}>
-          <Skeleton h="24px" w="160px" borderRadius="md" />
-          <Skeleton h="140px" borderRadius="xl" />
+      <Container maxW={CLIENT_CONTENT_MAX_W} py={6} px={4}>
+        <VStack align="stretch" gap={4} aria-busy="true">
+          <HStack gap={3}>
+            <Skeleton w="38px" h="38px" borderRadius="full" />
+            <Skeleton w="170px" h="26px" borderRadius="md" />
+          </HStack>
+          <Skeleton h="184px" borderRadius="card" />
+          <Skeleton h="300px" borderRadius="card" />
+          <Skeleton h="120px" borderRadius="card" />
         </VStack>
       </Container>
     );
   }
 
-  return (
-    <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
-      <VStack gap={6} align="stretch">
-        {/* Le titre nomme l'écran, pas celui qui le regarde. « Bonjour
-            Corentin » en `h1` faisait que la navigation par titres — le
-            premier outil d'exploration d'un lecteur d'écran — annonçait une
-            salutation là où elle doit annoncer un lieu. La salutation reste,
-            en texte simple, au-dessus. */}
-        <VStack align="start" gap={0}>
-          <Text fontSize="sm" color="fg.muted">
-            Bonjour {user?.firstName},
-          </Text>
-          <Text as="h1" fontSize="xl" fontWeight="bold">
-            Aujourd&rsquo;hui
-          </Text>
-        </VStack>
+  const target = weekTarget(sessions);
+  const streak = weekStreak(history, target);
 
-        {/* Où en est la semaine, avant ce qu'il reste à faire : c'est le
-            contexte dans lequel la séance du jour se lit. */}
-        {(history.length > 0 ||
-          weekDays.some((d) => d.suggested.length > 0)) && (
-          <WeekStrip
-            days={weekDays}
-            onOpenCompleted={openDrawer}
-            onOpenSession={openSession}
-          />
-        )}
+  const header = (
+    <HStack gap={3}>
+      <VisuallyHidden as="h1">Aujourd&rsquo;hui</VisuallyHidden>
+      <Mascot mood="hello" size={38} />
+      <Text fontSize="26px" fontWeight="800" lineHeight="1.1">
+        {greeting}
+      </Text>
+      {streak >= 2 && (
+        <Box
+          as="button"
+          ml="auto"
+          borderRadius="full"
+          css={hitArea()}
+          aria-label={`${streak} semaines d’affilée — voir tes progrès`}
+          onClick={() => navigate(CLIENT_ROUTES.history)}
+        >
+          <HomeChip tone="amber">
+            <LuFlame size={14} aria-hidden />
+            {streak}&nbsp;sem.
+          </HomeChip>
+        </Box>
+      )}
+    </HStack>
+  );
 
-        {totalCount === 0 ? (
+  if (sessions.length === 0 || !nextSession) {
+    return (
+      <Container maxW={CLIENT_CONTENT_MAX_W} py={6} px={4}>
+        <VStack align="stretch" gap={6}>
+          {header}
           <EmptyState
             mood="sleep"
             title="Ton programme arrive"
             line="Ton coach prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici."
           />
-        ) : (
-          nextSession && (
-            <VStack align="stretch" gap={2}>
-              <Text
-                fontSize="xs"
-                fontWeight="bold"
-                color="fg.muted"
-                textTransform="uppercase"
-                letterSpacing="wider"
-              >
-                {/* « À FAIRE MAINTENANT » était un ordre, et un ordre que
-                    Kettle n'est pas en position de donner : le programme est
-                    un cycle, cette carte pointe donc toujours quelque chose —
-                    y compris un dimanche à 23 h, y compris juste après une
-                    séance qu'on vient de terminer. « La prochaine » dit où
-                    l'on en est du programme, ce qui est vrai à toute heure.
+        </VStack>
+      </Container>
+    );
+  }
 
-                    Le jour conseillé, l'application sait quelque chose de
-                    plus, et c'est seulement là qu'elle se permet de parler de
-                    moment. */}
-                {isSuggestedToday ? "Aujourd'hui" : 'La prochaine'}
-              </Text>
-              {/* La carte est le bouton. Les gens cliquent instinctivement la
-                  séance elle-même ; garder un bouton à côté qui mène au même
-                  endroit ajoutait une cible sans ajouter un choix. */}
-              <Box
-                as="button"
-                w="full"
-                textAlign="left"
-                p={4}
-                borderRadius="xl"
-                borderWidth="1px"
-                borderColor="app.primary"
-                bg="whiteAlpha.50"
-                aria-label={`Voir la séance ${nextSession.order}`}
-                onClick={() =>
-                  navigate(CLIENT_ROUTES.sessionById(nextSession._id))
-                }
-                _hover={{ bg: 'app.primary/12' }}
-                transition="background-color 0.15s"
-              >
-                <VStack align="stretch" gap={1.5}>
-                  <HStack justify="space-between" align="center">
-                    <Text fontWeight="bold" fontSize="sm">
-                      {sessionTitle(nextSession.order, nextSession.name)}
-                    </Text>
-                    {/* La pastille n'apparaît que le jour conseillé. Le reste
-                        du temps elle disait « À faire » à quarante pixels d'un
-                        libellé qui disait « À faire maintenant » : le même mot
-                        deux fois, dont aucun n'apprenait rien. « Conseillée »
-                        ajoute le coach à la lecture. */}
-                    {isSuggestedToday && (
-                      <Box
-                        px={2}
-                        py={0.5}
-                        borderRadius="full"
-                        bg="app.primary/16"
-                        fontSize="xs"
-                        fontWeight="bold"
-                        color="app.primary"
-                        textTransform="uppercase"
-                        letterSpacing="wider"
-                      >
-                        Conseillée
-                      </Box>
-                    )}
-                  </HStack>
-                  <Text fontSize="xs" color="fg.muted">
-                    {getSessionSummary(nextSession)}
-                  </Text>
-                  <Text fontSize="xs" color="fg.muted">
-                    {getSessionBlockTypes(nextSession)}
-                  </Text>
-                  <HStack gap={1.5} color="app.primary" pt={1}>
-                    <Text fontSize="xs" fontWeight="bold">
-                      Voir la séance
-                    </Text>
-                    <LuArrowRight size={13} />
-                  </HStack>
-                </VStack>
-              </Box>
-            </VStack>
-          )
-        )}
+  const today = dayKey(new Date());
+  const words = weekWords({ sessions, history, streak });
+  const days: WeekBubble[] = buildWeekPlan(sessions, history).map((day) => {
+    const name = `${capitalized(WEEKDAY_FULL[day.index])} ${day.date.getDate()}`;
+    const done = day.done[0];
+    const planned = day.suggested[0];
+    return {
+      date: day.date,
+      state: done ? 'done' : planned ? 'planned' : 'free',
+      today: day.key === today,
+      ...(done
+        ? {
+            label: `${name} — faite : ${openingTitle({ order: done.sessionOrder, name: done.sessionName })}`,
+            onOpen: () => openCompleted(done),
+          }
+        : planned
+          ? {
+              label: `${name} — conseillée : ${openingTitle(planned)}`,
+              onOpen: () => openSheet(planned),
+            }
+          : {}),
+    };
+  });
 
-        {recentSessions.length > 0 && (
-          <VStack align="stretch" gap={2}>
-            <Text
-              fontSize="xs"
-              fontWeight="bold"
-              color="fg.muted"
-              textTransform="uppercase"
-              letterSpacing="wider"
-            >
-              Séances récentes
-            </Text>
-            <VStack align="stretch" gap={2}>
-              {/* La même carte que le journal, dans sa variante accueil : une
-                  seule définition, donc une seule convention. */}
-              {recentSessions.map((completed) => (
-                <SessionHistoryCard
-                  key={completed._id}
-                  completed={completed}
-                  variant="accueil"
-                />
-              ))}
-            </VStack>
+  const focus = homeFocus(sessions, history, nextSession);
+  const last = history[0];
+
+  const hero = (session: Session, eyebrow: string) => (
+    <HeroCard
+      eyebrow={eyebrow}
+      title={openingTitle(session)}
+      chips={
+        startable(session)
+          ? [`≈ ${estimatedMinutes(session)} min`, ...formats(session)]
+          : formats(session)
+      }
+      note={session.notes?.trim() || undefined}
+      cta={startable(session) ? 'Démarrer' : 'Voir la séance'}
+      onCta={() =>
+        startable(session) ? startGuided(session) : openSheet(session)
+      }
+      link={startable(session) ? 'Voir le détail de la séance' : undefined}
+      onLink={() => openSheet(session)}
+    />
+  );
+
+  const main =
+    focus.kind === 'full' ? (
+      <FullCard onMore={() => navigate(CLIENT_ROUTES.program)} />
+    ) : focus.kind === 'rest' ? (
+      <RestCard
+        doneToday={focus.doneToday}
+        day={WEEKDAY_FULL[focus.day]}
+        name={openingTitle(focus.session)}
+        detail={[
+          startable(focus.session)
+            ? `≈ ${estimatedMinutes(focus.session)} min`
+            : '',
+          formats(focus.session).join(', '),
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+        onOpen={() => openSheet(focus.session)}
+      />
+    ) : (
+      hero(
+        focus.session,
+        focus.kind === 'first'
+          ? 'Ta première séance'
+          : focus.kind === 'today'
+            ? 'À faire aujourd’hui'
+            : 'La prochaine'
+      )
+    );
+
+  return (
+    <Container
+      maxW={{ base: CLIENT_CONTENT_MAX_W, lg: CLIENT_GRID_MAX_W }}
+      py={6}
+      px={4}
+    >
+      <VStack align="stretch" gap={4}>
+        {header}
+        {/* Au téléphone, la semaine d'abord : c'est le contexte dans lequel
+            la séance du jour se lit. Sur grand écran, ce qu'il y a à faire
+            à gauche, où l'on en est à droite. */}
+        <Grid
+          gap={4}
+          templateColumns={{ base: '1fr', lg: '1.25fr 1fr' }}
+          templateAreas={
+            last
+              ? { base: '"week" "main" "last"', lg: '"main week" "main last"' }
+              : { base: '"week" "main"', lg: '"main week"' }
+          }
+          alignItems="start"
+        >
+          <Box gridArea="week">
+            <WeekCard
+              done={doneInWeek(history)}
+              target={target}
+              title={words.title}
+              line={words.line}
+              days={days}
+            />
+          </Box>
+          <VStack gridArea="main" align="stretch" gap={4}>
+            {main}
+            {focus.kind === 'first' && <HowItWorks />}
           </VStack>
-        )}
+          {last && (
+            <Box gridArea="last">
+              <LastSessionCard
+                completed={last}
+                onOpen={() => openCompleted(last)}
+              />
+            </Box>
+          )}
+        </Grid>
       </VStack>
 
-      {selectedCompleted && (
+      {opened && (
         <CompletedSessionDrawer
-          completed={selectedCompleted}
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
+          completed={opened}
+          isOpen={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
           editable
         />
       )}

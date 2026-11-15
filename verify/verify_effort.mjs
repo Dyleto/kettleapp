@@ -158,16 +158,15 @@ const browser = await launch();
   );
 
   // Le même bilan, relu : le mot affiché doit être celui qu'on a touché. On
-  // lit la carte de la séance 2 et elle seule — le décor porte déjà une
-  // séance 1 « Trop dure », qui ferait passer l'assertion sans rien prouver.
+  // lit la dernière séance, et seulement si c'est la séance 2 — le décor
+  // porte déjà une séance 1 « Trop dure », qui ferait passer l'assertion
+  // sans rien prouver.
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1700);
   const card = clean(
     await p
-      .getByRole('button')
-      .filter({ hasText: /Séance 2/ })
-      .filter({ hasText: /Voir le détail/ })
-      .first()
+      .getByRole('region', { name: 'Ta dernière séance' })
+      .filter({ hasText: /Haut du corps/ })
       .innerText({ timeout: 3000 })
       .catch(() => '')
   );

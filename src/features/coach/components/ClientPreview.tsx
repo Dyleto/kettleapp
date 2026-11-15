@@ -101,7 +101,6 @@ export const ClientPreview = ({ client }: ClientPreviewProps) => {
               <SessionHistoryCard
                 key={completed._id}
                 completed={completed}
-                variant="journal"
                 readOnly
               />
             ))}

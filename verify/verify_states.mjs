@@ -52,6 +52,20 @@ const WAITING = 'Ton programme arrive';
 const screen = (p) => p.evaluate(() => document.body.innerText).then(clean);
 
 /**
+ * Le programme est affiché : la carte de la semaine est là.
+ *
+ * Pas un texte de la séance mise en avant — il change avec le jour où le
+ * banc tourne (« Démarrer » un jeudi, « La faire aujourd'hui » un mardi).
+ * La semaine, elle, s'affiche tous les jours dès qu'il y a un programme.
+ */
+const programShown = (p, timeout = 6000) =>
+  p
+    .getByRole('region', { name: 'Ta semaine' })
+    .waitFor({ timeout })
+    .then(() => true)
+    .catch(() => false);
+
+/**
  * Attend qu'un texte paraisse, et dit s'il est venu.
  *
  * On attend le texte plutôt qu'une durée fixe : une panne met sept secondes
@@ -180,10 +194,7 @@ const browser = await launch();
   await p.waitForTimeout(400);
   await ctx.unroute(PROGRAM, cut);
   await press(p, 'Réessayer');
-  ok(
-    '« Réessayer » ramène le programme',
-    await appears(p, 'Voir la séance', 6000)
-  );
+  ok('« Réessayer » ramène le programme', await programShown(p));
   ok('  → et la panne disparaît', !(await screen(p)).includes(DOWN));
 
   // La fiche d'une séance, ouverte par son adresse pendant une panne : le
@@ -248,7 +259,8 @@ const browser = await launch();
   ok("l'accueil dit la panne", await appears(p, DOWN));
   ok(
     '  → et ne désigne aucune séance',
-    !(await screen(p)).includes('Voir la séance')
+    (await p.getByRole('region', { name: 'Ta semaine' }).count()) === 0 &&
+      (await p.getByRole('button', { name: 'Démarrer' }).count()) === 0
   );
   await ctx.close();
 }
@@ -273,7 +285,7 @@ const browser = await launch();
   await p.evaluate(() => window.dispatchEvent(new Event('online')));
   ok(
     'le programme revient avec le réseau, sans rien presser',
-    await appears(p, 'Voir la séance', 6000)
+    await programShown(p)
   );
 
   await ctx.close();

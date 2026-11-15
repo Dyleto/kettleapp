@@ -1,6 +1,6 @@
-import { useOutletContext, useNavigate } from 'react-router';
+import { useLocation, useOutletContext, useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -103,7 +103,20 @@ const SessionScreen = () => {
     lastPerformance,
     history,
   } = useOutletContext<ClientSessionsData>();
-  const [isGuidedOpen, setIsGuidedOpen] = useState(false);
+  const location = useLocation();
+  // « Démarrer » sur l'accueil arrive ici avec `guided: 'start'` : la séance
+  // guidée s'ouvre d'emblée, sur son écran d'ouverture, et la fiche attend
+  // dessous. Une touche au lieu de trois avant le premier exercice.
+  const [isGuidedOpen, setIsGuidedOpen] = useState(
+    () => (location.state as { guided?: string } | null)?.guided === 'start'
+  );
+  // La demande est lue une fois puis effacée de l'historique : revenir sur
+  // la fiche par « Précédent », ou la recharger, ne doit pas relancer la
+  // séance.
+  useEffect(() => {
+    if ((location.state as { guided?: string } | null)?.guided)
+      navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
   useDocumentTitle(activeSession ? `Séance ${activeSession.order}` : undefined);
 
   // Terminer une séance se fait en deux temps : « veux-tu noter tes
