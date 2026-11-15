@@ -7,7 +7,18 @@
  * 2026. Le programme du décor conseille la séance 1 le lundi et le jeudi,
  * la séance 2 le samedi — trois séances par semaine.
  */
-import { BASE, launch, MOBILE, ok, failureCount, clean } from './common.mjs';
+import {
+  BASE,
+  launch,
+  MOBILE,
+  ok,
+  failureCount,
+  clean,
+  passBlock,
+  skipCountdown,
+  skipRest,
+  where,
+} from './common.mjs';
 
 const API = 'http://localhost:3001';
 const browser = await launch();
@@ -309,6 +320,138 @@ const lines = (text) =>
   ok(
     '  → avec le mot du coach',
     /Focus qualité de mouvement/.test(h.next ?? '')
+  );
+  await ctx.close();
+}
+
+{
+  console.log(
+    '\n── une séance commencée sur ce téléphone : la reprendre d’ici'
+  );
+  const { ctx, p } = await openHome(14);
+  // La séance 2, menée pour de vrai : le Tabata passé, deux séries du
+  // renfo cochées, puis on revient à l'accueil sans finir.
+  await p.goto(`${BASE}/client/session/sess2`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await p.waitForTimeout(1500);
+  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.waitForTimeout(800);
+  await p.getByRole('button', { name: /C'est parti/ }).click();
+  await p.waitForTimeout(300);
+  await skipCountdown(p);
+  await passBlock(p);
+  for (let i = 0; i < 2; i++) {
+    await p
+      .getByRole('button', { name: /^(Fait|Série faite)$/ })
+      .click({ timeout: 3000 })
+      .catch(() => {});
+    await p.waitForTimeout(250);
+    await skipRest(p);
+  }
+  await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
+  await p
+    .getByRole('region', { name: 'En cours' })
+    .waitFor({ timeout: 6000 })
+    .catch(() => {});
+
+  const card = await p.evaluate(() => {
+    const s = document.querySelector('section[aria-label="En cours"]');
+    return s
+      ? {
+          text: s.innerText,
+          bar: [...s.querySelectorAll('[data-part]')].map(
+            (b) => b.dataset.part
+          ),
+        }
+      : null;
+  });
+  ok(
+    '« En cours » remplace la séance du jour : la séance 2',
+    /Haut du corps/.test(card?.text ?? '') &&
+      (await p
+        .getByRole('region', { name: /Aujourd|La prochaine/ })
+        .count()) === 0,
+    lines(card?.text).slice(0, 2).join(' | ')
+  );
+  ok(
+    '  → le bloc et la série où l’on s’est arrêté, et depuis quand',
+    /Bloc 2 sur 2/.test(card?.text ?? '') &&
+      /Série 3 sur 4/.test(card?.text ?? '') &&
+      /commencée il y a \d+ min/.test(card?.text ?? ''),
+    lines(card?.text).slice(1, 5).join(' | ')
+  );
+  ok(
+    '  → la barre : le Tabata fait, deux séries sur sept du renfo',
+    (card?.bar ?? []).join(' ') === '100 29',
+    (card?.bar ?? []).join(' ')
+  );
+
+  await p
+    .getByRole('button', { name: 'Reprendre', exact: true })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await p.waitForTimeout(1200);
+  ok(
+    '« Reprendre » rouvre la séance au même endroit, sans redemander',
+    (await p
+      .getByRole('dialog', { name: 'Reprendre où tu en étais ?' })
+      .count()) === 0 && /^Bloc 2 sur 2 · série 3 sur 4/.test(await where(p)),
+    await where(p)
+  );
+
+  // Le coach modifie la séance : la position gardée ne désigne plus rien
+  // de sûr.
+  const edited = {
+    ...PROGRAM,
+    sessions: PROGRAM.sessions.map((s) =>
+      s._id === 'sess2'
+        ? { ...s, updatedAt: new Date(2026, 10, 14, 11).toISOString() }
+        : s
+    ),
+  };
+  const PROGRAM_URL = /\/api\/client\/program(\?|$)/;
+  const editedRoute = (r) => r.fulfill({ json: { program: edited } });
+  await ctx.route(PROGRAM_URL, editedRoute);
+  await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1800);
+  const region = p.getByRole('region', { name: 'En cours' });
+  ok(
+    'modifiée par le coach depuis : seulement « Recommencer »',
+    (await region.getByRole('button', { name: 'Recommencer' }).count()) === 1 &&
+      (await region.getByRole('button', { name: /Reprendre/ }).count()) === 0,
+    lines(await region.innerText().catch(() => '')).join(' | ')
+  );
+  await ctx.unroute(PROGRAM_URL, editedRoute);
+
+  await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
+  await p.waitForTimeout(1800);
+  await p
+    .getByRole('button', { name: 'Recommencer depuis le début' })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await p.waitForTimeout(600);
+  const sheet = p.getByRole('dialog', { name: 'Recommencer la séance ?' });
+  ok(
+    '« Recommencer depuis le début » demande d’abord',
+    /Tu perdras ce que tu as coché/.test(
+      await sheet.innerText().catch(() => '')
+    )
+  );
+  await sheet
+    .getByRole('button', { name: 'Recommencer', exact: true })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await p.waitForTimeout(1200);
+  const record = await p.evaluate(() =>
+    JSON.parse(localStorage.getItem('kettle-seance-sess2') ?? 'null')
+  );
+  ok(
+    '  → puis repart de l’ouverture, rien de coché',
+    (await p.getByRole('button', { name: /C'est parti/ }).count()) === 1 &&
+      record?.step === 0 &&
+      record?.done.length === 0,
+    JSON.stringify({ step: record?.step, done: record?.done })
   );
   await ctx.close();
 }

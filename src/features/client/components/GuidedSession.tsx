@@ -55,6 +55,11 @@ interface GuidedSessionProps {
    */
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
+  /**
+   * On arrive de « Reprendre » sur l'accueil : la question « Reprendre où
+   * tu en étais ? » a déjà reçu sa réponse, on va droit à l'étape gardée.
+   */
+  resumeSaved?: boolean;
 }
 
 /**
@@ -80,6 +85,7 @@ export const GuidedSession = ({
   lastPerformance,
   performed,
   onPerformedChange,
+  resumeSaved = false,
 }: GuidedSessionProps) => {
   const [steps] = useState(() => buildGuidedSteps(session));
   // Les blocs ne changent pas pendant la séance : on les découpe une fois.
@@ -87,7 +93,7 @@ export const GuidedSession = ({
   const [savedIndex] = useState(() =>
     Math.min(readSavedIndex(session._id), Math.max(0, steps.length - 1))
   );
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(() => (resumeSaved ? savedIndex : 0));
   // La pause : une feuille par-dessus la scène, qui reste montée dessous.
   // L'ancienne question de sortie remplaçait la scène tout entière, et
   // démontait donc ses horloges — un tour d'EMOM repartait de zéro quand on
@@ -134,7 +140,9 @@ export const GuidedSession = ({
     const saved = readProgress(session._id);
     return (saved?.step ?? 0) > 0 || (saved?.done.length ?? 0) > 0;
   });
-  const [showResume, setShowResume] = useState(() => alreadyStarted);
+  const [showResume, setShowResume] = useState(
+    () => alreadyStarted && !resumeSaved
+  );
   /**
    * L'écran d'introduction n'apparaît qu'au début.
    *

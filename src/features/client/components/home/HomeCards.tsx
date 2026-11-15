@@ -106,6 +106,8 @@ interface HeroCardProps {
   onCta: () => void;
   link?: string;
   onLink?: () => void;
+  /** Une dernière pastille, discrète : « commencée il y a 20 min ». */
+  aside?: string;
   /** Ce qui s'insère sous les pastilles : la progression d'une séance en cours. */
   extra?: ReactNode;
 }
@@ -131,6 +133,7 @@ export const HeroCard = ({
   onCta,
   link,
   onLink,
+  aside,
   extra,
 }: HeroCardProps) => (
   <VStack
@@ -154,13 +157,14 @@ export const HeroCard = ({
     >
       {title}
     </Text>
-    {chips.length > 0 && (
+    {(chips.length > 0 || aside) && (
       <HStack gap="6px" wrap="wrap">
         {chips.map((chip, index) => (
           <HomeChip key={chip} tone={index === 0 ? 'amber' : undefined}>
             {chip}
           </HomeChip>
         ))}
+        {aside && <HomeChip tone="outline">{aside}</HomeChip>}
       </HStack>
     )}
     {extra}
@@ -198,4 +202,40 @@ export const HeroCard = ({
       </Box>
     )}
   </VStack>
+);
+
+/**
+ * Où en est une séance commencée : un segment par bloc, comme la barre du
+ * haut de la séance guidée — sarcelle quand le bloc est fait, ambre pour
+ * la part faite de celui qu'on a quitté.
+ *
+ * Muette pour un lecteur d'écran : les pastilles juste au-dessus disent la
+ * même chose en mots, « Bloc 2 sur 2 », « Série 3 sur 4 ».
+ */
+export const BlockBar = ({ blocks }: { blocks: number[] }) => (
+  <HStack gap="5px" aria-hidden data-block-bar>
+    {blocks.map((part, index) => (
+      <Box
+        key={index}
+        flex={1}
+        h="6px"
+        borderRadius="3px"
+        bg={part >= 1 ? 'session.rest' : 'bg.surface'}
+        position="relative"
+        overflow="hidden"
+        data-part={Math.round(part * 100)}
+      >
+        {part > 0 && part < 1 && (
+          <Box
+            position="absolute"
+            insetY={0}
+            left={0}
+            w={`${part * 100}%`}
+            bg="app.primary"
+            borderRadius="3px"
+          />
+        )}
+      </Box>
+    ))}
+  </HStack>
 );

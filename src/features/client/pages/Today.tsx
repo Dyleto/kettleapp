@@ -1,5 +1,5 @@
 import { useOutletContext, useNavigate } from 'react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Container,
@@ -24,6 +24,10 @@ import { buildWeekPlan } from '@/features/client/weekPlan';
 import { dayKey, WEEKDAY_FULL } from '@/features/client/sessionDates';
 import { doneInWeek, weekStreak, weekTarget } from '@/features/client/weekRing';
 import { homeFocus, weekWords } from '@/features/client/home';
+import { startedAgo, unfinishedSession } from '@/features/client/unfinished';
+import { restartProgress } from '@/features/client/sessionProgress';
+import { ActionButton } from '@/shared/components/ActionButton';
+import { Sheet } from '@/shared/components/Sheet';
 import {
   estimatedMinutes,
   openingTitle,
@@ -36,6 +40,7 @@ import { hitArea } from '@/shared/components/hitArea';
 import type { WeekBubble } from '@/features/client/components/WeekBubbles';
 import { WeekCard } from '@/features/client/components/home/WeekCard';
 import {
+  BlockBar,
   HeroCard,
   HomeChip,
 } from '@/features/client/components/home/HomeCards';
@@ -80,6 +85,10 @@ const Today = () => {
     useOutletContext<ClientSessionsData>();
   const [opened, setOpened] = useState<CompletedSession | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+  // L'enregistrement du téléphone, lu une fois par programme chargé : il ne
+  // change pas tant qu'on reste sur l'accueil.
+  const unfinished = useMemo(() => unfinishedSession(sessions), [sessions]);
 
   const openCompleted = (completed: CompletedSession) => {
     setOpened(completed);
@@ -93,6 +102,20 @@ const Today = () => {
     navigate(CLIENT_ROUTES.sessionById(session._id), {
       state: { guided: 'start' },
     });
+  // Reprendre mène au bloc et à la série où l'on s'était arrêté, sans
+  // repasser par la question « Reprendre où tu en étais ? » : on vient d'y
+  // répondre.
+  const resumeGuided = (session: Session) =>
+    navigate(CLIENT_ROUTES.sessionById(session._id), {
+      state: { guided: 'resume' },
+    });
+  // Recommencer efface la position et ce qui est coché, puis repart de
+  // l'ouverture. Les charges notées restent, comme quand on recommence
+  // depuis la séance elle-même : elles s'écrasent au fil des séries.
+  const restartGuided = (session: Session) => {
+    restartProgress(session._id);
+    startGuided(session);
+  };
 
   // Le prénom seul, jamais l'adresse : un compte créé par Google peut ne pas
   // en avoir, et « Salut corentin.lm@… » se lirait comme une erreur.
@@ -204,34 +227,59 @@ const Today = () => {
     />
   );
 
-  const main =
-    focus.kind === 'full' ? (
-      <FullCard onMore={() => navigate(CLIENT_ROUTES.program)} />
-    ) : focus.kind === 'rest' ? (
-      <RestCard
-        doneToday={focus.doneToday}
-        day={WEEKDAY_FULL[focus.day]}
-        name={openingTitle(focus.session)}
-        detail={[
-          startable(focus.session)
-            ? `≈ ${estimatedMinutes(focus.session)} min`
-            : '',
-          formats(focus.session).join(', '),
-        ]
-          .filter(Boolean)
-          .join(' · ')}
-        onOpen={() => openSheet(focus.session)}
-      />
-    ) : (
-      hero(
-        focus.session,
-        focus.kind === 'first'
-          ? 'Ta première séance'
-          : focus.kind === 'today'
-            ? 'À faire aujourd’hui'
-            : 'La prochaine'
-      )
-    );
+  const resumeCard = unfinished && (
+    <HeroCard
+      eyebrow="En cours"
+      title={openingTitle(unfinished.session)}
+      chips={unfinished.where}
+      aside={
+        unfinished.startedAt !== undefined
+          ? startedAgo(unfinished.startedAt, new Date().getTime())
+          : undefined
+      }
+      extra={<BlockBar blocks={unfinished.blocks} />}
+      // Le coach a changé la séance depuis : la position enregistrée ne
+      // désigne plus rien de sûr. Il ne reste que recommencer.
+      cta={unfinished.changed ? 'Recommencer' : 'Reprendre'}
+      onCta={() =>
+        unfinished.changed
+          ? setConfirmRestart(true)
+          : resumeGuided(unfinished.session)
+      }
+      link={unfinished.changed ? undefined : 'Recommencer depuis le début'}
+      onLink={() => setConfirmRestart(true)}
+    />
+  );
+
+  const main = resumeCard ? (
+    resumeCard
+  ) : focus.kind === 'full' ? (
+    <FullCard onMore={() => navigate(CLIENT_ROUTES.program)} />
+  ) : focus.kind === 'rest' ? (
+    <RestCard
+      doneToday={focus.doneToday}
+      day={WEEKDAY_FULL[focus.day]}
+      name={openingTitle(focus.session)}
+      detail={[
+        startable(focus.session)
+          ? `≈ ${estimatedMinutes(focus.session)} min`
+          : '',
+        formats(focus.session).join(', '),
+      ]
+        .filter(Boolean)
+        .join(' · ')}
+      onOpen={() => openSheet(focus.session)}
+    />
+  ) : (
+    hero(
+      focus.session,
+      focus.kind === 'first'
+        ? 'Ta première séance'
+        : focus.kind === 'today'
+          ? 'À faire aujourd’hui'
+          : 'La prochaine'
+    )
+  );
 
   return (
     <Container
@@ -265,7 +313,7 @@ const Today = () => {
           </Box>
           <VStack gridArea="main" align="stretch" gap={4}>
             {main}
-            {focus.kind === 'first' && <HowItWorks />}
+            {!unfinished && focus.kind === 'first' && <HowItWorks />}
           </VStack>
           {last && (
             <Box gridArea="last">
@@ -277,6 +325,41 @@ const Today = () => {
           )}
         </Grid>
       </VStack>
+
+      {confirmRestart && unfinished && (
+        <Sheet
+          label="Recommencer la séance ?"
+          onDismiss={() => setConfirmRestart(false)}
+        >
+          <Text as="h2" fontSize="22px" fontWeight="800" lineHeight="1.2">
+            Recommencer la séance&nbsp;?
+          </Text>
+          <Text color="fg.muted">
+            {unfinished.changed
+              ? 'Ton coach a modifié cette séance depuis que tu l’as commencée. '
+              : ''}
+            Tu perdras ce que tu as coché. Tes charges notées restent.
+          </Text>
+          <ActionButton
+            size="lg"
+            w="full"
+            onClick={() => {
+              setConfirmRestart(false);
+              restartGuided(unfinished.session);
+            }}
+          >
+            Recommencer
+          </ActionButton>
+          <ActionButton
+            tone="ghost"
+            size="lg"
+            w="full"
+            onClick={() => setConfirmRestart(false)}
+          >
+            Annuler
+          </ActionButton>
+        </Sheet>
+      )}
 
       {opened && (
         <CompletedSessionDrawer

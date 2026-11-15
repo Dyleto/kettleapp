@@ -227,6 +227,25 @@ export const forgetProgress = (sessionId: string) => {
   }
 };
 
+/**
+ * Recommencer une séance : la position, ce qui est coché, compté, passé,
+ * et l'heure de départ repartent de zéro. Les charges notées restent.
+ *
+ * L'heure de départ aussi, parce qu'une séance recommencée est une autre
+ * tentative : la fin annoncerait sinon une durée qui compte la première.
+ * Les charges non : effacer ce que quelqu'un a soulevé parce qu'il reprend
+ * du début serait la perte que ce module existe pour empêcher.
+ */
+export const restartProgress = (sessionId: string) =>
+  writeProgress(sessionId, {
+    step: 0,
+    done: [],
+    rounds: {},
+    skipped: [],
+    ladder: {},
+    startedAt: undefined,
+  });
+
 /** Combien d'exercices portent au moins une valeur notée. */
 export const countRecorded = (
   performed: Record<string, PerformedValues>

@@ -107,8 +107,13 @@ const SessionScreen = () => {
   // « Démarrer » sur l'accueil arrive ici avec `guided: 'start'` : la séance
   // guidée s'ouvre d'emblée, sur son écran d'ouverture, et la fiche attend
   // dessous. Une touche au lieu de trois avant le premier exercice.
+  const [guidedEntry] = useState(
+    () => (location.state as { guided?: string } | null)?.guided
+  );
+  // « Reprendre » sur l'accueil arrive avec `guided: 'resume'` : même
+  // ouverture d'emblée, mais droit à l'étape gardée.
   const [isGuidedOpen, setIsGuidedOpen] = useState(
-    () => (location.state as { guided?: string } | null)?.guided === 'start'
+    () => guidedEntry === 'start' || guidedEntry === 'resume'
   );
   // La demande est lue une fois puis effacée de l'historique : revenir sur
   // la fiche par « Précédent », ou la recharger, ne doit pas relancer la
@@ -402,6 +407,7 @@ const SessionScreen = () => {
       {isGuidedOpen && (
         <GuidedSession
           session={activeSession}
+          resumeSaved={guidedEntry === 'resume'}
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
