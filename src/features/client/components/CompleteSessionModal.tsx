@@ -20,21 +20,6 @@ import { useAuth } from '@/shared/contexts/useAuth';
 interface CompleteSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /**
-   * Le constat qui précède la question.
-   *
-   * Absent quand la séance n'a pas été menée en mode guidé — il n'y a alors
-   * rien à constater, et un récapitulatif vide vaudrait moins que pas de
-   * récapitulatif.
-   */
-  recap?: React.ReactNode;
-  /**
-   * Vrai quand le client a noté ses charges pendant la séance.
-   *
-   * On ne lui reposait alors pas la question à la fin — et un écran qu'on
-   * saute sans un mot laisse croire que la saisie a été perdue.
-   */
-  hasRecordedLoads?: boolean;
   onSubmit: (
     feedback: SessionFeedback,
     notes: string,
@@ -56,8 +41,6 @@ const toDateInputValue = (d: Date) => d.toISOString().slice(0, 10);
 export const CompleteSessionModal = ({
   isOpen,
   onClose,
-  recap,
-  hasRecordedLoads,
   onSubmit,
   isLoading,
 }: CompleteSessionModalProps) => {
@@ -124,23 +107,15 @@ export const CompleteSessionModal = ({
           display="flex"
           flexDirection="column"
         >
-          {/* Le constat vient avant la question — mais dans le corps, pas
-              dans l'en-tête. Un en-tête est du décor : il ne rétrécit pas. Le
-              récapitulatif y prenait toute sa place, et sur un téléphone posé
-              à plat le corps tombait à 32 px pendant que « Valider »
-              terminait 162 px sous l'écran. Ce qui est long appartient à ce
-              qui défile. */}
-          {!recap && (
-            <Dialog.Header>
-              <VStack align="start" gap={1}>
-                <Dialog.Title>Cette séance, c'était&nbsp;?</Dialog.Title>
-                <Text fontSize="sm" color="fg.muted" fontWeight="normal">
-                  Ton ressenti aide ton coach à adapter la suite. C'est la seule
-                  chose qu'on te demande.
-                </Text>
-              </VStack>
-            </Dialog.Header>
-          )}
+          <Dialog.Header>
+            <VStack align="start" gap={1}>
+              <Dialog.Title>Cette séance, c'était&nbsp;?</Dialog.Title>
+              <Text fontSize="sm" color="fg.muted" fontWeight="normal">
+                Ton ressenti aide ton coach à adapter la suite. C'est la seule
+                chose qu'on te demande.
+              </Text>
+            </VStack>
+          </Dialog.Header>
           <Dialog.CloseTrigger
             aria-label="Fermer"
             display="flex"
@@ -152,28 +127,8 @@ export const CompleteSessionModal = ({
             <LuX size={16} />
           </Dialog.CloseTrigger>
 
-          <Dialog.Body overflowY="auto" minH={0} pt={recap ? 6 : undefined}>
+          <Dialog.Body overflowY="auto" minH={0}>
             <VStack gap={4} align="stretch">
-              {recap && (
-                <>
-                  {recap}
-                  {/* Cette phrase appartient à côté du constat qu'elle commente,
-                      et elle appartient à ce qui défile. Dans le pied, elle
-                      réclamait une ligne à elle — `flexBasis="100%"` — sur
-                      une surface qui ne rétrécit jamais, et prenait donc
-                      cette ligne au corps à chaque séance. */}
-                  {hasRecordedLoads && (
-                    <Text fontSize="xs" color="fg.muted" textAlign="center">
-                      Tes charges sont déjà enregistrées&nbsp;— rien à
-                      ressaisir.
-                    </Text>
-                  )}
-                  <Separator borderColor="whiteAlpha.100" />
-                  <Dialog.Title fontSize="lg" fontWeight="800">
-                    Cette séance, c'était&nbsp;?
-                  </Dialog.Title>
-                </>
-              )}
               <EffortScale value={effort} onChange={setEffort} />
 
               {sharesHealth && (

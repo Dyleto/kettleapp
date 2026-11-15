@@ -14,16 +14,20 @@
 import { describe, expect, it } from 'vitest';
 import {
   allowedReps,
+  bestLoads,
   buildRecap,
-  comparisonsOf,
   countSets,
+  highlightOf,
   tonnageOf,
 } from './recap';
 import { buildGuidedSteps } from './guidedSteps';
 import { performedKey } from './lastPerformance';
 import {
   makeBlock,
+  makeBlockSnapshot,
+  makeCompleted,
   makeExercise,
+  makeExerciseSnapshot,
   makeBlockExercise,
   makeSession,
 } from './fixtures';
@@ -237,104 +241,6 @@ describe('ce qui a été fait, et ce qu’il y avait à faire', () => {
   });
 });
 
-describe('ce qui a bougé depuis la dernière fois', () => {
-  const withLoad = (load: number) => ({
-    [performedKey(1, 1)]: { sets: [{ weight: load, reps: 10 }] },
-  });
-
-  it('dit la charge du jour, et l’écart', () => {
-    const session = makeSession({
-      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
-    });
-    const before: Map<string, LastPerformance> = new Map([
-      ['ex-goblet', { sets: [{ weight: 24 }], completedAt: new Date() }],
-    ]);
-    expect(comparisonsOf(session, withLoad(26), before)).toEqual([
-      { name: 'Goblet Squat', load: 26, delta: 2 },
-    ]);
-  });
-
-  it('n’invente aucun écart sans dernière fois', () => {
-    const session = makeSession({
-      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
-    });
-    expect(comparisonsOf(session, withLoad(26))).toEqual([
-      { name: 'Goblet Squat', load: 26, delta: undefined },
-    ]);
-  });
-
-  it('garde un écart nul : « j’ai tenu ma charge » est une information', () => {
-    const session = makeSession({
-      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
-    });
-    const before: Map<string, LastPerformance> = new Map([
-      ['ex-goblet', { sets: [{ weight: 26 }], completedAt: new Date() }],
-    ]);
-    expect(comparisonsOf(session, withLoad(26))[0].load).toBe(26);
-    expect(comparisonsOf(session, withLoad(26), before)[0].delta).toBe(0);
-  });
-
-  it('écarte un mouvement sans charge notée', () => {
-    const session = makeSession({
-      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
-    });
-    expect(comparisonsOf(session, {})).toEqual([]);
-  });
-
-  it('retient la charge la plus lourde du jour', () => {
-    const session = makeSession({
-      blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
-    });
-    const performed = {
-      [performedKey(1, 1)]: {
-        sets: [
-          { weight: 24, reps: 10 },
-          { weight: 28, reps: 6 },
-          { weight: 26 },
-        ],
-      },
-    };
-    expect(comparisonsOf(session, performed)[0].load).toBe(28);
-  });
-
-  it('met devant le plus grand écart, et n’en garde que trois', () => {
-    const four = [
-      makeBlockExercise({
-        order: 1,
-        exercise: makeExercise({ _id: 'a', name: 'A' }),
-      }),
-      makeBlockExercise({
-        order: 2,
-        exercise: makeExercise({ _id: 'b', name: 'B' }),
-      }),
-      makeBlockExercise({
-        order: 3,
-        exercise: makeExercise({ _id: 'c', name: 'C' }),
-      }),
-      makeBlockExercise({
-        order: 4,
-        exercise: makeExercise({ _id: 'd', name: 'D' }),
-      }),
-    ];
-    const session = makeSession({ blocks: [makeBlock({ exercises: four })] });
-    const performed = Object.fromEntries(
-      [26, 30, 40, 28].map((load, i) => [
-        performedKey(1, i + 1),
-        { sets: [{ weight: load, reps: 10 }] },
-      ])
-    );
-    const before: Map<string, LastPerformance> = new Map(
-      ['a', 'b', 'c', 'd'].map((id) => [
-        id,
-        { sets: [{ weight: 26 }], completedAt: new Date() },
-      ])
-    );
-    const rows = comparisonsOf(session, performed, before);
-    expect(rows.map((l) => l.name)).toEqual(['C', 'B', 'D']);
-    expect(rows).toHaveLength(3);
-  });
-});
-
 describe('le constat entier', () => {
   const session = makeSession({
     blocks: [
@@ -346,7 +252,7 @@ describe('le constat entier', () => {
   });
   const steps = buildGuidedSteps(session);
 
-  it('rassemble les cinq chiffres', () => {
+  it('rassemble les chiffres', () => {
     const recap = buildRecap({
       session,
       steps,
@@ -363,7 +269,6 @@ describe('le constat entier', () => {
       setsTotal: 2,
       tonnage: 520,
       rounds: 7,
-      comparisons: [{ name: 'Goblet Squat', load: 26, delta: undefined }],
     });
   });
 
@@ -419,5 +324,102 @@ describe('le constat entier', () => {
       now: 1_000_000 + 20_000,
     });
     expect(recap.durationMinutes).toBe(1);
+  });
+});
+
+describe('le record, et ce qui est vrai à sa place', () => {
+  /** Un bilan où le Goblet Squat a été fait à ces charges. */
+  const pastWith = (id: string, ...weights: number[]) =>
+    makeCompleted({
+      _id: id,
+      blocks: [
+        makeBlockSnapshot({
+          exercises: [
+            makeExerciseSnapshot({
+              performed: { sets: weights.map((weight) => ({ weight })) },
+            }),
+          ],
+        }),
+      ],
+    });
+  const session = makeSession({
+    blocks: [makeBlock({ exercises: [makeBlockExercise({})] })],
+  });
+  const today = (load: number) => ({
+    [performedKey(1, 1)]: { sets: [{ weight: load, reps: 10 }] },
+  });
+
+  it('retient le meilleur de tout l’historique, pas la dernière fois', () => {
+    expect(
+      bestLoads([pastWith('a', 22, 28), pastWith('b', 24)]).get('ex-goblet')
+    ).toBe(28);
+  });
+
+  it('un record se mesure à ce meilleur', () => {
+    // 26 bat la dernière fois (24), pas le meilleur (28) : ce n'est pas un
+    // record.
+    const history = [pastWith('a', 28), pastWith('b', 24)];
+    expect(highlightOf(session, today(26), history)).toBeNull();
+    expect(highlightOf(session, today(30), history)).toEqual({
+      kind: 'record',
+      name: 'Goblet Squat',
+      load: 30,
+      gain: 2,
+      others: 0,
+    });
+  });
+
+  it('n’invente pas de record pour un mouvement fait la première fois', () => {
+    expect(highlightOf(session, today(40), [])).toBeNull();
+  });
+
+  it('affiche le plus grand écart, et compte les autres', () => {
+    const swing = makeExercise({ _id: 'ex-swing', name: 'Kettlebell Swing' });
+    const two = makeSession({
+      blocks: [
+        makeBlock({
+          exercises: [
+            makeBlockExercise({ order: 1 }),
+            makeBlockExercise({ order: 2, exercise: swing }),
+          ],
+        }),
+      ],
+    });
+    const history = [
+      makeCompleted({
+        blocks: [
+          makeBlockSnapshot({
+            exercises: [
+              makeExerciseSnapshot({ performed: { sets: [{ weight: 26 }] } }),
+              makeExerciseSnapshot({
+                order: 2,
+                exercise: { _id: 'ex-swing', name: 'Kettlebell Swing' },
+                performed: { sets: [{ weight: 16 }] },
+              }),
+            ],
+          }),
+        ],
+      }),
+    ];
+    const performed = {
+      [performedKey(1, 1)]: { sets: [{ weight: 28 }] },
+      [performedKey(1, 2)]: { sets: [{ weight: 20 }] },
+    };
+    expect(highlightOf(two, performed, history)).toEqual({
+      kind: 'record',
+      name: 'Kettlebell Swing',
+      load: 20,
+      gain: 4,
+      others: 1,
+    });
+  });
+
+  it('dit la régularité quand une charge est tenue', () => {
+    const last: Map<string, LastPerformance> = new Map([
+      ['ex-goblet', { sets: [{ weight: 26 }], completedAt: new Date() }],
+    ]);
+    expect(highlightOf(session, today(26), [pastWith('a', 28)], last)).toEqual({
+      kind: 'steady',
+    });
   });
 });

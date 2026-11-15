@@ -241,10 +241,8 @@ const climb = async (p) => {
   // La séance n'avait que ce bloc : on va jusqu'au bilan.
   await p.clock.runFor(2_000);
   await p.waitForTimeout(900);
-  await p
-    .getByRole('button', { name: /Passer au ressenti/ })
-    .click()
-    .catch(() => {});
+  // L'écran de fin d'abord, puis le ressenti.
+  await press(p, 'Continuer');
   await p.clock.runFor(1_000);
   await p.waitForTimeout(700);
   await p

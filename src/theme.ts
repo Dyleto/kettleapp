@@ -42,6 +42,14 @@ const customConfig = defineConfig({
         '0%, 100%': { transform: 'scale(1)' },
         '50%': { transform: 'scale(1.04)' },
       },
+      // Deux secondes et demie de confettis à la fin d'une séance faite en
+      // entier : ils tombent, tournent, et s'effacent avant de toucher le
+      // bas — un décor de fête ne doit pas rester sur l'écran.
+      confettiFall: {
+        '0%': { transform: 'translateY(-60px) rotate(0deg)', opacity: 1 },
+        '80%': { opacity: 1 },
+        '100%': { transform: 'translateY(420px) rotate(540deg)', opacity: 0 },
+      },
     },
     semanticTokens: {
       colors: {

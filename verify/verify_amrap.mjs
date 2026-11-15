@@ -17,7 +17,6 @@ import {
   signIn,
   start,
   where,
-  dialogs,
   clean,
   launchClock,
   passBlock,
@@ -195,19 +194,16 @@ const roundsOf = (p, id) =>
   await tap('Valider');
   await p.clock.runFor(2_000);
   await p.waitForTimeout(900);
-  // La fin de séance demande d'abord les charges ; aucune n'est notée ici.
-  const skip = p.getByRole('button', { name: /Passer au ressenti/ });
-  if (await skip.count()) await skip.click();
-  await p.clock.runFor(2_000);
-  await p.waitForTimeout(900);
-  const end = await dialogs(p);
-  ok(
-    '« Valider » termine la séance, et le constat compte trois tours',
-    /3 tours[\s\S]{0,20}bouclés/.test(end),
-    (end.match(/[^\n]*tours[^\n]*\n?[^\n]*/) ?? ['(rien)'])[0].replace(
-      /\n/g,
-      ' | '
+  // L'écran de fin : ses tuiles s'annoncent par leur valeur finale.
+  const tiles = await p.evaluate(() =>
+    [...document.querySelectorAll('[role="dialog"] [role="group"]')].map(
+      (g) => g.getAttribute('aria-label') ?? ''
     )
+  );
+  ok(
+    '« Valider » termine la séance, et la fin compte trois tours',
+    tiles.map((x) => clean(x)).includes('3 tours bouclés'),
+    tiles.map((x) => clean(x)).join(' · ') || '(aucune tuile)'
   );
   await ctx.close();
 }

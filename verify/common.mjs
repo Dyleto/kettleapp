@@ -279,3 +279,22 @@ export const advance = async (p) => {
   }
   await passBlock(p);
 };
+
+/**
+ * De la fin d'une séance jusqu'au ressenti, quel que soit le chemin.
+ *
+ * Menée en mode guidé, la séance finit sur l'écran de fête : « Continuer ».
+ * Déclarée faite sans lui, elle demande encore les charges : « Passer au
+ * ressenti ». Les suites qui éprouvent autre chose que ces écrans les
+ * franchissent par ici.
+ */
+export const reachFeeling = async (p) => {
+  for (const name of [/^Continuer$/, /Passer au ressenti/]) {
+    const button = p.getByRole('button', { name });
+    if (await button.count()) {
+      await button.first().click();
+      await p.waitForTimeout(900);
+      return;
+    }
+  }
+};

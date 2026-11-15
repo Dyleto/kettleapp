@@ -15,7 +15,6 @@ import {
   CLIENT_CONTENT_MAX_W,
   CompleteSessionModal,
   GuidedSession,
-  SessionRecap,
   RecordPerformed,
   SessionDetail,
   SuggestedDays,
@@ -35,7 +34,8 @@ import {
   readProgress,
 } from '@/features/client/sessionProgress';
 import { buildGuidedSteps } from '@/features/client/guidedSteps';
-import { buildRecap } from '@/features/client/recap';
+import { buildRecap, highlightOf } from '@/features/client/recap';
+import { Celebration } from '@/features/client/components/end/Celebration';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ActionButton } from '@/shared/components/ActionButton';
@@ -93,6 +93,7 @@ const SessionScreen = () => {
     isLoading,
     isSubmitting,
     lastPerformance,
+    history,
   } = useOutletContext<ClientSessionsData>();
   const [isGuidedOpen, setIsGuidedOpen] = useState(false);
   useDocumentTitle(activeSession ? `Séance ${activeSession.order}` : undefined);
@@ -100,7 +101,13 @@ const SessionScreen = () => {
   // Terminer une séance se fait en deux temps : « veux-tu noter tes
   // charges ? », puis le bilan. `idle` couvre la lecture, où l'écran ne
   // demande rien.
-  const [flow, setFlow] = useState<'idle' | 'record' | 'review'>('idle');
+  //
+  // Après une séance menée en mode guidé, l'écran de fin vient d'abord
+  // (`celebrate`) ; « Compléter mes charges » y mène à la saisie (`loads`),
+  // qui y revient.
+  const [flow, setFlow] = useState<
+    'idle' | 'celebrate' | 'loads' | 'record' | 'review'
+  >('idle');
 
   // Ce qui a été noté ne vit plus dans la seule mémoire.
   //
@@ -144,10 +151,9 @@ const SessionScreen = () => {
       performed,
       done: saved.done,
       rounds: saved.rounds,
-      lastPerformance,
       startedAt: saved.startedAt,
     });
-  }, [activeSession, flow, performed, lastPerformance]);
+  }, [activeSession, flow, performed]);
 
   const handlePerformedChange = useCallback(
     (key: string, next: PerformedValues) =>
@@ -349,16 +355,50 @@ const SessionScreen = () => {
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
-            // Qui a noté pendant la séance a déjà répondu à la question : la
-            // reposer à la fin, devant des champs qu'il vient de remplir,
-            // c'est demander deux fois la même chose. Le bilan le lui dit.
-            setFlow(countRecorded(performed) > 0 ? 'review' : 'record');
+            // L'écran de fin d'abord : la séance vient d'être menée, elle a
+            // de quoi être fêtée. La question des charges ne se pose plus —
+            // elle se notent en route, et le reste est un lien.
+            setFlow(
+              readProgress(activeSession._id)
+                ? 'celebrate'
+                : countRecorded(performed) > 0
+                  ? 'review'
+                  : 'record'
+            );
           }}
           lastPerformance={lastPerformance}
           performed={performed}
           onPerformedChange={handlePerformedChange}
         />
       )}
+
+      {flow === 'celebrate' && recap && (
+        <Celebration
+          title={sessionTitle(activeSession.order, activeSession.name)}
+          recap={recap}
+          highlight={highlightOf(
+            activeSession,
+            performed,
+            history,
+            lastPerformance
+          )}
+          onContinue={() => setFlow('review')}
+          onCompleteLoads={() => setFlow('loads')}
+        />
+      )}
+
+      <RecordPerformed
+        key={flow === 'loads' ? 'loads-open' : 'loads-closed'}
+        session={activeSession}
+        isOpen={flow === 'loads'}
+        startRecording
+        continueLabel="OK"
+        performed={performed}
+        onPerformedChange={handlePerformedChange}
+        lastPerformance={lastPerformance}
+        onCancel={() => setFlow('celebrate')}
+        onContinue={() => setFlow('celebrate')}
+      />
 
       {/* Remonté à chaque ouverture : la question repart de zéro plutôt
           que de rouvrir sur la saisie déjà dépliée. */}
@@ -376,15 +416,6 @@ const SessionScreen = () => {
       <CompleteSessionModal
         isOpen={flow === 'review'}
         onClose={() => setFlow('idle')}
-        recap={
-          recap && (
-            <SessionRecap
-              recap={recap}
-              title={sessionTitle(activeSession.order, activeSession.name)}
-            />
-          )
-        }
-        hasRecordedLoads={countRecorded(performed) > 0}
         onSubmit={(feedback, notes, completedAt) => {
           handleSubmitLog(
             feedback,

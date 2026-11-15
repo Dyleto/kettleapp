@@ -27,6 +27,7 @@ import {
   start,
   skipRest,
   clean,
+  reachFeeling,
 } from './common.mjs';
 
 const browser = await launch();
@@ -168,13 +169,9 @@ const cards = async (p) => {
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1400);
-  // Aucune charge n'a été notée, le bilan commence donc par en demander. On
-  // le franchit : ce qui est éprouvé ici est la carte, pas le formulaire.
-  const toFeeling = p.getByRole('button', { name: /Passer au ressenti/ });
-  if (await toFeeling.count()) {
-    await toFeeling.click();
-    await p.waitForTimeout(900);
-  }
+  // L'écran de fin, puis le ressenti : ce qui est éprouvé ici est la
+  // carte, pas ces écrans.
+  await reachFeeling(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.waitForTimeout(200);
   await p.getByRole('button', { name: /^Valider$/ }).click();

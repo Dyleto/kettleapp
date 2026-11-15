@@ -1,4 +1,9 @@
-import { PerformedSet, PerformedValues, Session } from '@/shared/types';
+import {
+  CompletedSession,
+  PerformedSet,
+  PerformedValues,
+  Session,
+} from '@/shared/types';
 import { LastPerformance, performedKey } from './lastPerformance';
 import { GuidedStep, setsOfBlock } from './guidedSteps';
 
@@ -26,20 +31,6 @@ export interface Recap {
   tonnage: number;
   /** Tours bouclés, tous blocs confondus. */
   rounds: number;
-  comparisons: Comparison[];
-}
-
-/** Un mouvement, ce qu'on y a mis aujourd'hui, et ce que cela change. */
-export interface Comparison {
-  name: string;
-  /** La charge la plus lourde du jour sur ce mouvement. */
-  load: number;
-  /**
-   * L'écart avec la dernière fois. `undefined` quand il n'y a pas de dernière
-   * fois : on ne compare pas à rien, et « +26 kg » sur une première tentative
-   * serait un mensonge flatteur.
-   */
-  delta?: number;
 }
 
 const heaviest = (sets: PerformedSet[] = []): number | undefined => {
@@ -134,40 +125,81 @@ export const countSets = (
 };
 
 /**
- * Les mouvements dont on peut dire quelque chose, le plus grand écart
- * d'abord.
+ * La plus lourde charge jamais notée, par mouvement, sur tout l'historique.
  *
- * Trois au plus : un récapitulatif qui aligne douze lignes n'est plus un
- * constat, c'est un tableau. Ce qu'on veut montrer, c'est ce qui a bougé.
+ * Un record se mesure à ce meilleur-là, et non à la dernière fois : battre
+ * une séance où l'on avait levé léger n'est pas un record. Indexé par
+ * identifiant d'exercice, comme `lastPerformance` : c'est le mouvement qui a
+ * un record, pas la place qu'il occupait dans une séance.
  */
-export const comparisonsOf = (
+export const bestLoads = (
+  history: readonly CompletedSession[]
+): Map<string, number> => {
+  const best = new Map<string, number>();
+  history.forEach((completed) =>
+    completed.blocks.forEach((block) =>
+      block.exercises.forEach((ex) => {
+        const id = ex.exercise?._id;
+        const load = heaviest(ex.performed?.sets);
+        if (typeof id !== 'string' || load === undefined) return;
+        best.set(id, Math.max(best.get(id) ?? 0, load));
+      })
+    )
+  );
+  return best;
+};
+
+/** Ce que l'écran de fin a de mieux à dire. */
+export type Highlight =
+  | {
+      kind: 'record';
+      name: string;
+      load: number;
+      /** Combien de plus que le meilleur précédent. */
+      gain: number;
+      /** Les autres records du jour, qui ne s'affichent pas un à un. */
+      others: number;
+    }
+  | { kind: 'steady' };
+
+/**
+ * Le record du jour, ou ce qui est vrai à sa place.
+ *
+ * Un seul record s'affiche, le plus grand écart ; les autres se comptent.
+ * Sans record, la régularité — une charge tenue d'une séance à l'autre — se
+ * dit aussi. Et sans l'un ni l'autre, rien : un mouvement fait pour la
+ * première fois n'a pas de meilleur précédent, et l'appeler un record
+ * serait en inventer un.
+ */
+export const highlightOf = (
   session: Session,
   performed: Record<string, PerformedValues>,
-  lastPerformance?: Map<string, LastPerformance>,
-  maximum = 3
-): Comparison[] => {
-  const rows: Comparison[] = [];
+  history: readonly CompletedSession[],
+  lastPerformance?: Map<string, LastPerformance>
+): Highlight | null => {
+  const best = bestLoads(history);
+  const records: { name: string; load: number; gain: number }[] = [];
+  let steady = false;
 
-  session.blocks.forEach((block) => {
+  session.blocks.forEach((block) =>
     block.exercises.forEach((ex) => {
       const load = heaviest(
         performed[performedKey(block.order, ex.order)]?.sets
       );
       if (load === undefined) return;
-      const before = heaviest(lastPerformance?.get(ex.exercise._id)?.sets);
-      rows.push({
-        name: ex.exercise.name,
-        load,
-        delta: before === undefined ? undefined : load - before,
-      });
-    });
-  });
+      const previous = best.get(ex.exercise._id);
+      if (previous !== undefined && load > previous)
+        records.push({ name: ex.exercise.name, load, gain: load - previous });
+      if (heaviest(lastPerformance?.get(ex.exercise._id)?.sets) === load)
+        steady = true;
+    })
+  );
 
-  // Ce qui a progressé d'abord, puis ce qui a tenu, puis ce qui n'a pas de
-  // passé : un écart nul reste une information — « j'ai tenu ma charge ».
-  return rows
-    .sort((a, b) => Math.abs(b.delta ?? -1) - Math.abs(a.delta ?? -1))
-    .slice(0, maximum);
+  if (records.length > 0) {
+    const [top, ...rest] = [...records].sort((a, b) => b.gain - a.gain);
+    return { kind: 'record', ...top, others: rest.length };
+  }
+  return steady ? { kind: 'steady' } : null;
 };
 
 /**
@@ -184,7 +216,6 @@ export const buildRecap = ({
   performed,
   done,
   rounds,
-  lastPerformance,
   startedAt,
   now = Date.now(),
 }: {
@@ -194,7 +225,6 @@ export const buildRecap = ({
   performed: Record<string, PerformedValues>;
   done: string[];
   rounds: Record<string, number>;
-  lastPerformance?: Map<string, LastPerformance>;
   startedAt?: number;
   now?: number;
 }): Recap => {
@@ -211,6 +241,5 @@ export const buildRecap = ({
     setsTotal: counts.total,
     tonnage: tonnageOf(performed, allowedReps(session, done)),
     rounds: Object.values(rounds).reduce((n, r) => n + r, 0),
-    comparisons: comparisonsOf(session, performed, lastPerformance),
   };
 };

@@ -23,6 +23,13 @@ interface RecordPerformedProps {
   onCancel: () => void;
   /** On passe au ressenti, que les charges aient été notées ou non. */
   onContinue: () => void;
+  /**
+   * Ouvert directement sur la saisie, sans la question : depuis l'écran de
+   * fin, « Compléter mes charges » est déjà la réponse.
+   */
+  startRecording?: boolean;
+  /** Le bouton du bas : « OK » quand on revient à l'écran de fin. */
+  continueLabel?: string;
 }
 
 /**
@@ -46,8 +53,10 @@ export const RecordPerformed = ({
   lastPerformance,
   onCancel,
   onContinue,
+  startRecording = false,
+  continueLabel = 'Continuer vers le ressenti',
 }: RecordPerformedProps) => {
-  const [isRecording, setIsRecording] = useState(false);
+  const [isRecording, setIsRecording] = useState(startRecording);
 
   return (
     <>
@@ -158,7 +167,7 @@ export const RecordPerformed = ({
                   onClick={onContinue}
                   _hover={{ bg: 'app.primary.hover' }}
                 >
-                  Continuer vers le ressenti
+                  {continueLabel}
                 </Button>
               </Box>
 

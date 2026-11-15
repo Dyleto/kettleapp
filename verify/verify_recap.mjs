@@ -1,10 +1,13 @@
 /**
- * Le récapitulatif de fin de séance : constater avant de demander.
+ * L'écran de fin : fêter avant de demander.
  *
  * L'arc d'une séance était : quarante minutes d'effort, puis « tu veux noter
  * tes charges ? » — devant des charges déjà notées — puis « c'était
  * comment ? », puis un toast, puis l'accueil. On demandait deux fois avant de
- * donner quoi que ce soit.
+ * donner quoi que ce soit. La fin d'une séance menée en mode guidé ouvre
+ * maintenant sur un écran de fête : trois chiffres, un vrai record s'il y en
+ * a un — mesuré au meilleur de tout l'historique, pas à la dernière fois —
+ * et la question du ressenti seulement après « Continuer ».
  */
 import {
   launch,
@@ -14,6 +17,7 @@ import {
   signIn,
   start,
   dialogs,
+  clean,
   skipRest,
   finishFromPause,
   passBlock,
@@ -54,96 +58,91 @@ const runSess2 = async (p, goblet, lunges) => {
   }
   // Le bouton principal, au dernier geste de la séance.
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1400);
+  await p.waitForTimeout(1600);
 };
 
-// ── Le constat vient avant la question ──────────────────────────────────
+/** L'écran de fin : son nom, ses tuiles telles qu'elles s'annoncent, son
+ * texte. Les tuiles se lisent à leur étiquette — le chiffre affiché monte
+ * pendant une seconde, l'étiquette dit d'emblée la valeur finale. */
+const ending = (p) =>
+  p.evaluate(() => {
+    const scene = [...document.querySelectorAll('[role="dialog"]')].find((d) =>
+      /^Séance (terminée|arrêtée)$/.test(d.getAttribute('aria-label') ?? '')
+    );
+    return {
+      name: scene?.getAttribute('aria-label') ?? null,
+      tiles: [...(scene?.querySelectorAll('[role="group"]') ?? [])].map(
+        (g) => g.getAttribute('aria-label') ?? ''
+      ),
+      text: scene?.innerText ?? '',
+      confetti: !!scene?.querySelector('[data-confetti]'),
+    };
+  });
+const cleanTiles = (e) => e.tiles.map((x) => clean(x));
+
+// ── L'écran de fête vient avant la question ─────────────────────────
 {
-  console.log("\n── la fin d'une séance récompense avant de demander");
+  console.log("\n── la fin d'une séance fête avant de demander");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
-  await runSess2(p, 26, 16);
+  // Le décor : au Goblet, 26 kg la dernière fois et au mieux ; aux fentes,
+  // 12 la dernière fois mais 16 au mieux. 18 bat donc le meilleur — et 16
+  // ne l'aurait pas battu, quoique au-dessus de la dernière fois.
+  await runSess2(p, 26, 18);
 
-  const t = await dialogs(p);
+  const e = await ending(p);
   ok(
-    'on ne redemande pas des charges déjà notées',
-    !/Tu veux noter tes charges/i.test(t),
-    (t.match(/[^\n]*noter tes charges[^\n]*/) ?? [
-      '(la question ne se pose plus)',
-    ])[0]
+    'la fin s’ouvre sur « Séance terminée »',
+    e.name === 'Séance terminée',
+    e.name ?? '(aucun écran de fin)'
   );
   ok(
-    "le bilan s'ouvre sur le constat",
-    /C'est fait\./.test(t),
-    t.split('\n').filter(Boolean)[0] ?? '(rien)'
+    '  → sans redemander des charges déjà notées',
+    !/Tu veux noter tes charges/i.test(await dialogs(p))
   );
   ok(
     '  → et nomme la séance',
-    /Séance 2\s*—\s*Haut du corps/.test(t),
-    (t.match(/[^\n]*Séance 2[^\n]*/) ?? ['(rien)'])[0]
+    /Séance 2\s*—\s*Haut du corps/.test(e.text),
+    (e.text.match(/[^\n]*Séance 2[^\n]*/) ?? ['(rien)'])[0]
+  );
+  ok('  → avec ses confettis', e.confetti);
+  const tiles = cleanTiles(e);
+  ok(
+    'la durée, les séries et tours, et les kilos soulevés',
+    tiles.length === 3 &&
+      /^\d+ minutes?$/.test(tiles[0]) &&
+      tiles[1] === '15 séries et tours',
+    tiles.join(' · ')
+  );
+  // 26 kg × 10 reps × 4 séries + 18 kg × 12 reps × 3 séries.
+  ok(
+    '  → le tonnage est celui des doses réellement cochées',
+    tiles[2] === '1 688 kg soulevés',
+    tiles[2]
   );
   ok(
-    '  → la question vient après, pas avant',
-    t.indexOf("C'est fait.") < t.indexOf('Cette séance'),
-    `constat en ${t.indexOf("C'est fait.")}, question en ${t.indexOf('Cette séance')}`
+    'un vrai record : les fentes, deux kilos au-dessus du meilleur',
+    /Nouveau record/.test(e.text) &&
+      /Fentes marchées · 18\s*kg, 2 de plus qu’avant/.test(clean(e.text)),
+    (clean(e.text).match(/Nouveau record[\s\S]{0,60}/) ?? ['(aucun)'])[0]
   );
-  ok('  → et elle est toujours posée', /Cette séance, c'était/.test(t));
+  ok('  → pas le Goblet, tenu à sa charge', !/Goblet Squat ·/.test(e.text));
 
+  await p.getByRole('button', { name: 'Continuer', exact: true }).click();
+  await p.waitForTimeout(800);
+  const t = await dialogs(p);
   ok(
-    'la durée de la séance est annoncée',
-    /\d+ min[\s\S]{0,20}de séance/.test(t),
-    (t.match(/[^\n]*de séance[^\n]*/) ?? ['(rien)'])[0]
+    '« Continuer » mène au ressenti',
+    /Cette séance, c'était/.test(t),
+    t.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
-  ok(
-    'les exercices faits sont comptés',
-    /15[\s\S]{0,30}exercices, tous faits/.test(t),
-    (t.match(/[^\n]*exercices[^\n]*/) ?? ['(rien)'])[0]
-  );
-  // 26 kg × 10 reps × 4 séries + 16 kg × 12 reps × 3 séries.
-  ok(
-    'le tonnage est celui des doses réellement cochées',
-    /1 616 kg/.test(t),
-    (t.match(/[^\n]*soulevés[^\n]*/) ?? ['(rien)'])[0]
-  );
-
-  // Le jeu de données porte déjà une séance passée : 26 kg au Goblet, 12 aux
-  // fentes.
-  ok(
-    'le constat compare avec la dernière fois',
-    /Par rapport à la dernière fois/i.test(t)
-  );
-  ok(
-    '  → ce qui a monté est dit',
-    /Fentes marchées[\s\S]{0,30}\+4 kg/.test(t),
-    (t.match(/Fentes marchées[\s\S]{0,30}/) ?? ['(rien)'])[0].replace(
-      /\n+/g,
-      ' · '
-    )
-  );
-  ok(
-    "  → et ce qui a tenu aussi, ce qui n'est pas rien",
-    /Goblet Squat[\s\S]{0,20}=/.test(t),
-    (t.match(/Goblet Squat[\s\S]{0,20}/) ?? ['(rien)'])[0].replace(
-      /\n+/g,
-      ' · '
-    )
-  );
-  ok(
-    'et on rassure sur ce qui est déjà enregistré',
-    /Tes charges sont déjà enregistrées/.test(t),
-    (t.match(/[^\n]*déjà enregistrées[^\n]*/) ?? ['(rien)'])[0]
-  );
-
-  // Le bouton de validation reste atteignable : le récapitulatif a grandi la
-  // boîte.
   const submit = p.getByRole('button', { name: /^Valider$/ });
   const box = await submit.boundingBox();
   ok(
-    "  → et « Valider » reste dans l'écran",
+    "  → et « Valider » est dans l'écran",
     !!box && box.y + box.height <= 844,
     box ? `bas à ${Math.round(box.y + box.height)} px` : '(introuvable)'
   );
-
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.waitForTimeout(200);
   await submit.click();
@@ -159,49 +158,58 @@ const runSess2 = async (p, goblet, lunges) => {
   await ctx.close();
 }
 
-// ── La seconde fois, le récapitulatif a de quoi comparer ────────────────
+// ── Le record se mesure au meilleur, et un seul s'affiche ───────────────
 {
-  console.log("\n── à la deuxième séance, l'écart se lit");
+  console.log('\n── à la deuxième séance, le record a monté d’un cran');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
-  await runSess2(p, 26, 16);
+  await runSess2(p, 26, 18);
+  await p.getByRole('button', { name: 'Continuer', exact: true }).click();
+  await p.waitForTimeout(600);
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.waitForTimeout(200);
   await p.getByRole('button', { name: /^Valider$/ }).click();
   await p.waitForTimeout(2200);
 
-  await runSess2(p, 30, 16);
-  const t = await dialogs(p);
+  // Les fentes à 18 ne battent plus rien : 18 est désormais le meilleur.
+  await runSess2(p, 30, 18);
+  const e = await ending(p);
   ok(
-    'le mouvement chargé en plus vient en premier',
-    /Goblet Squat[\s\S]{0,40}\+4 kg/.test(t),
-    (t.match(/Goblet Squat[\s\S]{0,30}/) ?? ['(rien)'])[0].replace(
-      /\n+/g,
-      ' · '
-    )
+    'le Goblet à 30 bat son meilleur de 4 kg',
+    /Goblet Squat · 30\s*kg, 4 de plus qu’avant/.test(clean(e.text)),
+    (clean(e.text).match(/Nouveau record[\s\S]{0,60}/) ?? ['(aucun)'])[0]
   );
   ok(
-    "  → et celui qu'on a tenu le dit aussi",
-    /Fentes marchées[\s\S]{0,30}=/.test(t),
-    (t.match(/Fentes marchées[\s\S]{0,20}/) ?? ['(rien)'])[0].replace(
-      /\n+/g,
-      ' · '
-    )
+    '  → et les fentes, égales à leur meilleur, ne sont pas un record',
+    !/Fentes marchées ·/.test(e.text) && !/autre/.test(e.text)
   );
-  ok('  → « 1re fois » a disparu', !/1re fois/.test(t));
   await ctx.close();
 }
 
-// ── Un mouvement jamais fait ne se compare à rien ───────────────────────
+// ── La régularité, quand rien ne bat rien ──────────────────────────────
 {
-  console.log("\n── sur un mouvement neuf, on n'invente aucune progression");
+  console.log('\n── les mêmes charges que la dernière fois : la régularité');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await runSess2(p, 26, 12);
+  const e = await ending(p);
+  ok(
+    '« Régularité tenue », sans record inventé',
+    /Régularité tenue/.test(e.text) && !/Nouveau record/.test(e.text),
+    (e.text.match(/[^\n]*(Régularité|record)[^\n]*/) ?? ['(rien)'])[0]
+  );
+  await ctx.close();
+}
+
+// ── Un mouvement jamais fait ne bat aucun record ────────────────────────
+{
+  console.log("\n── sur un mouvement neuf, on n'invente aucun record");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
-  // Un chipper : quatre mouvements. Seul le Kettlebell Swing a un passé.
+  // Un chipper : quatre mouvements, chargés lourd. Seul le Kettlebell Swing
+  // a un passé, et 40 kg le dépasse.
   for (let i = 0; i < 4; i++) {
-    // Un mouvement qui n'a jamais porté de charge n'affiche pas de champ,
-    // seulement « Noter une charge » : on le demande d'abord.
     const ask = p.getByRole('button', { name: 'Noter une charge' });
     if (await ask.count()) {
       await ask.click();
@@ -213,7 +221,7 @@ const runSess2 = async (p, goblet, lunges) => {
       )
       .first();
     if (await kg.count()) {
-      await kg.fill(String(10 + i));
+      await kg.fill('40');
       await p.waitForTimeout(200);
     }
     const done = p.getByRole('button', {
@@ -225,53 +233,52 @@ const runSess2 = async (p, goblet, lunges) => {
     await skipRest(p);
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1400);
-  const t = await dialogs(p);
+  await p.waitForTimeout(1600);
+  const e = await ending(p);
   ok(
-    'un mouvement sans passé le dit',
-    /1re fois/.test(t),
-    (t.match(/[^\n]*1re fois[^\n]*/) ?? ['(aucune)'])[0]
+    'le seul mouvement qui a un passé fait le record',
+    /Kettlebell Swing · 40\s*kg/.test(clean(e.text)),
+    (clean(e.text).match(/Nouveau record[\s\S]{0,60}/) ?? ['(aucun)'])[0]
   );
   ok(
-    "  → et aucun écart n'est inventé à sa place",
-    !/Burpee[\s\S]{0,24}[+−-]\d/.test(t),
-    (t.match(/Burpee[\s\S]{0,24}/) ?? ['(rien)'])[0].replace(/\n+/g, ' · ')
+    "  → aucun des trois autres n'est compté parmi les records",
+    !/autre/.test(e.text),
+    (clean(e.text).match(/Nouveau record[\s\S]{0,80}/) ?? ['(aucun)'])[0]
   );
   await ctx.close();
 }
 
-// ── À qui n'a rien noté, on le propose encore ───────────────────────────
+// ── Arrêtée en route, la séance dit ce qui est vrai ─────────────────────
 {
-  console.log('\n── rien noté pendant : la question garde son sens');
+  console.log('\n── une séance arrêtée en route');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess2');
   await passBlock(p);
-  // Rien n'a été coché : le bouton principal dit encore « Fait ». On sort
-  // par la pause, la sortie qui est toujours là.
+  // Le Tabata passé, rien coché : on sort par la pause.
   await finishFromPause(p);
-  const t = await dialogs(p);
+  const e = await ending(p);
   ok(
-    'on propose encore de noter les charges',
-    /Tu veux noter tes charges/i.test(t),
-    t.split('\n').filter(Boolean)[0] ?? '(rien)'
+    '« Séance arrêtée », sans confettis',
+    e.name === 'Séance arrêtée' && !e.confetti,
+    `${e.name} · confettis : ${e.confetti}`
   );
-  await p.getByRole('button', { name: /Passer au ressenti/ }).click();
-  await p.waitForTimeout(900);
-  const t2 = await dialogs(p);
   ok(
-    '  → et le constat est là quand même : la séance a bien eu lieu',
-    /C'est fait\./.test(t2),
-    t2.split('\n').filter(Boolean)[0] ?? '(rien)'
+    '  → les séries et tours sur le total, sans tonnage inventé',
+    cleanTiles(e).includes('8 sur 15 séries et tours') &&
+      !cleanTiles(e).some((x) => /kg soulevés/.test(x)),
+    cleanTiles(e).join(' · ')
   );
-  ok('  → sans tonnage inventé', !/soulevés en tout/.test(t2));
-  ok('  → ni promesse de charges enregistrées', !/déjà enregistrées/.test(t2));
+  ok(
+    '  → « Ce qui est fait est fait », et pas de record',
+    /Ce qui est fait est fait/.test(e.text) && !/Nouveau record/.test(e.text)
+  );
   await ctx.close();
 }
 
-// ── Les tours de l'AMRAP figurent dans le constat ───────────────────────
+// ── Les tours de l'AMRAP figurent parmi les chiffres ────────────────────
 {
-  console.log("\n── le score de l'AMRAP est l'un des chiffres du constat");
+  console.log("\n── le score de l'AMRAP est l'un des chiffres de la fin");
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess1');
@@ -291,17 +298,30 @@ const runSess2 = async (p, goblet, lunges) => {
     await p.waitForTimeout(150);
   }
   await finishFromPause(p);
-  // Aucune charge notée ici : la question garde son sens, on la franchit.
-  await p.getByRole('button', { name: /Passer au ressenti/ }).click();
-  await p.waitForTimeout(900);
-  const t = await dialogs(p);
+  await p.waitForTimeout(600);
+  const e = await ending(p);
   ok(
-    'les tours bouclés figurent dans le constat',
-    /6 tours[\s\S]{0,20}bouclés/.test(t),
-    (t.match(/[^\n]*tours[^\n]*\n?[^\n]*/) ?? ['(rien)'])[0].replace(
-      /\n/g,
-      ' · '
-    )
+    'aucune charge notée : la troisième tuile compte les tours bouclés',
+    cleanTiles(e).includes('6 tours bouclés'),
+    cleanTiles(e).join(' · ')
+  );
+
+  // « Compléter mes charges » ouvre la saisie, et « OK » ramène ici.
+  await p
+    .getByRole('button', { name: 'Compléter mes charges', exact: true })
+    .click();
+  await p.waitForTimeout(800);
+  ok(
+    '« Compléter mes charges » ouvre la saisie',
+    /Tes charges/.test(await dialogs(p)),
+    (await dialogs(p)).split('\n').filter(Boolean)[0] ?? '(rien)'
+  );
+  await p.getByRole('button', { name: 'OK', exact: true }).click();
+  await p.waitForTimeout(800);
+  ok(
+    '  → et « OK » ramène à l’écran de fin',
+    (await ending(p)).name !== null,
+    (await ending(p)).name ?? '(fermé)'
   );
   await ctx.close();
 }

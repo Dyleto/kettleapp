@@ -376,7 +376,7 @@ for (const [name, vp] of [
 
 // ── Le bilan de fin de séance, à plat ───────────────────────────────────
 {
-  console.log('\n── paysage : le récapitulatif et sa question');
+  console.log('\n── paysage : l’écran de fin, puis le bilan');
   const ctx = await browser.newContext(LANDSCAPE);
   const p = await signIn(ctx);
   await start(p, 'sess3');
@@ -400,6 +400,14 @@ for (const [name, vp] of [
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1500);
+  const next = await buttonBox(p, '^Continuer$');
+  ok(
+    "l'écran de fin garde « Continuer » entier et dans l'écran",
+    next && next.belowFold === 0 && next.aboveFold === 0 && next.h >= 44,
+    next ? `de ${next.top} à ${next.bottom} sur 390` : '(introuvable)'
+  );
+  await p.getByRole('button', { name: 'Continuer', exact: true }).click();
+  await p.waitForTimeout(800);
   const submit = await buttonBox(p, '^Valider$');
   ok(
     "« Valider » reste entier et dans l'écran",
@@ -417,7 +425,7 @@ for (const [name, vp] of [
     return b ? { seen: b.clientHeight, content: b.scrollHeight } : null;
   });
   ok(
-    '  → et le constat reste lisible : le corps défile',
+    '  → et le bilan reste lisible : le corps défile',
     body && body.seen > 0,
     body
       ? `${body.seen} px vus pour ${body.content} px`

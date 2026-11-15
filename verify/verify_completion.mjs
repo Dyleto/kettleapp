@@ -52,6 +52,10 @@ const finishSess3 = async (p) => {
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await p.waitForTimeout(1500);
+  // L'écran de fin vient d'abord ; le bilan, que cette suite mesure, suit
+  // « Continuer ».
+  await p.getByRole('button', { name: 'Continuer', exact: true }).click();
+  await p.waitForTimeout(800);
 };
 
 /** La boîte, son corps qui défile, et ce qui dépasse de l'écran. */
@@ -198,31 +202,6 @@ const buttonBox = (p, name) =>
     "  → et l'indication la partage aussi",
     hint !== null && submit && Math.abs(hint - submit.bottom) < 24,
     hint === null ? '(aucune indication)' : `${hint} vs ${submit?.bottom}`
-  );
-  await ctx.close();
-}
-
-// ── Ce qui a quitté le pied se dit toujours ─────────────────────────────
-{
-  console.log('\n── déplacer une phrase ne doit pas la perdre');
-  const ctx = await browser.newContext(MOBILE);
-  const p = await signIn(ctx);
-  await finishSess3(p);
-  const text = await p.evaluate(
-    () =>
-      document
-        .querySelector('[role="dialog"]')
-        ?.innerText.replace(/\u00A0/g, ' ') ?? ''
-  );
-  ok(
-    'les charges déjà enregistrées sont toujours annoncées',
-    /Tes charges sont déjà enregistrées/.test(text),
-    (text.match(/[^\n]*déjà enregistrées[^\n]*/) ?? ['(rien)'])[0]
-  );
-  ok(
-    '  → et le constat ouvre toujours le bilan',
-    /C'est fait\./.test(text),
-    text.split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   await ctx.close();
 }
