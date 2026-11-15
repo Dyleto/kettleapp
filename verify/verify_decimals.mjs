@@ -24,6 +24,7 @@ import {
   start,
   MOBILE,
   clean,
+  passBlock,
 } from './common.mjs';
 
 const browser = await launch();
@@ -34,10 +35,7 @@ const WEIGHT =
 /** Marche jusqu'au bloc classique de la séance 2, où une charge se saisit. */
 const reachWeightField = async (p) => {
   await start(p, 'sess2');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(180);
-  }
+  await passBlock(p);
 };
 
 /** Ce que l'enregistrement local de la séance contient, lu dans le

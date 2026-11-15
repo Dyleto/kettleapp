@@ -28,6 +28,7 @@ import {
   signIn,
   start,
   MOBILE,
+  passBlock,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -187,10 +188,7 @@ const browser = await launch();
   // chrono, et le champ où se tape la charge.
   await start(p, 'sess2');
   await noCodeFont(p, 'la séance guidée, premier bloc');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(180);
-  }
+  await passBlock(p);
   await noCodeFont(p, 'la séance guidée, saisie des charges');
 
   await ctx.close();

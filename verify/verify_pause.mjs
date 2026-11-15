@@ -28,6 +28,7 @@ import {
   where,
   skipRest,
   MOBILE,
+  skipCountdown,
 } from './common.mjs';
 
 const SHEET = '[role="dialog"][aria-label="Pause"]';
@@ -41,12 +42,12 @@ const sheetOpen = (p) =>
 /** Les secondes que l'horloge du tour annonce, lues sur son nom. */
 const secondsLeft = (p) =>
   p.evaluate(() => {
-    const label = [...document.querySelectorAll('button')]
-      .map((b) => b.getAttribute('aria-label') ?? '')
-      .find((l) => /en pause — |Reprendre le décompte — /.test(l));
-    // `\s` et non une espace : l'horloge écrit « 57 s » avec une espace
-    // insécable, que `\s` reconnaît en JavaScript.
-    const m = label?.match(/(\d+)\s*s restant/);
+    const label =
+      document.querySelector('[role="timer"]')?.getAttribute('aria-label') ??
+      '';
+    // L'anneau d'un tour dit « Tour 1 sur 10 — 40 secondes restantes » ;
+    // `\s` parce que l'espace y est insécable.
+    const m = label.match(/(\d+)\s*secondes? restantes?/);
     return m ? Number(m[1]) : null;
   });
 
@@ -89,7 +90,9 @@ const browser = await launch();
 
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 1000);
-  await press(p, /Lancer le décompte/);
+  await press(p, 'Lancer', { exact: true });
+  await settle(p);
+  await skipCountdown(p);
   await settle(p);
   await p.clock.runFor(20_000);
   await settle(p);

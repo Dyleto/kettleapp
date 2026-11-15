@@ -36,6 +36,12 @@ const customConfig = defineConfig({
         from: { opacity: 0 },
         to: { opacity: 1 },
       },
+      // Les trois dernières secondes d'un tour battent : on les voit du coin
+      // de l'œil, téléphone au sol, sans avoir à lire le chiffre.
+      clockPulse: {
+        '0%, 100%': { transform: 'scale(1)' },
+        '50%': { transform: 'scale(1.04)' },
+      },
     },
     semanticTokens: {
       colors: {

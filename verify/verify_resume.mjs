@@ -21,6 +21,7 @@ import {
   guidedScreen,
   skipRest,
   leaveSession,
+  advance,
 } from './common.mjs';
 
 const browser = await launch();
@@ -127,14 +128,9 @@ const startOver = async (p) => {
   const p = await signIn(ctx);
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
-    const btn = p.getByRole('button', {
-      name: /^(Suivant|Fait|Série faite|Palier fait|Bloc suivant)$/,
-    });
-    if (!(await btn.count())) break;
-    await btn.first().click();
-    await p.waitForTimeout(160);
-    await skipRest(p);
     if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
+    await advance(p);
+    await skipRest(p);
   }
   const plus = p.getByRole('button', { name: /^\+1 tour$/ });
   for (let i = 0; i < 6; i++) {

@@ -16,6 +16,8 @@ import {
   dialogs,
   skipRest,
   finishFromPause,
+  passBlock,
+  advance,
 } from './common.mjs';
 
 const browser = await launch();
@@ -27,11 +29,8 @@ const browser = await launch();
  */
 const runSess2 = async (p, goblet, lunges) => {
   await start(p, 'sess2');
-  // Le Tabata : huit tours, rien à noter.
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(200);
-  }
+  // Le Tabata, passé par la pause : huit tours, rien à noter.
+  await passBlock(p);
   // Le bloc classique : sept séries, une charge sur chacune.
   for (let i = 0; i < 7; i++) {
     const kg = p
@@ -246,10 +245,7 @@ const runSess2 = async (p, goblet, lunges) => {
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess2');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(200);
-  }
+  await passBlock(p);
   // Rien n'a été coché : le bouton principal dit encore « Fait ». On sort
   // par la pause, la sortie qui est toujours là.
   await finishFromPause(p);
@@ -279,14 +275,9 @@ const runSess2 = async (p, goblet, lunges) => {
   const p = await signIn(ctx);
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
-    const btn = p.getByRole('button', {
-      name: /^(Suivant|Fait|Série faite|Palier fait|Bloc suivant|Passer)$/,
-    });
-    if (!(await btn.count())) break;
-    await btn.first().click();
-    await p.waitForTimeout(180);
-    await skipRest(p);
     if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
+    await advance(p);
+    await skipRest(p);
   }
   const plus = p.getByRole('button', { name: /^\+1 tour$/ });
   ok('on atteint la boucle', (await plus.count()) > 0);

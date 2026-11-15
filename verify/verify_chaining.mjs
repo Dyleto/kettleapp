@@ -19,6 +19,8 @@ import {
   where,
   guidedScreen,
   skipRest,
+  advance,
+  timerLabel,
 } from './common.mjs';
 
 const browser = await launch();
@@ -78,8 +80,9 @@ const record = (p, sess) =>
   // Le bloc sur lequel on arrive est bien neuf.
   ok(
     "  → et le bloc sur lequel on arrive attend qu'on le lance",
-    /Toucher pour lancer/.test(await guidedScreen(p)),
-    (await guidedScreen(p)).match(/[^\n]*[Tt]oucher[^\n]*/)?.[0] ?? '(rien)'
+    (await p.getByRole('button', { name: 'Lancer', exact: true }).count()) ===
+      1 && /pas encore lancé$/.test((await timerLabel(p)) ?? ''),
+    await timerLabel(p)
   );
 
   // Rien ne se perd en chemin : les deux mouvements restent cochés.
@@ -136,14 +139,9 @@ const record = (p, sess) =>
   const p = await signIn(ctx);
   await start(p, 'sess1');
   for (let i = 0; i < 24; i++) {
-    const btn = p.getByRole('button', {
-      name: /^(Suivant|Fait|Série faite|Palier fait|Bloc suivant)$/,
-    });
-    if (!(await btn.count())) break;
-    await btn.first().click();
-    await p.waitForTimeout(200);
-    await skipRest(p);
     if (await p.getByRole('button', { name: /^\+1 tour$/ }).count()) break;
+    await advance(p);
+    await skipRest(p);
   }
   ok('on atteint la boucle', /— AMRAP$/.test(await where(p)), await where(p));
   const before = await where(p);
@@ -180,10 +178,10 @@ const record = (p, sess) =>
   await p.waitForTimeout(700);
   ok("on est passé à l'EMOM", /— EMOM$/.test(await where(p)), await where(p));
 
-  await p.getByRole('button', { name: /^Précédent$/ }).click();
+  await p.getByRole('button', { name: /^Bloc précédent$/ }).click();
   await p.waitForTimeout(500);
   ok(
-    "  → « Précédent » nous ramène à l'échauffement",
+    "  → « Bloc précédent » nous ramène à l'échauffement",
     /— Échauffement$/.test(await where(p)),
     await where(p)
   );

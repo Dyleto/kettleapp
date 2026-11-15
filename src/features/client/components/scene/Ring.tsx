@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box } from '@chakra-ui/react';
+import { LANDSCAPE } from '../guided/media';
 
 interface RingProps {
   /** Ce qui reste, entre 0 et 1. */
@@ -7,6 +8,8 @@ interface RingProps {
   size: number;
   stroke?: number;
   color: string;
+  /** La taille téléphone couché, où la hauteur manque. */
+  landscapeSize?: number;
   children?: ReactNode;
 }
 
@@ -22,13 +25,29 @@ export const Ring = ({
   size,
   stroke = 7,
   color,
+  landscapeSize,
   children,
 }: RingProps) => {
   const radius = 50 - stroke / 2 - 1;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.max(0, Math.min(1, part));
   return (
-    <Box position="relative" w={`${size}px`} h={`${size}px`} flexShrink={0}>
+    <Box
+      position="relative"
+      w={`${size}px`}
+      h={`${size}px`}
+      flexShrink={0}
+      css={
+        landscapeSize
+          ? {
+              [LANDSCAPE]: {
+                width: `${landscapeSize}px`,
+                height: `${landscapeSize}px`,
+              },
+            }
+          : undefined
+      }
+    >
       <svg
         viewBox="0 0 100 100"
         width="100%"

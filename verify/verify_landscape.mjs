@@ -20,6 +20,7 @@ import {
   start,
   skipRest,
   skipCountdown,
+  passBlock,
 } from './common.mjs';
 
 const browser = await launch();
@@ -314,9 +315,9 @@ for (const [name, vp] of [
     z ? `${z.seen} px vus pour ${z.content} px de contenu` : '(aucune zone)'
   );
 
-  const btn = await buttonBox(p, '^Suivant$');
+  const btn = await buttonBox(p, '^Lancer$');
   ok(
-    "  → le bouton principal reste entier et dans l'écran",
+    "  → « Lancer » reste entier et dans l'écran",
     btn && btn.belowFold === 0 && btn.aboveFold === 0 && btn.h >= 44,
     btn
       ? `${btn.h} px de haut, bas à ${btn.bottom} sur ${vp.viewport.height}`
@@ -345,10 +346,7 @@ for (const [name, vp] of [
   const ctx = await browser.newContext(LANDSCAPE);
   const p = await signIn(ctx);
   await start(p, 'sess2');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(180);
-  }
+  await passBlock(p);
   const z = await viewport(p);
   ok(
     "sept séries ne tiennent pas — et c'est la liste qui défile",
@@ -466,8 +464,8 @@ for (const [name, vp] of [
     `${measures.heights[0]} px`
   );
   ok(
-    "  → et l'horloge ses 72 px",
-    measures.size === '72px',
+    "  → et le chiffre de l'anneau ses 108 px",
+    measures.size === '108px',
     measures.size ?? '(aucune)'
   );
   const q = await visiblePauseButtons(p);

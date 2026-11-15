@@ -18,6 +18,7 @@ import {
   start,
   guidedScreen,
   skipRest,
+  passBlock,
 } from './common.mjs';
 
 const browser = await launch();
@@ -32,10 +33,7 @@ const record = (p) =>
 /** Coche les deux premières séries du bloc classique, à 24 puis 25 kg. */
 const tickTwoSets = async (p) => {
   await start(p, 'sess2');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(180);
-  }
+  await passBlock(p);
   for (let i = 0; i < 2; i++) {
     const kg = p
       .locator(

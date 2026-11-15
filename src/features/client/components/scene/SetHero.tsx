@@ -4,6 +4,7 @@ import { LuInfo, LuPlus } from 'react-icons/lu';
 import { SessionBlock } from '@/shared/types';
 import { type GuidedSet } from '../../guidedSteps';
 import { rankLabel } from '../../guided/outline';
+import { Dots } from './Dots';
 import { DurationRing } from './DurationRing';
 import { LoadStepper } from './LoadStepper';
 
@@ -48,7 +49,7 @@ const splitDose = (dose: string): { amount: string; unit: string } => {
  * Les points de l'en-tête : où l'on en est dans ce mouvement, ou dans le
  * bloc quand chaque mouvement n'a qu'une série.
  */
-const Dots = ({
+const SetDots = ({
   set,
   blockSets,
   doneKeys,
@@ -59,28 +60,15 @@ const Dots = ({
       : blockSets;
   if (siblings.length < 2 || siblings.length > 12) return null;
   return (
-    <HStack gap={2} aria-hidden>
-      {siblings.map((other) => {
-        const isDone = doneKeys.has(other.key);
-        const isNow = other.key === set.key;
-        return (
-          <Box
-            key={other.key}
-            w="14px"
-            h="14px"
-            borderRadius="full"
-            bg={isDone ? 'session.rest' : isNow ? 'app.primary' : 'bg.surface'}
-            boxShadow={
-              isNow
-                ? '0 0 0 4px rgba(207, 159, 63, 0.25)'
-                : isDone
-                  ? 'none'
-                  : 'inset 0 0 0 1.5px {colors.line}'
-            }
-          />
-        );
-      })}
-    </HStack>
+    <Dots
+      marks={siblings.map((other) =>
+        doneKeys.has(other.key)
+          ? 'done'
+          : other.key === set.key
+            ? 'now'
+            : 'todo'
+      )}
+    />
   );
 };
 
@@ -135,7 +123,7 @@ export const SetHero = ({
         >
           {rankLabel(block, set, blockSets)}
         </Text>
-        <Dots set={set} blockSets={blockSets} doneKeys={doneKeys} />
+        <SetDots set={set} blockSets={blockSets} doneKeys={doneKeys} />
       </HStack>
 
       <HStack align="start" gap={2.5}>

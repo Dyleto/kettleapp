@@ -17,33 +17,29 @@ import {
   failureCount,
   signIn,
   start,
-  guidedScreen,
   where,
   skipRest,
+  advance,
+  launchClock,
+  passBlock,
+  timerLabel,
 } from './common.mjs';
 
 const browser = await launch();
 
-/** Ce que dit l'horloge du tour : son temps, et ce que son bouton
- * propose. */
-const clock = (p) =>
-  p.evaluate(() => {
-    const r = document.querySelector('[aria-label="Séance guidée"]');
-    const t = [...r.querySelectorAll('*')].find(
+/** Ce que dit l'horloge du tour : son chiffre, son étiquette, et si
+ * « Lancer » est encore proposé. */
+const clock = async (p) => ({
+  time: await p.evaluate(() => {
+    const r = document.querySelector('[role="timer"]');
+    const t = [...(r?.querySelectorAll('*') ?? [])].find(
       (e) => /^\d+:\d\d$/.test(e.textContent.trim()) && !e.children.length
     );
-    const btn = [...r.querySelectorAll('button')].find((e) =>
-      /décompte|en pause —/i.test(e.getAttribute('aria-label') || '')
-    );
-    // Le `clean` de common.mjs tourne ici, dans la page : il ne peut pas
-    // être importé, il est donc réécrit. Les espaces sont échappées —
-    // écrites telles quelles, elles sont invisibles à la relecture.
-    const clean = (x) => (x ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
-    return {
-      time: clean(t?.textContent.trim()) || null,
-      name: clean(btn?.getAttribute('aria-label')) || null,
-    };
-  });
+    return t?.textContent.trim() ?? null;
+  }),
+  label: await timerLabel(p),
+  launch: await p.getByRole('button', { name: 'Lancer', exact: true }).count(),
+});
 
 /** Franchit l'échauffement de la séance 1 pour atteindre l'EMOM. */
 const goToEmom = async (p) => {
@@ -52,12 +48,7 @@ const goToEmom = async (p) => {
   // moment où un bloc terminé enchaîne tout seul sur le suivant.
   for (let i = 0; i < 6; i++) {
     if (/— EMOM$/.test(await where(p))) return;
-    const btn = p.getByRole('button', {
-      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
-    });
-    if (!(await btn.count())) return;
-    await btn.first().click();
-    await p.waitForTimeout(300);
+    await advance(p);
     await skipRest(p);
   }
 };
@@ -73,14 +64,14 @@ const goToEmom = async (p) => {
   const before = await clock(p);
   ok("l'horloge montre tout le temps", before.time === '1:00', before.time);
   ok(
-    '  → et propose de la lancer, pas de la mettre en pause',
-    /^Lancer le décompte/.test(before.name ?? ''),
-    before.name
+    '  → et propose de la lancer',
+    before.launch === 1,
+    `${before.launch} bouton « Lancer »`
   );
   ok(
-    "  → l'écran le dit aussi",
-    /Toucher pour lancer/.test(await guidedScreen(p)),
-    (await guidedScreen(p)).match(/[^\n]*[Tt]oucher[^\n]*/)?.[0] ?? '(rien)'
+    '  → ce que son étiquette dit aussi',
+    /^Tour 1 sur 10 — 1:00, pas encore lancé$/.test(before.label ?? ''),
+    before.label
   );
 
   // Le point qui compte : attendre ne coûte aucun temps.
@@ -92,18 +83,18 @@ const goToEmom = async (p) => {
     after.time
   );
 
-  await p.getByRole('button', { name: /Lancer le décompte/ }).click();
+  await launchClock(p);
   await p.waitForTimeout(2500);
   const started = await clock(p);
   ok(
-    'une touche la lance',
-    /^Mettre en pause/.test(started.name ?? ''),
-    started.name
+    'une touche la lance, et elle tourne',
+    /^Tour 1 sur 10 — 5[0-9] secondes restantes$/.test(started.label ?? ''),
+    started.label
   );
   ok(
-    '  → et elle tourne',
-    /5[0-9] s restant/.test(started.name ?? ''),
-    started.name
+    '  → « Lancer » a disparu : plus rien à toucher',
+    started.launch === 0,
+    `${started.launch} bouton « Lancer »`
   );
   await ctx.close();
 }
@@ -116,22 +107,24 @@ const goToEmom = async (p) => {
   console.log('\n── une fois lancés, les tours suivants partent seuls');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
+  await p.clock.install();
   await goToEmom(p);
-  await p.getByRole('button', { name: /Lancer le décompte/ }).click();
-  await p.waitForTimeout(800);
-
-  await p.getByRole('button', { name: /^Suivant$/ }).click();
-  await p.waitForTimeout(1200);
+  await launchClock(p);
+  const now = await p.evaluate(() => Date.now());
+  await p.clock.pauseAt(now + 300);
+  await p.clock.runFor(61_000);
+  await p.waitForTimeout(400);
   const round2 = await clock(p);
   ok(
-    'le tour suivant du même bloc ne demande rien',
-    /^Mettre en pause/.test(round2.name ?? ''),
-    round2.name
+    'la minute écoulée, le tour 2 tourne sans rien demander',
+    /^Tour 2 sur 10 — 5[0-9] secondes restantes$/.test(round2.label ?? '') &&
+      round2.launch === 0,
+    round2.label
   );
   ok(
-    '  → et on est bien au tour 2',
-    /Tour 2/.test(await guidedScreen(p)),
-    (await guidedScreen(p)).match(/Tour \d+[^\n]*/)?.[0] ?? '(rien)'
+    '  → et la séance le suit',
+    /tour 2 sur 10/.test(await where(p)),
+    await where(p)
   );
   await ctx.close();
 }
@@ -141,28 +134,34 @@ const goToEmom = async (p) => {
   console.log('\n── un autre bloc, une autre décision');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
+  await p.clock.install();
   await start(p, 'sess4');
   // La séance 4 enchaîne un On-Off de 8 tours puis un bloc « Every ».
   ok('on démarre sur le On-Off', /— On/i.test(await where(p)), await where(p));
-  await p.getByRole('button', { name: /Lancer le décompte/ }).click();
-  await p.waitForTimeout(600);
-  for (let i = 0; i < 8; i++) {
-    const b = p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ });
-    if (!(await b.count())) break;
-    await b.click();
-    await p.waitForTimeout(220);
-    if (/— Every/i.test(await where(p))) break;
-  }
+  // « C'est parti » et son décompte valent le « Lancer » du premier bloc :
+  // un second décompte ne redemanderait que ce qui vient d'être décidé.
+  const first = await clock(p);
   ok(
-    'on atteint le bloc suivant',
+    "  → le décompte de l'ouverture l'a lancé",
+    /^Effort, tour 1 sur 8 — \d+ secondes restantes$/.test(first.label ?? '') &&
+      first.launch === 0,
+    first.label
+  );
+  const now = await p.evaluate(() => Date.now());
+  await p.clock.pauseAt(now + 300);
+  // Huit tours de 40 s d'effort et 20 s de repos, et un peu de marge.
+  await p.clock.runFor(8 * 60_000 + 1_000);
+  await p.waitForTimeout(500);
+  ok(
+    'le dernier tour tombé, on atteint le bloc suivant',
     /— Every/i.test(await where(p)),
     await where(p)
   );
   const fresh = await clock(p);
   ok(
     '  → son horloge attend à son tour',
-    /^Lancer le décompte/.test(fresh.name ?? ''),
-    fresh.name
+    fresh.launch === 1 && /pas encore lancé$/.test(fresh.label ?? ''),
+    fresh.label
   );
   await ctx.close();
 }
@@ -176,10 +175,8 @@ const goToEmom = async (p) => {
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await start(p, 'sess2');
-  for (let i = 0; i < 8; i++) {
-    await p.getByRole('button', { name: /^(Suivant|Bloc suivant)$/ }).click();
-    await p.waitForTimeout(180);
-  }
+  // Le Tabata d'abord, passé par la pause : on vient pour la liste.
+  await passBlock(p);
   await p
     .getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,

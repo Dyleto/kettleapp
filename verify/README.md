@@ -1,6 +1,6 @@
 # Le banc d'essai
 
-Vingt-quatre suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
+Vingt-cinq suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
 `npm test` à la racine, qui éprouve la logique pure en quelques secondes :
 une suite qui n'a pas besoin d'un navigateur n'a rien à faire ici. Il y en
 avait une — `verify_format.mjs`, qui empaquetait un module avec esbuild faute
@@ -38,14 +38,20 @@ aucune assertion.
 ## Écrire une suite
 
 `common.mjs` porte ce qu'elles refont toutes : se connecter, lancer une séance
-guidée, lire l'écran. Deux pièges méritent d'être connus :
+guidée, lire l'écran. Trois pièges méritent d'être connus :
 
-- **Ne jamais naviguer au texte de l'écran.** Le dernier tour d'un bloc
-  annonce déjà le bloc suivant — « dernier tour — ensuite : AMRAP » — et un
-  motif sur « AMRAP » s'arrête une étape trop tôt. `where(page)` lit
+- **Ne jamais naviguer au texte de l'écran.** Chaque tour d'un EMOM
+  annonce déjà le bloc suivant — « Ensuite · AMRAP 12 · 12 min » — et un
+  motif sur « AMRAP » s'arrête un bloc trop tôt. `where(page)` lit
   `aria-valuetext` sur la barre de progression : c'est le seul repère fiable.
-- **Normaliser les espaces.** L'interface écrit « Tour 1 / 10 » avec des
+- **Normaliser les espaces.** L'interface écrit « 42 secondes » avec des
   espaces insécables ; `clean()` les ramène à des espaces ordinaires.
+- **Un bloc chronométré n'a pas de bouton « Suivant ».** Ses tours passent à
+  l'horloge. Pour traverser une séance sans savoir ce qu'on franchit,
+  `advance(page)` ; pour sauter un bloc, `passBlock(page)` ; pour lancer
+  l'horloge, `launchClock(page)`. Le temps se mène avec `page.clock` :
+  `runFor` laisse battre la page, `fastForward` saute d'un coup, comme un
+  téléphone verrouillé.
 
 La règle de langue est celle du projet : tout ce qui est technique en anglais
 — identifiants, noms de fichiers, marqueurs `OK` et `FAIL` que le lanceur lit

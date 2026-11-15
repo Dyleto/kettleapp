@@ -34,6 +34,7 @@ import {
   where,
   skipRest,
   MOBILE,
+  skipCountdown,
 } from './common.mjs';
 
 const TICK = 880;
@@ -203,11 +204,14 @@ const browser = await launch();
   // Le temps ne s'écoule plus que sur ordre.
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 1000);
-  let mark = opened + blockEnd.length;
-
   const startedAt = await where(p);
-  await p.getByRole('button', { name: /Lancer le décompte/ }).click();
+  // « Lancer », puis son décompte franchi d'une touche : ses bips sont ceux
+  // du décompte, vérifiés plus haut. On ne compte qu'à partir du départ.
+  await p.getByRole('button', { name: 'Lancer', exact: true }).click();
   await settle(p);
+  await skipCountdown(p);
+  await settle(p);
+  let mark = (await heard(p)).length;
   await p.clock.runFor(56_000);
   await settle(p);
   const quiet = await heard(p, mark);

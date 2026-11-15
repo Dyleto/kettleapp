@@ -214,3 +214,68 @@ export const skipRest = async (p) => {
     await p.waitForTimeout(250);
   }
 };
+
+/**
+ * Lancer l'horloge d'un bloc chronométré : « Lancer », puis le décompte
+ * franchi d'une touche.
+ */
+export const launchClock = async (p) => {
+  // Absent, il n'est pas cliqué : c'est l'assertion qui juge, la suite ne
+  // plante pas sur un bouton qui manque.
+  const button = p.getByRole('button', { name: 'Lancer', exact: true });
+  if (!(await button.count())) return;
+  await button.click();
+  await p.waitForTimeout(300);
+  await skipCountdown(p);
+};
+
+/**
+ * Ce que dit l'horloge d'un bloc chronométré : son étiquette, « Tour 3 sur
+ * 10 — 42 secondes restantes ». `null` hors d'un tel bloc.
+ */
+export const timerLabel = (p) =>
+  p
+    .locator('[role="timer"]')
+    .first()
+    .getAttribute('aria-label', { timeout: 1000 })
+    .then(clean)
+    .catch(() => null);
+
+/**
+ * Passer le bloc en cours par la pause. C'est le chemin d'un bloc
+ * chronométré, qui n'a plus de bouton « Suivant » : les tours y passent à
+ * l'horloge.
+ */
+export const passBlock = async (p) => {
+  await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
+  await p.waitForTimeout(400);
+  await p.getByRole('button', { name: 'Passer ce bloc' }).click();
+  await p.waitForTimeout(400);
+};
+
+/**
+ * Un écran plus loin, quel qu'il soit.
+ *
+ * Le bouton principal quand il y en a un — une série, un repos, la fin d'un
+ * bloc. Sur un bloc chronométré il n'y en a pas : la flèche « Tour suivant »,
+ * et au dernier tour, où elle s'efface, la pause et « Passer ce bloc ». Les
+ * suites qui traversent une séance pour atteindre un écran passent par ici,
+ * sans avoir à savoir quel format elles franchissent.
+ */
+export const advance = async (p) => {
+  const main = p.getByRole('button', {
+    name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant|Passer|Terminer)$/,
+  });
+  if (await main.count()) {
+    await main.first().click();
+    await p.waitForTimeout(220);
+    return;
+  }
+  const round = p.getByRole('button', { name: 'Tour suivant', exact: true });
+  if (await round.count()) {
+    await round.click();
+    await p.waitForTimeout(220);
+    return;
+  }
+  await passBlock(p);
+};

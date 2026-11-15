@@ -24,6 +24,7 @@ import { Opening } from './scene/Opening';
 import { Countdown } from './scene/Countdown';
 import {
   blockSegments,
+  blockMarker,
   blockTitle,
   firstGesture,
   positionLabel,
@@ -42,7 +43,7 @@ import {
 import { ActionButton } from '@/shared/components/ActionButton';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
-import { Round } from './guided/Round';
+import { TimedBlock } from './scene/TimedBlock';
 import { BlockList } from './guided/BlockList';
 import { readSavedIndex, writeSavedIndex } from './guided/progress';
 
@@ -437,6 +438,53 @@ export const GuidedSession = ({
 
   const goPrev = () => goTo(Math.max(0, index - 1));
 
+  // Un tour qui passe, à l'horloge ou d'un geste. Ni bip de fin de bloc ni
+  // consigne refermée : on reste dans le même bloc, et une consigne ouverte
+  // pendant un EMOM se refermait à chaque minute.
+  const goToRound = (blockOrder: number, round: number) => {
+    const target = steps.findIndex(
+      (candidate) =>
+        candidate.type === 'round' &&
+        candidate.block.order === blockOrder &&
+        candidate.round === round
+    );
+    if (target === -1) return;
+    setIndex(target);
+    writeSavedIndex(session._id, target);
+  };
+
+  // Le premier tour d'un bloc chronométré : « Bloc précédent » part de là,
+  // quel que soit le tour affiché.
+  const firstRoundIndex = (blockOrder: number): number =>
+    steps.findIndex(
+      (candidate) =>
+        candidate.type === 'round' && candidate.block.order === blockOrder
+    );
+
+  // Ce qu'annonce le pied d'un bloc chronométré : « AMRAP 12 · 12 min ».
+  const nextBlockLine = (blockOrder: number): string | null => {
+    const next = [...session.blocks]
+      .sort((a, b) => a.order - b.order)
+      .find((block) => block.order > blockOrder);
+    return next ? `${blockTitle(next)} · ${blockMarker(next)}` : null;
+  };
+
+  // Le dernier tour est tombé : l'écran qui suit le bloc, d'où que l'index
+  // en soit — un téléphone verrouillé peut avoir sauté plusieurs tours.
+  const finishTimedBlock = (blockOrder: number) => {
+    const after = steps.findIndex(
+      (candidate, i) =>
+        i > index &&
+        (candidate.type === 'rest' || candidate.block.order !== blockOrder)
+    );
+    if (after === -1) {
+      playCue('sessionEnd');
+      onFinish();
+      return;
+    }
+    goTo(after);
+  };
+
   // Quitter n'efface rien. Sortir pour répondre au téléphone, ou parce
   // qu'un doigt a glissé, ne doit pas coûter la séance : on retrouve sa place
   // et ses charges en revenant.
@@ -582,7 +630,13 @@ export const GuidedSession = ({
       <Countdown
         title={gesture.title}
         detail={gesture.detail}
-        onDone={() => setCounting(false)}
+        onDone={() => {
+          setCounting(false);
+          // « C'est parti » et ses trois secondes valent le « Lancer » d'un
+          // premier bloc chronométré : un second décompte, juste derrière,
+          // ne ferait que redemander ce qui vient d'être décidé.
+          if (step.type === 'round') setArmedBlock(step.block.order);
+        }}
       />
     );
   }
@@ -813,6 +867,10 @@ export const GuidedSession = ({
           flexDirection="column"
           overflow="hidden"
           position="relative"
+          // Le fond d'une phase de Tabata se pose derrière la scène : sans
+          // contexte d'empilement propre, il passerait aussi derrière le
+          // fond de cette carte, donc hors de vue.
+          isolation="isolate"
         >
           {/* Le haut de la scène dit dans quel bloc on est — son rang et son
               nom — avec le son et la pause à droite. Il disait « 9 / 12 » :
@@ -1170,13 +1228,22 @@ export const GuidedSession = ({
               />
             </VStack>
           ) : step.type === 'round' ? (
-            <Round
+            <TimedBlock
+              key={step.block.order}
               step={step}
-              onDone={goNext}
-              lastPerformance={lastPerformance}
-              onOpenDetail={setDetail}
               armed={armedBlock === step.block.order}
               onArm={() => setArmedBlock(step.block.order)}
+              onRound={(round) => goToRound(step.block.order, round)}
+              onFinish={() => finishTimedBlock(step.block.order)}
+              onPause={() => setShowPause(true)}
+              onPrevious={
+                firstRoundIndex(step.block.order) > 0
+                  ? () => goTo(firstRoundIndex(step.block.order) - 1)
+                  : undefined
+              }
+              nextBlock={nextBlockLine(step.block.order)}
+              lastPerformance={lastPerformance}
+              onOpenDetail={setDetail}
             />
           ) : (
             <VStack
@@ -1366,7 +1433,7 @@ export const GuidedSession = ({
                 )}
               </HStack>
             </VStack>
-          ) : (
+          ) : step.type === 'round' ? null : (
             <>
               {/* Les cibles gardent leurs 52 px — on ne rétrécit pas ce qu'on
             touche les mains moites. C'est la marge qui cède, pas le
