@@ -244,6 +244,76 @@ const browser = await launch();
 }
 
 {
+  console.log('\n── un exercice à durée se fait dans un anneau');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await start(p, 'sess1');
+  const ring = () =>
+    p.evaluate(
+      () =>
+        [...document.querySelectorAll('[data-set-hero] button')]
+          .map((b) => b.getAttribute('aria-label') ?? '')
+          .find((l) => /décompte|en pause —/.test(l)) ?? ''
+    );
+
+  ok(
+    'la corde à sauter attend une touche, anneau plein',
+    /^Lancer le décompte — 2:00$/.test(clean(await ring())) &&
+      (await hero(p)).includes('Toucher pour lancer'),
+    clean(await ring())
+  );
+  ok(
+    '  → sans proposer de remettre ce qui n’a pas bougé',
+    !(await hero(p)).includes('Remettre à')
+  );
+
+  await p
+    .getByRole('button', { name: /^Lancer le décompte/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p.waitForTimeout(200);
+  const now = await p.evaluate(() => Date.now());
+  await p.clock.pauseAt(now + 500);
+  await p.clock.runFor(30_000);
+  await p.waitForTimeout(300);
+  ok(
+    'une touche le lance, et il décompte',
+    /^Mettre en pause — 1:3\d restant$/.test(clean(await ring())),
+    clean(await ring())
+  );
+
+  await press(p, 'Remettre à 2 min');
+  ok(
+    '« Remettre à 2 min » repart d’un anneau plein',
+    /^Lancer le décompte — 2:00$/.test(clean(await ring())),
+    clean(await ring())
+  );
+
+  await p
+    .getByRole('button', { name: /^Lancer le décompte/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p.waitForTimeout(200);
+  await p.clock.runFor(121_000);
+  await p.waitForTimeout(400);
+  const done = await p.evaluate(
+    () => JSON.parse(localStorage.getItem('kettle-seance-sess1') || '{}').done
+  );
+  ok(
+    'à zéro, la série se coche seule',
+    Array.isArray(done) && done.includes('1:1:1'),
+    JSON.stringify(done)
+  );
+  ok(
+    '  → et le mouvement suivant prend sa place',
+    (await hero(p)).includes('Mountain Climbers'),
+    await hero(p)
+  );
+  await ctx.close();
+}
+
+{
   console.log('\n── les noms ne sont plus coupés');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);

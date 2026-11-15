@@ -1012,6 +1012,7 @@ export const GuidedSession = ({
                     }
                     onLoadChange={changeLoad}
                     loadLabel={loadLabel}
+                    onTimedDone={markDone}
                     onOpenDetail={
                       current.exercise.note?.trim() ||
                       current.exercise.exercise.description?.trim() ||

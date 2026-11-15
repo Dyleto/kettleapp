@@ -1,10 +1,10 @@
+import { useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuInfo, LuPlus } from 'react-icons/lu';
 import { SessionBlock } from '@/shared/types';
-import { formatDuration } from '@/shared/utils/duration';
 import { type GuidedSet } from '../../guidedSteps';
 import { rankLabel } from '../../guided/outline';
-import { OnDemandTimer } from '../guided/Timer';
+import { DurationRing } from './DurationRing';
 import { LoadStepper } from './LoadStepper';
 
 interface SetHeroProps {
@@ -31,6 +31,8 @@ interface SetHeroProps {
   /** Le nom du champ de charge, tel que les autres écrans le donnent. */
   loadLabel: string;
   onOpenDetail?: () => void;
+  /** Un exercice à durée arrivé à zéro : sa série est faite. */
+  onTimedDone: () => void;
 }
 
 /** « 10 reps » en deux morceaux : le nombre, en très grand, et son unité. */
@@ -108,7 +110,11 @@ export const SetHero = ({
   onLoadChange,
   loadLabel,
   onOpenDetail,
+  onTimedDone,
 }: SetHeroProps) => {
+  // « Remettre à 2 min » repart d'un anneau neuf : changer sa clé le
+  // remonte, échéance comprise.
+  const [lap, setLap] = useState(0);
   const { amount, unit } = splitDose(set.dose);
   const note = set.exercise.note?.trim();
   const duration = set.exercise.duration;
@@ -181,7 +187,14 @@ export const SetHero = ({
         </Box>
       )}
 
-      {amount && (
+      {duration ? (
+        <DurationRing
+          key={lap}
+          duration={duration}
+          onDone={onTimedDone}
+          onReset={() => setLap(lap + 1)}
+        />
+      ) : amount ? (
         <HStack align="baseline" gap={3}>
           <Text
             fontFamily="heading"
@@ -200,16 +213,6 @@ export const SetHero = ({
             </Text>
           )}
         </HStack>
-      )}
-
-      {duration ? (
-        <Box ml={-4}>
-          <OnDemandTimer
-            duration={duration}
-            label={formatDuration(duration)}
-            color="app.primary"
-          />
-        </Box>
       ) : null}
 
       {showLoad ? (
