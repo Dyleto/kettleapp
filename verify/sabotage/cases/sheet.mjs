@@ -17,7 +17,7 @@ export default {
       name: "un Tabata sans répétitions n'a pas de dose",
       edits: [
         {
-          file: 'src/features/client/detail.ts',
+          file: 'src/domain/session/dose.ts',
           from: '          ? formatDuration(block.workDuration)\n',
           to: "          ? ''\n",
         },
@@ -28,7 +28,7 @@ export default {
       name: 'le Tabata ne dit pas ses tours',
       edits: [
         {
-          file: 'src/features/client/detail.ts',
+          file: 'src/domain/session/dose.ts',
           from: "        block.rounds ? `${block.rounds}${NBSP}tours` : '',",
           to: "        '',",
         },
@@ -52,7 +52,7 @@ export default {
       name: 'la dernière charge ne se dit pas',
       edits: [
         {
-          file: 'src/features/client/detail.ts',
+          file: 'src/domain/session/dose.ts',
           from: '  const load = heaviest(last?.sets);',
           to: '  const load = undefined as number | undefined;',
         },
@@ -76,9 +76,9 @@ export default {
       name: "les traits d'une échelle sont tous égaux",
       edits: [
         {
-          file: 'src/features/client/components/detail/BlockRhythm.tsx',
-          from: "            h={scheme ? `${Math.max(18, (scheme[i] / top) * 100)}%` : 'full'}",
-          to: '            h="full"',
+          file: 'src/domain/session/drawing.ts',
+          from: '      bars: scheme.map((reps) => Math.max(SHORTEST_RUNG, reps / top)),',
+          to: '      bars: scheme.map(() => 1),',
         },
       ],
       falls: ['trois paliers, trois traits qui montent'],

@@ -1,5 +1,5 @@
 import type { CompletedSession, Session } from '@/shared/types';
-import { dayKey, startOfWeek } from './sessionDates';
+import { dayKey, startOfWeek } from '@/domain/week/dates';
 
 /**
  * La semaine en chiffres : combien de séances le coach conseille, combien

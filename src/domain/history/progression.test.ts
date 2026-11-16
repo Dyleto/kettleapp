@@ -16,13 +16,13 @@ import {
   isRising,
   METRIC_UNIT,
   sessionTotals,
-} from './exerciseProgression';
-import type { ExerciseProgression } from './exerciseProgression';
+} from '@/domain/history/progression';
+import type { ExerciseProgression } from '@/domain/history/progression';
 import {
   makeCompleted,
   makeBlockSnapshot,
   makeExerciseSnapshot,
-} from './fixtures';
+} from '@/domain/fixtures';
 import type { PerformedSet } from '@/shared/types';
 
 describe('ce qu’une séance retient d’un exercice', () => {

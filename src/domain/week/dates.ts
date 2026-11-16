@@ -74,3 +74,28 @@ export const formatSuggestedDays = (days?: number[]): string => {
   if (names.length === 1) return names[0];
   return `${names.slice(0, -1).join(', ')} et ${names[names.length - 1]}`;
 };
+
+/**
+ * « Aujourd'hui », « Hier », puis la date.
+ *
+ * La comparaison se fait sur les jours et non sur les millisecondes : une
+ * séance d'hier 23 h et une d'aujourd'hui 1 h sont à deux heures d'écart mais
+ * pas le même jour, et c'est le jour qui se lit.
+ */
+export const getRelativeDate = (date: Date | string): string => {
+  const d = new Date(date);
+  const today = new Date();
+  const diffDays = Math.round(
+    (new Date(today.toDateString()).getTime() -
+      new Date(d.toDateString()).getTime()) /
+      86400000
+  );
+
+  if (diffDays === 0) return "Aujourd'hui";
+  if (diffDays === 1) return 'Hier';
+  if (diffDays > 1 && diffDays < 7) return `Il y a ${diffDays} jours`;
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+  }).format(d);
+};

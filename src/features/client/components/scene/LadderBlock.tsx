@@ -6,7 +6,7 @@ import type { BlockExercise } from '@/shared/types';
 import { ActionButton, LANDSCAPE, Ring, Sheet } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';
 import type { GuidedStep } from '../../guidedSteps';
-import type { LastPerformance } from '../../lastPerformance';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { playCue } from '../../sound';
 import { useBlockClock } from '../../guided/useBlockClock';
 import { chipTime, readAmrap, type AmrapReading } from '../../guided/amrap';
@@ -17,8 +17,8 @@ import {
   rungSets,
   stepHeight,
 } from '../../guided/ladder';
-import { formatWeight, heaviest } from '../../guided/load';
-import { blockTitle } from '../../guided/outline';
+import { formatWeight, heaviest } from '@/domain/history/load';
+import { blockTitle } from '@/domain/session/measure';
 import { Countdown } from './Countdown';
 import { RestHero } from './RestHero';
 import { useCoachVoice } from '../../coach';

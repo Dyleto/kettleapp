@@ -7,7 +7,7 @@ import {
   BLOCK_TYPE_CONFIG,
   getBlockAccent,
   getBlockDescription,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronDown } from 'react-icons/lu';
 

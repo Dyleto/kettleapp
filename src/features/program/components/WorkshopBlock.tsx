@@ -22,7 +22,7 @@ import {
   blockIndexPrefix,
   blockSupportsSets,
   getBlockLabel,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 import { BlockFrame } from './BlockFrame';
 import { touchGap, touchHitArea, touchRow } from '@/kit';
 import { formatDuration } from '@/shared/utils/formatters';

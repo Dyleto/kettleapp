@@ -9,11 +9,8 @@ import {
 } from '@chakra-ui/react';
 import { LuPlus, LuTrash2 } from 'react-icons/lu';
 import { Session } from '@/shared/types';
-import {
-  BLOCK_ACCENT_COLOR,
-  getBlockAccent,
-} from '@/features/program/constants';
-import { WEEKDAY_SHORT } from '@/features/client/sessionDates';
+import { BLOCK_ACCENT_COLOR, getBlockAccent } from '@/domain/session/blocks';
+import { WEEKDAY_SHORT } from '@/domain/week/dates';
 import {
   DndContext,
   DragEndEvent,
@@ -30,7 +27,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { sessionTitleParts } from '@/features/program/sessionTitle';
+import { sessionName, sessionRank } from '@/domain/session/name';
 
 interface SessionRailProps {
   sessions: Session[];
@@ -115,7 +112,9 @@ const RailRow = ({
     isDragging,
   } = useSortable({ id: session._id, disabled: !sortable });
 
-  const { rank, freeName } = sessionTitleParts(session.order, session.name);
+  const rank = sessionRank(session.order);
+  const name = sessionName(session);
+  const freeName = name === rank ? undefined : name;
 
   const row = (
     <Box

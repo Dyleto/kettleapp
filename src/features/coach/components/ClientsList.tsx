@@ -15,7 +15,7 @@ import { LuSearch, LuX } from 'react-icons/lu';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { EmptyState, hitArea, LoadFailure } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
-import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/features/client/constants';
+import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/domain/history/effort';
 import { LegacyCard } from '@/shared/components/LegacyCard';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { normalize } from '@/shared/utils/formatters';

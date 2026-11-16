@@ -8,8 +8,8 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronRight } from 'react-icons/lu';
 import { useState } from 'react';
 import { CompletedSessionDrawer } from './CompletedSessionDrawer';
-import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
-import { sessionTitle } from '@/features/program/sessionTitle';
+import { EFFORT_ZONE_COLOR } from '@/domain/history/effort';
+import { sessionName } from '@/domain/session/name';
 
 interface SessionHistoryCardProps {
   completed: CompletedSession;
@@ -62,7 +62,10 @@ export const SessionHistoryCard = ({
         <HStack justify="space-between" align="center">
           <HStack gap={2}>
             <Text fontSize="sm" fontWeight="bold">
-              {sessionTitle(completed.sessionOrder, completed.sessionName)}
+              {sessionName({
+                order: completed.sessionOrder,
+                name: completed.sessionName,
+              })}
             </Text>
             {showUnseenIndicator && (
               <Box

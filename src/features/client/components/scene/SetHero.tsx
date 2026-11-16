@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuInfo, LuPlus } from 'react-icons/lu';
 import { SessionBlock } from '@/shared/types';
-import { type GuidedSet } from '../../guidedSteps';
+import { type GuidedSet } from '@/domain/session/sets';
 import { rankLabel } from '../../guided/outline';
 import { Bubble, Dots } from '@/kit';
 import { DurationRing } from './DurationRing';

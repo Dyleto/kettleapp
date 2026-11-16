@@ -4,7 +4,7 @@ import {
   useProgramAutoSave,
   type SaveState,
 } from '@/features/program/hooks/useProgramAutoSave';
-import { getBlockLabel } from '@/features/program/constants';
+import { getBlockLabel } from '@/domain/session/blocks';
 import { undoable } from '@/shared/components/undoable';
 import type {
   BlockExercise,

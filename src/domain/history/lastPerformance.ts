@@ -1,5 +1,8 @@
 import { CompletedSession, PerformedValues } from '@/shared/types';
-import { formatPerformedSets, truncateAtFirstEmpty } from './performedFormat';
+import {
+  formatPerformedSets,
+  truncateAtFirstEmpty,
+} from '@/domain/history/performedFormat';
 
 /** Ce qu'on a mis la dernière fois sur un mouvement, avec la date à laquelle
  * c'était. */

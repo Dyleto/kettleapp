@@ -32,22 +32,33 @@ import {
 
 const browser = await launch();
 
+/** Le titre de chaque carte, dans l'ordre du programme : le nom que le
+ * coach a donné, sinon le rang. Le décor nomme les séances 1, 2 et 6. */
+const TITLES = [
+  'Full body A',
+  'Haut du corps',
+  'Séance 3',
+  'Séance 4',
+  'Séance 5',
+  'Échelle à deux',
+];
+
 /** Chaque carte de séance, par son titre, avec la ligne qu'elle porte à
  * droite. */
 const cards = async (p) => {
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1800);
-  return p.evaluate(() => {
+  return p.evaluate((titles) => {
     const out = {};
     for (const el of document.querySelectorAll('*')) {
       if (el.children.length !== 2) continue;
       const [left, right] = el.children;
       const title = (left.textContent || '').trim();
-      if (!/^Séance \d/.test(title)) continue;
-      out[title.split(/\s*—\s*/)[0]] = (right.textContent || '').trim();
+      if (!titles.includes(title)) continue;
+      out[title] = (right.textContent || '').trim();
     }
     return out;
-  });
+  }, TITLES);
 };
 
 // ── Les trois réponses ──────────────────────────────────────────────────
@@ -58,7 +69,7 @@ const cards = async (p) => {
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   const rows = await cards(p);
-  const line = (n) => clean(rows[`Séance ${n}`] ?? '(absente)');
+  const line = (n) => clean(rows[TITLES[n - 1]] ?? '(absente)');
 
   ok(
     'le programme liste ses séances',
@@ -119,16 +130,19 @@ const cards = async (p) => {
   // La prochaine séance se distingue toujours — c'est elle qui porte une
   // action. Elle le fait simplement par la carte plutôt que par une
   // pastille.
-  const nextIsMarked = await p.evaluate(() => {
-    const cards = [...document.querySelectorAll('*')].filter((e) =>
-      /^Séance \d/.test((e.children[0]?.textContent || '').trim())
-    );
+  const nextIsMarked = await p.evaluate((titles) => {
+    // Le début du texte, pas son entier : la carte elle-même, dont le
+    // premier enfant porte le titre suivi de sa date, doit en être.
+    const cards = [...document.querySelectorAll('*')].filter((e) => {
+      const text = (e.children[0]?.textContent || '').trim();
+      return titles.some((title) => text.startsWith(title));
+    });
     const surfaces = cards.map((e) => {
       const box = e.closest('[class]');
       return box ? getComputedStyle(box).backgroundColor : '';
     });
     return new Set(surfaces).size > 1;
-  });
+  }, TITLES);
   ok(
     'la prochaine séance se distingue toujours des autres',
     nextIsMarked,

@@ -102,8 +102,8 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   );
   ok(
     '  → et nomme la séance',
-    /Séance 2\s*—\s*Haut du corps/.test(e.text),
-    (e.text.match(/[^\n]*Séance 2[^\n]*/) ?? ['(rien)'])[0]
+    /^Haut du corps( · \d+ min)?$/m.test(e.text),
+    (e.text.match(/[^\n]*(Haut du corps|Séance 2)[^\n]*/) ?? ['(rien)'])[0]
   );
   ok('  → avec ses confettis', e.confetti);
   const tiles = cleanTiles(e);

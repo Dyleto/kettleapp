@@ -4,7 +4,7 @@ import {
   WEEKDAY_FULL,
   WEEKDAY_SHORT,
   formatSuggestedDays,
-} from '../sessionDates';
+} from '@/domain/week/dates';
 
 interface SuggestedDaysProps {
   days?: number[];

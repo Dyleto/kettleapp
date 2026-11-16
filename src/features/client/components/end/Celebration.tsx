@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuTrophy } from 'react-icons/lu';
 import { ActionButton, Mascot } from '@/kit';
-import type { Highlight, Recap } from '../../recap';
+import type { Recap } from '../../recap';
+import type { Highlight } from '@/domain/history/records';
 import { useCoachVoice } from '../../coach';
 
 interface CelebrationProps {

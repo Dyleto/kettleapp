@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { setsOfBlock } from '../guidedSteps';
-import { makeBlock, makeBlockExercise, makeExercise } from '../fixtures';
+import { setsOfBlock } from '@/domain/session/sets';
+import { makeBlock, makeBlockExercise, makeExercise } from '@/domain/fixtures';
 import {
   doneUpTo,
   ladderState,

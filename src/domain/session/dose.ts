@@ -5,9 +5,9 @@ import {
   blockSupportsRepsOnly,
   getBlockLabel,
   restBetweenSetsOf,
-} from '@/features/program/constants';
-import { formatWeight, heaviest } from './guided/load';
-import type { LastPerformance } from './lastPerformance';
+} from '@/domain/session/blocks';
+import { formatWeight, heaviest } from '@/domain/history/load';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
 
 const NBSP = ' ';
 

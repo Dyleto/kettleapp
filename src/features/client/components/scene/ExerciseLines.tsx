@@ -3,8 +3,8 @@ import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuInfo } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
 import { formatCountdown } from '@/shared/utils/duration';
-import type { LastPerformance } from '../../lastPerformance';
-import { formatWeight, heaviest } from '../../guided/load';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
+import { formatWeight, heaviest } from '@/domain/history/load';
 
 /** La dose d'une ligne, sans unité quand ce sont des répétitions : « 15 ». */
 const lineDose = (exercise: BlockExercise): string => {

@@ -1,7 +1,7 @@
 import { BlockExercise, PerformedValues, SessionBlock } from '@/shared/types';
-import { type GuidedSet } from '../../guidedSteps';
-import { blockDefinesOwnMetrics } from '@/features/program/constants';
-import { performedKey } from '../../lastPerformance';
+import { type GuidedSet } from '@/domain/session/sets';
+import { blockDefinesOwnMetrics } from '@/domain/session/blocks';
+import { performedKey } from '@/domain/history/lastPerformance';
 import { Box, HStack, Input, VStack, Text } from '@chakra-ui/react';
 import { hitArea } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';

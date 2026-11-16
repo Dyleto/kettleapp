@@ -17,20 +17,15 @@
  * entrées et autant de cas de bord que de formats.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  buildGuidedSteps,
-  repsOfSet,
-  roundDose,
-  setsOfBlock,
-  type GuidedStep,
-} from './guidedSteps';
-import { restBetweenSetsOf } from '@/features/program/constants';
+import { buildGuidedSteps, type GuidedStep } from './guidedSteps';
+import { repsOfSet, roundDose, setsOfBlock } from '@/domain/session/sets';
+import { restBetweenSetsOf } from '@/domain/session/blocks';
 import {
   makeBlock,
   makeExercise,
   makeBlockExercise,
   makeSession,
-} from './fixtures';
+} from '@/domain/fixtures';
 
 const roundsOf = (steps: GuidedStep[]) =>
   steps.filter((e) => e.type === 'round');

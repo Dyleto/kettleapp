@@ -1,21 +1,4 @@
-import { PerformedValues } from '@/shared/types';
-
-/** Les séries notées d'un mouvement : ce qu'il en faut ici. */
-type NotedSets = PerformedValues['sets'];
-
-/**
- * La charge la plus lourde d'un relevé.
- *
- * La « dernière fois » d'un mouvement se résume à elle : c'est la série que
- * l'on se rappelle, celle qu'on cherche à refaire. Une moyenne n'aurait été
- * soulevée par personne.
- */
-export const heaviest = (sets: NotedSets | undefined): number | undefined => {
-  const weights = (sets ?? [])
-    .map((set) => set?.weight)
-    .filter((w): w is number => typeof w === 'number' && w > 0);
-  return weights.length > 0 ? Math.max(...weights) : undefined;
-};
+import { formatWeight, heaviest, type NotedSets } from '@/domain/history/load';
 
 /**
  * La charge à proposer pour une série.
@@ -44,10 +27,6 @@ export const proposedLoad = (
   }
   return heaviest(lastTime);
 };
-
-/** « 22,5 » et non « 22.5 » : la virgule est la marque française. */
-export const formatWeight = (weight: number): string =>
-  String(Math.round(weight * 2) / 2).replace('.', ',');
 
 /**
  * Ce que la charge affichée est par rapport à la dernière fois.

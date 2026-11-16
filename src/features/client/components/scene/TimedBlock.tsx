@@ -3,9 +3,9 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronLeft, LuChevronRight, LuPlay } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
 import { ActionButton, Dots, LANDSCAPE, Ring } from '@/kit';
-import { blockSupportsRepsOnly } from '@/features/program/constants';
+import { blockSupportsRepsOnly } from '@/domain/session/blocks';
 import type { GuidedStep } from '../../guidedSteps';
-import type { LastPerformance } from '../../lastPerformance';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { playCue } from '../../sound';
 import { useSoundSetting } from '../../useSoundSetting';
 import { useScenePaused } from '../../guided/PauseContext';
@@ -17,7 +17,7 @@ import {
   type ClockReading,
   type TimedPlan,
 } from '../../guided/clock';
-import { blockTitle } from '../../guided/outline';
+import { blockTitle } from '@/domain/session/measure';
 import { Countdown } from './Countdown';
 import { ExerciseLines } from './ExerciseLines';
 

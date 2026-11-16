@@ -1,5 +1,5 @@
 import { CompletedSession, Session } from '@/shared/types';
-import { dayKey, mondayIndex, startOfWeek } from './sessionDates';
+import { dayKey, mondayIndex, startOfWeek } from '@/domain/week/dates';
 
 /** Un jour de la semaine : ce qui y est conseillé, et ce qui y a été
  * fait. */

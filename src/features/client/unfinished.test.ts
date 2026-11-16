@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { startedAgo, unfinishedSession } from './unfinished';
-import { buildGuidedSteps, setsOfBlock } from './guidedSteps';
+import { buildGuidedSteps } from './guidedSteps';
+import { setsOfBlock } from '@/domain/session/sets';
 import type { readProgress } from './sessionProgress';
-import { makeBlock, makeBlockExercise, makeSession } from './fixtures';
+import { makeBlock, makeBlockExercise, makeSession } from '@/domain/fixtures';
 
 type Saved = NonNullable<ReturnType<typeof readProgress>>;
 

@@ -1,5 +1,5 @@
 import { CompletedSession, PerformedSet } from '@/shared/types';
-import { truncateAtFirstEmpty } from './performedFormat';
+import { truncateAtFirstEmpty } from '@/domain/history/performedFormat';
 
 /** Ce qu'on suit sur un exercice : une charge, des répétitions, ou du temps
  * — jamais deux à la fois sur la même flèche. */

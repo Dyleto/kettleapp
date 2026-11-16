@@ -5,7 +5,7 @@ import { LuMinus, LuPlay, LuPlus } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
 import { ActionButton, LANDSCAPE, Sheet } from '@/kit';
 import type { GuidedStep } from '../../guidedSteps';
-import type { LastPerformance } from '../../lastPerformance';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { playCue } from '../../sound';
 import { useBlockClock } from '../../guided/useBlockClock';
 import {
@@ -16,7 +16,7 @@ import {
   type AmrapReading,
   type RoundTarget,
 } from '../../guided/amrap';
-import { blockTitle } from '../../guided/outline';
+import { blockTitle } from '@/domain/session/measure';
 import { Countdown } from './Countdown';
 import { ExerciseLines } from './ExerciseLines';
 import { CoachBubble } from '../CoachBubble';

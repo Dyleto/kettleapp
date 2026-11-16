@@ -4,7 +4,7 @@ import { SessionBlock } from '@/shared/types';
 import {
   getBlockConfigSummary,
   getBlockFreeName,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 import { BlockFrame } from './BlockFrame';
 import { BlockExerciseRow } from './BlockExerciseRow';
 

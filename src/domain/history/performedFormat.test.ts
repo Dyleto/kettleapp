@@ -21,7 +21,7 @@ import {
   formatPerformedSets,
   isEmptySet,
   sameSet,
-} from './performedFormat';
+} from '@/domain/history/performedFormat';
 
 describe('les quatre formes', () => {
   it('une série', () => {

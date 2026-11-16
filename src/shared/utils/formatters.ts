@@ -2,7 +2,7 @@ import {
   blockSupportsRepsOnly,
   blockSupportsSets,
   blockDefinesOwnMetrics,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 import { BlockExercise, BlockType, SessionBlock } from '@/shared/types';
 import { formatDuration } from './duration';
 

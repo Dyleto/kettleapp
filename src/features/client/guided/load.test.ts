@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  formatWeight,
-  heaviest,
-  loadLegend,
-  proposedLoad,
-  stepLoad,
-} from './load';
+import { loadLegend, proposedLoad, stepLoad } from './load';
+import { formatWeight, heaviest } from '@/domain/history/load';
 
 const loads = (...weights: (number | undefined)[]) =>
   weights.map((weight) => (weight === undefined ? {} : { weight }));

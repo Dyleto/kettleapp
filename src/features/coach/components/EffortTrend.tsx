@@ -1,12 +1,12 @@
 import { Box, HStack, Text, VStack, Wrap } from '@chakra-ui/react';
 import { getRelativeDate } from '@/features/client';
 import { CompletedSession, FeedbackTag } from '@/shared/types';
+import { FEEDBACK_TAG_LABELS } from '@/domain/history/tags';
 import {
   EFFORT_LEVELS,
   EFFORT_ZONE_COLOR,
-  FEEDBACK_TAG_LABELS,
   getEffortLevel,
-} from '@/features/client/constants';
+} from '@/domain/history/effort';
 
 interface EffortTrendProps {
   /** Déjà filtré sur une seule séance : comparer l'effort d'un Tabata à

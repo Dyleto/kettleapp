@@ -4,7 +4,7 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuX } from 'react-icons/lu';
 import type { FeedbackTag, SessionFeedback } from '@/shared/types';
 import { ActionButton, AutoResizeTextarea, DateInput } from '@/kit';
-import { dayKey } from '../../sessionDates';
+import { dayKey } from '@/domain/week/dates';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { EffortScale } from '../EffortScale';
 import { FeedbackTags } from '../FeedbackTags';

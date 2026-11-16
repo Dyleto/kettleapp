@@ -2,9 +2,9 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import { CompletedSession } from '@/shared/types';
-import { EFFORT_ZONE_COLOR } from '../constants';
-import { getEffortSummary } from '../format';
-import { dayKey } from '../sessionDates';
+import { EFFORT_ZONE_COLOR } from '@/domain/history/effort';
+import { getEffortSummary } from '@/domain/history/effort';
+import { dayKey } from '@/domain/week/dates';
 import { initialCapital } from '@/shared/components/typography';
 
 const WEEKDAYS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];

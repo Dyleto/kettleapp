@@ -7,11 +7,11 @@ import type {
 import {
   blockSupportsSets,
   prescribedSetLabels,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 import { formatDuration } from '@/shared/utils/duration';
-import { performedKey } from './lastPerformance';
-import { truncateAtFirstEmpty } from './performedFormat';
-import { blockMarker, blockTitle } from './guided/outline';
+import { performedKey } from '@/domain/history/lastPerformance';
+import { truncateAtFirstEmpty } from '@/domain/history/performedFormat';
+import { blockMarker, blockTitle } from '@/domain/session/measure';
 
 /**
  * Ce que « Compléter mes charges » décide, en fonctions pures : quels

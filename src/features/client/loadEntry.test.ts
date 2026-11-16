@@ -5,7 +5,7 @@ import {
   makeBlockExercise,
   makeExercise,
   makeSession,
-} from './fixtures';
+} from '@/domain/fixtures';
 
 describe('loadRows', () => {
   const session = makeSession({

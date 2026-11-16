@@ -14,7 +14,11 @@
  * seconde près.
  */
 import { describe, expect, it } from 'vitest';
-import { matchLabel, matchSession, sessionDose } from './sessionMatch';
+import {
+  matchLabel,
+  matchSession,
+  sessionDose,
+} from '@/domain/history/sessionMatch';
 import {
   makeCompleted,
   makeBlock,
@@ -23,7 +27,7 @@ import {
   freeze,
   makeBlockExercise,
   makeSession,
-} from './fixtures';
+} from '@/domain/fixtures';
 
 /** Une séance et son bilan, identiques par construction. */
 const pair = (blocksOf = [makeBlock()]) => {

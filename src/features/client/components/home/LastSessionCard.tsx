@@ -1,11 +1,11 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import type { CompletedSession } from '@/shared/types';
-import { EFFORT_ZONE_COLOR } from '../../constants';
-import { getEffortSummary } from '../../format';
+import { EFFORT_ZONE_COLOR } from '@/domain/history/effort';
+import { getEffortSummary } from '@/domain/history/effort';
 import { pastDayLabel } from '../../home';
-import { openingTitle } from '../../guided/outline';
 import { useCoachVoice } from '../../coach';
 import { Card } from '@/kit';
+import { sessionName } from '@/domain/session/name';
 
 /**
  * La dernière séance faite, et où en est ce qu'on en a dit.
@@ -28,7 +28,7 @@ export const LastSessionCard = ({
   const coach = useCoachVoice();
   const effort = getEffortSummary(completed);
   // Le nom que le coach a donné, sinon le rang : « Dimanche · Full body A ».
-  const title = openingTitle({
+  const title = sessionName({
     order: completed.sessionOrder,
     name: completed.sessionName,
   });

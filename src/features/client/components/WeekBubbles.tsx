@@ -1,6 +1,6 @@
 import { Box, Text, VStack } from '@chakra-ui/react';
 import { LuCheck } from 'react-icons/lu';
-import { WEEKDAY_LETTERS } from '../sessionDates';
+import { WEEKDAY_LETTERS } from '@/domain/week/dates';
 
 /** Un jour de la bande : ce qui s'y est passé, et ce qu'on peut y ouvrir. */
 export interface WeekBubble {

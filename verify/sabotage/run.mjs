@@ -73,6 +73,13 @@ const defects = (set) => {
     // allongé depuis (« … ouvre la séance, sous son prénom ») passait ce
     // contrôle tout en ne pouvant plus jamais tomber comme attendu.
     c.falls.forEach((label) => {
+      // Le lanceur lit les échecs sans leurs espaces de tête : un libellé
+      // attendu qui les garde (« ··→ et l'autre aussi ») ne tombe jamais
+      // comme attendu, et le cas passerait pour faux alors qu'il est juste.
+      if (label !== label.trim())
+        found.push(
+          `[${rank}] ${c.name} : « ${label} » garde des espaces autour, que le lanceur ne voit pas`
+        );
       const quoted = new RegExp(
         `(['"\`])\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\1`
       );

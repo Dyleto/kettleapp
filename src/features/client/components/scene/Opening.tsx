@@ -4,15 +4,15 @@ import { Session } from '@/shared/types';
 import { ActionButton, Chip, Mascot } from '@/kit';
 import { SoundToggle } from '../SoundToggle';
 import { BlockRhythm } from '../detail/BlockRhythm';
+import { openingEyebrow } from '../../guided/outline';
 import {
   blockMarker,
   blockTitle,
   distinctExerciseCount,
   estimatedMinutes,
-  openingEyebrow,
-  openingTitle,
-} from '../../guided/outline';
+} from '@/domain/session/measure';
 import { CoachBubble } from '../CoachBubble';
+import { sessionName } from '@/domain/session/name';
 
 interface OpeningProps {
   session: Session;
@@ -110,7 +110,7 @@ export const Opening = ({ session, onStart, onClose }: OpeningProps) => {
             letterSpacing="-0.01em"
             fontStretch="88%"
           >
-            {openingTitle(session)}
+            {sessionName(session)}
           </Text>
         </VStack>
 

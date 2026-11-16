@@ -5,8 +5,8 @@ import {
   exerciseSub,
   formatName,
   hasInstructions,
-} from './detail';
-import { makeBlock, makeBlockExercise, makeExercise } from './fixtures';
+} from '@/domain/session/dose';
+import { makeBlock, makeBlockExercise, makeExercise } from '@/domain/fixtures';
 
 const NBSP = ' ';
 const n = (text: string) => text.replaceAll(NBSP, ' ');

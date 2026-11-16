@@ -13,12 +13,12 @@ import {
 } from '@/features/client';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { EmptyState } from '@/kit';
-import { sessionTitle } from '@/features/program/sessionTitle';
+import { sessionName } from '@/domain/session/name';
 import {
   matchSession,
   matchLabel,
   type SessionMatch,
-} from '@/features/client/sessionMatch';
+} from '@/domain/history/sessionMatch';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -56,7 +56,7 @@ const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
     <VStack align="stretch" gap={1.5}>
       <HStack justify="space-between" align="baseline" gap={2}>
         <Text fontWeight="bold" fontSize="sm">
-          {sessionTitle(session.order, session.name)}
+          {sessionName(session)}
         </Text>
         {/* Une date, pas une pastille. « Faite le 12 sept. » se lit une
             fois et dit ce qu'une pastille ne pouvait pas : s'il est temps de

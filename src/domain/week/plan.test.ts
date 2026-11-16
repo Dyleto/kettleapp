@@ -16,9 +16,9 @@ import {
   buildWeekPlan,
   getSessionForToday,
   hasSuggestedDays,
-} from './weekPlan';
-import { makeCompleted, makeSession } from './fixtures';
-import { dayKey } from './sessionDates';
+} from '@/domain/week/plan';
+import { makeCompleted, makeSession } from '@/domain/fixtures';
+import { dayKey } from '@/domain/week/dates';
 
 // Un mercredi, pour que la semaine ait un avant et un après.
 const WEDNESDAY = new Date(2026, 8, 23, 10, 0);

@@ -1,4 +1,4 @@
-import type { GuidedSet } from '../guidedSteps';
+import type { GuidedSet } from '@/domain/session/sets';
 
 /**
  * Ce qu'une échelle décide, en fonctions pures : où l'on en est dans ses

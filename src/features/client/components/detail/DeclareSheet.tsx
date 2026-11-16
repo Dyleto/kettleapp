@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Text } from '@chakra-ui/react';
 import { ActionButton, DateInput, Sheet } from '@/kit';
-import { dayKey } from '../../sessionDates';
+import { dayKey } from '@/domain/week/dates';
 
 /**
  * « Je l'ai déjà faite » : une séance faite sans l'application.

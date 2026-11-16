@@ -6,7 +6,7 @@ export default {
       name: 'les exercices redeviennent des étapes',
       edits: [
         {
-          file: 'src/features/client/guided/outline.ts',
+          file: 'src/domain/session/measure.ts',
           from: '  new Set(\n    session.blocks.flatMap((block) =>\n      block.exercises.map((entry) => entry.exercise._id)\n    )\n  ).size;',
           to: '  session.blocks.reduce(\n    (sum, block) => sum + (block.rounds ?? setsOfBlock(block).length),\n    0\n  );',
         },
@@ -20,7 +20,7 @@ export default {
       name: "le repère d'un bloc ne suit plus son format",
       edits: [
         {
-          file: 'src/features/client/guided/outline.ts',
+          file: 'src/domain/session/measure.ts',
           from: 'export const blockMarker = (block: SessionBlock): string => {',
           to: 'export const blockMarker = (block: SessionBlock): string => {\n  if (block.order > 0) return `${block.exercises.length} exercices`;',
         },
@@ -111,9 +111,9 @@ export default {
       name: 'le titre ignore le nom de la séance',
       edits: [
         {
-          file: 'src/features/client/guided/outline.ts',
-          from: '): string => session.name?.trim() || `Séance ${session.order}`;',
-          to: '): string => `Séance ${session.order}`;',
+          file: 'src/domain/session/name.ts',
+          from: '  session.name?.trim() || sessionRank(session.order);',
+          to: '  sessionRank(session.order);',
         },
       ],
       falls: ['le titre est le nom de la séance'],

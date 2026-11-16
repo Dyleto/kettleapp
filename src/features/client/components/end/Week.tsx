@@ -3,9 +3,9 @@ import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuFlame } from 'react-icons/lu';
 import { ActionButton, Bubble, Ring } from '@/kit';
-import { mondayIndex, startOfWeek, WEEKDAY_LETTERS } from '../../sessionDates';
+import { mondayIndex, startOfWeek, WEEKDAY_LETTERS } from '@/domain/week/dates';
 import { WeekBubbles } from '../WeekBubbles';
-import { countWord } from '../../weekRing';
+import { countWord } from '@/domain/week/ring';
 import { useCoachVoice } from '../../coach';
 
 interface WeekProps {

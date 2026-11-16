@@ -11,7 +11,7 @@ import {
 import {
   blockDefinesOwnMetrics,
   blockSupportsSets,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 
 type ExerciseUpdate = Partial<Omit<BlockExercise, 'exercise'>>;
 

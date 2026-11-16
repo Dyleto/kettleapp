@@ -1,15 +1,15 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuInfo } from 'react-icons/lu';
 import type { BlockExercise, SessionBlock } from '@/shared/types';
-import { getBlockFreeName } from '@/features/program/constants';
+import { getBlockFreeName } from '@/domain/session/blocks';
 import {
   blockChips,
   exerciseDose,
   exerciseSub,
   formatName,
   hasInstructions,
-} from '../../detail';
-import type { LastPerformance } from '../../lastPerformance';
+} from '@/domain/session/dose';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { BlockRhythm } from './BlockRhythm';
 import { Bubble, Chip } from '@/kit';
 

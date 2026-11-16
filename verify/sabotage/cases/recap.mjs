@@ -3,10 +3,21 @@ export default {
   suite: 'verify_recap.mjs',
   cases: [
     {
+      name: 'la fin ne nomme plus la séance',
+      edits: [
+        {
+          file: 'src/features/client/pages/SessionScreen.tsx',
+          from: '          title={sessionName(activeSession)}',
+          to: '          title="Séance"',
+        },
+      ],
+      falls: ['→ et nomme la séance'],
+    },
+    {
       name: 'le record se mesure à la dernière fois',
       edits: [
         {
-          file: 'src/features/client/recap.ts',
+          file: 'src/domain/history/records.ts',
           from: '      const previous = best.get(ex.exercise._id);',
           to: '      const previous = heaviest(lastPerformance?.get(ex.exercise._id)?.sets);',
         },
@@ -17,7 +28,7 @@ export default {
       name: 'un mouvement neuf fait un record',
       edits: [
         {
-          file: 'src/features/client/recap.ts',
+          file: 'src/domain/history/records.ts',
           from: '      if (previous !== undefined && load > previous)',
           to: '      if (load > (previous ?? 0))',
         },
@@ -31,7 +42,7 @@ export default {
       name: 'la régularité ne se dit jamais',
       edits: [
         {
-          file: 'src/features/client/recap.ts',
+          file: 'src/domain/history/records.ts',
           from: "  return steady ? { kind: 'steady' } : null;",
           to: '  return steady ? null : null;',
         },

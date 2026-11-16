@@ -2,11 +2,11 @@ import { Box, HStack, Text } from '@chakra-ui/react';
 import type { BlockExercise } from '@/shared/types';
 import { Chip, Sheet } from '@/kit';
 import VideoPlayer from '@/shared/components/VideoPlayer';
-import { formatWeight } from '../../guided/load';
+import { formatWeight } from '@/domain/history/load';
 import {
   formatLastPerformance,
   type LastPerformance,
-} from '../../lastPerformance';
+} from '@/domain/history/lastPerformance';
 import { CoachBubble } from '../CoachBubble';
 
 /**

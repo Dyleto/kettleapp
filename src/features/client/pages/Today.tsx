@@ -20,9 +20,9 @@ import {
   CompletedSessionDrawer,
   useClientSessions,
 } from '@/features/client';
-import { buildWeekPlan } from '@/features/client/weekPlan';
-import { dayKey, WEEKDAY_FULL } from '@/features/client/sessionDates';
-import { doneInWeek, weekStreak, weekTarget } from '@/features/client/weekRing';
+import { buildWeekPlan } from '@/domain/week/plan';
+import { dayKey, WEEKDAY_FULL } from '@/domain/week/dates';
+import { doneInWeek, weekStreak, weekTarget } from '@/domain/week/ring';
 import { homeFocus, weekWords } from '@/features/client/home';
 import { startedAgo, unfinishedSession } from '@/features/client/unfinished';
 import { restartProgress } from '@/features/client/sessionProgress';
@@ -35,11 +35,8 @@ import {
   Segments,
   Sheet,
 } from '@/kit';
-import {
-  estimatedMinutes,
-  openingTitle,
-} from '@/features/client/guided/outline';
-import { getBlockLabel } from '@/features/program/constants';
+import { estimatedMinutes } from '@/domain/session/measure';
+import { getBlockLabel } from '@/domain/session/blocks';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import type { WeekBubble } from '@/features/client/components/WeekBubbles';
 import { WeekCard } from '@/features/client/components/home/WeekCard';
@@ -50,6 +47,7 @@ import {
   RestCard,
 } from '@/features/client/components/home/DayCards';
 import { LastSessionCard } from '@/features/client/components/home/LastSessionCard';
+import { sessionName } from '@/domain/session/name';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -197,12 +195,12 @@ const Today = () => {
       today: day.key === today,
       ...(done
         ? {
-            label: `${name} — faite : ${openingTitle({ order: done.sessionOrder, name: done.sessionName })}`,
+            label: `${name} — faite : ${sessionName({ order: done.sessionOrder, name: done.sessionName })}`,
             onOpen: () => openCompleted(done),
           }
         : planned
           ? {
-              label: `${name} — conseillée : ${openingTitle(planned)}`,
+              label: `${name} — conseillée : ${sessionName(planned)}`,
               onOpen: () => openSheet(planned),
             }
           : {}),
@@ -215,7 +213,7 @@ const Today = () => {
   const hero = (session: Session, eyebrow: string) => (
     <FocusCard
       eyebrow={eyebrow}
-      title={openingTitle(session)}
+      title={sessionName(session)}
       chips={
         startable(session)
           ? [`≈ ${estimatedMinutes(session)} min`, ...formats(session)]
@@ -234,7 +232,7 @@ const Today = () => {
   const resumeCard = unfinished && (
     <FocusCard
       eyebrow="En cours"
-      title={openingTitle(unfinished.session)}
+      title={sessionName(unfinished.session)}
       chips={unfinished.where}
       aside={
         unfinished.startedAt !== undefined
@@ -263,7 +261,7 @@ const Today = () => {
     <RestCard
       doneToday={focus.doneToday}
       day={WEEKDAY_FULL[focus.day]}
-      name={openingTitle(focus.session)}
+      name={sessionName(focus.session)}
       detail={[
         startable(focus.session)
           ? `≈ ${estimatedMinutes(focus.session)} min`

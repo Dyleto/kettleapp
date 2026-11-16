@@ -7,7 +7,7 @@ export { SessionCalendar } from './components/SessionCalendar';
 export { SessionCalendarFilter } from './components/SessionCalendarFilter';
 export { SuggestedDays } from './components/SuggestedDays';
 export { ExerciseProgressions } from './components/ExerciseProgressions';
-export { dayKey, formatDayLabel } from './sessionDates';
+export { dayKey, formatDayLabel } from '@/domain/week/dates';
 export {
   useCompleteSession,
   useUpdateCompletedSession,
@@ -17,19 +17,19 @@ export { ClientTabBar } from './components/ClientTabBar';
 export { GuidedSession } from './components/GuidedSession';
 export { ClientNavRail } from './components/ClientNavRail';
 export { CLIENT_CONTENT_MAX_W, CLIENT_GRID_MAX_W } from './constants';
+export { getRelativeDate } from '@/domain/week/dates';
 export {
   getSessionSummary,
   getSessionBlockTypes,
   getCompletedSessionBlockTypes,
-  getEffortSummary,
-  getRelativeDate,
-} from './format';
+} from '@/domain/session/measure';
+export { getEffortSummary } from '@/domain/history/effort';
 export { buildGuidedSteps } from './guidedSteps';
 export type { GuidedStep } from './guidedSteps';
 export {
   buildLastPerformanceIndex,
   formatLastPerformance,
   performedKey,
-} from './lastPerformance';
-export type { LastPerformance } from './lastPerformance';
+} from '@/domain/history/lastPerformance';
+export type { LastPerformance } from '@/domain/history/lastPerformance';
 export { lifetimeTotal } from './counts';

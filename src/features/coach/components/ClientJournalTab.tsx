@@ -1,6 +1,6 @@
 import { CompletedSession } from '@/shared/types';
 import { useEffect, useState } from 'react';
-import { EFFORT_ZONE_COLOR } from '@/features/client/constants';
+import { EFFORT_ZONE_COLOR } from '@/domain/history/effort';
 import { useMarkHistoryAsViewed } from '@/features/coach/hooks/useMarkHistoryAsViewed';
 import { EmptyState } from '@/kit';
 import {
@@ -20,7 +20,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { LuChevronRight } from 'react-icons/lu';
-import { sessionTitle } from '@/features/program/sessionTitle';
+import { sessionName } from '@/domain/session/name';
 
 interface Props {
   history: CompletedSession[];
@@ -65,7 +65,10 @@ const JournalEntry = ({ completed, isUnseen, onOpen }: JournalEntryProps) => {
       <HStack justify="space-between" align="baseline">
         <HStack gap={2}>
           <Text fontWeight="bold" fontSize="sm">
-            {sessionTitle(completed.sessionOrder, completed.sessionName)}
+            {sessionName({
+              order: completed.sessionOrder,
+              name: completed.sessionName,
+            })}
           </Text>
           {/* De l'or : le rouge de cette ligne appartient au ressenti. */}
           {isUnseen && (

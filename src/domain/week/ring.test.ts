@@ -5,8 +5,8 @@ import {
   doneInWeek,
   weekStreak,
   weekTarget,
-} from './weekRing';
-import { makeSession } from './fixtures';
+} from '@/domain/week/ring';
+import { makeSession } from '@/domain/fixtures';
 
 // Un jeudi : la semaine court du lundi 7 au dimanche 13 septembre 2026.
 const THURSDAY = new Date(2026, 8, 10, 18, 0);

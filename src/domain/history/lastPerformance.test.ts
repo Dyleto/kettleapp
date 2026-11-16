@@ -15,12 +15,12 @@ import {
   buildLastPerformanceIndex,
   formatLastPerformance,
   performedKey,
-} from './lastPerformance';
+} from '@/domain/history/lastPerformance';
 import {
   makeCompleted,
   makeBlockSnapshot,
   makeExerciseSnapshot,
-} from './fixtures';
+} from '@/domain/fixtures';
 import type { PerformedValues } from '@/shared/types';
 
 describe('l’adresse d’un exercice dans l’instantané', () => {

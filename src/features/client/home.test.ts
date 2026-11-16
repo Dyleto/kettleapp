@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { homeFocus, pastDayLabel, weekWords } from './home';
-import { makeCompleted, makeSession } from './fixtures';
+import { makeCompleted, makeSession } from '@/domain/fixtures';
 
 // La semaine du lundi 7 au dimanche 13 septembre 2026, le programme du
 // décor : A le lundi et le jeudi, B le samedi, C sans jour.

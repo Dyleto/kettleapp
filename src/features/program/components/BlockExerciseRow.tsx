@@ -3,10 +3,7 @@ import { ReactNode, useState } from 'react';
 import { LuChevronDown, LuVideo } from 'react-icons/lu';
 import { formatDuration } from '@/shared/utils/duration';
 import { BlockExercise, BlockType, SessionBlock } from '@/shared/types';
-import {
-  blockIndexPrefix,
-  restBetweenSetsOf,
-} from '@/features/program/constants';
+import { blockIndexPrefix, restBetweenSetsOf } from '@/domain/session/blocks';
 import { formatExerciseMetric } from '@/shared/utils/formatters';
 import VideoPlayer from '@/shared/components/VideoPlayer';
 import { hitArea } from '@/kit';

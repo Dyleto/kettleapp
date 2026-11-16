@@ -21,11 +21,10 @@ import {
   PerformedValues,
 } from '@/shared/types';
 import {
-  EFFORT_ZONE_COLOR,
   FEEDBACK_TAG_LABELS,
-  getEffortLevel,
   LEGACY_METRIC_LABELS,
-} from '@/features/client/constants';
+} from '@/domain/history/tags';
+import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/domain/history/effort';
 import { BlockCard } from '@/features/program/components/BlockCard';
 import { AutoResizeTextarea } from '@/kit';
 import { LuPencil, LuX } from 'react-icons/lu';
@@ -33,16 +32,16 @@ import { useState } from 'react';
 import { EffortScale } from './EffortScale';
 import { FeedbackTags } from './FeedbackTags';
 import { PerformedFields } from './PerformedFields';
-import { prescribedSetLabels } from '@/features/program/constants';
-import { performedKey } from '../lastPerformance';
+import { prescribedSetLabels } from '@/domain/session/blocks';
+import { performedKey } from '@/domain/history/lastPerformance';
 import {
   formatPerformed,
   sameSet,
   truncateAtFirstEmpty,
-} from '../performedFormat';
+} from '@/domain/history/performedFormat';
 import { useUpdateCompletedSession } from '../hooks/useCompleteSession';
 import { useAuth } from '@/shared/contexts/useAuth';
-import { sessionTitle } from '@/features/program/sessionTitle';
+import { sessionName } from '@/domain/session/name';
 import { initialCapital } from '@/shared/components/typography';
 
 const toSessionBlock = (
@@ -223,10 +222,10 @@ export const CompletedSessionDrawer = ({
                 <HStack justify="space-between" align="center" flex="1">
                   <VStack align="start" gap={0}>
                     <Text fontWeight="bold" fontSize="lg">
-                      {sessionTitle(
-                        completed.sessionOrder,
-                        completed.sessionName
-                      )}
+                      {sessionName({
+                        order: completed.sessionOrder,
+                        name: completed.sessionName,
+                      })}
                     </Text>
                     <Text fontSize="xs" color="fg.muted" css={initialCapital}>
                       {completedDate}

@@ -8,7 +8,7 @@ import {
   isEmptySet,
   truncateAtFirstEmpty,
   uniformSet,
-} from '../performedFormat';
+} from '@/domain/history/performedFormat';
 
 interface PerformedFieldsProps {
   value: PerformedValues;

@@ -1,7 +1,7 @@
 import type { CompletedSession, Session } from '@/shared/types';
-import { dayKey, mondayIndex, WEEKDAY_FULL } from './sessionDates';
-import { countWord, doneInWeek, weekTarget } from './weekRing';
-import { getSessionForToday } from './weekPlan';
+import { dayKey, mondayIndex, WEEKDAY_FULL } from '@/domain/week/dates';
+import { countWord, doneInWeek, weekTarget } from '@/domain/week/ring';
+import { getSessionForToday } from '@/domain/week/plan';
 
 /**
  * Ce que l'accueil met en avant : une seule réponse à « qu'est-ce que je

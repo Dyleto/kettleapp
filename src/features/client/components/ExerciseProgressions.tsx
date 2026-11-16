@@ -5,7 +5,7 @@ import {
   buildExerciseProgressions,
   isRising,
   METRIC_UNIT,
-} from '../exerciseProgression';
+} from '@/domain/history/progression';
 
 interface ExerciseProgressionsProps {
   history: CompletedSession[];

@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 16 novembre : 505 tests unitaires, 30 suites de banc et 553
-assertions, 4 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 16 novembre : 515 tests unitaires, 31 suites de banc et 566
+assertions, 4 min 13 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files).
 
 ## 2. Le relevé, écran par écran
@@ -119,7 +119,8 @@ Constaté, avec sa mesure.
    l'intérieur du client. Ce que les deux espaces partagent (nommer une séance,
    l'estimer, lire une dose, un record, un ressenti) n'a pas de lieu neutre.
 5. **Deux façons de nommer une séance** : « Séance 2 — Haut du corps » et
-   « Haut du corps », selon l'écran.
+   « Haut du corps », selon l'écran — réglé en B4 : le nom seul, comme la
+   maquette.
 6. **Les sabotages étaient hors du dépôt** — réglé : 229 cas et leur lanceur
    sont dans `verify/sabotage/`. Vingt-trois ne correspondaient déjà plus au
    code qu'ils devaient casser ; ils sont marqués, à réparer dans la passe
@@ -194,8 +195,11 @@ banc actuel, inchangé, qui le prouve.
 - [x] **B3** Une planche du kit (`/kit`, en développement seulement, sans
       compte) que le banc ouvre : chaque pièce, chaque état ; rien ne
       déborde, le focus est ambre, « moins d'animations » est respecté.
-- [ ] **B4** `domain/` : titre, durée, formats, doses, dessin, dernière fois,
-      records, ressenti, semaine. Un seul nom pour une séance.
+- [x] **B4** `domain/` : titre, durée, formats, doses, dessin, dernière fois,
+      records, ressenti, semaine. Un seul nom pour une séance — celui que le
+      coach a donné, sinon « Séance 3 » ; le rang se pose à côté, jamais
+      devant. Le dessin d'un bloc devient une règle pure (`blockDrawing`),
+      que la palette de l'atelier reprendra.
 - [ ] **B5** `features/client` en tranches (`home`, `program`, `sheet`,
       `guided`, `end`, `progress`), tests à côté.
 - [ ] **B6** `GuidedSession` découpé : l'état de la séance dans un réducteur

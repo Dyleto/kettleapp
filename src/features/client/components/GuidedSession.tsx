@@ -1,7 +1,11 @@
 import { BlockExercise, PerformedValues, Session } from '@/shared/types';
-import { buildGuidedSteps, type GuidedSet } from '../guidedSteps';
+import { buildGuidedSteps } from '../guidedSteps';
+import { type GuidedSet } from '@/domain/session/sets';
 
-import { LastPerformance, performedKey } from '../lastPerformance';
+import {
+  LastPerformance,
+  performedKey,
+} from '@/domain/history/lastPerformance';
 import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
 import VideoPlayer from '@/shared/components/VideoPlayer';
 import { ActionButton, hitArea, LANDSCAPE } from '@/kit';
@@ -16,22 +20,17 @@ import { Opening } from './scene/Opening';
 import { Countdown } from './scene/Countdown';
 import {
   blockSegments,
-  blockMarker,
-  blockTitle,
   firstGesture,
   positionLabel,
   rankLabel,
 } from '../guided/outline';
+import { blockMarker, blockTitle } from '@/domain/session/measure';
 import { PauseSheet } from './scene/PauseSheet';
 import { SetHero } from './scene/SetHero';
 import { RestHero } from './scene/RestHero';
 import { LoadStepper } from './scene/LoadStepper';
-import {
-  formatWeight,
-  heaviest,
-  loadLegend,
-  proposedLoad,
-} from '../guided/load';
+import { loadLegend, proposedLoad } from '../guided/load';
+import { formatWeight, heaviest } from '@/domain/history/load';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { TimedBlock } from './scene/TimedBlock';

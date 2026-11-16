@@ -4,7 +4,7 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuArrowLeft, LuPlus } from 'react-icons/lu';
 import type { PerformedValues, Session } from '@/shared/types';
 import { ActionButton } from '@/kit';
-import type { LastPerformance } from '../../lastPerformance';
+import type { LastPerformance } from '@/domain/history/lastPerformance';
 import {
   firstOpen,
   loadRows,
@@ -12,7 +12,8 @@ import {
   withWeight,
   type LoadRow,
 } from '../../loadEntry';
-import { formatWeight, heaviest, proposedLoad } from '../../guided/load';
+import { proposedLoad } from '../../guided/load';
+import { formatWeight, heaviest } from '@/domain/history/load';
 import { LoadStepper } from '../scene/LoadStepper';
 
 interface LoadsProps {

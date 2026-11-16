@@ -42,7 +42,7 @@ export default {
       name: 'le titre ignore le nom libre',
       edits: [
         {
-          file: 'src/features/client/guided/outline.ts',
+          file: 'src/domain/session/measure.ts',
           from: '): string => block.label?.trim() || getBlockLabel(block.type);',
           to: '): string => getBlockLabel(block.type);',
         },

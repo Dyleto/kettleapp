@@ -1,7 +1,11 @@
 import type { ReactElement } from 'react';
 import { Box, Grid, Text, VStack } from '@chakra-ui/react';
 import { useRef } from 'react';
-import { EFFORT_LEVELS, EFFORT_ZONE_COLOR, getEffortLevel } from '../constants';
+import {
+  EFFORT_LEVELS,
+  EFFORT_ZONE_COLOR,
+  getEffortLevel,
+} from '@/domain/history/effort';
 import { useCoachVoice } from '../coach';
 
 interface EffortScaleProps {

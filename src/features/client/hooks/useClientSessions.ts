@@ -12,8 +12,8 @@ import {
   RoundsDoneEntry,
   SessionFeedback,
 } from '@/shared/types';
-import { buildLastPerformanceIndex } from '../lastPerformance';
-import { getSessionForToday } from '../weekPlan';
+import { buildLastPerformanceIndex } from '@/domain/history/lastPerformance';
+import { getSessionForToday } from '@/domain/week/plan';
 import { forgetProgress } from '../sessionProgress';
 import { coachVoice } from '../coach';
 import { isUnavailable as hasNothingToShow } from '@/shared/utils/queryState';

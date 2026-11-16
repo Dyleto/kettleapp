@@ -24,20 +24,20 @@ import {
   LadderDoneEntry,
   RoundsDoneEntry,
 } from '@/shared/types';
-import { truncateAtFirstEmpty } from '@/features/client/performedFormat';
+import { truncateAtFirstEmpty } from '@/domain/history/performedFormat';
 import {
   countRecorded,
   writeProgress,
   readProgress,
 } from '@/features/client/sessionProgress';
 import { buildGuidedSteps } from '@/features/client/guidedSteps';
-import { bestLoads, buildRecap, highlightOf } from '@/features/client/recap';
+import { buildRecap } from '@/features/client/recap';
+import { bestLoads, highlightOf } from '@/domain/history/records';
 import {
   distinctExerciseCount,
   estimatedMinutes,
-  openingTitle,
-} from '@/features/client/guided/outline';
-import { formatSuggestedDays } from '@/features/client/sessionDates';
+} from '@/domain/session/measure';
+import { formatSuggestedDays } from '@/domain/week/dates';
 import { BlockDetailCard } from '@/features/client/components/detail/BlockDetailCard';
 import { InstructionSheet } from '@/features/client/components/detail/InstructionSheet';
 import { DeclareSheet } from '@/features/client/components/detail/DeclareSheet';
@@ -51,10 +51,10 @@ import {
   plannedDays,
   weekStreak,
   weekTarget,
-} from '@/features/client/weekRing';
+} from '@/domain/week/ring';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { ActionButton, Chip, EmptyState, hitArea, LinkButton } from '@/kit';
-import { sessionTitle } from '@/features/program/sessionTitle';
+import { sessionName } from '@/domain/session/name';
 import { CoachBubble } from '@/features/client/components/CoachBubble';
 
 // Ce qui a été réalisé se saisit exercice par exercice pendant la séance,
@@ -318,7 +318,7 @@ const SessionScreen = () => {
         letterSpacing="-0.01em"
         fontStretch="88%"
       >
-        {openingTitle(activeSession)}
+        {sessionName(activeSession)}
       </Text>
       <HStack gap="6px" wrap="wrap">
         {hasExercises && (
@@ -488,7 +488,7 @@ const SessionScreen = () => {
 
       {flow === 'celebrate' && recap && (
         <Celebration
-          title={sessionTitle(activeSession.order, activeSession.name)}
+          title={sessionName(activeSession)}
           recap={recap}
           highlight={highlightOf(
             activeSession,

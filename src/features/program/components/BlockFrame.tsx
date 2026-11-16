@@ -7,7 +7,7 @@ import {
   BLOCK_ACCENT_COLOR,
   getBlockAccent,
   getBlockLabel,
-} from '@/features/program/constants';
+} from '@/domain/session/blocks';
 
 interface BlockFrameProps {
   block: SessionBlock;
