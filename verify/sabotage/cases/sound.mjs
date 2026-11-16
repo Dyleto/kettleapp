@@ -32,7 +32,7 @@ export default {
       name: "le premier bip est perdu pendant que la sortie s'ouvre",
       edits: [
         {
-          file: 'src/features/client/sound/sound.ts',
+          file: 'src/shared/feedback/sound.ts',
           from: '        if (Date.now() - askedAt <= STALE_AFTER) schedule(output, cue);',
           to: '',
         },
@@ -102,7 +102,7 @@ export default {
       stale: 'le motif correspond 0 fois dans sound.ts',
       edits: [
         {
-          file: 'src/features/client/sound/sound.ts',
+          file: 'src/shared/feedback/sound.ts',
           from: '  if (!isSoundEnabled()) return;\n',
           to: '',
         },
@@ -135,7 +135,7 @@ export default {
       name: "le refus n'est plus retenu",
       edits: [
         {
-          file: 'src/features/client/sound/sound.ts',
+          file: 'src/shared/feedback/sound.ts',
           from: '  else storage.setItem(KEY, MUTED);\n',
           to: '',
         },
@@ -170,7 +170,7 @@ export default {
       name: 'le bip du départ dure autant que les autres',
       edits: [
         {
-          file: 'src/features/client/sound/sound.ts',
+          file: 'src/shared/feedback/sound.ts',
           from: 'go: [{ frequency: 1320, at: 0, duration: 400 }],',
           to: 'go: [{ frequency: 1320, at: 0, duration: 90 }],',
         },
@@ -181,8 +181,8 @@ export default {
       name: 'le réglage de « Mon compte » ne répond plus',
       edits: [
         {
-          file: 'src/features/client/sound/SoundSetting.tsx',
-          from: '        setEnabled(!enabled);',
+          file: 'src/features/account/components/DeviceSettings.tsx',
+          from: '          setSound(next);',
           to: '',
         },
       ],
@@ -206,6 +206,50 @@ export default {
         '« Mon compte » le montre coupé',
         '→ et le remet',
       ],
+    },
+    {
+      name: 'un mouvement coché ne vibre plus',
+      edits: [
+        {
+          file: 'src/features/client/guided/useGuidedSession.ts',
+          from: "      buzz('tap');\n",
+          to: '',
+        },
+      ],
+      falls: ['un mouvement coché vibre d’un coup bref'],
+    },
+    {
+      name: 'le réglage des vibrations ne coupe rien',
+      edits: [
+        {
+          file: 'src/shared/feedback/haptics.ts',
+          from: '  if (!canVibrate() || !isVibrationEnabled()) return;',
+          to: '  if (!canVibrate()) return;',
+        },
+      ],
+      falls: ['→ et un mouvement coché ne vibre plus'],
+    },
+    {
+      name: '« Vibrations » s’affiche sans vibreur',
+      edits: [
+        {
+          file: 'src/features/account/components/DeviceSettings.tsx',
+          from: '      {canVibrate() && (',
+          to: '      {true && (',
+        },
+      ],
+      falls: ['sans vibreur, « Vibrations » ne s’affiche pas'],
+    },
+    {
+      name: 'un geste vibre longtemps',
+      edits: [
+        {
+          file: 'src/shared/feedback/haptics.ts',
+          from: '  tap: 40,',
+          to: '  tap: 400,',
+        },
+      ],
+      falls: ['un mouvement coché vibre d’un coup bref'],
     },
   ],
 };

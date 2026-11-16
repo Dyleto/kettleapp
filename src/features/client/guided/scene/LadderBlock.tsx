@@ -7,7 +7,7 @@ import { ActionButton, LANDSCAPE, Ring, Sheet } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';
 import type { GuidedStep } from '@/features/client/guided/steps';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
-import { playCue } from '@/features/client/sound/sound';
+import { playCue } from '@/shared/feedback/sound';
 import { useBlockClock } from '@/features/client/guided/useBlockClock';
 import {
   chipTime,
@@ -26,6 +26,7 @@ import { blockTitle } from '@/domain/session/measure';
 import { Countdown } from '@/features/client/guided/scene/Countdown';
 import { RestHero } from '@/features/client/guided/scene/RestHero';
 import { useCoachVoice } from '@/features/client/common/coach';
+import { buzz } from '@/shared/feedback/haptics';
 
 type ListStep = Extract<GuidedStep, { type: 'block' }>;
 
@@ -125,7 +126,7 @@ export const LadderBlock = ({
       setReading(next);
       if (next.finished) {
         playCue('go');
-        navigator.vibrate?.([120, 80, 120]);
+        buzz('go');
         clock.stop();
         setRest(null);
         setEnding({ kind: 'timeUp', seconds: limit ?? 0 });
@@ -133,7 +134,7 @@ export const LadderBlock = ({
       }
       if (next.seconds !== previous.seconds && next.seconds <= 3) {
         playCue('tick');
-        navigator.vibrate?.(150);
+        buzz('tick');
       }
     },
   });
@@ -159,7 +160,7 @@ export const LadderBlock = ({
     if (rung > state.count) return;
     const keys = rungSets(sets, rung).map((set) => set.key);
     onDoneChange([...done.filter((key) => !keys.includes(key)), ...keys]);
-    navigator.vibrate?.(40);
+    buzz('tap');
     const nowDone = state.done + 1;
     if (nowDone >= state.count) {
       if (limit) {

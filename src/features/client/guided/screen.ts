@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { unlockSound } from '@/features/client/sound/sound';
+import { unlockSound } from '@/shared/feedback/sound';
 
 /**
  * Ce que la séance guidée demande à l'appareil tant qu'elle est ouverte.

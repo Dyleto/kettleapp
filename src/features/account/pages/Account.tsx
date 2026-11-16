@@ -15,7 +15,7 @@ import { LuChevronRight, LuTrash2 } from 'react-icons/lu';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { useAccount } from '@/features/account/hooks/useAccount';
 import { HealthConsentCard } from '@/features/account/components/HealthConsentCard';
-import { SoundSetting } from '@/features/client';
+import { DeviceSettings } from '../components/DeviceSettings';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
 import { BackLink } from '@/kit';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
@@ -237,7 +237,7 @@ const Account = ({ space }: Props) => {
         {/* ── Réglages de l'appareil — côté client seulement ─────────── */}
         {data?.asClient && (
           <Section title="Sur cet appareil">
-            <SoundSetting />
+            <DeviceSettings />
           </Section>
         )}
 

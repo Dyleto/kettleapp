@@ -2,7 +2,7 @@ import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuPlay, LuX } from 'react-icons/lu';
 import { Session } from '@/shared/types';
 import { ActionButton, Chip, Mascot } from '@/kit';
-import { SoundToggle } from '@/features/client/sound/SoundToggle';
+import { SoundToggle } from '@/features/client/guided/SoundToggle';
 import { BlockRhythm } from '@/features/client/sheet/BlockRhythm';
 import { openingEyebrow } from '@/features/client/guided/outline';
 import {

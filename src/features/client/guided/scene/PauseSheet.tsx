@@ -1,8 +1,8 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import { LuPlay, LuVolume2 } from 'react-icons/lu';
 import { ActionButton, Sheet } from '@/kit';
-import { useSoundSetting } from '@/features/client/sound/useSoundSetting';
-import { unlockSound } from '@/features/client/sound/sound';
+import { useSoundSetting } from '@/shared/feedback/settings';
+import { unlockSound } from '@/shared/feedback/sound';
 
 interface PauseSheetProps {
   /** Où l'on en est : « Bloc 2 sur 3 · série 3 sur 4 ». */

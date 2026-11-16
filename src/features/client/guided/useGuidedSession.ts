@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { playCue } from '@/features/client/sound/sound';
+import { playCue } from '@/shared/feedback/sound';
 import { writeProgress } from './sessionProgress';
 import {
   guidedTransition,
@@ -7,6 +7,7 @@ import {
   type GuidedSignal,
   type GuidedState,
 } from './session';
+import { buzz } from '@/shared/feedback/haptics';
 
 /**
  * L'état de la séance guidée, et le seul endroit où ses transitions touchent
@@ -56,7 +57,7 @@ export const useGuidedSession = (
 const applySignal = (signal: GuidedSignal, onFinish: () => void) => {
   switch (signal) {
     case 'vibrate':
-      navigator.vibrate?.(40);
+      buzz('tap');
       return;
     case 'blockEnd':
       playCue('blockEnd');

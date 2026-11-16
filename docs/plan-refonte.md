@@ -33,21 +33,21 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 16 novembre : 577 tests unitaires, 31 suites de banc et 572
-assertions, 4 min 15 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 16 novembre : 585 tests unitaires, 31 suites de banc et 576
+assertions, 4 min 22 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files).
 
 ## 2. Le relevé, écran par écran
 
 ### Fondations
 
-| Écran                         | État     | Ce qui manque                                                                                                                                                                                                                                                                                    |
-| ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Les quatre règles             | **fait** | Appliquées ; elles se revérifient écran par écran (§4).                                                                                                                                                                                                                                          |
-| Couleurs, typographie, formes | **fait** | —                                                                                                                                                                                                                                                                                                |
-| Composants                    | partiel  | Les pièces existent mais sont dispersées : trois `Chip` différents, la bulle du coach écrite cinq fois, `HomeCard` et `Eyebrow` rangés dans l'accueil, l'ancien `Card` encore lu par quatre écrans. Pas de menu ni de bannière « Annuler » au kit.                                               |
-| Mouvement, son, vibration     | partiel  | Son : fait. Mouvement : l'appui, la feuille, les dernières secondes, les confettis et les chiffres de fin sont là ; manquent le saut d'une valeur qui change, l'entrée d'une scène, la coche qui se dessine. Vibration : seize appels directs dans sept fichiers, sans réglage ni motifs nommés. |
-| Navigation, largeurs, voix    | partiel  | Onglets du client : faits. Coach : trois entrées, pas de « À lire ». Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                                                                                                            |
+| Écran                         | État     | Ce qui manque                                                                                                                                                                                                                                                     |
+| ----------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Les quatre règles             | **fait** | Appliquées ; elles se revérifient écran par écran (§4).                                                                                                                                                                                                           |
+| Couleurs, typographie, formes | **fait** | —                                                                                                                                                                                                                                                                 |
+| Composants                    | partiel  | Les pièces existent mais sont dispersées : trois `Chip` différents, la bulle du coach écrite cinq fois, `HomeCard` et `Eyebrow` rangés dans l'accueil, l'ancien `Card` encore lu par quatre écrans. Pas de menu ni de bannière « Annuler » au kit.                |
+| Mouvement, son, vibration     | partiel  | Son : fait. Mouvement : l'appui, la feuille, les dernières secondes, les confettis et les chiffres de fin sont là ; manquent le saut d'une valeur qui change, l'entrée d'une scène, la coche qui se dessine. Vibration : quatre motifs nommés et un réglage (B8). |
+| Navigation, largeurs, voix    | partiel  | Onglets du client : faits. Coach : trois entrées, pas de « À lire ». Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                                                                             |
 
 ### Séance guidée
 
@@ -218,8 +218,10 @@ banc actuel, inchangé, qui le prouve.
       `flow.ts` ; les envois et la semaine d'après dans `sending.ts`. 24
       tests ; une date « Ce n'était pas aujourd'hui » abandonnée ne date
       plus la séance guidée qui suit.
-- [ ] **B8** Vibrations et sons sous une seule adresse, motifs nommés,
+- [x] **B8** Vibrations et sons sous une seule adresse, motifs nommés,
       réglage « Vibrations » masqué là où le téléphone n'en a pas.
+      `shared/feedback` : `sound`, `haptics` (`tap`, `undo`, `tick`, `go`),
+      leurs réglages ; « Mon compte » porte les deux interrupteurs.
 - [ ] **B9** Les frontières dans ESLint ; `shared` ne lit plus aucune
       fonctionnalité.
 - [ ] **B10** Banc : attendre un état plutôt qu'une durée (les 258), décor

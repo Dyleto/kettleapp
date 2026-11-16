@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { HStack, Text, VStack } from '@chakra-ui/react';
 import { useCountdown } from '@/features/client/guided/useCountdown';
-import { playCue } from '@/features/client/sound/sound';
+import { playCue } from '@/shared/feedback/sound';
 import { useScenePaused } from '@/features/client/guided/PauseContext';
 import { Ring } from '@/kit';
+import { buzz } from '@/shared/feedback/haptics';
 
 interface RestHeroProps {
   /** Les secondes de repos prescrites. */
@@ -64,7 +65,7 @@ export const RestHero = ({
 
   useEffect(() => {
     if (!frozen && remaining > 0 && remaining <= 3) {
-      navigator.vibrate?.(150);
+      buzz('tick');
       playCue('tick');
     }
   }, [remaining, frozen]);

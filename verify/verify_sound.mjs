@@ -357,5 +357,107 @@ const browser = await launch();
   await ctx.close();
 }
 
+// ── Les vibrations ──────────────────────────────────────────────────────
+//
+// Elles s'écrivaient à la main dans six fichiers, sans réglage : couper le
+// son les laissait vibrer. Le banc ne sent rien vibrer ; il relève ce que la
+// page demande au téléphone.
+
+/** Relève chaque vibration demandée, ou retire le vibreur quand `none`. */
+const feel = (ctx, { none = false } = {}) =>
+  ctx.addInitScript((absent) => {
+    window.__buzz = [];
+    Object.defineProperty(Navigator.prototype, 'vibrate', {
+      configurable: true,
+      writable: true,
+      value: absent
+        ? undefined
+        : function (pattern) {
+            window.__buzz.push(JSON.stringify(pattern));
+            return true;
+          },
+    });
+  }, none);
+
+const felt = (p) => p.evaluate(() => window.__buzz ?? []);
+
+{
+  console.log('\n── les vibrations : nommées, et qui se coupent');
+  const ctx = await browser.newContext(MOBILE);
+  await feel(ctx);
+  const p = await signIn(ctx);
+  await start(p, 'sess3');
+  const before = (await felt(p)).length;
+  await p
+    .getByRole('button', { name: 'Fait', exact: true })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  const tapped = (await felt(p)).slice(before);
+  ok(
+    'un mouvement coché vibre d’un coup bref',
+    tapped.join(' ') === '40',
+    tapped.join(' ')
+  );
+
+  await p.goto(`${BASE}/client/account`, { waitUntil: 'domcontentloaded' });
+  const setting = p.getByRole('switch', { name: 'Vibrations' });
+  await setting.waitFor({ timeout: 6000 }).catch(() => {});
+  if (await setting.count()) await setting.click();
+  await settle(p);
+  ok(
+    '« Mon compte » coupe les vibrations',
+    (await setting.getAttribute('aria-checked').catch(() => null)) ===
+      'false' &&
+      (await p.evaluate(() => localStorage.getItem('kettle-vibration'))) ===
+        'off'
+  );
+
+  // La même séance, reprise : le mouvement suivant se coche sans vibrer.
+  await p.goto(`${BASE}/client/session/sess3`, {
+    waitUntil: 'domcontentloaded',
+  });
+  await p.waitForTimeout(1500);
+  await p
+    .getByRole('button', { name: /^(Reprendre|Démarrer)$/ })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  await p
+    .getByRole('button', { name: 'Reprendre', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const muted = (await felt(p)).length;
+  const done = p.getByRole('button', { name: 'Fait', exact: true });
+  const reached = (await done.count()) > 0;
+  await done.click({ timeout: 3000 }).catch(() => {});
+  await settle(p);
+  ok(
+    '→ et un mouvement coché ne vibre plus',
+    reached && (await felt(p)).length === muted,
+    reached
+      ? `${(await felt(p)).length - muted} vibration(s)`
+      : 'séance non atteinte'
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── sans vibreur, pas de réglage des vibrations');
+  const ctx = await browser.newContext(MOBILE);
+  await feel(ctx, { none: true });
+  const p = await signIn(ctx);
+  await p.goto(`${BASE}/client/account`, { waitUntil: 'domcontentloaded' });
+  const bips = p.getByRole('switch', { name: 'Les bips de la séance guidée' });
+  await bips.waitFor({ timeout: 6000 }).catch(() => {});
+  ok(
+    'sans vibreur, « Vibrations » ne s’affiche pas',
+    (await bips.count()) === 1 &&
+      (await p.getByRole('switch', { name: 'Vibrations' }).count()) === 0
+  );
+  await ctx.close();
+}
+
 await browser.close();
 process.exit(failureCount() > 0 ? 1 : 0);

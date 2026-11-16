@@ -7,7 +7,7 @@ import {
   subscribeToSound,
   unlockSound,
   type Note,
-} from './sound';
+} from '@/shared/feedback/sound';
 
 /** La fin de la dernière note d'un signal. */
 const length = (notes: Note[]) =>

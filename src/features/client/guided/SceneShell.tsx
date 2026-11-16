@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuPause } from 'react-icons/lu';
 import { LANDSCAPE } from '@/kit';
-import { SoundToggle } from '@/features/client/sound/SoundToggle';
+import { SoundToggle } from '@/features/client/guided/SoundToggle';
 
 interface SceneShellProps {
   /** « Bloc 2 sur 3 ». */

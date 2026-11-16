@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Box, Text, VStack } from '@chakra-ui/react';
 import { useCountdown } from '@/features/client/guided/useCountdown';
-import { playCue } from '@/features/client/sound/sound';
+import { playCue } from '@/shared/feedback/sound';
 
 interface CountdownProps {
   /** Le premier geste à venir : le mouvement, ou le format du bloc. */

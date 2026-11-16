@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Box, Text, VStack } from '@chakra-ui/react';
 import { formatCountdown, formatDuration } from '@/shared/utils/duration';
 import { useCountdown } from '@/features/client/guided/useCountdown';
-import { playCue } from '@/features/client/sound/sound';
+import { playCue } from '@/shared/feedback/sound';
 import { useScenePaused } from '@/features/client/guided/PauseContext';
 import { Ring } from '@/kit';
+import { buzz } from '@/shared/feedback/haptics';
 
 interface DurationRingProps {
   /** La durée prescrite, en secondes. */
@@ -44,7 +45,7 @@ export const DurationRing = ({
 
   useEffect(() => {
     if (isRunning && !frozen && remaining > 0 && remaining <= 3) {
-      navigator.vibrate?.(150);
+      buzz('tick');
       playCue('tick');
     }
   }, [remaining, isRunning, frozen]);

@@ -6,8 +6,8 @@ import { ActionButton, Dots, LANDSCAPE, Ring } from '@/kit';
 import { blockSupportsRepsOnly } from '@/domain/session/blocks';
 import type { GuidedStep } from '@/features/client/guided/steps';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
-import { playCue } from '@/features/client/sound/sound';
-import { useSoundSetting } from '@/features/client/sound/useSoundSetting';
+import { playCue } from '@/shared/feedback/sound';
+import { useSoundSetting } from '@/shared/feedback/settings';
 import { useScenePaused } from '@/features/client/guided/PauseContext';
 import { useBlockClock } from '@/features/client/guided/useBlockClock';
 import {
@@ -20,6 +20,7 @@ import {
 import { blockTitle } from '@/domain/session/measure';
 import { Countdown } from '@/features/client/guided/scene/Countdown';
 import { ExerciseLines } from '@/features/client/guided/scene/ExerciseLines';
+import { buzz } from '@/shared/feedback/haptics';
 
 type RoundStep = Extract<GuidedStep, { type: 'round' }>;
 
@@ -117,17 +118,17 @@ export const TimedBlock = ({
       setReading(next);
       if (next.finished) {
         playCue('go');
-        navigator.vibrate?.([120, 80, 120]);
+        buzz('go');
         clock.stop();
         onFinish();
         return;
       }
       if (next.round !== previous.round || next.phase !== previous.phase) {
         playCue('go');
-        navigator.vibrate?.([120, 80, 120]);
+        buzz('go');
       } else if (next.remaining !== previous.remaining && next.remaining <= 3) {
         playCue('tick');
-        navigator.vibrate?.(150);
+        buzz('tick');
       }
       if (next.round !== previous.round) onRound(next.round);
     },

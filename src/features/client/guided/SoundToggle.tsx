@@ -1,7 +1,7 @@
 import { Box } from '@chakra-ui/react';
 import { LuVolume2, LuVolumeX } from 'react-icons/lu';
-import { useSoundSetting } from '@/features/client/sound/useSoundSetting';
-import { unlockSound } from '@/features/client/sound/sound';
+import { useSoundSetting } from '@/shared/feedback/settings';
+import { unlockSound } from '@/shared/feedback/sound';
 
 /**
  * Couper ou remettre les bips, depuis la séance elle-même.
