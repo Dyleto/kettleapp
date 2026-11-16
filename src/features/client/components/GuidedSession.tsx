@@ -4,12 +4,11 @@ import { buildGuidedSteps, type GuidedSet } from '../guidedSteps';
 import { LastPerformance, performedKey } from '../lastPerformance';
 import { Box, HStack, Button, VStack, Text } from '@chakra-ui/react';
 import VideoPlayer from '@/shared/components/VideoPlayer';
-import { hitArea } from '@/shared/components/hitArea';
+import { ActionButton, hitArea, LANDSCAPE } from '@/kit';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { LuCheck, LuPause, LuX } from 'react-icons/lu';
 import { countRecorded, writeProgress, readProgress } from '../sessionProgress';
-import { LANDSCAPE } from './guided/media';
 import { Timer } from './guided/Timer';
 import { playCue, unlockSound } from '../sound';
 import { SoundToggle } from './SoundToggle';
@@ -33,7 +32,6 @@ import {
   loadLegend,
   proposedLoad,
 } from '../guided/load';
-import { ActionButton } from '@/shared/components/ActionButton';
 import { PauseContext } from '../guided/PauseContext';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { TimedBlock } from './scene/TimedBlock';

@@ -10,9 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { useSearchParams } from 'react-router';
 import { LegalFooter } from '@/shared/components/LegalFooter';
-import { EmptyState } from '@/shared/components/EmptyState';
-import { ErrorState } from '@/shared/components/ErrorState';
-import { ActionButton } from '@/shared/components/ActionButton';
+import { ActionButton, EmptyState, ErrorState } from '@/kit';
 import { isRefusal } from '@/shared/utils/queryState';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 

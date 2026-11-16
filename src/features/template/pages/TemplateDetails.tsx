@@ -16,11 +16,8 @@ import { InlineText } from '@/features/program/components/InlineValue';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
-import { BackLink } from '@/shared/components/BackLink';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { ActionButton, BackLink, EmptyState, LoadFailure } from '@/kit';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { LoadFailure } from '@/shared/components/LoadFailure';
-import { ActionButton } from '@/shared/components/ActionButton';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { useTemplate } from '@/features/template/hooks/useTemplates';
 import {

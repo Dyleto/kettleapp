@@ -5,11 +5,9 @@ import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { ClientJournalTab } from '@/features/coach/components/ClientJournalTab';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { LoadFailure } from '@/shared/components/LoadFailure';
-import { ActionButton } from '@/shared/components/ActionButton';
+import { ActionButton, BackLink, LoadFailure } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { COACH_CONTENT_MAX_W } from '@/features/coach';
-import { BackLink } from '@/shared/components/BackLink';
 
 const ClientJournal = () => {
   const { clientId } = useParams();

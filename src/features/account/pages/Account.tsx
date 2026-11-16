@@ -17,7 +17,7 @@ import { useAccount } from '@/features/account/hooks/useAccount';
 import { HealthConsentCard } from '@/features/account/components/HealthConsentCard';
 import { SoundSetting } from '@/features/client/components/SoundSetting';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
-import { BackLink } from '@/shared/components/BackLink';
+import { BackLink } from '@/kit';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
 import { CLIENT_ROUTES, COACH_ROUTES } from '@/shared/config/routes';
 

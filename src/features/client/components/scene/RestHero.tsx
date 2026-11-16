@@ -4,7 +4,7 @@ import { HStack, Text, VStack } from '@chakra-ui/react';
 import { useCountdown } from '../../useCountdown';
 import { playCue } from '../../sound';
 import { useScenePaused } from '../../guided/PauseContext';
-import { Ring } from './Ring';
+import { Ring } from '@/kit';
 
 interface RestHeroProps {
   /** Les secondes de repos prescrites. */

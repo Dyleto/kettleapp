@@ -3,8 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuCheck, LuInfo, LuMinus, LuPlay, LuPlus } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Sheet } from '@/shared/components/Sheet';
+import { ActionButton, LANDSCAPE, Ring, Sheet } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';
 import type { GuidedStep } from '../../guidedSteps';
 import type { LastPerformance } from '../../lastPerformance';
@@ -20,10 +19,8 @@ import {
 } from '../../guided/ladder';
 import { formatWeight, heaviest } from '../../guided/load';
 import { blockTitle } from '../../guided/outline';
-import { LANDSCAPE } from '../guided/media';
 import { Countdown } from './Countdown';
 import { RestHero } from './RestHero';
-import { Ring } from './Ring';
 import { useCoachVoice } from '../../coach';
 
 type ListStep = Extract<GuidedStep, { type: 'block' }>;

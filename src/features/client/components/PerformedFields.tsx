@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
 import { LuChevronRight } from 'react-icons/lu';
 import { PerformedSet, PerformedValues } from '@/shared/types';
-import { hitArea } from '@/shared/components/hitArea';
+import { hitArea } from '@/kit';
 import {
   isEmptySet,
   truncateAtFirstEmpty,

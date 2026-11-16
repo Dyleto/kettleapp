@@ -186,9 +186,11 @@ banc actuel, inchangé, qui le prouve.
 - [x] **B1** Les sabotages dans le dépôt : `verify/sabotage/`, un fichier de
       cas par suite, `npm run sabotage -- <suite>`, et `sabotage:check` qui
       vérifie les motifs sans navigateur.
-- [ ] **B2** `kit/` : `Chip`, `Bubble`, `Card`, `HeroCard`, `Eyebrow`, `Ring`,
-      `Dots`, `Segments`, `Stepper`, `Sheet`, `ActionButton`, `LinkButton`,
-      `Mascot`, états. Les copies disparaissent, l'ancien `Card` aussi.
+- [x] **B2** `kit/` : `ActionButton`, `LinkButton`, `Chip`, `Bubble`, `Card`,
+      `HeroCard`, `Eyebrow`, `Ring`, `Dots`, `Segments`, `Sheet`, `Mascot`,
+      les états, les champs. Les copies disparaissent. L'ancienne carte
+      devient `LegacyCard` et part avec les quatre écrans qui la lisent
+      encore (F1, F3, F4). Le pas de charge reste à la séance guidée (B6).
 - [ ] **B3** Une planche du kit (`/kit`, hors production) que le banc ouvre :
       chaque composant, chaque état.
 - [ ] **B4** `domain/` : titre, durée, formats, doses, dessin, dernière fois,

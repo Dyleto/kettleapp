@@ -22,8 +22,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/components/end/Loads.tsx',
-          from: '            <Chip key={index} disabled label={setName(row, index)}>',
-          to: '            <Chip key={index} label={setName(row, index)}>',
+          from: '            <SetChip key={index} disabled label={setName(row, index)}>',
+          to: '            <SetChip key={index} label={setName(row, index)}>',
         },
       ],
       falls: [

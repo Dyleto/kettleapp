@@ -4,7 +4,7 @@ import { LuInfo, LuPlus } from 'react-icons/lu';
 import { SessionBlock } from '@/shared/types';
 import { type GuidedSet } from '../../guidedSteps';
 import { rankLabel } from '../../guided/outline';
-import { Dots } from './Dots';
+import { Bubble, Dots } from '@/kit';
 import { DurationRing } from './DurationRing';
 import { LoadStepper } from './LoadStepper';
 
@@ -160,19 +160,9 @@ export const SetHero = ({
       </HStack>
 
       {note && (
-        <Box
-          as={onOpenDetail ? 'button' : 'div'}
-          onClick={onOpenDetail}
-          textAlign="left"
-          bg="bg.surface"
-          borderRadius="20px 20px 20px 6px"
-          px="14px"
-          py={3}
-        >
-          <Text fontSize="15px" lineHeight="1.45" lineClamp={3}>
-            {note}
-          </Text>
-        </Box>
+        <Bubble clamp={3} onClick={onOpenDetail}>
+          {note}
+        </Bubble>
       )}
 
       {duration ? (

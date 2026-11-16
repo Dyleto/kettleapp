@@ -1,7 +1,6 @@
 import { useAuth } from '@/shared/contexts/useAuth';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { FullScreenState } from '@/shared/components/FullScreenState';
+import { ActionButton, FullScreenState } from '@/kit';
 import { LEGAL } from '@/shared/config/legal';
 
 /**

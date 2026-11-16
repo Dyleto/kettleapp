@@ -3,8 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuMinus, LuPlay, LuPlus } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Sheet } from '@/shared/components/Sheet';
+import { ActionButton, LANDSCAPE, Sheet } from '@/kit';
 import type { GuidedStep } from '../../guidedSteps';
 import type { LastPerformance } from '../../lastPerformance';
 import { playCue } from '../../sound';
@@ -18,10 +17,9 @@ import {
   type RoundTarget,
 } from '../../guided/amrap';
 import { blockTitle } from '../../guided/outline';
-import { LANDSCAPE } from '../guided/media';
 import { Countdown } from './Countdown';
 import { ExerciseLines } from './ExerciseLines';
-import { CoachSays } from '../CoachSays';
+import { CoachBubble } from '../CoachBubble';
 
 type LoopStep = Extract<GuidedStep, { type: 'block' }>;
 
@@ -232,17 +230,7 @@ export const AmrapBlock = ({
             {chip}
           </HStack>
           {step.block.notes?.trim() && (
-            <Box
-              bg="bg.surface"
-              borderRadius="20px 20px 20px 6px"
-              px="14px"
-              py={3}
-            >
-              <CoachSays />
-              <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
-                {step.block.notes.trim()}
-              </Text>
-            </Box>
+            <CoachBubble>{step.block.notes.trim()}</CoachBubble>
           )}
           <ExerciseLines
             exercises={[...step.block.exercises].sort(

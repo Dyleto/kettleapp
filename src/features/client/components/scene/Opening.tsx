@@ -1,8 +1,7 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuPlay, LuX } from 'react-icons/lu';
 import { Session } from '@/shared/types';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Mascot } from '@/shared/components/Mascot';
+import { ActionButton, Chip, Mascot } from '@/kit';
 import { SoundToggle } from '../SoundToggle';
 import { BlockRhythm } from '../detail/BlockRhythm';
 import {
@@ -13,30 +12,7 @@ import {
   openingEyebrow,
   openingTitle,
 } from '../../guided/outline';
-import { CoachSays } from '../CoachSays';
-
-/** Une pastille de repère : la durée, le nombre de blocs, d'exercices. */
-const Chip = ({
-  children,
-  accent = false,
-}: {
-  children: React.ReactNode;
-  accent?: boolean;
-}) => (
-  <Box
-    px="14px"
-    py="8px"
-    borderRadius="full"
-    bg={accent ? 'app.primary.bg' : 'bg.surface'}
-    color={accent ? 'app.primary.fg' : 'fg'}
-    fontSize="14.5px"
-    fontWeight="600"
-    lineHeight="1.25"
-    whiteSpace="nowrap"
-  >
-    {children}
-  </Box>
-);
+import { CoachBubble } from '../CoachBubble';
 
 interface OpeningProps {
   session: Session;
@@ -139,28 +115,18 @@ export const Opening = ({ session, onStart, onClose }: OpeningProps) => {
         </VStack>
 
         <HStack gap={1.5} wrap="wrap">
-          <Chip accent>≈&nbsp;{estimatedMinutes(session)}&nbsp;min</Chip>
-          <Chip>
+          <Chip tone="amber" size="lg">
+            ≈&nbsp;{estimatedMinutes(session)}&nbsp;min
+          </Chip>
+          <Chip size="lg">
             {blocks.length}&nbsp;bloc{blocks.length > 1 ? 's' : ''}
           </Chip>
-          <Chip>
+          <Chip size="lg">
             {exerciseCount}&nbsp;exercice{exerciseCount > 1 ? 's' : ''}
           </Chip>
         </HStack>
 
-        {note && (
-          <Box
-            bg="bg.surface"
-            borderRadius="20px 20px 20px 6px"
-            px="14px"
-            py={3}
-          >
-            <CoachSays />
-            <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
-              {note}
-            </Text>
-          </Box>
-        )}
+        {note && <CoachBubble>{note}</CoachBubble>}
 
         <VStack
           as="ul"

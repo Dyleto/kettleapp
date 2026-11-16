@@ -4,8 +4,8 @@ import { EFFORT_ZONE_COLOR } from '../../constants';
 import { getEffortSummary } from '../../format';
 import { pastDayLabel } from '../../home';
 import { openingTitle } from '../../guided/outline';
-import { HomeCard } from './HomeCards';
 import { useCoachVoice } from '../../coach';
+import { Card } from '@/kit';
 
 /**
  * La dernière séance faite, et où en est ce qu'on en a dit.
@@ -35,7 +35,7 @@ export const LastSessionCard = ({
   const day = pastDayLabel(new Date(completed.completedAt));
   const note = completed.clientNotes?.trim();
   return (
-    <HomeCard label="Ta dernière séance" gap="10px" p={0}>
+    <Card label="Ta dernière séance" gap="10px" p={0}>
       <Box
         as="button"
         textAlign="left"
@@ -76,6 +76,6 @@ export const LastSessionCard = ({
           </Text>
         )}
       </Box>
-    </HomeCard>
+    </Card>
   );
 };

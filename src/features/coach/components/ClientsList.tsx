@@ -13,12 +13,10 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { LuSearch, LuX } from 'react-icons/lu';
 import { useClients } from '@/features/coach/hooks/useClients';
-import { LoadFailure } from '@/shared/components/LoadFailure';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { EmptyState, hitArea, LoadFailure } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/features/client/constants';
-import { Card } from '@/shared/components/Card';
-import { hitArea } from '@/shared/components/hitArea';
+import { LegacyCard } from '@/shared/components/LegacyCard';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { normalize } from '@/shared/utils/formatters';
 import { Client } from '@/shared/types';
@@ -195,7 +193,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
   const cells = rowCells(client, effort?.label);
 
   return (
-    <Card
+    <LegacyCard
       accentColor="app.primary"
       hoverEffect="border"
       withGlow={false}
@@ -274,7 +272,7 @@ const ClientRow = ({ client, onSelect, selected }: ClientRowProps) => {
           {cells.waiting}
         </Text>
       </Grid>
-    </Card>
+    </LegacyCard>
   );
 };
 
@@ -328,12 +326,12 @@ export const ClientsList = ({ onPreview, selectedId }: ClientsListProps) => {
     return (
       <VStack align="stretch" gap={2}>
         {[...Array(6)].map((_, index) => (
-          <Card key={index} onClick={() => {}} p={3}>
+          <LegacyCard key={index} onClick={() => {}} p={3}>
             <HStack gap={3}>
               <SkeletonCircle size="8" />
               <SkeletonText noOfLines={1} width="140px" />
             </HStack>
-          </Card>
+          </LegacyCard>
         ))}
       </VStack>
     );

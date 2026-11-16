@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuTrophy } from 'react-icons/lu';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Mascot } from '@/shared/components/Mascot';
+import { ActionButton, Mascot } from '@/kit';
 import type { Highlight, Recap } from '../../recap';
 import { useCoachVoice } from '../../coach';
 

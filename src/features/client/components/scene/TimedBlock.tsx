@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronLeft, LuChevronRight, LuPlay } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
-import { ActionButton } from '@/shared/components/ActionButton';
+import { ActionButton, Dots, LANDSCAPE, Ring } from '@/kit';
 import { blockSupportsRepsOnly } from '@/features/program/constants';
 import type { GuidedStep } from '../../guidedSteps';
 import type { LastPerformance } from '../../lastPerformance';
@@ -18,11 +18,8 @@ import {
   type TimedPlan,
 } from '../../guided/clock';
 import { blockTitle } from '../../guided/outline';
-import { LANDSCAPE } from '../guided/media';
 import { Countdown } from './Countdown';
-import { Dots } from './Dots';
 import { ExerciseLines } from './ExerciseLines';
-import { Ring } from './Ring';
 
 type RoundStep = Extract<GuidedStep, { type: 'round' }>;
 

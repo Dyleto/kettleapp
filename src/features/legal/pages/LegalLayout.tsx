@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { Box, Heading, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
 import { TO_FILL, LEGAL } from '@/shared/config/legal';
-import { hitArea } from '@/shared/components/hitArea';
+import { hitArea } from '@/kit';
 
 /**
  * Un document légal se lit d'un bout à l'autre, souvent sur un téléphone, et

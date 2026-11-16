@@ -1,7 +1,5 @@
 import { Text, VStack } from '@chakra-ui/react';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Mascot } from '@/shared/components/Mascot';
-import { Eyebrow, HomeCard } from './HomeCards';
+import { ActionButton, Card, Eyebrow, Mascot } from '@/kit';
 import { useCoachVoice } from '../../coach';
 
 /**
@@ -28,7 +26,7 @@ export const RestCard = ({
   detail: string;
   onOpen: () => void;
 }) => (
-  <HomeCard label="Aujourd'hui">
+  <Card label="Aujourd'hui">
     <Eyebrow tone="teal">
       {doneToday ? "C'est fait pour aujourd'hui" : "Aujourd'hui, repos"}
     </Eyebrow>
@@ -53,7 +51,7 @@ export const RestCard = ({
     <ActionButton tone="ghost" size="md" w="full" onClick={onOpen}>
       La faire aujourd&rsquo;hui
     </ActionButton>
-  </HomeCard>
+  </Card>
 );
 
 /**
@@ -64,7 +62,7 @@ export const RestCard = ({
  * s'entraîner un dimanche n'a pas à chercher comment.
  */
 export const FullCard = ({ onMore }: { onMore: () => void }) => (
-  <HomeCard label="Aujourd'hui" align="center" textAlign="center" gap={3}>
+  <Card label="Aujourd'hui" align="center" textAlign="center" gap={3}>
     <Mascot mood="bravo" size={96} />
     <Text as="h2" fontSize="24px" fontWeight="800" lineHeight="1.15">
       Tout est fait
@@ -75,7 +73,7 @@ export const FullCard = ({ onMore }: { onMore: () => void }) => (
     <ActionButton tone="ghost" size="md" onClick={onMore}>
       Refaire une séance
     </ActionButton>
-  </HomeCard>
+  </Card>
 );
 
 /**

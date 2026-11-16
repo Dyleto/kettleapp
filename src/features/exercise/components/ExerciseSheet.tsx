@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 import { LuExternalLink, LuTrash2, LuVideo, LuX } from 'react-icons/lu';
-import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
+import { AutoResizeTextarea } from '@/kit';
 import { Exercise } from '@/shared/types';
 import { parseYouTubeUrl } from '@/shared/utils/videoUtils';
 import { useUpdateExercise } from '@/features/exercise/hooks/useExerciseMutations';

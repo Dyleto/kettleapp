@@ -14,11 +14,8 @@ import { useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { COACH_CONTENT_MAX_W } from '@/features/coach';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { touchHitArea } from '@/shared/components/hitArea';
+import { ActionButton, EmptyState, LoadFailure, touchHitArea } from '@/kit';
 import { useTemplates } from '@/features/template/hooks/useTemplates';
-import { LoadFailure } from '@/shared/components/LoadFailure';
-import { EmptyState } from '@/shared/components/EmptyState';
-import { ActionButton } from '@/shared/components/ActionButton';
 import { isUnavailable } from '@/shared/utils/queryState';
 import {
   useCreateTemplate,

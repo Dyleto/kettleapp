@@ -1,6 +1,5 @@
 import { Box, Input, Text } from '@chakra-ui/react';
-import { touchHitArea } from '@/shared/components/hitArea';
-import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
+import { AutoResizeTextarea, touchHitArea } from '@/kit';
 import { useState } from 'react';
 import { parseNumberInput } from '@/shared/utils/numberInput';
 

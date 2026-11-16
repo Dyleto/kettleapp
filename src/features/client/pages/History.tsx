@@ -13,8 +13,7 @@ import {
   useClientSessions,
 } from '@/features/client';
 
-import { EmptyState } from '@/shared/components/EmptyState';
-import { ActionButton } from '@/shared/components/ActionButton';
+import { ActionButton, EmptyState } from '@/kit';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;

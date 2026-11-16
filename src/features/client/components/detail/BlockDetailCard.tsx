@@ -10,8 +10,8 @@ import {
   hasInstructions,
 } from '../../detail';
 import type { LastPerformance } from '../../lastPerformance';
-import { HomeChip } from '../home/HomeCards';
 import { BlockRhythm } from './BlockRhythm';
+import { Bubble, Chip } from '@/kit';
 
 interface BlockDetailCardProps {
   block: SessionBlock;
@@ -59,24 +59,15 @@ export const BlockDetailCard = ({
         >
           {name}
         </Text>
-        {label && <HomeChip tone="outline">{label}</HomeChip>}
+        {label && <Chip tone="outline">{label}</Chip>}
         {blockChips(block).map((chip) => (
-          <HomeChip key={chip}>{chip}</HomeChip>
+          <Chip key={chip}>{chip}</Chip>
         ))}
       </HStack>
       {block.notes?.trim() && (
-        <Box
-          mx="18px"
-          mb="10px"
-          bg="bg.surface"
-          borderRadius="20px 20px 20px 6px"
-          px="14px"
-          py="10px"
-        >
-          <Text fontSize="sm" whiteSpace="pre-wrap">
-            {block.notes}
-          </Text>
-        </Box>
+        <Bubble size="sm" mx="18px" mb="10px">
+          {block.notes}
+        </Bubble>
       )}
       <Box px="18px" pb="12px">
         <BlockRhythm block={block} />

@@ -23,13 +23,16 @@ import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
 import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
-import { BackLink } from '@/shared/components/BackLink';
+import {
+  ActionButton,
+  BackLink,
+  EmptyState,
+  hitArea,
+  LoadFailure,
+  TOUCH,
+} from '@/kit';
 import { Header } from '@/shared/components/Header';
-import { TOUCH, hitArea } from '@/shared/components/hitArea';
-import { EmptyState } from '@/shared/components/EmptyState';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { LoadFailure } from '@/shared/components/LoadFailure';
-import { ActionButton } from '@/shared/components/ActionButton';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { Session } from '@/shared/types';
 

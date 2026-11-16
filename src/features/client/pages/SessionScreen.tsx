@@ -38,7 +38,6 @@ import {
   openingTitle,
 } from '@/features/client/guided/outline';
 import { formatSuggestedDays } from '@/features/client/sessionDates';
-import { HomeChip } from '@/features/client/components/home/HomeCards';
 import { BlockDetailCard } from '@/features/client/components/detail/BlockDetailCard';
 import { InstructionSheet } from '@/features/client/components/detail/InstructionSheet';
 import { DeclareSheet } from '@/features/client/components/detail/DeclareSheet';
@@ -54,11 +53,9 @@ import {
   weekTarget,
 } from '@/features/client/weekRing';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { EmptyState } from '@/shared/components/EmptyState';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { hitArea } from '@/shared/components/hitArea';
+import { ActionButton, Chip, EmptyState, hitArea, LinkButton } from '@/kit';
 import { sessionTitle } from '@/features/program/sessionTitle';
-import { CoachSays } from '@/features/client/components/CoachSays';
+import { CoachBubble } from '@/features/client/components/CoachBubble';
 
 // Ce qui a été réalisé se saisit exercice par exercice pendant la séance,
 // puis part d'un coup avec le bilan. La clé est « rang du bloc : rang de
@@ -325,24 +322,17 @@ const SessionScreen = () => {
       </Text>
       <HStack gap="6px" wrap="wrap">
         {hasExercises && (
-          <HomeChip tone="amber">
+          <Chip tone="amber">
             ≈&nbsp;{estimatedMinutes(activeSession)}&nbsp;min
-          </HomeChip>
+          </Chip>
         )}
-        {days && <HomeChip>Conseillée {days}</HomeChip>}
-        <HomeChip tone="outline">
+        {days && <Chip>Conseillée {days}</Chip>}
+        <Chip tone="outline">
           {blocks.length}&nbsp;bloc{blocks.length > 1 ? 's' : ''} ·{' '}
           {exerciseCount}&nbsp;exercice{exerciseCount > 1 ? 's' : ''}
-        </HomeChip>
+        </Chip>
       </HStack>
-      {note && (
-        <Box bg="bg.surface" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
-          <CoachSays />
-          <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
-            {note}
-          </Text>
-        </Box>
-      )}
+      {note && <CoachBubble>{note}</CoachBubble>}
     </VStack>
   );
 
@@ -356,19 +346,9 @@ const SessionScreen = () => {
           {started ? 'Reprendre' : 'Démarrer'}
         </ActionButton>
       )}
-      <Box
-        as="button"
-        alignSelf="center"
-        css={hitArea()}
-        color="fg.muted"
-        fontSize="sm"
-        fontWeight="700"
-        py={2}
-        onClick={() => setDeclaring(true)}
-        _hover={{ color: 'fg' }}
-      >
+      <LinkButton py={2} onClick={() => setDeclaring(true)}>
         Je l&rsquo;ai déjà faite
-      </Box>
+      </LinkButton>
     </VStack>
   );
 

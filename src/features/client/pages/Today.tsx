@@ -26,24 +26,24 @@ import { doneInWeek, weekStreak, weekTarget } from '@/features/client/weekRing';
 import { homeFocus, weekWords } from '@/features/client/home';
 import { startedAgo, unfinishedSession } from '@/features/client/unfinished';
 import { restartProgress } from '@/features/client/sessionProgress';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Sheet } from '@/shared/components/Sheet';
+import {
+  ActionButton,
+  Chip,
+  EmptyState,
+  hitArea,
+  Mascot,
+  Segments,
+  Sheet,
+} from '@/kit';
 import {
   estimatedMinutes,
   openingTitle,
 } from '@/features/client/guided/outline';
 import { getBlockLabel } from '@/features/program/constants';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { EmptyState } from '@/shared/components/EmptyState';
-import { Mascot } from '@/shared/components/Mascot';
-import { hitArea } from '@/shared/components/hitArea';
 import type { WeekBubble } from '@/features/client/components/WeekBubbles';
 import { WeekCard } from '@/features/client/components/home/WeekCard';
-import {
-  BlockBar,
-  HeroCard,
-  HomeChip,
-} from '@/features/client/components/home/HomeCards';
+import { FocusCard } from '@/features/client/components/home/FocusCard';
 import {
   FullCard,
   HowItWorks,
@@ -161,10 +161,10 @@ const Today = () => {
           aria-label={`${streak} semaines d’affilée — voir tes progrès`}
           onClick={() => navigate(CLIENT_ROUTES.history)}
         >
-          <HomeChip tone="amber">
+          <Chip tone="amber">
             <LuFlame size={14} aria-hidden />
             {streak}&nbsp;sem.
-          </HomeChip>
+          </Chip>
         </Box>
       )}
     </HStack>
@@ -213,7 +213,7 @@ const Today = () => {
   const last = history[0];
 
   const hero = (session: Session, eyebrow: string) => (
-    <HeroCard
+    <FocusCard
       eyebrow={eyebrow}
       title={openingTitle(session)}
       chips={
@@ -232,7 +232,7 @@ const Today = () => {
   );
 
   const resumeCard = unfinished && (
-    <HeroCard
+    <FocusCard
       eyebrow="En cours"
       title={openingTitle(unfinished.session)}
       chips={unfinished.where}
@@ -241,7 +241,7 @@ const Today = () => {
           ? startedAgo(unfinished.startedAt, new Date().getTime())
           : undefined
       }
-      extra={<BlockBar blocks={unfinished.blocks} />}
+      extra={<Segments parts={unfinished.blocks} />}
       // Le coach a changé la séance depuis : la position enregistrée ne
       // désigne plus rien de sûr. Il ne reste que recommencer.
       cta={unfinished.changed ? 'Recommencer' : 'Reprendre'}

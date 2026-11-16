@@ -1,7 +1,6 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import { LuPlay, LuVolume2 } from 'react-icons/lu';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { Sheet } from '@/shared/components/Sheet';
+import { ActionButton, Sheet } from '@/kit';
 import { useSoundSetting } from '../../useSoundSetting';
 import { unlockSound } from '../../sound';
 

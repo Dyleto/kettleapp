@@ -4,7 +4,7 @@ import { formatCountdown, formatDuration } from '@/shared/utils/duration';
 import { useCountdown } from '../../useCountdown';
 import { playCue } from '../../sound';
 import { useScenePaused } from '../../guided/PauseContext';
-import { Ring } from './Ring';
+import { Ring } from '@/kit';
 
 interface DurationRingProps {
   /** La durée prescrite, en secondes. */

@@ -27,7 +27,7 @@ import {
   LEGACY_METRIC_LABELS,
 } from '@/features/client/constants';
 import { BlockCard } from '@/features/program/components/BlockCard';
-import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
+import { AutoResizeTextarea } from '@/kit';
 import { LuPencil, LuX } from 'react-icons/lu';
 import { useState } from 'react';
 import { EffortScale } from './EffortScale';

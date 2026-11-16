@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box } from '@chakra-ui/react';
-import { LANDSCAPE } from '../guided/media';
+import { LANDSCAPE } from './media';
 
 interface RingProps {
   /** Ce qui reste, entre 0 et 1. */

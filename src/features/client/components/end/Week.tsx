@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuFlame } from 'react-icons/lu';
-import { ActionButton } from '@/shared/components/ActionButton';
+import { ActionButton, Bubble, Ring } from '@/kit';
 import { mondayIndex, startOfWeek, WEEKDAY_LETTERS } from '../../sessionDates';
 import { WeekBubbles } from '../WeekBubbles';
 import { countWord } from '../../weekRing';
-import { Ring } from '../scene/Ring';
 import { useCoachVoice } from '../../coach';
 
 interface WeekProps {
@@ -160,11 +159,9 @@ export const Week = ({
           </HStack>
         )}
 
-        <Box bg="bg.surface" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
-          <Text fontSize="15px">
-            {coach.opening} verra ton ressenti, et pourra te répondre d’un mot.
-          </Text>
-        </Box>
+        <Bubble>
+          {coach.opening} verra ton ressenti, et pourra te répondre d’un mot.
+        </Bubble>
       </VStack>
 
       <Box px={4} pt={2} pb="calc(env(safe-area-inset-bottom, 0px) + 12px)">

@@ -1,6 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
-import { ActionButton } from './ActionButton';
-import { FullScreenState } from './FullScreenState';
+import { ActionButton, FullScreenState } from '@/kit';
 import { CRASH_LINE, CRASH_TITLE } from './RouteError';
 
 interface Props {

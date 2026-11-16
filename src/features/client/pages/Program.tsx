@@ -2,7 +2,7 @@ import { useOutletContext, useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMemo } from 'react';
 import { Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
-import { Card } from '@/shared/components/Card';
+import { LegacyCard } from '@/shared/components/LegacyCard';
 import { Session } from '@/shared/types';
 import {
   CLIENT_GRID_MAX_W,
@@ -12,7 +12,7 @@ import {
   useClientSessions,
 } from '@/features/client';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { EmptyState } from '@/kit';
 import { sessionTitle } from '@/features/program/sessionTitle';
 import {
   matchSession,
@@ -45,7 +45,7 @@ interface SessionRowProps {
 }
 
 const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
-  <Card
+  <LegacyCard
     accentColor={isNext ? NEXT_ACCENT : PLAIN_ACCENT}
     hoverEffect="border"
     withGlow={false}
@@ -90,7 +90,7 @@ const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
         </>
       )}
     </VStack>
-  </Card>
+  </LegacyCard>
 );
 
 const Program = () => {

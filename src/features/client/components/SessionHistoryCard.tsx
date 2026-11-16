@@ -1,4 +1,4 @@
-import { Card } from '@/shared/components/Card';
+import { LegacyCard } from '@/shared/components/LegacyCard';
 import { CompletedSession } from '@/shared/types';
 import {
   getCompletedSessionBlockTypes,
@@ -51,7 +51,7 @@ export const SessionHistoryCard = ({
   const effort = getEffortSummary(completed);
 
   return (
-    <Card
+    <LegacyCard
       accentColor="app.primary"
       hoverEffect="border"
       withGlow={false}
@@ -115,6 +115,6 @@ export const SessionHistoryCard = ({
         onClose={() => setIsDrawerOpen(false)}
         editable={!readOnly}
       />
-    </Card>
+    </LegacyCard>
   );
 };

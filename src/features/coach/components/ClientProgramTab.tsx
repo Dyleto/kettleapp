@@ -38,7 +38,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TOUCH, touchGap, touchHitArea } from '@/shared/components/hitArea';
+import { TOUCH, touchGap, touchHitArea } from '@/kit';
 import {
   closestCenter,
   DndContext,

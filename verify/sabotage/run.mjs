@@ -68,10 +68,17 @@ const defects = (set) => {
       if (from === to)
         found.push(`[${rank}] ${c.name} : le sabotage ne change rien`);
     });
+    // Un libellé entier, entre ses guillemets, et non un morceau de
+    // libellé : le lanceur compare ce qui tombe au mot près, et un libellé
+    // allongé depuis (« … ouvre la séance, sous son prénom ») passait ce
+    // contrôle tout en ne pouvant plus jamais tomber comme attendu.
     c.falls.forEach((label) => {
-      if (!suite.includes(label))
+      const quoted = new RegExp(
+        `(['"\`])\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\1`
+      );
+      if (!quoted.test(suite))
         found.push(
-          `[${rank}] ${c.name} : « ${label} » n'est pas un libellé de ${set.suite}`
+          `[${rank}] ${c.name} : « ${label} » n'est pas un libellé entier de ${set.suite}`
         );
     });
   });

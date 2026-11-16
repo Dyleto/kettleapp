@@ -16,7 +16,7 @@ import { queryKeys } from '@/shared/config/queryKeys';
 import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
-import { hitArea } from '@/shared/components/hitArea';
+import { hitArea } from '@/kit';
 
 interface CopySessionToClientProps {
   sourceClientId: string;

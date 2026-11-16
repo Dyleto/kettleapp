@@ -12,17 +12,15 @@ interface CardProps extends Omit<BoxProps, 'onClick'> {
 }
 
 /**
- * La surface de base de l'application : une carte, cliquable ou non.
+ * L'ancienne carte, d'avant le kit — tranche colorée, lueur au survol.
  *
- * Cliquable, c'est un `div` porteur de `role="button"` et non un `<button>`
- * : les cartes contiennent des boutons — supprimer, ouvrir la vidéo — et un
- * bouton dans un bouton n'est pas du HTML valide, le navigateur défaisant
- * l'imbrication à sa façon.
- *
- * Ce choix a un prix, payé juste en dessous : l'anneau de focus doit être
- * redessiné à la main.
+ * Elle ne sert plus qu'à quatre écrans que la refonte n'a pas encore
+ * atteints : le programme du client (F1), la liste de ses séances dans
+ * Progrès (F3), la liste des clients du coach (F4) et le fantôme d'une
+ * fiche d'exercice. Elle part avec le dernier d'entre eux. Pour tout écran
+ * neuf, c'est `Card` du kit.
  */
-export const Card = ({
+export const LegacyCard = ({
   children,
   withGlow = true,
   accentColor,

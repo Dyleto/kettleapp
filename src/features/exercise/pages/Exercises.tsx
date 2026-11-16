@@ -5,7 +5,7 @@ import {
   useCreateExercise,
   useDeleteExercise,
 } from '@/features/exercise/hooks/useExerciseMutations';
-import { LoadFailure } from '@/shared/components/LoadFailure';
+import { LoadFailure } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { Exercise } from '@/shared/types';
 import {

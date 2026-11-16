@@ -93,7 +93,7 @@ export default {
       name: 'un 404 est pris pour une panne',
       edits: [
         {
-          file: 'src/shared/components/LoadFailure.tsx',
+          file: 'src/kit/LoadFailure.tsx',
           from: 'missing && isNotFound(query.error) ? (',
           to: 'missing && false ? (',
         },
@@ -137,7 +137,7 @@ export default {
       name: 'le personnage est annoncé',
       edits: [
         {
-          file: 'src/shared/components/Mascot.tsx',
+          file: 'src/kit/Mascot.tsx',
           from: '    aria-hidden\n',
           to: '',
         },
@@ -162,7 +162,7 @@ export default {
       name: "la panne n'est plus annoncée",
       edits: [
         {
-          file: 'src/shared/components/ErrorState.tsx',
+          file: 'src/kit/ErrorState.tsx',
           from: '<Box role="alert">',
           to: '<Box>',
         },

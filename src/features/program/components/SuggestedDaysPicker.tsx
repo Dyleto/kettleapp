@@ -1,5 +1,5 @@
 import { Box, HStack } from '@chakra-ui/react';
-import { TOUCH, hitArea } from '@/shared/components/hitArea';
+import { hitArea, TOUCH } from '@/kit';
 import { dayChipStyle } from '@/shared/components/dayChip';
 import { WEEKDAY_FULL, WEEKDAY_SHORT } from '@/features/client/sessionDates';
 

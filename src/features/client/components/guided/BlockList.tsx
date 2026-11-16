@@ -3,7 +3,7 @@ import { type GuidedSet } from '../../guidedSteps';
 import { blockDefinesOwnMetrics } from '@/features/program/constants';
 import { performedKey } from '../../lastPerformance';
 import { Box, HStack, Input, VStack, Text } from '@chakra-ui/react';
-import { hitArea } from '@/shared/components/hitArea';
+import { hitArea } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';
 import { Fragment, useState } from 'react';
 import { useNumberDraft } from '@/shared/hooks/useNumberDraft';

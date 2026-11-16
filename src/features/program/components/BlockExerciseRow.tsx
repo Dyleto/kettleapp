@@ -9,7 +9,7 @@ import {
 } from '@/features/program/constants';
 import { formatExerciseMetric } from '@/shared/utils/formatters';
 import VideoPlayer from '@/shared/components/VideoPlayer';
-import { hitArea } from '@/shared/components/hitArea';
+import { hitArea } from '@/kit';
 
 interface BlockExerciseRowProps {
   exercise: BlockExercise;

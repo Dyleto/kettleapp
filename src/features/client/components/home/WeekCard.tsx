@@ -1,7 +1,6 @@
 import { HStack, Text, VStack } from '@chakra-ui/react';
-import { Ring } from '../scene/Ring';
+import { Card, Ring } from '@/kit';
 import { WeekBubbles, type WeekBubble } from '../WeekBubbles';
-import { HomeCard } from './HomeCards';
 
 interface WeekCardProps {
   done: number;
@@ -27,7 +26,7 @@ export const WeekCard = ({
   line,
   days,
 }: WeekCardProps) => (
-  <HomeCard label="Ta semaine">
+  <Card label="Ta semaine">
     <HStack gap={4}>
       {target > 0 && (
         <VStack
@@ -63,5 +62,5 @@ export const WeekCard = ({
       </VStack>
     </HStack>
     <WeekBubbles days={days} />
-  </HomeCard>
+  </Card>
 );

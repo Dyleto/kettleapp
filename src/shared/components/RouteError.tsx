@@ -1,8 +1,7 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { getDefaultRoleRoute } from '@/shared/config/routes';
-import { ActionButton } from './ActionButton';
-import { FullScreenState } from './FullScreenState';
+import { ActionButton, FullScreenState } from '@/kit';
 
 /** Ce qu'on dit quand l'application a planté. Partagé avec `ErrorBoundary`,
  * qui attrape ce que le routeur ne voit pas : deux écrans pour la même

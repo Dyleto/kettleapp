@@ -1,14 +1,13 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import type { BlockExercise } from '@/shared/types';
-import { Sheet } from '@/shared/components/Sheet';
+import { Chip, Sheet } from '@/kit';
 import VideoPlayer from '@/shared/components/VideoPlayer';
 import { formatWeight } from '../../guided/load';
 import {
   formatLastPerformance,
   type LastPerformance,
 } from '../../lastPerformance';
-import { HomeChip } from '../home/HomeCards';
-import { CoachSays } from '../CoachSays';
+import { CoachBubble } from '../CoachBubble';
 
 /**
  * La consigne d'un exercice, en feuille basse sur la fiche.
@@ -48,14 +47,7 @@ export const InstructionSheet = ({
       <Text as="h2" fontSize="22px" fontWeight="800" lineHeight="1.2">
         {entry.exercise.name}
       </Text>
-      {note && (
-        <Box bg="bg.raised" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
-          <CoachSays />
-          <Text fontSize="15px" whiteSpace="pre-wrap">
-            {note}
-          </Text>
-        </Box>
-      )}
+      {note && <CoachBubble tone="raised">{note}</CoachBubble>}
       {description && (
         <Text color="fg.muted" whiteSpace="pre-wrap">
           {description}
@@ -64,12 +56,12 @@ export const InstructionSheet = ({
       {(lastLine || record !== undefined) && (
         <HStack gap="6px" wrap="wrap">
           {lastLine && (
-            <HomeChip tone="teal">La dernière fois&nbsp;: {lastLine}</HomeChip>
+            <Chip tone="teal">La dernière fois&nbsp;: {lastLine}</Chip>
           )}
           {record !== undefined && (
-            <HomeChip tone="amber">
+            <Chip tone="amber">
               Record&nbsp;: {formatWeight(record)}&nbsp;kg
-            </HomeChip>
+            </Chip>
           )}
         </HStack>
       )}

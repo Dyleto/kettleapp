@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuArrowLeft, LuPlus } from 'react-icons/lu';
 import type { PerformedValues, Session } from '@/shared/types';
-import { ActionButton } from '@/shared/components/ActionButton';
+import { ActionButton } from '@/kit';
 import type { LastPerformance } from '../../lastPerformance';
 import {
   firstOpen,
@@ -226,7 +226,7 @@ const LoadCard = ({
           const weight = noted[index]?.weight;
           if (index < openIndex && weight !== undefined)
             return (
-              <Chip
+              <SetChip
                 key={index}
                 filled
                 label={`${setName(row, index)} — ${formatWeight(weight)} kg, à corriger`}
@@ -234,11 +234,11 @@ const LoadCard = ({
               >
                 {formatWeight(weight)}
                 {'\u00A0'}kg
-              </Chip>
+              </SetChip>
             );
           if (index === openIndex)
             return (
-              <Chip
+              <SetChip
                 key={index}
                 label={
                   count === 1
@@ -255,13 +255,13 @@ const LoadCard = ({
                 ) : (
                   setName(row, index)
                 )}
-              </Chip>
+              </SetChip>
             );
           // Après une série vide : rien à noter tant qu'elle l'est.
           return (
-            <Chip key={index} disabled label={setName(row, index)}>
+            <SetChip key={index} disabled label={setName(row, index)}>
               {setName(row, index)}
-            </Chip>
+            </SetChip>
           );
         })}
       </HStack>
@@ -284,8 +284,13 @@ const LoadCard = ({
   );
 };
 
-/** Une pastille de série : pleine quand une charge y est notée. */
-const Chip = ({
+/**
+ * Une pastille de série : pleine quand une charge y est notée.
+ *
+ * Pas la pastille du kit : celle-ci est un bouton, à la taille d'un doigt,
+ * et son contour pointillé dit « vide, à remplir ».
+ */
+const SetChip = ({
   label,
   filled = false,
   disabled = false,

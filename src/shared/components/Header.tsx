@@ -17,7 +17,7 @@ import {
   LuChevronUp,
   LuUser,
 } from 'react-icons/lu';
-import { hitArea } from './hitArea';
+import { hitArea } from '@/kit';
 import { useLocation, useNavigate } from 'react-router';
 import { getAccountRoute } from '@/shared/config/routes';
 

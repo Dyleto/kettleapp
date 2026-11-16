@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Text } from '@chakra-ui/react';
-import { ActionButton } from '@/shared/components/ActionButton';
-import { DateInput } from '@/shared/components/DateInput';
-import { Sheet } from '@/shared/components/Sheet';
+import { ActionButton, DateInput, Sheet } from '@/kit';
 import { dayKey } from '../../sessionDates';
 
 /**

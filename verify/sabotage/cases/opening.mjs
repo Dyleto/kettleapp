@@ -46,19 +46,19 @@ export default {
       edits: [
         {
           file: 'src/features/client/components/scene/Opening.tsx',
-          from: '        {note && (',
-          to: '        {note && false && (',
+          from: '        {note && <CoachBubble>{note}</CoachBubble>}',
+          to: '        {note && false && <CoachBubble>{note}</CoachBubble>}',
         },
       ],
-      falls: ['le mot du coach ouvre la séance'],
+      falls: ['le mot du coach ouvre la séance, sous son prénom'],
     },
     {
       name: "une bulle vide s'affiche sans mot du coach",
       edits: [
         {
           file: 'src/features/client/components/scene/Opening.tsx',
-          from: '        {note && (',
-          to: '        {(note || true) && (',
+          from: '        {note && <CoachBubble>{note}</CoachBubble>}',
+          to: '        {(note || true) && <CoachBubble>{note}</CoachBubble>}',
         },
       ],
       falls: ["aucune bulle quand le coach n'a rien écrit"],
@@ -123,7 +123,7 @@ export default {
       edits: [
         {
           file: 'src/features/client/components/scene/Opening.tsx',
-          from: '          <Chip accent>≈&nbsp;{estimatedMinutes(session)}&nbsp;min</Chip>\n',
+          from: '            ≈&nbsp;{estimatedMinutes(session)}&nbsp;min\n',
           to: '',
         },
       ],

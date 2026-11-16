@@ -24,7 +24,7 @@ import {
   getBlockLabel,
 } from '@/features/program/constants';
 import { BlockFrame } from './BlockFrame';
-import { touchGap, touchHitArea, touchRow } from '@/shared/components/hitArea';
+import { touchGap, touchHitArea, touchRow } from '@/kit';
 import { formatDuration } from '@/shared/utils/formatters';
 import { InlineText, InlineValue } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';

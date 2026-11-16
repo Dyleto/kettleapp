@@ -12,7 +12,7 @@ import { Client } from '@/shared/types';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { SessionHistoryCard } from '@/features/client';
-import { EmptyState } from '@/shared/components/EmptyState';
+import { EmptyState } from '@/kit';
 
 interface ClientPreviewProps {
   /** Le client mis en avant dans la liste, ou `null` quand aucun n'est

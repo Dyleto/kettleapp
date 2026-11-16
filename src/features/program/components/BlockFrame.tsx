@@ -1,6 +1,6 @@
 import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { TOUCH } from '@/shared/components/hitArea';
+import { TOUCH } from '@/kit';
 import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/shared/types';
 import {

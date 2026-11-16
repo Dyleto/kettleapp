@@ -2,7 +2,7 @@ import { Outlet } from 'react-router';
 import { Container } from '@chakra-ui/react';
 import { CLIENT_CONTENT_MAX_W, useClientSessions } from '@/features/client';
 import { CoachVoiceContext } from '@/features/client/coach';
-import { ErrorState } from '@/shared/components/ErrorState';
+import { ErrorState } from '@/kit';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 /** L'écran de panne de l'espace client. Un composant à part pour que le
