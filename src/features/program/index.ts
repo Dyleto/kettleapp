@@ -12,3 +12,6 @@ export {
   InlineSequence,
   InlineText,
 } from './components/InlineValue';
+export { useProgramWorkshop } from './hooks/useProgramWorkshop';
+export { useUpdateProgramSessions } from './hooks/useProgramMutations';
+export { ProgramSaveStatus } from './components/ProgramSaveStatus';

@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router';
 import { LegalFooter } from '@/shared/components/LegalFooter';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useEffect, useState } from 'react';
-import GoogleLoginButton from '@/shared/components/GoogleLoginButton';
+import GoogleLoginButton from '@/features/auth/components/GoogleLoginButton';
 import {
   LuListChecks,
   LuActivity,

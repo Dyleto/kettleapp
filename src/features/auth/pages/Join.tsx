@@ -1,4 +1,4 @@
-import GoogleLoginButton from '@/shared/components/GoogleLoginButton';
+import GoogleLoginButton from '@/features/auth/components/GoogleLoginButton';
 import { useVerifyInviteToken } from '@/features/auth';
 import {
   Avatar,

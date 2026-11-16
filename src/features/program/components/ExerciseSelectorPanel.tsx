@@ -10,9 +10,11 @@ import {
 } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 import { LuArrowUpRight, LuPlus, LuSearch, LuX } from 'react-icons/lu';
-import { useCreateExercise } from '@/features/exercise/hooks/useExerciseMutations';
-import { useExercises } from '@/features/exercise/hooks/useExercises';
-import { ExerciseRow } from '@/features/exercise';
+import {
+  useCreateExercise,
+  useExercises,
+  ExerciseRow,
+} from '@/features/exercise';
 import { Exercise } from '@/shared/types';
 import { normalize } from '@/shared/utils/formatters';
 

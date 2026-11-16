@@ -11,11 +11,12 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useProgramWorkshop } from '@/features/program/hooks/useProgramWorkshop';
-import { InlineText } from '@/features/program/components/InlineValue';
-import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
-import { SessionRail } from '@/features/coach/components/SessionRail';
-import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
+import {
+  useProgramWorkshop,
+  InlineText,
+  ProgramSaveStatus,
+} from '@/features/program';
+import { ClientProgramTab, SessionRail } from '@/features/coach';
 import { ActionButton, BackLink, EmptyState, LoadFailure } from '@/kit';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { isUnavailable } from '@/shared/utils/queryState';

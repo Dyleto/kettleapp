@@ -99,6 +99,17 @@ contrat. Un type écrit à la main ici serait une seconde description de la mêm
 chose, et les deux divergeraient : c'est déjà arrivé, sur un `endDate` que
 l'API n'a jamais envoyé et sur des `Date` qui sont des chaînes.
 
+## Les frontières
+
+`shared`, `kit` et `domain` n'importent aucune fonctionnalité : ce sont les
+fonctionnalités qui les lisent. `domain` n'importe ni React ni le kit : c'est
+de la logique, qui se teste sans écran. Une fonctionnalité n'entre dans une
+autre que par son `index.ts`, qui dit ce qu'elle prête.
+
+ESLint les tient (`eslint.config.js`), parce que la mémoire ne les tenait
+pas : `shared` lisait deux fois l'authentification, et quinze imports
+entraient dans une autre fonctionnalité par l'intérieur.
+
 ## La discipline de vérification
 
 Un vert ne vaut que si on l'a cassé. Pour chaque mécanisme vérifié, on le

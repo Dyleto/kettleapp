@@ -6,7 +6,7 @@ import '@fontsource-variable/bricolage-grotesque/wdth.css';
 import '@fontsource-variable/figtree';
 import App from './App.jsx';
 import { Provider } from './shared/components/ui/provider';
-import { AuthProvider } from './shared/contexts/AuthProvider';
+import { AuthProvider } from '@/features/auth';
 import { Toaster } from './shared/components/ui/toaster';
 import { ErrorHandler } from './shared/components/ErrorHandler';
 import { QueryClientProvider } from '@tanstack/react-query';

@@ -2,8 +2,7 @@ import { Box, HStack, Input, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useMemo, useRef, useState } from 'react';
 import { LuArrowUpRight, LuPlus, LuSearch } from 'react-icons/lu';
 import { Exercise } from '@/shared/types';
-import { useExercises } from '@/features/exercise/hooks/useExercises';
-import { useCreateExercise } from '@/features/exercise/hooks/useExerciseMutations';
+import { useExercises, useCreateExercise } from '@/features/exercise';
 import { normalize } from '@/shared/utils/formatters';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 

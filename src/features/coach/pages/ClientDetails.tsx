@@ -16,13 +16,15 @@ import { LuArrowLeft, LuBookOpen } from 'react-icons/lu';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useProgramWorkshop } from '@/features/program/hooks/useProgramWorkshop';
-import { InlineText } from '@/features/program/components/InlineValue';
-import { useUpdateProgramSessions } from '@/features/program/hooks/useProgramMutations';
+import {
+  useProgramWorkshop,
+  InlineText,
+  useUpdateProgramSessions,
+  ProgramSaveStatus,
+} from '@/features/program';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
-import { ProgramSaveStatus } from '@/features/program/components/ProgramSaveStatus';
 import {
   ActionButton,
   BackLink,

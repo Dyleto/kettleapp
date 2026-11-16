@@ -2,7 +2,7 @@ import { Outlet } from 'react-router';
 import { ClientTabBar } from '@/features/client/shell/ClientTabBar';
 import { ClientNavRail } from '@/features/client/shell/ClientNavRail';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
-import { HealthConsentGate } from '@/features/account/components/HealthConsentGate';
+import { HealthConsentGate } from '@/features/account';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { Box, Flex } from '@chakra-ui/react';
 

@@ -34,7 +34,7 @@ le rangement (B12) et avant `main` (H1).
   coach qui doublerait la mise.
 
 Mesures au 16 novembre : 585 tests unitaires, 31 suites de banc et 576
-assertions, 4 min 22 s pour le banc complet (14 min 23 s avant qu'il tourne
+assertions, 4 min 23 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files).
 
 ## 2. Le relevé, écran par écran
@@ -118,7 +118,9 @@ Constaté, avec sa mesure.
 4. **Les frontières fuient** : `shared` importe trois fois une fonctionnalité,
    `account` et `client` s'importent l'un l'autre, le coach importe six fois
    l'intérieur du client. Ce que les deux espaces partagent (nommer une séance,
-   l'estimer, lire une dose, un record, un ressenti) n'a pas de lieu neutre.
+   l'estimer, lire une dose, un record, un ressenti) n'a pas de lieu neutre —
+   réglé : `domain/` (B4), les tranches (B5), `shared/feedback` (B8), et ESLint
+   tient les frontières (B9).
 5. **Deux façons de nommer une séance** : « Séance 2 — Haut du corps » et
    « Haut du corps », selon l'écran — réglé en B4 : le nom seul, comme la
    maquette.
@@ -222,8 +224,10 @@ banc actuel, inchangé, qui le prouve.
       réglage « Vibrations » masqué là où le téléphone n'en a pas.
       `shared/feedback` : `sound`, `haptics` (`tap`, `undo`, `tick`, `go`),
       leurs réglages ; « Mon compte » porte les deux interrupteurs.
-- [ ] **B9** Les frontières dans ESLint ; `shared` ne lit plus aucune
-      fonctionnalité.
+- [x] **B9** Les frontières dans ESLint ; `shared` ne lit plus aucune
+      fonctionnalité. Le bouton Google et le fournisseur de session passent
+      dans `auth` ; quinze imports profonds passent par les `index.ts` ;
+      chaque règle a été éprouvée par une violation posée exprès.
 - [ ] **B10** Banc : attendre un état plutôt qu'une durée (les 258), décor
       typé par le contrat. (Les files parallèles sont faites.)
 - [ ] **B11** `features/program` devient `features/workshop`, sans rien

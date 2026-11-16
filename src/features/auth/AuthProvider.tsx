@@ -1,6 +1,6 @@
 import { useEffect, useState, ReactNode } from 'react';
 import { authService } from '@/features/auth/auth.service';
-import { AuthContext } from './AuthContext';
+import { AuthContext } from '@/shared/contexts/AuthContext';
 import { User } from '@/shared/types';
 
 /**
