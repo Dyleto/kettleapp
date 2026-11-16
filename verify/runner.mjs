@@ -43,9 +43,11 @@ const results = [];
 /**
  * Combien de suites à la fois.
  *
- * Un cœur de moins que la machine, quatre au plus : le serveur du front et
- * les navigateurs se partagent les mêmes cœurs, et une machine saturée fait
- * tomber les assertions qui attendent une durée. `--jobs 1` (ou
+ * Autant que la machine a de cœurs, quatre au plus. Les suites attendent
+ * plus qu'elles ne calculent : sur quatre cœurs, quatre files passent en
+ * 4 min 12 s contre 5 min 5 s pour trois, et la durée de chaque suite ne
+ * bouge pas. Au-delà, une machine saturée ferait tomber les assertions qui
+ * attendent une durée. `--jobs 1` (ou
  * `KETTLE_JOBS=1`) revient à la file d'avant — pour lire une sortie dans
  * l'ordre, ou écarter le parallélisme quand une suite tombe.
  */
@@ -55,7 +57,7 @@ const jobs = Math.max(
     suites.length,
     Number.isFinite(jobsAsked) && jobsAsked > 0
       ? jobsAsked
-      : Math.min(4, availableParallelism() - 1)
+      : Math.min(4, availableParallelism())
   )
 );
 /**

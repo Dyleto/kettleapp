@@ -4,8 +4,11 @@ Relevé du 15 novembre 2026, sur `develop` (front `6cb04f8`, API `cfee928`),
 confronté à la maquette « Nouveau design Kettle » écran par écran.
 
 Ce fichier est la liste de travail : **une ligne cochée = un commit poussé**,
-banc complet vert et sabotages faits. La ligne se coche dans le commit qui la
-réalise.
+banc complet vert. La ligne se coche dans le commit qui la réalise.
+
+Les sabotages s'écrivent avec chaque mécanisme, dans le même commit, mais ne
+se rejouent plus à chaque ligne : ils se rejouent tous en une passe, après
+le rangement (B12) et avant `main` (H1).
 
 ## 1. En bref
 
@@ -30,8 +33,9 @@ réalise.
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures : 486 tests unitaires (27 fichiers), 29 suites de banc et 520
-assertions, environ 25 minutes pour le banc complet.
+Mesures au 16 novembre : 505 tests unitaires, 30 suites de banc et 553
+assertions, 4 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
+sur quatre files).
 
 ## 2. Le relevé, écran par écran
 
@@ -116,14 +120,13 @@ Constaté, avec sa mesure.
    l'estimer, lire une dose, un record, un ressenti) n'a pas de lieu neutre.
 5. **Deux façons de nommer une séance** : « Séance 2 — Haut du corps » et
    « Haut du corps », selon l'écran.
-6. **Les sabotages sont hors du dépôt.** Vingt-huit fichiers de cas — 226
-   sabotages — et leur lanceur vivent dans un dossier temporaire. Vingt-trois
-   ne correspondent déjà plus au code qu'ils devaient casser. La règle « un vert ne vaut
-   que si on l'a cassé » ne se vérifie donc que par moi, et se perd avec la
-   session.
-7. **Le banc est lent et attend à l'aveugle** : 29 suites à la suite, 258
-   attentes à durée fixe. Son décor (821 lignes) n'est pas tenu par le
-   contrat de l'API.
+6. **Les sabotages étaient hors du dépôt** — réglé : 229 cas et leur lanceur
+   sont dans `verify/sabotage/`. Vingt-trois ne correspondaient déjà plus au
+   code qu'ils devaient casser ; ils sont marqués, à réparer dans la passe
+   complète.
+7. **Le banc attend à l'aveugle** : 258 attentes à durée fixe, et son décor
+   (821 lignes) n'est pas tenu par le contrat de l'API. Sa lenteur est
+   réglée : les suites tournent sur quatre files.
 8. **Restes de l'ancien mode guidé** : `Timer`, `BlockList`, la question de
    reprise, `PerformedFields`, `SuggestedDays`.
 9. **API** : cinq scripts `verify:*` gardent chacun leur `ok()` (85
@@ -163,7 +166,8 @@ que par son `index.ts` ; chaque tranche garde ses tests à côté d'elle.
 5. Clavier, cibles de 44 px, libellés pour le lecteur d'écran, « moins
    d'animations » respecté.
 6. Ce que l'écran décide est une fonction pure, testée sous Vitest.
-7. Une suite du banc lit l'écran, et chaque mécanisme a son sabotage.
+7. Une suite du banc lit l'écran, et chaque mécanisme a son cas de sabotage
+   écrit.
 
 ## 5. Le plan
 
@@ -179,9 +183,9 @@ banc actuel, inchangé, qui le prouve.
 
 ### B. Ranger
 
-- [ ] **B1** Les sabotages dans le dépôt : `verify/sabotage/`, un fichier de
-      cas par suite, `npm run sabotage -- <suite>`. Tous les cas existants
-      rapatriés et rejoués.
+- [x] **B1** Les sabotages dans le dépôt : `verify/sabotage/`, un fichier de
+      cas par suite, `npm run sabotage -- <suite>`, et `sabotage:check` qui
+      vérifie les motifs sans navigateur.
 - [ ] **B2** `kit/` : `Chip`, `Bubble`, `Card`, `HeroCard`, `Eyebrow`, `Ring`,
       `Dots`, `Segments`, `Stepper`, `Sheet`, `ActionButton`, `LinkButton`,
       `Mascot`, états. Les copies disparaissent, l'ancien `Card` aussi.
@@ -202,9 +206,11 @@ banc actuel, inchangé, qui le prouve.
 - [ ] **B9** Les frontières dans ESLint ; `shared` ne lit plus aucune
       fonctionnalité.
 - [ ] **B10** Banc : attendre un état plutôt qu'une durée (les 258), décor
-      typé par le contrat, CI en trois lots parallèles.
+      typé par le contrat. (Les files parallèles sont faites.)
 - [ ] **B11** `features/program` devient `features/workshop`, sans rien
       changer d'autre : le lot D le réécrit.
+- [ ] **B12** Passe complète des sabotages : réparer les cas marqués, les
+      rejouer tous, corriger les assertions creuses qu'ils montrent.
 
 ### C. Finir la séance guidée
 
@@ -293,7 +299,8 @@ banc actuel, inchangé, qui le prouve.
 
 ### H. Avant `main`
 
-- [ ] **H1** Relecture d'accessibilité de chaque écran.
+- [ ] **H1** Passe complète des sabotages, sur l'application finie.
+- [ ] **H1b** Relecture d'accessibilité de chaque écran.
 - [ ] **H2** Une planche de captures de tous les cadres, à poser à côté de
       la maquette.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.

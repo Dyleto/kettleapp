@@ -110,11 +110,19 @@ Un script de sabotage doit vérifier qu'il a bien saboté quelque chose. Un
 motif qui ne correspond plus — parce que le formateur est passé, par exemple —
 laisse croire que l'assertion est creuse alors que rien n'a été cassé.
 
+Les sabotages du banc vivent dans `verify/sabotage/`, un fichier de cas par
+suite. Un cas s'écrit avec le mécanisme qu'il couvre, dans le même commit.
+Il ne se rejoue pas à chaque changement — les rejouer tous prend plusieurs
+heures : ils se rejouent en une passe complète avant une fusion sur `main`
+(`npm run sabotage -- <suite>`). `npm run sabotage:check` ne lance aucun
+navigateur et se lance avant chaque commit : il s'assure que chaque motif
+désigne encore un endroit du code, et un seul.
+
 ## Les deux niveaux de vérification
 
 `npm test` (Vitest) éprouve la logique pure, sans navigateur : quelques
 secondes. `npm run verify` mène l'application dans un vrai navigateur :
-quelques minutes.
+quatre minutes, sur quatre files.
 
 Ils ne se remplacent pas. Le banc attrape ce que l'écran fait — un bouton
 sorti de l'écran, un repos qui cache un bloc, une séance qui cesse

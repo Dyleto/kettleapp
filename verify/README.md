@@ -31,10 +31,10 @@ node runner.mjs --all             # ce que lance `npm run verify`
 Le lanceur redémarre un serveur neuf avant chaque suite : une suite qui
 tournerait sur l'état laissé par la précédente ne prouverait rien.
 
-Il en fait tourner plusieurs à la fois — un cœur de moins que la machine,
+Il en fait tourner plusieurs à la fois — autant que la machine a de cœurs,
 quatre au plus —, chacune contre son propre serveur d'essai sur son propre
-port. Trente suites l'une après l'autre prenaient 14 min 23 s ; sur trois
-files, 5 min 5 s. Chaque ligne du résultat porte la durée de sa suite : un
+port. Trente suites l'une après l'autre prenaient 14 min 23 s ; sur quatre
+files, 4 min 12 s. Chaque ligne du résultat porte la durée de sa suite : un
 banc qui s'allonge dit ainsi où.
 
 ```bash
@@ -88,3 +88,28 @@ de le voir.
 Un script de sabotage doit vérifier qu'il a bien saboté quelque chose. Un
 motif qui ne correspond plus — parce que le formateur est passé, par exemple —
 laisse croire que l'assertion est creuse alors que rien n'a été cassé.
+
+Les sabotages vivent dans `sabotage/`, un fichier de cas par suite. Chaque
+cas nomme ce qu'il casse, le remplacement à faire dans le code, et les
+assertions qui doivent tomber — celles-là, et aucune autre.
+
+```bash
+npm run sabotage -- home          # rejoue les cas de verify_home.mjs
+npm run sabotage -- home 3 7      # seulement les cas 3 et 7
+npm run sabotage:check            # sans navigateur : chaque motif désigne-t-il
+                                  # encore un endroit du code, et un seul ?
+```
+
+Un cas s'écrit avec le mécanisme qu'il couvre, dans le même commit. Il ne
+se rejoue pas à chaque changement : les 229 demandent plusieurs heures. Ils
+se rejouent tous en une passe, avant une fusion sur `main`.
+`sabotage:check`, lui, ne coûte qu'une seconde et se lance avant chaque
+commit : un motif qui ne correspond plus se répare tout de suite, tant
+qu'on sait encore ce qu'il visait — ou se marque `stale`, avec sa raison,
+quand le code a été réécrit et que la réparation demande de repenser le
+cas. La passe complète le reprendra.
+
+Un cas marqué `stale` est une dette connue : son motif ne correspondait
+déjà plus quand les cas sont entrés dans le dépôt — ils vivaient dans un
+dossier temporaire, où personne ne les relisait. Il y en a 23. On retire la
+marque en réparant le cas.
