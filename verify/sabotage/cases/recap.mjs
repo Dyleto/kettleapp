@@ -6,9 +6,9 @@ export default {
       name: 'la fin ne nomme plus la séance',
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '          title={sessionName(activeSession)}',
-          to: '          title="Séance"',
+          file: 'src/features/client/end/EndFlow.tsx',
+          from: '        title={sessionName(session)}',
+          to: '        title="Séance"',
         },
       ],
       falls: ['→ et nomme la séance'],

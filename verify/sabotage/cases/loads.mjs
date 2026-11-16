@@ -56,9 +56,9 @@ export default {
       name: "« OK » mène au ressenti au lieu de l'écran de fin",
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: "          onDone={() => setFlow('celebrate')}",
-          to: "          onDone={() => setFlow('review')}",
+          file: 'src/features/client/end/flow.ts',
+          from: "    case 'loadsDone':\n      if (state.stage === 'loads') return { ...state, stage: 'celebrate' };",
+          to: "    case 'loadsDone':\n      if (state.stage === 'loads') return { ...state, stage: 'review' };",
         },
       ],
       falls: ['« OK » ramène à l’écran de fin'],
@@ -67,9 +67,9 @@ export default {
       name: '« Continuer » ramène à la séance',
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: "          onDone={() => setFlow('review')}\n          onBack={() => setFlow('idle')}",
-          to: "          onDone={() => setFlow('idle')}\n          onBack={() => setFlow('idle')}",
+          file: 'src/features/client/end/flow.ts',
+          from: "      if (state.stage === 'record') return { ...state, stage: 'review' };",
+          to: "      if (state.stage === 'record') return { ...state, stage: 'idle' };",
         },
       ],
       falls: ['« Continuer » mène au ressenti'],

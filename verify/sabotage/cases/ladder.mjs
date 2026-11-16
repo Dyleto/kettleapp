@@ -151,9 +151,9 @@ export default {
       name: "le bilan n'envoie pas l'échelle",
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '            toLadderDone(readProgress(activeSession._id)?.ladder)',
-          to: '            []',
+          file: 'src/features/client/end/EndFlow.tsx',
+          from: '            toLadderDone(saved?.ladder),',
+          to: '            [],',
         },
       ],
       falls: ['le bilan envoie le résultat de l’échelle'],

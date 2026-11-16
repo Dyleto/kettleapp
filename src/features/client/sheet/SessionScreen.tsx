@@ -1,104 +1,32 @@
-import { useLocation, useOutletContext, useNavigate } from 'react-router';
+import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useLocation, useNavigate, useOutletContext } from 'react-router';
+import { Container, Skeleton, VStack } from '@chakra-ui/react';
+import type { PerformedValues } from '@/shared/types';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Box,
-  Container,
-  Grid,
-  HStack,
-  Skeleton,
-  Text,
-  VStack,
-} from '@chakra-ui/react';
-import { LuArrowLeft, LuPlay } from 'react-icons/lu';
-import {
-  CLIENT_CONTENT_MAX_W,
-  CLIENT_GRID_MAX_W,
-} from '@/features/client/shell/layout';
+import { CLIENT_ROUTES } from '@/shared/config/routes';
+import { ActionButton, EmptyState } from '@/kit';
+import { CLIENT_CONTENT_MAX_W } from '@/features/client/shell/layout';
+import type { useClientSessions } from '@/features/client/common/useClientSessions';
 import { GuidedSession } from '@/features/client/guided/GuidedSession';
-import { useClientSessions } from '@/features/client/common/useClientSessions';
-import {
-  BlockExercise,
-  PerformedEntry,
-  PerformedValues,
-  LadderDoneEntry,
-  RoundsDoneEntry,
-} from '@/shared/types';
-import { truncateAtFirstEmpty } from '@/domain/history/performedFormat';
 import {
   countRecorded,
-  writeProgress,
   readProgress,
+  writeProgress,
 } from '@/features/client/guided/sessionProgress';
-import { buildGuidedSteps } from '@/features/client/guided/steps';
-import { buildRecap } from '@/features/client/end/recap';
-import { bestLoads, highlightOf } from '@/domain/history/records';
-import {
-  distinctExerciseCount,
-  estimatedMinutes,
-} from '@/domain/session/measure';
-import { formatSuggestedDays } from '@/domain/week/dates';
-import { BlockDetailCard } from '@/features/client/sheet/BlockDetailCard';
-import { InstructionSheet } from '@/features/client/sheet/InstructionSheet';
-import { DeclareSheet } from '@/features/client/sheet/DeclareSheet';
-import { Celebration } from '@/features/client/end/Celebration';
-import { Loads } from '@/features/client/end/Loads';
-import { Feeling } from '@/features/client/end/Feeling';
-import { Week } from '@/features/client/end/Week';
-import {
-  daysDone,
-  doneInWeek,
-  plannedDays,
-  weekStreak,
-  weekTarget,
-} from '@/domain/week/ring';
-import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { ActionButton, Chip, EmptyState, hitArea, LinkButton } from '@/kit';
-import { sessionName } from '@/domain/session/name';
-import { CoachBubble } from '@/features/client/common/CoachBubble';
-
-// Ce qui a été réalisé se saisit exercice par exercice pendant la séance,
-// puis part d'un coup avec le bilan. La clé est « rang du bloc : rang de
-// l'exercice », exactement l'adressage qu'attend l'API. Un exercice dont
-// aucune série n'est renseignée n'est pas envoyé du tout : ne rien avoir à
-// dire n'est pas une valeur.
-/**
- * Les tours bouclés, tels que l'API les attend.
- *
- * Zéro part avec le reste : un client qui n'a bouclé aucun tour l'a vécu, et
- * ne rien envoyer reviendrait à dire qu'il n'a pas fait le bloc.
- */
-const toRoundsDone = (rounds?: Record<string, number>): RoundsDoneEntry[] =>
-  Object.entries(rounds ?? {}).map(([blockOrder, rounds]) => ({
-    blockOrder: Number(blockOrder),
-    rounds,
-  }));
-
-/** Ce que les échelles bornées ont donné, tel que l'API l'attend. */
-const toLadderDone = (
-  ladder?: Record<string, { rungs: number; seconds: number }>
-): LadderDoneEntry[] =>
-  Object.entries(ladder ?? {}).map(([blockOrder, result]) => ({
-    blockOrder: Number(blockOrder),
-    ...result,
-  }));
-
-const toPerformedEntries = (
-  performed: Record<string, PerformedValues>
-): PerformedEntry[] =>
-  Object.entries(performed)
-    .map(([key, value]) => {
-      const [blockOrder, exerciseOrder] = key.split(':').map(Number);
-      return {
-        blockOrder,
-        exerciseOrder,
-        sets: truncateAtFirstEmpty(value.sets ?? []),
-      };
-    })
-    .filter((entry) => entry.sets.length > 0);
+import { EndFlow } from '@/features/client/end/EndFlow';
+import { endFlowReducer, initialEndFlow } from '@/features/client/end/flow';
+import { SessionSheet } from './SessionSheet';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
+/**
+ * L'écran d'une séance : la fiche, la séance guidée par-dessus, puis la fin.
+ *
+ * Il faisait les trois à la fois, en 568 lignes et sept états. La fiche est
+ * dans `SessionSheet`, la fin dans `EndFlow` et son réducteur ; il reste ici
+ * ce qui les relie — d'où l'on vient, ce qui a été noté, et le passage de
+ * l'une à l'autre.
+ */
 const SessionScreen = () => {
   const navigate = useNavigate();
   const {
@@ -132,57 +60,13 @@ const SessionScreen = () => {
   }, [location.state, location.pathname, navigate]);
   useDocumentTitle(activeSession ? `Séance ${activeSession.order}` : undefined);
 
-  // Terminer une séance se fait en deux temps : « veux-tu noter tes
-  // charges ? », puis le bilan. `idle` couvre la lecture, où l'écran ne
-  // demande rien.
-  //
-  // Après une séance menée en mode guidé, l'écran de fin vient d'abord
-  // (`celebrate`) ; « Compléter mes charges » y mène à la saisie (`loads`),
-  // qui y revient.
-  const [flow, setFlow] = useState<
-    'idle' | 'celebrate' | 'loads' | 'record' | 'review' | 'week'
-  >('idle');
   // D'où l'on vient, lu une fois : l'état de navigation est effacé dès
   // qu'une séance guidée demandée depuis l'accueil s'est ouverte.
   const [cameFrom] = useState(
     () => (location.state as { from?: string } | null)?.from
   );
-  const backLabel = cameFrom === 'today' ? "Aujourd'hui" : 'Programme';
-  /** La consigne ouverte en feuille, s'il y en a une. */
-  const [instruction, setInstruction] = useState<BlockExercise | null>(null);
-  /** La feuille « Je l'ai déjà faite ». */
-  const [declaring, setDeclaring] = useState(false);
-  /** La date que « Je l'ai déjà faite » a choisie, pour le ressenti. */
-  const [declaredDate, setDeclaredDate] = useState<string | undefined>();
-  /** Le dernier envoi du ressenti n'est pas parti. */
-  const [sendFailed, setSendFailed] = useState(false);
-  /** La semaine telle que l'envoi l'a laissée, pour son dernier écran. */
-  const [week, setWeek] = useState<Omit<
-    React.ComponentProps<typeof Week>,
-    'onFinish'
-  > | null>(null);
 
-  /**
-   * La semaine, avant et après la séance qu'on vient d'envoyer.
-   *
-   * Calculée sur l'historique tel qu'il était à l'envoi, plus cette séance
-   * à sa date — celle du jour, ou celle de « Ce n'était pas aujourd'hui ».
-   * Relire l'historique une fois rechargé l'aurait comptée deux fois, ou
-   * pas du tout selon le moment où il revient.
-   */
-  const weekAfter = (completedAt?: string) => {
-    const when = completedAt ? new Date(`${completedAt}T12:00:00`) : new Date();
-    const withThis = [...history, { completedAt: when.toISOString() }];
-    const target = weekTarget(sessions);
-    return {
-      target,
-      before: doneInWeek(history),
-      after: doneInWeek(withThis),
-      streak: weekStreak(withThis, target),
-      doneDays: daysDone(withThis),
-      plannedDays: plannedDays(sessions),
-    };
-  };
+  const [flow, dispatch] = useReducer(endFlowReducer, initialEndFlow);
 
   // Ce qui a été noté ne vit plus dans la seule mémoire.
   //
@@ -204,31 +88,8 @@ const SessionScreen = () => {
     setPerformed(
       activeSession ? (readProgress(activeSession._id)?.performed ?? {}) : {}
     );
-    setFlow('idle');
+    dispatch({ type: 'reset' });
   }
-
-  /**
-   * Le récapitulatif, calculé à l'ouverture du bilan.
-   *
-   * Il n'existe que si la séance a été menée en mode guidé : sans état
-   * enregistré il n'y a rien à constater, et un récapitulatif vide vaudrait
-   * moins que pas de récapitulatif.
-   */
-  const recap = useMemo(() => {
-    if (!activeSession || flow === 'idle') return undefined;
-    const saved = readProgress(activeSession._id);
-    if (!saved || (saved.done.length === 0 && saved.startedAt === undefined))
-      return undefined;
-    return buildRecap({
-      session: activeSession,
-      steps: buildGuidedSteps(activeSession),
-      step: saved.step,
-      performed,
-      done: saved.done,
-      rounds: saved.rounds,
-      startedAt: saved.startedAt,
-    });
-  }, [activeSession, flow, performed]);
 
   const handlePerformedChange = useCallback(
     (key: string, next: PerformedValues) =>
@@ -242,10 +103,6 @@ const SessionScreen = () => {
       }),
     [activeSession]
   );
-
-  // Le record de chaque mouvement, pour la feuille de consigne : la série
-  // la plus lourde de tout l'historique, comme à la fin d'une séance.
-  const records = useMemo(() => bestLoads(history), [history]);
 
   if (isLoading) {
     return (
@@ -301,166 +158,23 @@ const SessionScreen = () => {
   // offre « Recommencer depuis le début », que la fiche ne porte pas.
   const saved = readProgress(activeSession._id);
   const started = !!saved && (saved.step > 0 || saved.done.length > 0);
-  const hasExercises = activeSession.blocks.some((b) => b.exercises.length > 0);
-  const blocks = [...activeSession.blocks].sort((a, b) => a.order - b.order);
-  const exerciseCount = distinctExerciseCount(activeSession);
-  const days = formatSuggestedDays(activeSession.suggestedDays);
-  const note = activeSession.notes?.trim();
-  const openGuided = () => setIsGuidedOpen(true);
-
-  const head = (
-    <VStack align="stretch" gap="14px">
-      <Text
-        as="h1"
-        fontSize="32px"
-        fontWeight="800"
-        lineHeight="1.1"
-        letterSpacing="-0.01em"
-        fontStretch="88%"
-      >
-        {sessionName(activeSession)}
-      </Text>
-      <HStack gap="6px" wrap="wrap">
-        {hasExercises && (
-          <Chip tone="amber">
-            ≈&nbsp;{estimatedMinutes(activeSession)}&nbsp;min
-          </Chip>
-        )}
-        {days && <Chip>Conseillée {days}</Chip>}
-        <Chip tone="outline">
-          {blocks.length}&nbsp;bloc{blocks.length > 1 ? 's' : ''} ·{' '}
-          {exerciseCount}&nbsp;exercice{exerciseCount > 1 ? 's' : ''}
-        </Chip>
-      </HStack>
-      {note && <CoachBubble>{note}</CoachBubble>}
-    </VStack>
-  );
-
-  // Le pied : « Démarrer » d'abord, « Je l'ai déjà faite » en lien discret —
-  // ce n'est pas le chemin normal, et il ne se présente plus comme tel.
-  const actions = (
-    <VStack align="stretch" gap={1}>
-      {hasExercises && (
-        <ActionButton size="lg" w="full" onClick={openGuided}>
-          <LuPlay size={18} fill="currentColor" aria-hidden />
-          {started ? 'Reprendre' : 'Démarrer'}
-        </ActionButton>
-      )}
-      <LinkButton py={2} onClick={() => setDeclaring(true)}>
-        Je l&rsquo;ai déjà faite
-      </LinkButton>
-    </VStack>
-  );
 
   return (
-    <Container
-      maxW={{ base: CLIENT_CONTENT_MAX_W, lg: CLIENT_GRID_MAX_W }}
-      py={6}
-      px={4}
-      pb={{ base: '190px', lg: 8 }}
-    >
-      {/* On revient d'où l'on vient : l'accueil ou le programme. Un vrai
-          bouton, atteignable au clavier. */}
-      <Box
-        as="button"
-        aria-label={`Revenir à ${backLabel}`}
-        w="fit-content"
-        mb={4}
-        css={hitArea()}
-        onClick={() =>
+    <>
+      <SessionSheet
+        session={activeSession}
+        backLabel={cameFrom === 'today' ? "Aujourd'hui" : 'Programme'}
+        onBack={() =>
           navigate(
             cameFrom === 'today' ? CLIENT_ROUTES.today : CLIENT_ROUTES.program
           )
         }
-        color="fg.muted"
-        _hover={{ color: 'app.primary' }}
-        transition="color 0.15s"
-      >
-        <HStack gap={1.5}>
-          <LuArrowLeft size={14} />
-          <Text fontSize="sm" fontWeight="medium">
-            {backLabel}
-          </Text>
-        </HStack>
-      </Box>
-
-      <Grid
-        gap={4}
-        templateColumns={{ base: '1fr', lg: '1.5fr 1fr' }}
-        templateAreas={{ base: '"head" "blocks"', lg: '"blocks head"' }}
-        alignItems="start"
-      >
-        <VStack
-          gridArea="head"
-          align="stretch"
-          gap={4}
-          position={{ lg: 'sticky' }}
-          top={{ lg: 6 }}
-          bg={{ lg: 'surface.card' }}
-          borderRadius={{ lg: 'card' }}
-          p={{ lg: '18px' }}
-        >
-          {head}
-          <Box display={{ base: 'none', lg: 'block' }}>{actions}</Box>
-        </VStack>
-        <VStack gridArea="blocks" align="stretch" gap={3}>
-          {blocks.map((block) => (
-            <BlockDetailCard
-              key={block._id ?? block.order}
-              block={block}
-              lastPerformance={lastPerformance}
-              onOpenExercise={setInstruction}
-            />
-          ))}
-          {blocks.length === 0 && (
-            <Text color="fg.muted" textAlign="center" py={6}>
-              Aucun bloc dans cette séance.
-            </Text>
-          )}
-        </VStack>
-      </Grid>
-
-      {/* Au téléphone, le pied reste collé en bas ; les blocs défilent
-          dessous. Ancré au bas de l'écran et non à la barre d'onglets, dont
-          la hauteur dépend de la zone sûre du téléphone. */}
-      <Box
-        display={{ base: 'block', lg: 'none' }}
-        position="fixed"
-        left={0}
-        right={0}
-        bottom={0}
-        bg="bg.canvas"
-        borderTop="1px solid"
-        borderColor="line"
-        px={4}
-        pt={3}
-        pb="calc(env(safe-area-inset-bottom, 0px) + 74px)"
-        zIndex={20}
-      >
-        <Box maxW={CLIENT_CONTENT_MAX_W} mx="auto">
-          {actions}
-        </Box>
-      </Box>
-
-      {instruction && (
-        <InstructionSheet
-          entry={instruction}
-          last={lastPerformance?.get(instruction.exercise._id)}
-          record={records.get(instruction.exercise._id)}
-          onClose={() => setInstruction(null)}
-        />
-      )}
-
-      {declaring && (
-        <DeclareSheet
-          onClose={() => setDeclaring(false)}
-          onContinue={(date) => {
-            setDeclaring(false);
-            setDeclaredDate(date);
-            setFlow('record');
-          }}
-        />
-      )}
+        lastPerformance={lastPerformance}
+        history={history}
+        started={started}
+        onStart={() => setIsGuidedOpen(true)}
+        onDeclared={(date) => dispatch({ type: 'declared', date })}
+      />
 
       {isGuidedOpen && (
         <GuidedSession
@@ -469,16 +183,11 @@ const SessionScreen = () => {
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
-            // L'écran de fin d'abord : la séance vient d'être menée, elle a
-            // de quoi être fêtée. La question des charges ne se pose plus —
-            // elles se notent en route, et le reste est un lien.
-            setFlow(
-              readProgress(activeSession._id)
-                ? 'celebrate'
-                : countRecorded(performed) > 0
-                  ? 'review'
-                  : 'record'
-            );
+            dispatch({
+              type: 'guidedFinished',
+              hasProgress: !!readProgress(activeSession._id),
+              recordedCount: countRecorded(performed),
+            });
           }}
           lastPerformance={lastPerformance}
           performed={performed}
@@ -486,83 +195,20 @@ const SessionScreen = () => {
         />
       )}
 
-      {flow === 'celebrate' && recap && (
-        <Celebration
-          title={sessionName(activeSession)}
-          recap={recap}
-          highlight={highlightOf(
-            activeSession,
-            performed,
-            history,
-            lastPerformance
-          )}
-          onContinue={() => setFlow('review')}
-          onCompleteLoads={() => setFlow('loads')}
-        />
-      )}
-
-      {flow === 'loads' && (
-        <Loads
-          session={activeSession}
-          performed={performed}
-          onPerformedChange={handlePerformedChange}
-          lastPerformance={lastPerformance}
-          from="end"
-          onDone={() => setFlow('celebrate')}
-          onBack={() => setFlow('celebrate')}
-        />
-      )}
-
-      {/* Déclarée faite sans le mode guidé : pas d'écran de fête, les
-          charges d'abord, puis le ressenti. */}
-      {flow === 'record' && (
-        <Loads
-          session={activeSession}
-          performed={performed}
-          onPerformedChange={handlePerformedChange}
-          lastPerformance={lastPerformance}
-          from="declared"
-          onDone={() => setFlow('review')}
-          onBack={() => setFlow('idle')}
-        />
-      )}
-
-      {flow === 'review' && (
-        <Feeling
-          date={declaredDate}
-          isSending={isSubmitting}
-          failed={sendFailed}
-          onClose={() => {
-            setSendFailed(false);
-            setFlow('idle');
-          }}
-          onSubmit={(feedback, notes, completedAt) => {
-            setSendFailed(false);
-            // L'écran reste jusqu'à la réponse : réussi, on part vers
-            // l'accueil ; manqué, il le dit et l'on réessaie d'une touche.
-            handleSubmitLog(
-              feedback,
-              notes,
-              completedAt,
-              toPerformedEntries(performed),
-              toRoundsDone(readProgress(activeSession._id)?.rounds),
-              toLadderDone(readProgress(activeSession._id)?.ladder),
-              {
-                onError: () => setSendFailed(true),
-                onSuccess: () => {
-                  setWeek(weekAfter(completedAt));
-                  setFlow('week');
-                },
-              }
-            );
-          }}
-        />
-      )}
-
-      {flow === 'week' && week && (
-        <Week {...week} onFinish={() => navigate(CLIENT_ROUTES.today)} />
-      )}
-    </Container>
+      <EndFlow
+        flow={flow}
+        dispatch={dispatch}
+        session={activeSession}
+        sessions={sessions}
+        history={history}
+        lastPerformance={lastPerformance}
+        performed={performed}
+        onPerformedChange={handlePerformedChange}
+        isSubmitting={isSubmitting}
+        submit={handleSubmitLog}
+        onLeave={() => navigate(CLIENT_ROUTES.today)}
+      />
+    </>
   );
 };
 export default SessionScreen;

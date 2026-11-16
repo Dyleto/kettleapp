@@ -33,7 +33,7 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 16 novembre : 553 tests unitaires, 31 suites de banc et 572
+Mesures au 16 novembre : 577 tests unitaires, 31 suites de banc et 572
 assertions, 4 min 15 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files).
 
@@ -213,8 +213,11 @@ banc actuel, inchangé, qui le prouve.
       partent. 1 523 lignes → 363 ; `session.ts` et ses 38 tests ; la liste
       devient `BlockSets`, la consigne la feuille de la fiche, et le repos
       entre deux blocs la carte du repos des séries (part de C2).
-- [ ] **B7** `SessionScreen` découpé : la fiche d'un côté, l'enchaînement de
-      fin de l'autre, en réducteur pur.
+- [x] **B7** `SessionScreen` découpé : la fiche d'un côté, l'enchaînement de
+      fin de l'autre, en réducteur pur. `SessionSheet`, `EndFlow` et
+      `flow.ts` ; les envois et la semaine d'après dans `sending.ts`. 24
+      tests ; une date « Ce n'était pas aujourd'hui » abandonnée ne date
+      plus la séance guidée qui suit.
 - [ ] **B8** Vibrations et sons sous une seule adresse, motifs nommés,
       réglage « Vibrations » masqué là où le téléphone n'en a pas.
 - [ ] **B9** Les frontières dans ESLint ; `shared` ne lit plus aucune

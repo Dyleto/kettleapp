@@ -7,9 +7,9 @@ export default {
       note: "Cascade attendue : sans l'écran, rien de ce qu'il dit ne se lit. Restent vertes « pas de suite à annoncer », qui constate une absence, et le retour à l'accueil, où l'envoi saboté mène déjà.",
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: "                  setFlow('week');",
-          to: '                  navigate(CLIENT_ROUTES.today);',
+          file: 'src/features/client/end/EndFlow.tsx',
+          from: "              onSuccess: () =>\n                dispatch({\n                  type: 'sent',\n                  week: weekAfter(history, sessions, completedAt),\n                }),",
+          to: '              onSuccess: () => onLeave(),',
         },
       ],
       falls: [
@@ -25,9 +25,9 @@ export default {
       name: 'la séance envoyée ne compte pas dans la semaine',
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '      after: doneInWeek(withThis),',
-          to: '      after: doneInWeek(history),',
+          file: 'src/features/client/end/sending.ts',
+          from: '    after: doneInWeek(withThis, now),',
+          to: '    after: doneInWeek(history, now),',
         },
       ],
       falls: [
@@ -40,9 +40,9 @@ export default {
       name: "le jour de la séance n'est pas coché",
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '      doneDays: daysDone(withThis),',
-          to: '      doneDays: daysDone(history),',
+          file: 'src/features/client/end/sending.ts',
+          from: '    doneDays: daysDone(withThis, now),',
+          to: '    doneDays: daysDone(history, now),',
         },
       ],
       falls: ['le jour d’aujourd’hui est coché, les jours conseillés marqués'],
@@ -51,9 +51,9 @@ export default {
       name: "la suite ignore la semaine qu'on vient de remplir",
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '      streak: weekStreak(withThis, target),',
-          to: '      streak: weekStreak(history, target),',
+          file: 'src/features/client/end/sending.ts',
+          from: '    streak: weekStreak(withThis, target, now),',
+          to: '    streak: weekStreak(history, target, now),',
         },
       ],
       falls: ['→ et la suite compte cette semaine avec les trois d’avant'],
@@ -84,9 +84,9 @@ export default {
       name: '« Terminer » ne mène nulle part',
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '        <Week {...week} onFinish={() => navigate(CLIENT_ROUTES.today)} />',
-          to: '        <Week {...week} onFinish={() => {}} />',
+          file: 'src/features/client/end/EndFlow.tsx',
+          from: '    return <Week {...flow.week} onFinish={onLeave} />;',
+          to: '    return <Week {...flow.week} onFinish={() => {}} />;',
         },
       ],
       falls: ['« Terminer » revient à l’accueil'],
