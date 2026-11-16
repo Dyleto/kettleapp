@@ -6,9 +6,9 @@ export default {
       name: "l'horloge ignore la pause",
       edits: [
         {
-          file: 'src/features/client/guided/Timer.tsx',
-          from: '    frozen,\n',
-          to: '',
+          file: 'src/features/client/guided/useBlockClock.ts',
+          from: '  const ticking = running && !paused;',
+          to: '  const ticking = running;',
         },
       ],
       falls: [
@@ -33,9 +33,9 @@ export default {
       name: 'la reprise saute le décompte',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '      setResuming(true);\n      return;\n',
-          to: '',
+          file: 'src/features/client/guided/session.ts',
+          from: "      return merge(t, { pause: clockRuns(state) ? 'resuming' : 'closed' });",
+          to: "      return merge(t, { pause: 'closed' });",
         },
       ],
       falls: [
@@ -50,7 +50,7 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '  useBackDismiss(sceneActive && !showPause, () => setShowPause(true));\n',
+          from: "  useBackDismiss(sceneActive && state.pause === 'closed', () =>\n    act({ type: 'pause' })\n  );\n",
           to: '',
         },
       ],
@@ -67,9 +67,9 @@ export default {
       note: "Le retour quitte alors la séance : Échap n'a plus de scène où rouvrir.",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '      setShowPause((open) => !open);',
-          to: '      setShowPause(false);',
+          file: 'src/features/client/guided/session.ts',
+          from: "      if (state.pause === 'closed') return merge(t, { pause: 'open' });",
+          to: "      if (state.pause === 'closed') return t;",
         },
       ],
       falls: ['→ et la rouvre'],
@@ -114,9 +114,9 @@ export default {
       name: '« Passer ce bloc » ne change pas de bloc',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                  goTo(nextBlockIndex);\n',
-          to: '',
+          file: 'src/features/client/guided/session.ts',
+          from: '      return next === -1 ? closed : goTo(closed, next);',
+          to: '      return closed;',
         },
       ],
       falls: ['« Passer ce bloc » mène au bloc suivant'],
@@ -126,8 +126,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: 'nextBlockIndex === -1\n                ? undefined',
-          to: 'false\n                ? undefined',
+          from: '              nextBlockIndex(state) === -1\n                ? undefined',
+          to: '              false\n                ? undefined',
         },
       ],
       falls: ['au dernier bloc, la pause ne propose pas de le passer'],
@@ -136,9 +136,9 @@ export default {
       name: '« Terminer maintenant » ne termine plus',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '              setShowPause(false);\n              onFinish();',
-          to: '              setShowPause(false);',
+          file: 'src/features/client/guided/session.ts',
+          from: "      return finish(merge(t, { pause: 'closed' }), false);",
+          to: "      return merge(t, { pause: 'closed' });",
         },
       ],
       falls: ['« Terminer la séance maintenant » mène au bilan'],

@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 16 novembre : 515 tests unitaires, 31 suites de banc et 566
-assertions, 4 min 14 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 16 novembre : 553 tests unitaires, 31 suites de banc et 572
+assertions, 4 min 15 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files).
 
 ## 2. Le relevé, écran par écran
@@ -51,13 +51,13 @@ sur quatre files).
 
 ### Séance guidée
 
-| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                                                                                                                |
-| ---------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ouverture, décompte, enchaînement, pause | partiel  | L'écran « Bloc suivant » (trois secondes, sans geste) n'existe pas. La question « Reprendre où tu en étais ? » survit quand on entre par la fiche ; le bandeau « Reprise au bloc 2 » manque.                                                                                                                                 |
-| Séries, repos, exercices à durée         | partiel  | Le repos **entre blocs** passe encore par l'ancien minuteur. Pas de ligne « Ensuite ». Chipper et TimeCap n'ont ni chrono de limite ni feuille « Temps écoulé ». On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. |
-| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                                                                                                                             |
-| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                                                                                                                             |
-| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                                                                                                                           |
+| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ouverture, décompte, enchaînement, pause | partiel  | L'écran « Bloc suivant » (trois secondes, sans geste) n'existe pas. La question « Reprendre où tu en étais ? » survit quand on entre par la fiche ; le bandeau « Reprise au bloc 2 » manque.                                                                                                                          |
+| Séries, repos, exercices à durée         | partiel  | Le repos entre blocs a pris la carte des séries (B6). Pas de ligne « Ensuite ». Chipper et TimeCap n'ont ni chrono de limite ni feuille « Temps écoulé ». On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. |
+| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                                                                                                                      |
+| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                                                                                                                      |
+| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                                                                                                                    |
 
 ### Client
 
@@ -130,7 +130,8 @@ Constaté, avec sa mesure.
    (821 lignes) n'est pas tenu par le contrat de l'API. Sa lenteur est
    réglée : les suites tournent sur quatre files.
 8. **Restes de l'ancien mode guidé** : `Timer`, `BlockList`, la question de
-   reprise, `PerformedFields`, `SuggestedDays`.
+   reprise, `PerformedFields`, `SuggestedDays` — `Timer` et `BlockList`
+   partis en B6.
 9. **API** : cinq scripts `verify:*` gardent chacun leur `ok()` (85
    assertions à passer sous Vitest) ; `roster.controller.ts` porte des
    agrégations qui appartiennent à un service ; `CLAUDE.md` cite un
@@ -206,10 +207,12 @@ banc actuel, inchangé, qui le prouve.
       disposition, la porte du programme), `common` (données, voix du
       coach), `sound` (que B8 sortira). Son `index.ts` passe de 35 noms à 4,
       et ne réexporte plus rien de `domain/`.
-- [ ] **B6** `GuidedSession` découpé : l'état de la séance dans un réducteur
+- [x] **B6** `GuidedSession` découpé : l'état de la séance dans un réducteur
       pur testé, une coquille (haut, segments, pause, écran allumé), une
       scène par forme. `Timer`, `BlockList` et la consigne plein écran
-      partent.
+      partent. 1 523 lignes → 363 ; `session.ts` et ses 38 tests ; la liste
+      devient `BlockSets`, la consigne la feuille de la fiche, et le repos
+      entre deux blocs la carte du repos des séries (part de C2).
 - [ ] **B7** `SessionScreen` découpé : la fiche d'un côté, l'enchaînement de
       fin de l'autre, en réducteur pur.
 - [ ] **B8** Vibrations et sons sous une seule adresse, motifs nommés,
@@ -227,8 +230,8 @@ banc actuel, inchangé, qui le prouve.
 
 - [ ] **C1** Reprise sans question : la fiche et l'accueil mènent droit à la
       série, bandeau « Reprise au bloc 2 » trois secondes.
-- [ ] **C2** « Bloc suivant », trois secondes sans geste ; le repos entre
-      blocs sur la scène de repos ; la ligne « Ensuite ».
+- [ ] **C2** « Bloc suivant », trois secondes sans geste ; ~~le repos entre
+      blocs sur la scène de repos~~ (fait en B6) ; la ligne « Ensuite ».
 - [ ] **C3** Chipper et TimeCap : chrono de limite, feuille « Temps écoulé ».
 - [ ] **C4** Noter des répétitions différentes du prescrit.
 - [ ] **C5** « Dire comment c'était » : un ressenti quitté sans envoyer se

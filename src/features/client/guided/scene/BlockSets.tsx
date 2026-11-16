@@ -68,7 +68,7 @@ const WeightField = ({
   );
 };
 
-export const BlockList = ({
+export const BlockSets = ({
   block,
   sets,
   done,

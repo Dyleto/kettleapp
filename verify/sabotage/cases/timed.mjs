@@ -38,9 +38,9 @@ export default {
       name: "la séance ne relève pas le tour d'un EMOM sans limite",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '      setLiveRound(round);\n',
-          to: '',
+          file: 'src/features/client/guided/session.ts',
+          from: '        return merge(t, { liveRound: action.round });',
+          to: '        return t;',
         },
       ],
       falls: ['→ et la séance le sait'],
@@ -202,9 +202,9 @@ export default {
       name: 'un tour qui passe referme la consigne',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '    if (target === -1) return;\n    setIndex(target);',
-          to: '    if (target === -1) return;\n    setDetail(null);\n    setIndex(target);',
+          file: 'src/features/client/guided/session.ts',
+          from: '      return merge(t, { index: target }, { step: target });',
+          to: '      return merge(t, { index: target, detail: null }, { step: target });',
         },
       ],
       falls: ['une consigne ouverte reste ouverte quand le tour change'],

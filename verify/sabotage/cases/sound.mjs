@@ -47,8 +47,8 @@ export default {
       name: 'les dernières secondes ne sonnent plus',
       edits: [
         {
-          file: 'src/features/client/guided/Timer.tsx',
-          from: "      playCue('tick');\n",
+          file: 'src/features/client/guided/scene/TimedBlock.tsx',
+          from: "        playCue('tick');\n",
           to: '',
         },
       ],
@@ -61,9 +61,9 @@ export default {
       name: 'la fin du décompte ne sonne plus',
       edits: [
         {
-          file: 'src/features/client/guided/Timer.tsx',
-          from: "      playCue('go');\n",
-          to: '',
+          file: 'src/features/client/guided/scene/TimedBlock.tsx',
+          from: "      if (next.round !== previous.round || next.phase !== previous.phase) {\n        playCue('go');\n",
+          to: '      if (next.round !== previous.round || next.phase !== previous.phase) {\n',
         },
       ],
       falls: [
@@ -75,8 +75,8 @@ export default {
       name: 'quitter un bloc ne sonne plus',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: "if (leavesBlock) playCue('blockEnd');",
+          file: 'src/features/client/guided/useGuidedSession.ts',
+          from: "      playCue('blockEnd');\n",
           to: '',
         },
       ],
@@ -113,9 +113,14 @@ export default {
       name: 'valider une série sonne',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '  const markDone = () => {',
-          to: "  const markDone = () => {\n    playCue('tick');",
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: "import { BlockSets } from './BlockSets';\n",
+          to: "import { BlockSets } from './BlockSets';\nimport { playCue } from '@/features/client/sound/sound';\n",
+        },
+        {
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '  const markDone = () => {\n',
+          to: "  const markDone = () => {\n    playCue('tick');\n",
         },
       ],
       falls: [
@@ -147,7 +152,7 @@ export default {
       name: "la sortie audio n'est jamais ouverte",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/screen.ts',
           from: "    document.addEventListener('click', unlockSound, true);\n",
           to: '',
         },

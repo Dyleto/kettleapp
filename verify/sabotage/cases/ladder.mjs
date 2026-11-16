@@ -140,9 +140,9 @@ export default {
       name: "le décompte de l'ouverture n'arme pas l'échelle",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: "            (step.block.type === 'ladder' && step.block.durationMinutes)",
-          to: '            false',
+          file: 'src/features/client/guided/session.ts',
+          from: "  if (step.block.type === 'ladder' && step.block.durationMinutes)",
+          to: '  if (false)',
         },
       ],
       falls: ["premier bloc : le décompte de l'ouverture a lancé le chrono"],

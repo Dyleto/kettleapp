@@ -17,7 +17,16 @@
  * Le temps est mené à la main pour la fin du repos : on y vérifie que la
  * série suivante revient d'elle-même, sans geste.
  */
-import { launch, MOBILE, ok, failureCount, signIn, start } from './common.mjs';
+import {
+  API,
+  COACHES,
+  launch,
+  MOBILE,
+  ok,
+  failureCount,
+  signIn,
+  start,
+} from './common.mjs';
 
 const CARD = '[data-rest]';
 
@@ -216,6 +225,108 @@ const browser = await launch();
     "un bloc sans repos prescrit n'affiche aucune carte de repos",
     (await p.locator(CARD).count()) === 0 &&
       (await p.locator('[data-set-hero]').count()) === 1
+  );
+  await ctx.close();
+}
+
+// ── Entre deux blocs ────────────────────────────────────────────────────
+//
+// Le repos entre deux blocs passait par l'ancien minuteur : une jauge en
+// plein écran sarcelle, « Ensuite : … » en petit, et « Précédent » à côté
+// de « Passer ». Deux repos, deux dessins, pour le même geste. Il prend
+// maintenant la carte du repos entre deux séries.
+//
+// Le décor n'a pas de séance de cette forme : on la compose à partir de la
+// séance 2, un bloc d'une série suivi de trente secondes de repos.
+
+/** Une séance de deux blocs, trente secondes de repos entre eux ; l'horloge
+ * de la page est menée à la main quand `clock` le demande. */
+const withBlockRest = async (ctx, { clock = false } = {}) => {
+  const { program } = await (await fetch(`${API}/api/client/program`)).json();
+  const base = program.sessions.find((s) => s._id === 'sess2');
+  const classic = base.blocks.find((b) => b.type === 'classic');
+  const session = {
+    ...base,
+    _id: 'sess-breath',
+    order: 9,
+    name: 'Souffle',
+    blocks: [
+      {
+        ...classic,
+        _id: 'breath-a',
+        order: 1,
+        label: 'Renfo A',
+        restBetweenRounds: 30,
+        exercises: [{ ...classic.exercises[0], sets: 1 }],
+      },
+      { ...classic, _id: 'breath-b', order: 2, label: 'Renfo B' },
+    ],
+  };
+  await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
+    r.fulfill({
+      json: {
+        program: { ...program, sessions: [...program.sessions, session] },
+        coaches: COACHES,
+      },
+    })
+  );
+  const p = await signIn(ctx);
+  if (clock) await p.clock.install();
+  await start(p, 'sess-breath');
+  await press(p, 'Fait');
+  await p.waitForTimeout(300);
+  return { p, next: classic.exercises[0].exercise.name };
+};
+
+{
+  console.log('\n── entre deux blocs, la même carte de repos');
+  const ctx = await browser.newContext(MOBILE);
+  const { p, next } = await withBlockRest(ctx);
+  const seconds = await restSeconds(p);
+  ok(
+    'entre deux blocs, le repos prend la carte des séries',
+    (await p.locator(CARD).count()) === 1 && seconds >= 28 && seconds <= 30,
+    `${await p.locator(CARD).count()} carte(s), ${seconds} s`
+  );
+  const card = (
+    await p
+      .locator(CARD)
+      .innerText()
+      .catch(() => '')
+  ).replace(/\n+/g, ' | ');
+  ok('→ et annonce ce qui vient', card.includes(next), card);
+  await press(p, 'Quinze secondes de repos de plus');
+  const longer = await restSeconds(p);
+  ok(
+    '« + 15 s » le rallonge aussi',
+    longer >= seconds + 13 && longer <= seconds + 15,
+    `${seconds} s → ${longer} s`
+  );
+  await press(p, 'Passer');
+  ok(
+    '« Passer » mène au bloc suivant',
+    (await p.locator(CARD).count()) === 0 &&
+      (await p.locator('[data-set-hero]').count()) === 1,
+    `${await p.locator(CARD).count()} carte(s)`
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── entre deux blocs, la fin du repos ramène le bloc suivant');
+  const ctx = await browser.newContext(MOBILE);
+  const { p } = await withBlockRest(ctx, { clock: true });
+  ok(
+    'le repos entre deux blocs a commencé',
+    (await p.locator(CARD).count()) === 1
+  );
+  await p.clock.runFor(31_000);
+  await p.waitForTimeout(300);
+  ok(
+    'à zéro, le bloc suivant vient de lui-même',
+    (await p.locator(CARD).count()) === 0 &&
+      (await p.locator('[data-set-hero]').count()) === 1,
+    `${await p.locator(CARD).count()} carte(s)`
   );
   await ctx.close();
 }

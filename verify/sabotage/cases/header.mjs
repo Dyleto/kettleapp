@@ -20,9 +20,9 @@ export default {
       name: "le compteur d'écrans revient",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '            </HStack>\n            <Box\n              display="none"\n              flexShrink={0}\n              mt={-1}',
-          to: '            </HStack>\n            <Text fontSize="xs">{index + 1} / {steps.length}</Text>\n            <Box\n              display="none"\n              flexShrink={0}\n              mt={-1}',
+          file: 'src/features/client/guided/SceneShell.tsx',
+          from: '          </HStack>\n          <Box\n            display="none"\n            flexShrink={0}\n            mt={-1}',
+          to: '          </HStack>\n          <Text fontSize="xs">{current + 1} / {parts.length}</Text>\n          <Box\n            display="none"\n            flexShrink={0}\n            mt={-1}',
         },
       ],
       falls: ['plus aucun compteur d’écrans'],
@@ -32,8 +32,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                Bloc {segmentIndex + 1} sur {segments.length}',
-          to: '                Bloc 1 sur {segments.length}',
+          from: '        rank={`Bloc ${segmentIndex + 1} sur ${segments.length}`}',
+          to: '        rank={`Bloc 1 sur ${segments.length}`}',
         },
       ],
       falls: ['on passe au bloc 2', 'un bloc nommé par le coach porte son nom'],
@@ -58,8 +58,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '  const currentTitle = titledStep\n    ? blockTitle(titledStep.block)\n    : step.blockLabel;',
-          to: "  const currentTitle =\n    step.type === 'rest' || !titledStep\n      ? step.blockLabel\n      : blockTitle(titledStep.block);",
+          from: '  const title = titled ? blockTitle(titled.block) : step.blockLabel;',
+          to: "  const title =\n    step.type === 'rest' || !titled\n      ? step.blockLabel\n      : blockTitle(titled.block);",
         },
       ],
       falls: ['le repos entre deux blocs garde le nom du bloc qu’il termine'],
@@ -68,9 +68,9 @@ export default {
       name: 'le bloc en cours ne se remplit plus',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                    : sets.length > 0\n                      ? doneInBlock / sets.length',
-          to: '                    : sets.length > 0\n                      ? 0',
+          file: 'src/features/client/guided/session.ts',
+          from: '          ? doneInBlock(state) / sets.length',
+          to: '          ? 0',
         },
       ],
       falls: ['le bloc en cours se remplit au prorata, en ambre'],
@@ -79,9 +79,9 @@ export default {
       name: 'un bloc fini reste ambre',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: "                          : isDone\n                            ? 'session.rest'\n                            : 'app.primary'",
-          to: "                          : 'app.primary'",
+          file: 'src/features/client/guided/SceneShell.tsx',
+          from: "                  bg={i < current ? 'session.rest' : 'app.primary'}",
+          to: '                  bg="app.primary"',
         },
       ],
       falls: ['→ le bloc fini est plein, en sarcelle'],
@@ -91,8 +91,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: 'aria-valuetext={`${position} — ${step.blockLabel}`}',
-          to: 'aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}',
+          from: '        valuetext={`${position} — ${step.blockLabel}`}',
+          to: '        valuetext={`Étape ${state.index + 1} sur ${steps.length} — ${step.blockLabel}`}',
         },
       ],
       falls: ['la barre se lit en blocs et en tours'],

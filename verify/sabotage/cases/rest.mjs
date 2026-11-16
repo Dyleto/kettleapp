@@ -6,9 +6,9 @@ export default {
       name: "« + 15 s » n'ajoute rien",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: 'setRest({ ...rest, bonus: rest.bonus + 15 })',
-          to: 'setRest({ ...rest, bonus: rest.bonus + 0 })',
+          file: 'src/features/client/guided/session.ts',
+          from: 'bonus: state.rest.bonus + 15',
+          to: 'bonus: state.rest.bonus + 0',
         },
       ],
       falls: ['« + 15 s » rallonge le repos de quinze secondes'],
@@ -28,9 +28,9 @@ export default {
       name: 'la charge suivante ne se règle plus pendant le repos',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                  {current && showLoad && (',
-          to: '                  {current && false && (',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '  const loadStepper = current && showLoad && (',
+          to: '  const loadStepper = current && false && (',
         },
       ],
       falls: [
@@ -56,9 +56,9 @@ export default {
       name: 'ce qui vient perd sa charge',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                          currentLoad !== undefined\n',
-          to: '                          false\n',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '                    currentLoad !== undefined\n',
+          to: '                    false\n',
         },
       ],
       falls: ['→ et ce qui vient, avec sa charge'],
@@ -95,12 +95,61 @@ export default {
       name: "un repos est inventé là où rien n'est prescrit",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '    if (current.restAfter) {\n      setRest({ afterKey: current.key, duration: current.restAfter, bonus: 0 });',
-          to: '    if (true) {\n      setRest({ afterKey: current.key, duration: current.restAfter ?? 30, bonus: 0 });',
+          file: 'src/features/client/guided/session.ts',
+          from: '      return current.restAfter\n        ? merge(marked, {',
+          to: '      return true\n        ? merge(marked, {',
+        },
+        {
+          file: 'src/features/client/guided/session.ts',
+          from: '              duration: current.restAfter,\n',
+          to: '              duration: current.restAfter ?? 30,\n',
         },
       ],
       falls: ["un bloc sans repos prescrit n'affiche aucune carte de repos"],
+    },
+    {
+      name: '« + 15 s » n’allonge plus le repos entre deux blocs',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/BetweenBlocks.tsx',
+          from: 'onClick={() => setBonus((more) => more + 15)}',
+          to: 'onClick={() => setBonus((more) => more + 0)}',
+        },
+      ],
+      falls: ['« + 15 s » le rallonge aussi'],
+    },
+    {
+      name: 'le repos entre deux blocs ne dit plus ce qui vient',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/BetweenBlocks.tsx',
+          from: "nextTitle={step.nextExerciseName ?? ''}",
+          to: 'nextTitle=""',
+        },
+      ],
+      falls: ['→ et annonce ce qui vient'],
+    },
+    {
+      name: '« Passer » ne quitte plus le repos entre deux blocs',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/BetweenBlocks.tsx',
+          from: '            onClick={onDone}',
+          to: '            onClick={() => {}}',
+        },
+      ],
+      falls: ['« Passer » mène au bloc suivant'],
+    },
+    {
+      name: 'la fin du repos entre deux blocs ne mène nulle part',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/BetweenBlocks.tsx',
+          from: '          onDone={onDone}',
+          to: '          onDone={() => {}}',
+        },
+      ],
+      falls: ['à zéro, le bloc suivant vient de lui-même'],
     },
   ],
 };

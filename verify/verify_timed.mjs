@@ -259,8 +259,7 @@ const pauseOpen = (p) =>
   ok(
     'une consigne ouverte reste ouverte quand le tour change',
     /tour 2 sur 10/.test(await where(p)) &&
-      (await p.getByRole('button', { name: 'Revenir à la séance' }).count()) >
-        0,
+      (await p.getByRole('dialog', { name: 'Kettlebell Swing' }).count()) === 1,
     await where(p)
   );
   await p.clock.runFor(9 * 60_000);

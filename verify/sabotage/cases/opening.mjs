@@ -68,7 +68,7 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '    if (showIntro) return;\n',
+          from: '    if (!pastOpening) return;\n',
           to: '',
         },
       ],

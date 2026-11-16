@@ -113,9 +113,9 @@ export default {
       name: "« Série faite » n'enregistre plus la charge affichée",
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '      writeLoad(current, currentLoad);\n    }\n    const next = [...done, current.key];',
-          to: '    }\n    const next = [...done, current.key];',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '    if (current && ownNoted === undefined && currentLoad !== undefined) {\n      writeLoad(current, currentLoad);\n    }\n',
+          to: '',
         },
       ],
       falls: [
@@ -126,9 +126,9 @@ export default {
       name: 'une charge effacée revient',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '    if (next === undefined) nextDeclined.add(current.key);',
-          to: '    if (next === undefined) nextDeclined.delete(current.key);',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '      declined: next === undefined,',
+          to: '      declined: false,',
         },
       ],
       falls: [
@@ -140,9 +140,9 @@ export default {
       name: '« Série précédente » ne décoche rien',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                  <FooterLink onClick={() => undoSet(lastDoneInBlock)}>',
-          to: '                  <FooterLink onClick={() => {}}>',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: "              <FooterLink onClick={() => act({ type: 'undo', key: lastDone })}>",
+          to: '              <FooterLink onClick={() => {}}>',
         },
       ],
       falls: ['« Série précédente » décoche la dernière série faite'],
@@ -151,9 +151,9 @@ export default {
       name: 'passer un exercice ne passe rien',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '    const next = [...skipped, exerciseKeyOf(current)];',
-          to: '    const next = [...skipped];',
+          file: 'src/features/client/guided/session.ts',
+          from: '      const skipped = [...state.skipped, exerciseKeyOf(current)];',
+          to: '      const skipped = [...state.skipped];',
         },
       ],
       falls: [
@@ -189,7 +189,7 @@ export default {
       name: 'les noms de la liste sont de nouveau coupés',
       edits: [
         {
-          file: 'src/features/client/guided/BlockList.tsx',
+          file: 'src/features/client/guided/scene/BlockSets.tsx',
           from: '              <Text fontSize="sm" color="fg.muted" minW={0}>\n                {e.name}',
           to: '              <Text fontSize="sm" color="fg.muted" minW={0} lineClamp={1} maxW="60px">\n                {e.name}',
         },

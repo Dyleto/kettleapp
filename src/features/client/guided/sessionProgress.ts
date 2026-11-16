@@ -14,7 +14,7 @@ import { PerformedValues } from '@/shared/types';
  * fermeture de l'onglet là où `sessionStorage` meurt avec lui. C'est
  * précisément le cas qu'on cherchait à couvrir.
  */
-interface SessionProgress {
+export interface SessionProgress {
   /** Pour que la forme puisse changer sans qu'on relise un enregistrement
    * périmé. */
   version: 2;
