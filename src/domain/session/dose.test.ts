@@ -5,7 +5,7 @@ import {
   exerciseSub,
   formatName,
   hasInstructions,
-} from '@/domain/session/dose';
+} from './dose';
 import { makeBlock, makeBlockExercise, makeExercise } from '@/domain/fixtures';
 
 const NBSP = ' ';

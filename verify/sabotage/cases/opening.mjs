@@ -45,7 +45,7 @@ export default {
       name: "le mot du coach n'ouvre plus la séance",
       edits: [
         {
-          file: 'src/features/client/components/scene/Opening.tsx',
+          file: 'src/features/client/guided/scene/Opening.tsx',
           from: '        {note && <CoachBubble>{note}</CoachBubble>}',
           to: '        {note && false && <CoachBubble>{note}</CoachBubble>}',
         },
@@ -56,7 +56,7 @@ export default {
       name: "une bulle vide s'affiche sans mot du coach",
       edits: [
         {
-          file: 'src/features/client/components/scene/Opening.tsx',
+          file: 'src/features/client/guided/scene/Opening.tsx',
           from: '        {note && <CoachBubble>{note}</CoachBubble>}',
           to: '        {(note || true) && <CoachBubble>{note}</CoachBubble>}',
         },
@@ -67,7 +67,7 @@ export default {
       name: "l'heure de départ se pose à l'affichage",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '    if (showIntro) return;\n',
           to: '',
         },
@@ -78,7 +78,7 @@ export default {
       name: 'la croix ne ferme plus',
       edits: [
         {
-          file: 'src/features/client/components/scene/Opening.tsx',
+          file: 'src/features/client/guided/scene/Opening.tsx',
           from: '          onClick={onClose}',
           to: '          onClick={() => {}}',
         },
@@ -89,7 +89,7 @@ export default {
       name: 'le décompte ne nomme plus le geste',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '        detail={gesture.detail}\n',
           to: '',
         },
@@ -100,7 +100,7 @@ export default {
       name: "l'ouverture perd le réglage du son",
       edits: [
         {
-          file: 'src/features/client/components/scene/Opening.tsx',
+          file: 'src/features/client/guided/scene/Opening.tsx',
           from: '        <SoundToggle />\n',
           to: '',
         },
@@ -122,7 +122,7 @@ export default {
       name: 'la durée approchée disparaît',
       edits: [
         {
-          file: 'src/features/client/components/scene/Opening.tsx',
+          file: 'src/features/client/guided/scene/Opening.tsx',
           from: '            ≈&nbsp;{estimatedMinutes(session)}&nbsp;min\n',
           to: '',
         },

@@ -6,7 +6,7 @@ export default {
       name: "l'échelle s'affiche à l'envers",
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: '{EFFORT_LEVELS.map((level, i) => {',
           to: '{[...EFFORT_LEVELS].reverse().map((level, i) => {',
         },
@@ -23,7 +23,7 @@ export default {
       name: 'les numéros reviennent',
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: '                {FACES[level.value]}\n              </svg>',
           to: '                {FACES[level.value]}\n              </svg>\n              {i + 1}',
         },
@@ -34,7 +34,7 @@ export default {
       name: "« Juste » est coché d'avance",
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: 'const isSelected = level.value === value;',
           to: 'const isSelected = level.value === (value ?? 3);',
         },
@@ -45,7 +45,7 @@ export default {
       name: 'la valeur envoyée est inversée',
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: 'onClick={() => onChange(level.value)}',
           to: 'onClick={() => onChange(6 - level.value)}',
         },
@@ -61,7 +61,7 @@ export default {
       name: 'la ligne de sens disparaît',
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: 'Du plus facile au plus dur, comme {coach.inline} le lit.',
           to: 'Choisis.',
         },
@@ -72,7 +72,7 @@ export default {
       name: 'le cran choisi ne se nomme plus',
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: '              {selected.label}\n',
           to: '',
         },
@@ -86,7 +86,7 @@ export default {
       name: 'la flèche droite recule',
       edits: [
         {
-          file: 'src/features/client/components/EffortScale.tsx',
+          file: 'src/features/client/end/EffortScale.tsx',
           from: 'move(i, 1);',
           to: 'move(i, -1);',
         },

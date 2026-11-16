@@ -16,8 +16,8 @@ import {
   isRising,
   METRIC_UNIT,
   sessionTotals,
-} from '@/domain/history/progression';
-import type { ExerciseProgression } from '@/domain/history/progression';
+} from './progression';
+import type { ExerciseProgression } from './progression';
 import {
   makeCompleted,
   makeBlockSnapshot,

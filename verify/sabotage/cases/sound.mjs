@@ -6,7 +6,7 @@ export default {
       name: 'les chiffres du décompte ne sonnent plus',
       edits: [
         {
-          file: 'src/features/client/components/scene/Countdown.tsx',
+          file: 'src/features/client/guided/scene/Countdown.tsx',
           from: "    if (remaining > 0) playCue('tick');",
           to: '',
         },
@@ -21,7 +21,7 @@ export default {
       name: 'le départ ne sonne plus',
       edits: [
         {
-          file: 'src/features/client/components/scene/Countdown.tsx',
+          file: 'src/features/client/guided/scene/Countdown.tsx',
           from: "      playCue('go');\n",
           to: '',
         },
@@ -32,7 +32,7 @@ export default {
       name: "le premier bip est perdu pendant que la sortie s'ouvre",
       edits: [
         {
-          file: 'src/features/client/sound.ts',
+          file: 'src/features/client/sound/sound.ts',
           from: '        if (Date.now() - askedAt <= STALE_AFTER) schedule(output, cue);',
           to: '',
         },
@@ -47,7 +47,7 @@ export default {
       name: 'les dernières secondes ne sonnent plus',
       edits: [
         {
-          file: 'src/features/client/components/guided/Timer.tsx',
+          file: 'src/features/client/guided/Timer.tsx',
           from: "      playCue('tick');\n",
           to: '',
         },
@@ -61,7 +61,7 @@ export default {
       name: 'la fin du décompte ne sonne plus',
       edits: [
         {
-          file: 'src/features/client/components/guided/Timer.tsx',
+          file: 'src/features/client/guided/Timer.tsx',
           from: "      playCue('go');\n",
           to: '',
         },
@@ -75,7 +75,7 @@ export default {
       name: 'quitter un bloc ne sonne plus',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "if (leavesBlock) playCue('blockEnd');",
           to: '',
         },
@@ -87,7 +87,7 @@ export default {
       stale: 'le motif correspond 2 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "      playCue('sessionEnd');\n",
           to: '',
         },
@@ -102,7 +102,7 @@ export default {
       stale: 'le motif correspond 0 fois dans sound.ts',
       edits: [
         {
-          file: 'src/features/client/sound.ts',
+          file: 'src/features/client/sound/sound.ts',
           from: '  if (!isSoundEnabled()) return;\n',
           to: '',
         },
@@ -113,7 +113,7 @@ export default {
       name: 'valider une série sonne',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '  const markDone = () => {',
           to: "  const markDone = () => {\n    playCue('tick');",
         },
@@ -130,7 +130,7 @@ export default {
       name: "le refus n'est plus retenu",
       edits: [
         {
-          file: 'src/features/client/sound.ts',
+          file: 'src/features/client/sound/sound.ts',
           from: '  else storage.setItem(KEY, MUTED);\n',
           to: '',
         },
@@ -147,7 +147,7 @@ export default {
       name: "la sortie audio n'est jamais ouverte",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "    document.addEventListener('click', unlockSound, true);\n",
           to: '',
         },
@@ -165,7 +165,7 @@ export default {
       name: 'le bip du départ dure autant que les autres',
       edits: [
         {
-          file: 'src/features/client/sound.ts',
+          file: 'src/features/client/sound/sound.ts',
           from: 'go: [{ frequency: 1320, at: 0, duration: 400 }],',
           to: 'go: [{ frequency: 1320, at: 0, duration: 90 }],',
         },
@@ -176,7 +176,7 @@ export default {
       name: 'le réglage de « Mon compte » ne répond plus',
       edits: [
         {
-          file: 'src/features/client/components/SoundSetting.tsx',
+          file: 'src/features/client/sound/SoundSetting.tsx',
           from: '        setEnabled(!enabled);',
           to: '',
         },
@@ -188,7 +188,7 @@ export default {
       stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '          {soundToggle}\n          {quitButton}\n        </HStack>',
           to: '          {quitButton}\n        </HStack>',
         },

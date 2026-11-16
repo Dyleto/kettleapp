@@ -15,7 +15,7 @@ import {
   buildLastPerformanceIndex,
   formatLastPerformance,
   performedKey,
-} from '@/domain/history/lastPerformance';
+} from './lastPerformance';
 import {
   makeCompleted,
   makeBlockSnapshot,

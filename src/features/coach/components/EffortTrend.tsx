@@ -1,5 +1,5 @@
 import { Box, HStack, Text, VStack, Wrap } from '@chakra-ui/react';
-import { getRelativeDate } from '@/features/client';
+import { getRelativeDate } from '@/domain/week/dates';
 import { CompletedSession, FeedbackTag } from '@/shared/types';
 import { FEEDBACK_TAG_LABELS } from '@/domain/history/tags';
 import {

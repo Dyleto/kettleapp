@@ -34,7 +34,7 @@ le rangement (B12) et avant `main` (H1).
   coach qui doublerait la mise.
 
 Mesures au 16 novembre : 515 tests unitaires, 31 suites de banc et 566
-assertions, 4 min 13 s pour le banc complet (14 min 23 s avant qu'il tourne
+assertions, 4 min 14 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files).
 
 ## 2. Le relevé, écran par écran
@@ -111,7 +111,8 @@ Constaté, avec sa mesure.
    fin.
 2. **`features/client` a 21 modules et 20 tests à plat**, deux dossiers
    `guided` (la logique pure, et les restes de l'ancien mode) et cinq
-   sous-dossiers de composants. On ne sait plus où chercher.
+   sous-dossiers de composants. On ne sait plus où chercher — réglé en B5 :
+   un dossier par écran.
 3. **Le kit n'a pas d'adresse.** Pastilles, bulles, cartes et titres vivent
    dans les écrans qui les ont eus en premier. Le coach les réécrirait.
 4. **Les frontières fuient** : `shared` importe trois fois une fonctionnalité,
@@ -200,8 +201,11 @@ banc actuel, inchangé, qui le prouve.
       coach a donné, sinon « Séance 3 » ; le rang se pose à côté, jamais
       devant. Le dessin d'un bloc devient une règle pure (`blockDrawing`),
       que la palette de l'atelier reprendra.
-- [ ] **B5** `features/client` en tranches (`home`, `program`, `sheet`,
-      `guided`, `end`, `progress`), tests à côté.
+- [x] **B5** `features/client` en tranches (`home`, `program`, `sheet`,
+      `guided`, `end`, `progress`), tests à côté. Autour : `shell` (la
+      disposition, la porte du programme), `common` (données, voix du
+      coach), `sound` (que B8 sortira). Son `index.ts` passe de 35 noms à 4,
+      et ne réexporte plus rien de `domain/`.
 - [ ] **B6** `GuidedSession` découpé : l'état de la séance dans un réducteur
       pur testé, une coquille (haut, segments, pause, écran allumé), une
       scène par forme. `Timer`, `BlockList` et la consigne plein écran

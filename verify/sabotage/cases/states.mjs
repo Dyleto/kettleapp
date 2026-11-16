@@ -6,7 +6,7 @@ export default {
       name: 'la porte ne montre jamais la panne',
       edits: [
         {
-          file: 'src/features/client/pages/ClientProgramBoundary.tsx',
+          file: 'src/features/client/shell/ClientProgramBoundary.tsx',
           from: 'if (clientSessions.isUnavailable) {',
           to: 'if (clientSessions.isUnavailable && false) {',
         },
@@ -29,7 +29,7 @@ export default {
       name: "l'indisponibilité ne regarde que isError",
       edits: [
         {
-          file: 'src/features/client/hooks/useClientSessions.ts',
+          file: 'src/features/client/common/useClientSessions.ts',
           from: 'hasNothingToShow(programQuery) || hasNothingToShow(historyQuery)',
           to: 'programQuery.isError || historyQuery.isError',
         },
@@ -40,7 +40,7 @@ export default {
       name: "l'historique ne compte plus",
       edits: [
         {
-          file: 'src/features/client/hooks/useClientSessions.ts',
+          file: 'src/features/client/common/useClientSessions.ts',
           from: 'hasNothingToShow(programQuery) || hasNothingToShow(historyQuery)',
           to: 'hasNothingToShow(programQuery)',
         },
@@ -51,7 +51,7 @@ export default {
       name: 'la garde de « Séance introuvable » retirée',
       edits: [
         {
-          file: 'src/features/client/hooks/useClientSessions.ts',
+          file: 'src/features/client/common/useClientSessions.ts',
           from: 'if (isProgramKnown && !isLoading && sessionId && !activeSession) {',
           to: 'if (!isLoading && sessionId && !activeSession) {',
         },
@@ -148,7 +148,7 @@ export default {
       name: "l'accueil vide perd son personnage",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '            mood="sleep"\n',
           to: '',
         },
@@ -204,7 +204,7 @@ export default {
       name: "l'historique vide perd son bouton",
       edits: [
         {
-          file: 'src/features/client/pages/History.tsx',
+          file: 'src/features/client/progress/History.tsx',
           from: 'onClick={() => navigate(CLIENT_ROUTES.program)}',
           to: 'onClick={() => {}}',
         },

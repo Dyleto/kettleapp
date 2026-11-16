@@ -12,11 +12,7 @@
  * séances le même jour.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  buildWeekPlan,
-  getSessionForToday,
-  hasSuggestedDays,
-} from '@/domain/week/plan';
+import { buildWeekPlan, getSessionForToday, hasSuggestedDays } from './plan';
 import { makeCompleted, makeSession } from '@/domain/fixtures';
 import { dayKey } from '@/domain/week/dates';
 

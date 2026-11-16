@@ -6,7 +6,7 @@ export default {
       name: 'la prochaine séance a le fond des autres',
       edits: [
         {
-          file: 'src/features/client/pages/Program.tsx',
+          file: 'src/features/client/program/Program.tsx',
           from: "    bg={isNext ? 'bg.surface' : undefined}",
           to: '    bg={undefined}',
         },
@@ -17,7 +17,7 @@ export default {
       name: 'une séance faite redevient « Jamais faite »',
       edits: [
         {
-          file: 'src/features/client/pages/Program.tsx',
+          file: 'src/features/client/program/Program.tsx',
           from: '          {matchLabel(match)}',
           to: "          {match.state === 'done' ? 'Jamais faite' : matchLabel(match)}",
         },

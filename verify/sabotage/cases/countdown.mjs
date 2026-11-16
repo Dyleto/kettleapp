@@ -6,7 +6,7 @@ export default {
       name: 'le repos attend une touche pour partir',
       edits: [
         {
-          file: 'src/features/client/components/scene/RestHero.tsx',
+          file: 'src/features/client/guided/scene/RestHero.tsx',
           from: '  const { remaining, extend } = useCountdown(duration, {\n    frozen,',
           to: '  const { remaining, extend } = useCountdown(duration, {\n    autoStart: false,\n    frozen,',
         },
@@ -18,7 +18,7 @@ export default {
       stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "          if (step.type === 'round') setArmedBlock(step.block.order);\n",
           to: '',
         },
@@ -33,7 +33,7 @@ export default {
       stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
-          file: 'src/features/client/components/scene/TimedBlock.tsx',
+          file: 'src/features/client/guided/scene/TimedBlock.tsx',
           from: '  const [running, setRunning] = useState(armed);',
           to: '  const [running, setRunning] = useState(true);',
         },

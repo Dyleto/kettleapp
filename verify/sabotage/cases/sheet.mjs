@@ -6,7 +6,7 @@ export default {
       name: 'la dose repasse derrière le nom',
       edits: [
         {
-          file: 'src/features/client/components/detail/BlockDetailCard.tsx',
+          file: 'src/features/client/sheet/BlockDetailCard.tsx',
           from: '                minW="74px"',
           to: '                minW="74px"\n                order={2}',
         },
@@ -39,7 +39,7 @@ export default {
       name: "l'icône d'information sur toutes les lignes",
       edits: [
         {
-          file: 'src/features/client/components/detail/BlockDetailCard.tsx',
+          file: 'src/features/client/sheet/BlockDetailCard.tsx',
           from: '            {hasInstructions(entry) && (',
           to: '            {true && (',
         },
@@ -65,7 +65,7 @@ export default {
       name: "le dessin du Tabata n'alterne pas",
       edits: [
         {
-          file: 'src/features/client/components/detail/BlockRhythm.tsx',
+          file: 'src/features/client/sheet/BlockRhythm.tsx',
           from: '          {alternates && (',
           to: '          {false && (',
         },
@@ -87,7 +87,7 @@ export default {
       name: "le pied n'est plus collé en bas",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '        position="fixed"\n        left={0}',
           to: '        position="static"\n        left={0}',
         },
@@ -98,7 +98,7 @@ export default {
       name: 'le record ne monte pas dans la feuille',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '          record={records.get(instruction.exercise._id)}',
           to: '          record={undefined}',
         },
@@ -110,7 +110,7 @@ export default {
       note: "Cascade attendue : la feuille restée ouverte recouvre la ligne suivante, qu'on ne peut donc pas toucher.",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '          onClose={() => setInstruction(null)}',
           to: '          onClose={() => {}}',
         },
@@ -124,7 +124,7 @@ export default {
       name: 'un mouvement sans consigne ouvre une feuille muette',
       edits: [
         {
-          file: 'src/features/client/components/detail/InstructionSheet.tsx',
+          file: 'src/features/client/sheet/InstructionSheet.tsx',
           from: '      {!note && !description && !video && !lastLine && (',
           to: '      {false && (',
         },
@@ -135,7 +135,7 @@ export default {
       name: 'une séance commencée dit encore « Démarrer »',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "          {started ? 'Reprendre' : 'Démarrer'}",
           to: "          {'Démarrer'}",
         },
@@ -146,7 +146,7 @@ export default {
       name: "la feuille ne propose pas aujourd'hui",
       edits: [
         {
-          file: 'src/features/client/components/detail/DeclareSheet.tsx',
+          file: 'src/features/client/sheet/DeclareSheet.tsx',
           from: '  const [date, setDate] = useState(today);',
           to: "  const [date, setDate] = useState('2026-11-01');",
         },
@@ -157,7 +157,7 @@ export default {
       name: '« Annuler » ne referme pas la feuille',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '          onClose={() => setDeclaring(false)}',
           to: '          onClose={() => {}}',
         },
@@ -168,7 +168,7 @@ export default {
       name: '« Continuer » saute les charges',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "            setFlow('record');",
           to: "            setFlow('review');",
         },
@@ -180,7 +180,7 @@ export default {
       note: "Cascade attendue : la date n'arrive pas au ressenti, elle ne part donc pas.",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '          date={declaredDate}',
           to: '          date={undefined}',
         },
@@ -194,7 +194,7 @@ export default {
       name: 'le ressenti garde la date mais la laisse repliée',
       edits: [
         {
-          file: 'src/features/client/components/end/Feeling.tsx',
+          file: 'src/features/client/end/Feeling.tsx',
           from: '    () => !!date && date !== toDateInputValue(new Date())',
           to: '    () => false',
         },
@@ -206,7 +206,7 @@ export default {
       note: "Cascade attendue : sans « Aujourd'hui » sur le lien, il n'y a rien à toucher pour y revenir.",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: "      state: { from: 'today' },",
           to: '      state: null,',
         },
@@ -220,7 +220,7 @@ export default {
       name: 'sur grand écran, le résumé passe à gauche',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: 'lg: \'"blocks head"\' }}',
           to: 'lg: \'"head blocks"\' }}',
         },
@@ -231,7 +231,7 @@ export default {
       name: 'sur grand écran, le pied du téléphone reste',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "        display={{ base: 'block', lg: 'none' }}\n        position=\"fixed\"",
           to: '        display="block"\n        position="fixed"',
         },

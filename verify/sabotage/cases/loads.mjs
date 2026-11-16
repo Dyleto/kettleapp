@@ -6,7 +6,7 @@ export default {
       name: 'un toucher ne note rien',
       edits: [
         {
-          file: 'src/features/client/components/end/Loads.tsx',
+          file: 'src/features/client/end/Loads.tsx',
           from: '    if (proposed !== undefined) onSets(withWeight(noted, index, proposed));',
           to: '',
         },
@@ -21,7 +21,7 @@ export default {
       note: 'La correction partait de la charge notée au toucher : sans elle, « un kilo de plus » part de rien.',
       edits: [
         {
-          file: 'src/features/client/components/end/Loads.tsx',
+          file: 'src/features/client/end/Loads.tsx',
           from: '            <SetChip key={index} disabled label={setName(row, index)}>',
           to: '            <SetChip key={index} label={setName(row, index)}>',
         },
@@ -34,7 +34,7 @@ export default {
       name: '« Même charge » ne recopie rien',
       edits: [
         {
-          file: 'src/features/client/loadEntry.ts',
+          file: 'src/features/client/end/loadEntry.ts',
           from: '  if (weight === undefined) return [...sets];',
           to: '  if (weight !== null) return [...sets];',
         },
@@ -45,7 +45,7 @@ export default {
       name: 'la corde à sauter réclame une charge',
       edits: [
         {
-          file: 'src/features/client/components/end/Loads.tsx',
+          file: 'src/features/client/end/Loads.tsx',
           from: '      !row.exercise.duration ||',
           to: '      true ||',
         },
@@ -56,7 +56,7 @@ export default {
       name: "« OK » mène au ressenti au lieu de l'écran de fin",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "          onDone={() => setFlow('celebrate')}",
           to: "          onDone={() => setFlow('review')}",
         },
@@ -67,7 +67,7 @@ export default {
       name: '« Continuer » ramène à la séance',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "          onDone={() => setFlow('review')}\n          onBack={() => setFlow('idle')}",
           to: "          onDone={() => setFlow('idle')}\n          onBack={() => setFlow('idle')}",
         },

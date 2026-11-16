@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  EFFORT_LEVELS,
-  getEffortLevel,
-  getEffortSummary,
-} from '@/domain/history/effort';
+import { EFFORT_LEVELS, getEffortLevel, getEffortSummary } from './effort';
 import { makeCompleted } from '@/domain/fixtures';
 
 describe("l'échelle de ressenti", () => {

@@ -6,7 +6,7 @@ export default {
       name: '« Palier fait » ne coche rien',
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '    const keys = rungSets(sets, rung).map((set) => set.key);',
           to: '    const keys: string[] = [];',
         },

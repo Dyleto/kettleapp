@@ -43,20 +43,20 @@ const TemplateDetails = React.lazy(
 );
 
 const ClientLayout = React.lazy(
-  () => import('@/features/client/pages/ClientLayout')
+  () => import('@/features/client/shell/ClientLayout')
 );
 const ClientProgramBoundary = React.lazy(
-  () => import('@/features/client/pages/ClientProgramBoundary')
+  () => import('@/features/client/shell/ClientProgramBoundary')
 );
-const Today = React.lazy(() => import('@/features/client/pages/Today'));
-const Program = React.lazy(() => import('@/features/client/pages/Program'));
+const Today = React.lazy(() => import('@/features/client/home/Today'));
+const Program = React.lazy(() => import('@/features/client/program/Program'));
 const SessionScreen = React.lazy(
-  () => import('@/features/client/pages/SessionScreen')
+  () => import('@/features/client/sheet/SessionScreen')
 );
 const SessionRedirect = React.lazy(
-  () => import('@/features/client/pages/SessionRedirect')
+  () => import('@/features/client/sheet/SessionRedirect')
 );
-const History = React.lazy(() => import('@/features/client/pages/History'));
+const History = React.lazy(() => import('@/features/client/progress/History'));
 
 // Le même écran des deux côtés : un compte peut porter les deux rôles, et
 // il n'a pas à changer d'espace pour se relire.

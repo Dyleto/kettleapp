@@ -6,7 +6,7 @@ export default {
       name: "l'horloge ignore la pause",
       edits: [
         {
-          file: 'src/features/client/components/guided/Timer.tsx',
+          file: 'src/features/client/guided/Timer.tsx',
           from: '    frozen,\n',
           to: '',
         },
@@ -22,7 +22,7 @@ export default {
       name: "le dégel ne recule pas l'échéance",
       edits: [
         {
-          file: 'src/features/client/useCountdown.ts',
+          file: 'src/features/client/guided/useCountdown.ts',
           from: '      endAtRef.current = thawedDeadline(\n        endAtRef.current,\n        frozenAtRef.current,\n        Date.now()\n      );',
           to: '      endAtRef.current = endAtRef.current + 0;',
         },
@@ -33,7 +33,7 @@ export default {
       name: 'la reprise saute le décompte',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '      setResuming(true);\n      return;\n',
           to: '',
         },
@@ -49,7 +49,7 @@ export default {
       note: "Sans décompte, l'horloge repart trois secondes plus tôt : le temps mesuré depuis la reprise l'accuse aussi.",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '  useBackDismiss(sceneActive && !showPause, () => setShowPause(true));\n',
           to: '',
         },
@@ -67,7 +67,7 @@ export default {
       note: "Le retour quitte alors la séance : Échap n'a plus de scène où rouvrir.",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '      setShowPause((open) => !open);',
           to: '      setShowPause(false);',
         },
@@ -78,7 +78,7 @@ export default {
       name: 'toucher le fond ne reprend plus',
       edits: [
         {
-          file: 'src/features/client/components/scene/PauseSheet.tsx',
+          file: 'src/features/client/guided/scene/PauseSheet.tsx',
           from: '<Sheet label="Pause" onDismiss={onResume}>',
           to: '<Sheet label="Pause">',
         },
@@ -89,7 +89,7 @@ export default {
       name: 'la pause compte en étapes',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '      : positionLabel(\n          session,',
           to: '      : `Étape ${index + 1} sur ${steps.length}` || positionLabel(\n          session,',
         },
@@ -103,7 +103,7 @@ export default {
       name: '« Reprendre » perd son emphase',
       edits: [
         {
-          file: 'src/features/client/components/scene/PauseSheet.tsx',
+          file: 'src/features/client/guided/scene/PauseSheet.tsx',
           from: '      <ActionButton w="full" onClick={onResume}>',
           to: '      <ActionButton tone="ghost" w="full" onClick={onResume}>',
         },
@@ -114,7 +114,7 @@ export default {
       name: '« Passer ce bloc » ne change pas de bloc',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '                  goTo(nextBlockIndex);\n',
           to: '',
         },
@@ -125,7 +125,7 @@ export default {
       name: 'le dernier bloc propose quand même de le passer',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: 'nextBlockIndex === -1\n                ? undefined',
           to: 'false\n                ? undefined',
         },
@@ -136,7 +136,7 @@ export default {
       name: '« Terminer maintenant » ne termine plus',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '              setShowPause(false);\n              onFinish();',
           to: '              setShowPause(false);',
         },
@@ -148,7 +148,7 @@ export default {
       stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
-          file: 'src/features/client/components/scene/TimedBlock.tsx',
+          file: 'src/features/client/guided/scene/TimedBlock.tsx',
           from: '      frozenAtRef.current = Date.now();\n    };',
           to: '    };',
         },
@@ -160,7 +160,7 @@ export default {
       stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
-          file: 'src/features/client/components/scene/TimedBlock.tsx',
+          file: 'src/features/client/guided/scene/TimedBlock.tsx',
           from: '  const ticking = running && !paused;',
           to: '  const ticking = running;',
         },

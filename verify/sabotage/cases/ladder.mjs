@@ -6,7 +6,7 @@ export default {
       name: "« Palier fait » ne coche qu'un mouvement",
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '    const keys = rungSets(sets, rung).map((set) => set.key);',
           to: '    const keys = rungSets(sets, rung).map((set) => set.key).slice(0, 1);',
         },
@@ -30,7 +30,7 @@ export default {
       note: "Le geste central : chaque palier reste à moitié fait, l'échelle ne monte plus, et tout ce qui suit tombe avec lui.",
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '    if (step.block.restBetweenRounds) setRest({ rung: rung + 1, bonus: 0 });',
           to: '',
         },
@@ -41,7 +41,7 @@ export default {
       name: 'toucher une marche ne fait rien',
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '          onPick={waiting ? undefined : goToRung}',
           to: '          onPick={undefined}',
         },
@@ -57,7 +57,7 @@ export default {
       note: 'Les deux suivantes partaient de la marche touchée.',
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '      } else if (!isLastBlock) {',
           to: '      } else {',
         },
@@ -70,7 +70,7 @@ export default {
       name: "le chrono ne bouge pas à l'écran",
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '      setReading(next);\n',
           to: '',
         },
@@ -81,7 +81,7 @@ export default {
       name: 'à zéro, aucune feuille',
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: "        setEnding({ kind: 'timeUp', seconds: limit ?? 0 });",
           to: '',
         },
@@ -97,7 +97,7 @@ export default {
       name: 'le palier choisi compte comme fait',
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '        onClick={() => onConfirm({ rungs: rung - 1, seconds })}',
           to: '        onClick={() => onConfirm({ rungs: rung, seconds })}',
         },
@@ -111,7 +111,7 @@ export default {
       name: "pas de « J'arrête là »",
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: '                {limit && running && (',
           to: '                {false && running && (',
         },
@@ -125,7 +125,7 @@ export default {
       name: "l'échelle bouclée ouvre la feuille d'arrêt",
       edits: [
         {
-          file: 'src/features/client/components/scene/LadderBlock.tsx',
+          file: 'src/features/client/guided/scene/LadderBlock.tsx',
           from: "        setEnding({ kind: 'complete', seconds: elapsedSeconds() });",
           to: "        setEnding({ kind: 'stopped', seconds: elapsedSeconds() });",
         },
@@ -140,7 +140,7 @@ export default {
       name: "le décompte de l'ouverture n'arme pas l'échelle",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "            (step.block.type === 'ladder' && step.block.durationMinutes)",
           to: '            false',
         },
@@ -151,7 +151,7 @@ export default {
       name: "le bilan n'envoie pas l'échelle",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '            toLadderDone(readProgress(activeSession._id)?.ladder)',
           to: '            []',
         },
@@ -162,7 +162,7 @@ export default {
       name: "l'enregistrement ne relit pas l'échelle",
       edits: [
         {
-          file: 'src/features/client/sessionProgress.ts',
+          file: 'src/features/client/guided/sessionProgress.ts',
           from: '      ladder: readLadder(stored.ladder),',
           to: '      ladder: {},',
         },

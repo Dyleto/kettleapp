@@ -14,11 +14,7 @@
  * seconde près.
  */
 import { describe, expect, it } from 'vitest';
-import {
-  matchLabel,
-  matchSession,
-  sessionDose,
-} from '@/domain/history/sessionMatch';
+import { matchLabel, matchSession, sessionDose } from './sessionMatch';
 import {
   makeCompleted,
   makeBlock,

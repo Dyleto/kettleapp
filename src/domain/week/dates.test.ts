@@ -23,7 +23,7 @@ import {
   WEEKDAY_FULL,
   WEEKDAY_LETTERS,
   WEEKDAY_SHORT,
-} from '@/domain/week/dates';
+} from './dates';
 
 describe('la clé d’un jour', () => {
   it('complète le mois et le jour sur deux chiffres', () => {

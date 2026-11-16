@@ -6,7 +6,7 @@ export default {
       name: "la première fois n'est pas reconnue",
       edits: [
         {
-          file: 'src/features/client/home.ts',
+          file: 'src/features/client/home/focus.ts',
           from: "  if (history.length === 0) return { kind: 'first', session: nextSession };\n",
           to: '',
         },
@@ -17,7 +17,7 @@ export default {
       name: 'la semaine pleine ne passe pas devant',
       edits: [
         {
-          file: 'src/features/client/home.ts',
+          file: 'src/features/client/home/focus.ts',
           from: "  if (target > 0 && doneInWeek(history, today) >= target)\n    return { kind: 'full' };\n",
           to: '',
         },
@@ -29,7 +29,7 @@ export default {
       note: "Cascade attendue : « La faire aujourd'hui » n'existe que sur la carte du repos, et sans elle il n'y a rien à toucher.",
       edits: [
         {
-          file: 'src/features/client/home.ts',
+          file: 'src/features/client/home/focus.ts',
           from: '  const later = laterThisWeek(sessions, today);',
           to: '  const later = undefined as ReturnType<typeof laterThisWeek>;',
         },
@@ -43,7 +43,7 @@ export default {
       name: "aujourd'hui ne compte jamais parmi les jours qui restent",
       edits: [
         {
-          file: 'src/features/client/home.ts',
+          file: 'src/features/client/home/focus.ts',
           from: '    .filter((d) => d > now || (d === now && !doneToday))',
           to: '    .filter((d) => d > now)',
         },
@@ -54,7 +54,7 @@ export default {
       name: "le jour d'aujourd'hui n'est pas entouré",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '      today: day.key === today,',
           to: '      today: false,',
         },
@@ -68,7 +68,7 @@ export default {
       name: 'un anneau même sans jour conseillé',
       edits: [
         {
-          file: 'src/features/client/components/home/WeekCard.tsx',
+          file: 'src/features/client/home/WeekCard.tsx',
           from: '      {target > 0 && (',
           to: '      {target >= 0 && (',
         },
@@ -79,7 +79,7 @@ export default {
       name: "la suite s'annonce dès zéro",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '      {streak >= 2 && (',
           to: '      {streak >= 0 && (',
         },
@@ -90,7 +90,7 @@ export default {
       name: 'la pastille de la suite ne mène nulle part',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '          onClick={() => navigate(CLIENT_ROUTES.history)}',
           to: '          onClick={() => {}}',
         },
@@ -101,7 +101,7 @@ export default {
       name: '« Démarrer » mène à la fiche',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: "      state: { guided: 'start', from: 'today' },",
           to: '      state: null,',
         },
@@ -112,7 +112,7 @@ export default {
       name: "la demande de démarrer reste dans l'historique",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '      navigate(location.pathname, { replace: true, state: null });',
           to: '      void 0;',
         },
@@ -123,7 +123,7 @@ export default {
       name: "la bulle d'un jour fait ne s'ouvre pas",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '            onOpen: () => openCompleted(done),',
           to: '            onOpen: () => {},',
         },
@@ -135,7 +135,7 @@ export default {
       stale: 'le motif correspond 0 fois dans Today.tsx',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '        onOpen={() => openSheet(focus.session)}',
           to: '        onOpen={() => startGuided(focus.session)}',
         },
@@ -146,7 +146,7 @@ export default {
       name: "le coach qui n'a pas lu ne se dit pas",
       edits: [
         {
-          file: 'src/features/client/components/home/LastSessionCard.tsx',
+          file: 'src/features/client/home/LastSessionCard.tsx',
           from: "            {!completed.viewedByCoach &&\n              `${coach.opening} ne l'a pas encore lue.`}",
           to: '            {null}',
         },
@@ -157,7 +157,7 @@ export default {
       name: 'le mot du coach ne monte pas sur la carte',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '      note={session.notes?.trim() || undefined}',
           to: '      note={undefined}',
         },
@@ -168,7 +168,7 @@ export default {
       name: 'le prénom ne salue pas',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: "  const greeting = firstName ? `Salut ${firstName}` : 'Salut';",
           to: "  const greeting = 'Salut';",
         },
@@ -180,7 +180,7 @@ export default {
       note: "Cascade attendue : sans la carte, rien de ce qu'elle porte ne se lit ni ne se touche.",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '  const main = resumeCard ? (',
           to: '  const main = false ? (',
         },
@@ -199,7 +199,7 @@ export default {
       name: '« Reprendre » repose la question',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "          resumeSaved={guidedEntry === 'resume'}",
           to: '          resumeSaved={false}',
         },
@@ -212,7 +212,7 @@ export default {
       name: 'la séance modifiée se reprend quand même',
       edits: [
         {
-          file: 'src/features/client/unfinished.ts',
+          file: 'src/features/client/home/unfinished.ts',
           from: '    changed: new Date(session.updatedAt).getTime() > since,',
           to: '    changed: false,',
         },
@@ -223,7 +223,7 @@ export default {
       name: "recommencer n'efface rien",
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '    restartProgress(session._id);\n',
           to: '',
         },
@@ -234,7 +234,7 @@ export default {
       name: 'recommencer sans demander',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '      onLink={() => setConfirmRestart(true)}',
           to: '      onLink={() => restartGuided(unfinished.session)}',
         },
@@ -245,7 +245,7 @@ export default {
       name: 'depuis quand ne se dit pas',
       edits: [
         {
-          file: 'src/features/client/pages/Today.tsx',
+          file: 'src/features/client/home/Today.tsx',
           from: '        unfinished.startedAt !== undefined\n',
           to: '        unfinished.startedAt === -1\n',
         },
@@ -256,7 +256,7 @@ export default {
       name: 'les tours passés ne comptent pas',
       edits: [
         {
-          file: 'src/features/client/unfinished.ts',
+          file: 'src/features/client/home/unfinished.ts',
           from: '      if (index < at) count.done += 1;',
           to: '      if (index < 0) count.done += 1;',
         },

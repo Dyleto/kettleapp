@@ -1,6 +1,6 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { CompletedSession } from '@/shared/types';
-import { getRelativeDate } from '@/features/client';
+import { getRelativeDate } from '@/domain/week/dates';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/domain/history/effort';
 import { formatPerformed } from '@/domain/history/performedFormat';
 import { EffortTrend } from './EffortTrend';

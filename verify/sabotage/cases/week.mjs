@@ -7,7 +7,7 @@ export default {
       note: "Cascade attendue : sans l'écran, rien de ce qu'il dit ne se lit. Restent vertes « pas de suite à annoncer », qui constate une absence, et le retour à l'accueil, où l'envoi saboté mène déjà.",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "                  setFlow('week');",
           to: '                  navigate(CLIENT_ROUTES.today);',
         },
@@ -25,7 +25,7 @@ export default {
       name: 'la séance envoyée ne compte pas dans la semaine',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '      after: doneInWeek(withThis),',
           to: '      after: doneInWeek(history),',
         },
@@ -40,7 +40,7 @@ export default {
       name: "le jour de la séance n'est pas coché",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '      doneDays: daysDone(withThis),',
           to: '      doneDays: daysDone(history),',
         },
@@ -51,7 +51,7 @@ export default {
       name: "la suite ignore la semaine qu'on vient de remplir",
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '      streak: weekStreak(withThis, target),',
           to: '      streak: weekStreak(history, target),',
         },
@@ -62,7 +62,7 @@ export default {
       name: "la suite s'annonce dès zéro",
       edits: [
         {
-          file: 'src/features/client/components/end/Week.tsx',
+          file: 'src/features/client/end/Week.tsx',
           from: '        {streak >= 2 && (',
           to: '        {streak >= 0 && (',
         },
@@ -73,7 +73,7 @@ export default {
       name: "une semaine pleine n'est dite qu'au-delà",
       edits: [
         {
-          file: 'src/features/client/components/end/Week.tsx',
+          file: 'src/features/client/end/Week.tsx',
           from: '  const full = target > 0 && after >= target;',
           to: '  const full = target > 0 && after > target;',
         },
@@ -84,7 +84,7 @@ export default {
       name: '« Terminer » ne mène nulle part',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '        <Week {...week} onFinish={() => navigate(CLIENT_ROUTES.today)} />',
           to: '        <Week {...week} onFinish={() => {}} />',
         },

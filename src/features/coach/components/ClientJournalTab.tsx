@@ -6,11 +6,9 @@ import { EmptyState } from '@/kit';
 import {
   CompletedSessionDrawer,
   SessionCalendarFilter,
-  dayKey,
-  formatDayLabel,
-  getEffortSummary,
-  getRelativeDate,
 } from '@/features/client';
+import { dayKey, formatDayLabel, getRelativeDate } from '@/domain/week/dates';
+import { getEffortSummary } from '@/domain/history/effort';
 import {
   Box,
   Grid,

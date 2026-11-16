@@ -7,7 +7,7 @@ export default {
       stale: 'le motif correspond 0 fois dans SessionScreen.tsx',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '              () => setSendFailed(true)',
           to: '              () => {}',
         },
@@ -22,7 +22,7 @@ export default {
       name: "un visage est choisi d'avance",
       edits: [
         {
-          file: 'src/features/client/components/end/Feeling.tsx',
+          file: 'src/features/client/end/Feeling.tsx',
           from: '  const [effort, setEffort] = useState<number | undefined>(undefined);',
           to: '  const [effort, setEffort] = useState<number | undefined>(3);',
         },
@@ -33,7 +33,7 @@ export default {
       name: "le bouton ne dit pas qu'on réessaie",
       edits: [
         {
-          file: 'src/features/client/components/end/Feeling.tsx',
+          file: 'src/features/client/end/Feeling.tsx',
           from: "          {failed ? 'Réessayer' : `Envoyer à ${coach.inline}`}",
           to: '          {failed ? `Envoyer à ${coach.inline}` : `Envoyer à ${coach.inline}`}',
         },
@@ -44,7 +44,7 @@ export default {
       name: 'la croix ne referme rien',
       edits: [
         {
-          file: 'src/features/client/components/end/Feeling.tsx',
+          file: 'src/features/client/end/Feeling.tsx',
           from: '          onClick={onClose}',
           to: '          onClick={() => {}}',
         },
@@ -55,7 +55,7 @@ export default {
       name: "le ressenti ne prend pas tout l'écran",
       edits: [
         {
-          file: 'src/features/client/components/end/Feeling.tsx',
+          file: 'src/features/client/end/Feeling.tsx',
           from: '      position="fixed"\n      inset={0}\n      zIndex={50}',
           to: '      position="fixed"\n      inset="0 0 auto 0"\n      h="90%"\n      zIndex={50}',
         },

@@ -8,7 +8,7 @@ export default {
         "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '              if (!running) return;\n',
           to: '',
         },
@@ -29,7 +29,7 @@ export default {
         "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '              if (heldRef.current) {\n                heldRef.current = false;\n                return;\n              }\n',
           to: '',
         },
@@ -46,7 +46,7 @@ export default {
       name: "l'objectif du coach n'est pas lu",
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '  const target = roundTarget(step.block.notes);',
           to: '  const target = roundTarget(undefined);',
         },
@@ -60,7 +60,7 @@ export default {
       name: 'la puce ne bouge pas',
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '      previousRef.current = next;\n      setReading(next);',
           to: '      previousRef.current = next;',
         },
@@ -76,7 +76,7 @@ export default {
       note: 'Le chrono qui monte passe par la même lecture : il reste figé lui aussi.',
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: 'const hot = running && !!duration && reading.seconds <= 3;',
           to: 'const hot = running && !!duration && reading.seconds <= 0;',
         },
@@ -89,7 +89,7 @@ export default {
         "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '        clock.stop();\n        setEnding(true);\n        return;',
           to: '        clock.stop();\n        return;',
         },
@@ -108,7 +108,7 @@ export default {
         "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '        clock.stop();\n        setEnding(true);\n        return;',
           to: '        clock.stop();\n        onDone();\n        return;',
         },
@@ -136,7 +136,7 @@ export default {
       name: 'sans durée, pas de « Terminer le bloc »',
       edits: [
         {
-          file: 'src/features/client/components/scene/AmrapBlock.tsx',
+          file: 'src/features/client/guided/scene/AmrapBlock.tsx',
           from: '            {!duration && running && (',
           to: '            {false && running && (',
         },
@@ -151,7 +151,7 @@ export default {
       stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "          if (step.type === 'round' || isLoop)",
           to: "          if (step.type === 'round')",
         },

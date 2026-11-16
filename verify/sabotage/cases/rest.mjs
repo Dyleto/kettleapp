@@ -6,7 +6,7 @@ export default {
       name: "« + 15 s » n'ajoute rien",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: 'setRest({ ...rest, bonus: rest.bonus + 15 })',
           to: 'setRest({ ...rest, bonus: rest.bonus + 0 })',
         },
@@ -17,7 +17,7 @@ export default {
       name: "la carte n'applique pas le rallongement",
       edits: [
         {
-          file: 'src/features/client/components/scene/RestHero.tsx',
+          file: 'src/features/client/guided/scene/RestHero.tsx',
           from: '    if (more > 0) extend(more);\n',
           to: '',
         },
@@ -28,7 +28,7 @@ export default {
       name: 'la charge suivante ne se règle plus pendant le repos',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '                  {current && showLoad && (',
           to: '                  {current && false && (',
         },
@@ -42,7 +42,7 @@ export default {
       name: 'le repos ne finit plus de lui-même',
       edits: [
         {
-          file: 'src/features/client/components/scene/RestHero.tsx',
+          file: 'src/features/client/guided/scene/RestHero.tsx',
           from: "      playCue('go');\n      onDone();",
           to: "      playCue('go');",
         },
@@ -56,7 +56,7 @@ export default {
       name: 'ce qui vient perd sa charge',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '                          currentLoad !== undefined\n',
           to: '                          false\n',
         },
@@ -68,7 +68,7 @@ export default {
       stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "          {step.type === 'block' && step.shape === 'list' && rest ? (",
           to: "          {step.type === 'block' && step.shape === 'list' && rest && false ? (",
         },
@@ -84,7 +84,7 @@ export default {
       name: "la carte repousse la liste hors de l'écran",
       edits: [
         {
-          file: 'src/features/client/components/scene/RestHero.tsx',
+          file: 'src/features/client/guided/scene/RestHero.tsx',
           from: '      borderRadius="card"\n      p={4}',
           to: '      borderRadius="card"\n      p={4}\n      minH="900px"',
         },
@@ -95,7 +95,7 @@ export default {
       name: "un repos est inventé là où rien n'est prescrit",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '    if (current.restAfter) {\n      setRest({ afterKey: current.key, duration: current.restAfter, bonus: 0 });',
           to: '    if (true) {\n      setRest({ afterKey: current.key, duration: current.restAfter ?? 30, bonus: 0 });',
         },

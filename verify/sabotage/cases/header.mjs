@@ -20,7 +20,7 @@ export default {
       name: "le compteur d'écrans revient",
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '            </HStack>\n            <Box\n              display="none"\n              flexShrink={0}\n              mt={-1}',
           to: '            </HStack>\n            <Text fontSize="xs">{index + 1} / {steps.length}</Text>\n            <Box\n              display="none"\n              flexShrink={0}\n              mt={-1}',
         },
@@ -31,7 +31,7 @@ export default {
       name: 'le rang du bloc ne suit plus',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '                Bloc {segmentIndex + 1} sur {segments.length}',
           to: '                Bloc 1 sur {segments.length}',
         },
@@ -57,7 +57,7 @@ export default {
       name: 'un repos prend le nom de son format',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '  const currentTitle = titledStep\n    ? blockTitle(titledStep.block)\n    : step.blockLabel;',
           to: "  const currentTitle =\n    step.type === 'rest' || !titledStep\n      ? step.blockLabel\n      : blockTitle(titledStep.block);",
         },
@@ -68,7 +68,7 @@ export default {
       name: 'le bloc en cours ne se remplit plus',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: '                    : sets.length > 0\n                      ? doneInBlock / sets.length',
           to: '                    : sets.length > 0\n                      ? 0',
         },
@@ -79,7 +79,7 @@ export default {
       name: 'un bloc fini reste ambre',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: "                          : isDone\n                            ? 'session.rest'\n                            : 'app.primary'",
           to: "                          : 'app.primary'",
         },
@@ -90,7 +90,7 @@ export default {
       name: 'la barre se lit de nouveau en étapes',
       edits: [
         {
-          file: 'src/features/client/components/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedSession.tsx',
           from: 'aria-valuetext={`${position} — ${step.blockLabel}`}',
           to: 'aria-valuetext={`Étape ${index + 1} sur ${steps.length} — ${step.blockLabel}`}',
         },

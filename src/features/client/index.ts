@@ -1,35 +1,25 @@
-export { SessionHistoryCard } from './components/SessionHistoryCard';
-export { CompletedSessionDrawer } from './components/CompletedSessionDrawer';
-export { EffortScale } from './components/EffortScale';
-export { FeedbackTags } from './components/FeedbackTags';
-export { PerformedFields } from './components/PerformedFields';
-export { SessionCalendar } from './components/SessionCalendar';
-export { SessionCalendarFilter } from './components/SessionCalendarFilter';
-export { SuggestedDays } from './components/SuggestedDays';
-export { ExerciseProgressions } from './components/ExerciseProgressions';
-export { dayKey, formatDayLabel } from '@/domain/week/dates';
-export {
-  useCompleteSession,
-  useUpdateCompletedSession,
-} from './hooks/useCompleteSession';
-export { useClientSessions } from './hooks/useClientSessions';
-export { ClientTabBar } from './components/ClientTabBar';
-export { GuidedSession } from './components/GuidedSession';
-export { ClientNavRail } from './components/ClientNavRail';
-export { CLIENT_CONTENT_MAX_W, CLIENT_GRID_MAX_W } from './constants';
-export { getRelativeDate } from '@/domain/week/dates';
-export {
-  getSessionSummary,
-  getSessionBlockTypes,
-  getCompletedSessionBlockTypes,
-} from '@/domain/session/measure';
-export { getEffortSummary } from '@/domain/history/effort';
-export { buildGuidedSteps } from './guidedSteps';
-export type { GuidedStep } from './guidedSteps';
-export {
-  buildLastPerformanceIndex,
-  formatLastPerformance,
-  performedKey,
-} from '@/domain/history/lastPerformance';
-export type { LastPerformance } from '@/domain/history/lastPerformance';
-export { lifetimeTotal } from './counts';
+/**
+ * Ce que l'espace client prête aux autres : rien de plus.
+ *
+ * Il réexportait trente-cinq noms, dont onze venaient de `domain/` et que le
+ * coach allait chercher ici — l'espace client servait de passage vers une
+ * logique qui n'était pas la sienne. Le coach lit `domain/` directement, et
+ * l'espace client se lit lui-même par ses tranches.
+ *
+ * Le coach montre l'historique d'un client tel que le client le voit : la
+ * carte, le tiroir et le filtre du calendrier sont les mêmes pièces. Le
+ * compte règle le son des séances.
+ *
+ * Le dossier se lit par écran, parce que c'est par écran qu'on cherche :
+ * `home` (Aujourd'hui), `program`, `sheet` (la fiche d'une séance), `guided`
+ * (la séance guidée), `end` (de « Séance terminée » au ressenti), `progress`
+ * (Progrès). Autour : `shell`, la disposition et la porte qui charge le
+ * programme ; `common`, les données et la voix du coach, que tous lisent ;
+ * `sound`, en attendant de rejoindre les vibrations dans `shared`. Il
+ * alignait vingt et un modules et vingt tests à plat, et deux dossiers
+ * `guided`.
+ */
+export { SessionHistoryCard } from './progress/SessionHistoryCard';
+export { CompletedSessionDrawer } from './progress/CompletedSessionDrawer';
+export { SessionCalendarFilter } from './progress/SessionCalendarFilter';
+export { SoundSetting } from './sound/SoundSetting';

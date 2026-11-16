@@ -6,7 +6,7 @@ export default {
       name: 'la fin ne nomme plus la séance',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: '          title={sessionName(activeSession)}',
           to: '          title="Séance"',
         },
@@ -53,7 +53,7 @@ export default {
       name: 'une séance arrêtée passe pour terminée',
       edits: [
         {
-          file: 'src/features/client/components/end/Celebration.tsx',
+          file: 'src/features/client/end/Celebration.tsx',
           from: '  const partial = recap.setsTotal > 0 && recap.setsDone < recap.setsTotal;',
           to: '  const partial = recap.setsTotal < 0;',
         },
@@ -68,7 +68,7 @@ export default {
       name: 'pas de confettis',
       edits: [
         {
-          file: 'src/features/client/components/end/Celebration.tsx',
+          file: 'src/features/client/end/Celebration.tsx',
           from: '      {!partial && (',
           to: '      {false && !partial && (',
         },
@@ -79,7 +79,7 @@ export default {
       name: 'les tours bouclés ne sont jamais une tuile',
       edits: [
         {
-          file: 'src/features/client/components/end/Celebration.tsx',
+          file: 'src/features/client/end/Celebration.tsx',
           from: ') : recap.rounds > 0 ? (',
           to: ') : recap.rounds < 0 ? (',
         },
@@ -93,7 +93,7 @@ export default {
       stale: 'le motif correspond 0 fois dans SessionScreen.tsx',
       edits: [
         {
-          file: 'src/features/client/pages/SessionScreen.tsx',
+          file: 'src/features/client/sheet/SessionScreen.tsx',
           from: "        onContinue={() => setFlow('celebrate')}",
           to: "        onContinue={() => setFlow('review')}",
         },
