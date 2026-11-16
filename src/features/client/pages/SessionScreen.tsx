@@ -58,6 +58,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { hitArea } from '@/shared/components/hitArea';
 import { sessionTitle } from '@/features/program/sessionTitle';
+import { CoachSays } from '@/features/client/components/CoachSays';
 
 // Ce qui a été réalisé se saisit exercice par exercice pendant la séance,
 // puis part d'un coup avec le bilan. La clé est « rang du bloc : rang de
@@ -111,6 +112,7 @@ const SessionScreen = () => {
     isSubmitting,
     lastPerformance,
     history,
+    coach,
   } = useOutletContext<ClientSessionsData>();
   const location = useLocation();
   // « Démarrer » sur l'accueil arrive ici avec `guided: 'start'` : la séance
@@ -266,7 +268,7 @@ const SessionScreen = () => {
         <EmptyState
           mood="sleep"
           title="Ton programme arrive"
-          line="Ton coach prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici."
+          line={`${coach.opening} prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici.`}
         />
       </Container>
     );
@@ -282,7 +284,7 @@ const SessionScreen = () => {
           mood="oops"
           headingLevel="h1"
           title="Cette séance n'existe plus"
-          line="Ton coach l'a peut-être retirée de ton programme."
+          line={`${coach.opening} l'a peut-être retirée de ton programme.`}
           action={
             <ActionButton
               tone="ghost"
@@ -335,9 +337,7 @@ const SessionScreen = () => {
       </HStack>
       {note && (
         <Box bg="bg.surface" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
-          <Text fontSize="xs" color="fg.muted" mb={1}>
-            Ton coach te dit&nbsp;:
-          </Text>
+          <CoachSays />
           <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
             {note}
           </Text>

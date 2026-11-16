@@ -322,5 +322,45 @@ const browser = await launch();
   await ctx.close();
 }
 
+{
+  console.log('\n── le coach se nomme par son prénom, quand il n’y en a qu’un');
+  // Une semaine sans rien de fait, pour que l'accueil montre toujours la
+  // dernière séance et sa mention « ne l'a pas encore lue ».
+  const { program } = await (await fetch(`${API}/api/client/program`)).json();
+  const lastLine = async (coaches) => {
+    const ctx = await browser.newContext(MOBILE);
+    if (coaches)
+      await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
+        r.fulfill({ json: { program, coaches } })
+      );
+    const p = await signIn(ctx);
+    await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
+    const card = p.getByRole('region', { name: 'Ta dernière séance' });
+    await card.waitFor({ timeout: 8000 }).catch(() => {});
+    const text = clean(await card.innerText().catch(() => ''));
+    await ctx.close();
+    return text;
+  };
+
+  const one = await lastLine();
+  ok(
+    'un seul coach : « Julie ne l’a pas encore lue »',
+    /Julie ne l'a pas encore lue/.test(one),
+    one.split('\n').slice(-1)[0]
+  );
+  const two = await lastLine([{ firstName: 'Julie' }, { firstName: 'Marc' }]);
+  ok(
+    'deux coachs : « ton coach », plutôt qu’en nommer un au hasard',
+    /Ton coach ne l'a pas encore lue/.test(two) && !/Julie|Marc/.test(two),
+    two.split('\n').slice(-1)[0]
+  );
+  const nameless = await lastLine([{ firstName: '' }]);
+  ok(
+    'un coach sans prénom : « ton coach »',
+    /Ton coach ne l'a pas encore lue/.test(nameless),
+    nameless.split('\n').slice(-1)[0]
+  );
+}
+
 await browser.close();
 process.exit(failureCount() > 0 ? 1 : 0);

@@ -21,6 +21,7 @@ import {
   MOBILE,
   clean,
   API,
+  COACHES,
 } from './common.mjs';
 
 const TEAL = 'rgb(63, 168, 160)';
@@ -184,7 +185,10 @@ const browser = await launch();
   const ctx = await browser.newContext(MOBILE);
   await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
     r.fulfill({
-      json: { program: { ...program, sessions: [...program.sessions, twin] } },
+      json: {
+        program: { ...program, sessions: [...program.sessions, twin] },
+        coaches: COACHES,
+      },
     })
   );
   const p = await signIn(ctx);

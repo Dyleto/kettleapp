@@ -409,9 +409,9 @@ for (const [name, vp] of [
   );
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
   await p.waitForTimeout(800);
-  const submit = await buttonBox(p, '^Envoyer à ton coach$');
+  const submit = await buttonBox(p, '^Envoyer à Julie$');
   ok(
-    "« Envoyer à ton coach » reste entier et dans l'écran",
+    "« Envoyer à Julie » reste entier et dans l'écran",
     submit && submit.belowFold === 0 && submit.aboveFold === 0,
     submit ? `de ${submit.top} à ${submit.bottom} sur 390` : '(introuvable)'
   );

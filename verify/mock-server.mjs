@@ -563,8 +563,13 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/auth/me') return sendJson(res, 200, { user: USER });
   if (pathname === '/api/auth/logout') return sendJson(res, 200, {});
 
+  // Le coach du client voyage avec son programme : c'est par là que ses
+  // écrans apprennent son prénom. Le même que dans le compte, plus bas.
   if (pathname === '/api/client/program')
-    return sendJson(res, 200, { program: program() });
+    return sendJson(res, 200, {
+      program: program(),
+      coaches: [{ firstName: 'Julie' }],
+    });
   if (pathname === '/api/client/history')
     return sendJson(res, 200, { history: HISTORY });
 

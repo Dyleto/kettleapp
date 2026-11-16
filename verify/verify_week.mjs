@@ -44,7 +44,7 @@ const sendSess3 = async (p) => {
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
   await p.waitForTimeout(800);
   await p.getByRole('radio', { name: /Juste/ }).click();
-  await p.getByRole('button', { name: 'Envoyer à ton coach' }).click();
+  await p.getByRole('button', { name: 'Envoyer à Julie' }).click();
   await p.waitForTimeout(2500);
 };
 

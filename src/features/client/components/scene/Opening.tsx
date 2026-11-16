@@ -13,6 +13,7 @@ import {
   openingEyebrow,
   openingTitle,
 } from '../../guided/outline';
+import { CoachSays } from '../CoachSays';
 
 /** Une pastille de repère : la durée, le nombre de blocs, d'exercices. */
 const Chip = ({
@@ -154,9 +155,7 @@ export const Opening = ({ session, onStart, onClose }: OpeningProps) => {
             px="14px"
             py={3}
           >
-            <Text fontSize="xs" color="fg.muted" mb={1}>
-              Ton coach te dit&nbsp;:
-            </Text>
+            <CoachSays />
             <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
               {note}
             </Text>

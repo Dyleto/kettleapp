@@ -54,7 +54,7 @@ const finishSess3 = async (p) => {
   await p.waitForTimeout(800);
 };
 
-const SEND = /^(Envoyer à ton coach|Réessayer)$/;
+const SEND = /^(Envoyer à Julie|Réessayer)$/;
 
 /** L'écran du ressenti : sa place, et la hauteur de ce qui y défile. */
 const measure = (p) =>
@@ -76,7 +76,7 @@ const measure = (p) =>
 const sendBox = (p) =>
   p.evaluate(() => {
     const el = [...document.querySelectorAll('button')].find((e) =>
-      /^(Envoyer à ton coach|Réessayer)$/.test(e.innerText.trim())
+      /^(Envoyer à Julie|Réessayer)$/.test(e.innerText.trim())
     );
     if (!el) return null;
     const r = el.getBoundingClientRect();
@@ -108,7 +108,7 @@ const progressKept = (p) =>
   );
   const send = await sendBox(p);
   ok(
-    "« Envoyer à ton coach » est entier et dans l'écran",
+    "« Envoyer à Julie » est entier et dans l'écran",
     send && send.belowFold === 0 && send.aboveFold === 0,
     JSON.stringify(send)
   );

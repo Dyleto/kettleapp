@@ -8,6 +8,7 @@ import {
   type LastPerformance,
 } from '../../lastPerformance';
 import { HomeChip } from '../home/HomeCards';
+import { CoachSays } from '../CoachSays';
 
 /**
  * La consigne d'un exercice, en feuille basse sur la fiche.
@@ -49,9 +50,7 @@ export const InstructionSheet = ({
       </Text>
       {note && (
         <Box bg="bg.raised" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
-          <Text fontSize="xs" color="fg.muted" mb={1}>
-            Ton coach te dit&nbsp;:
-          </Text>
+          <CoachSays />
           <Text fontSize="15px" whiteSpace="pre-wrap">
             {note}
           </Text>

@@ -81,7 +81,7 @@ const Today = () => {
   useDocumentTitle('Aujourd’hui');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { sessions, nextSession, history, isLoading } =
+  const { sessions, nextSession, history, isLoading, coach } =
     useOutletContext<ClientSessionsData>();
   const [opened, setOpened] = useState<CompletedSession | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -178,7 +178,7 @@ const Today = () => {
           <EmptyState
             mood="sleep"
             title="Ton programme arrive"
-            line="Ton coach prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici."
+            line={`${coach.opening} prépare tes séances. Tu n'as rien à faire : elles apparaîtront ici.`}
           />
         </VStack>
       </Container>
@@ -186,7 +186,7 @@ const Today = () => {
   }
 
   const today = dayKey(new Date());
-  const words = weekWords({ sessions, history, streak });
+  const words = weekWords({ sessions, history, streak, coach: coach.opening });
   const days: WeekBubble[] = buildWeekPlan(sessions, history).map((day) => {
     const name = `${capitalized(WEEKDAY_FULL[day.index])} ${day.date.getDate()}`;
     const done = day.done[0];
@@ -340,7 +340,7 @@ const Today = () => {
           </Text>
           <Text color="fg.muted">
             {unfinished.changed
-              ? 'Ton coach a modifié cette séance depuis que tu l’as commencée. '
+              ? `${coach.opening} a modifié cette séance depuis que tu l’as commencée. `
               : ''}
             Tu perdras ce que tu as coché. Tes charges notées restent.
           </Text>

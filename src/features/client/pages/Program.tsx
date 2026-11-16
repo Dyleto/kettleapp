@@ -96,7 +96,7 @@ const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
 const Program = () => {
   useDocumentTitle('Programme');
   const navigate = useNavigate();
-  const { sessions, nextSession, history } =
+  const { sessions, nextSession, history, coach } =
     useOutletContext<ClientSessionsData>();
 
   // Un passage sur l'historique par séance : la comparaison parcourt les
@@ -122,7 +122,7 @@ const Program = () => {
           <EmptyState
             mood="sleep"
             title="Ton programme arrive"
-            line="Ton coach prépare tes séances. Elles apparaîtront ici, dans l'ordre où les faire."
+            line={`${coach.opening} prépare tes séances. Elles apparaîtront ici, dans l'ordre où les faire.`}
           />
         ) : (
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={3}>

@@ -24,6 +24,7 @@ import { LANDSCAPE } from '../guided/media';
 import { Countdown } from './Countdown';
 import { RestHero } from './RestHero';
 import { Ring } from './Ring';
+import { useCoachVoice } from '../../coach';
 
 type ListStep = Extract<GuidedStep, { type: 'block' }>;
 
@@ -606,6 +607,7 @@ const LadderEnd = ({
   count: number;
   onConfirm: (result: LadderResult) => void;
 }) => {
+  const coach = useCoachVoice();
   const [rung, setRung] = useState(initialRung);
   const [seconds, setSeconds] = useState(ending.seconds);
   const [correcting, setCorrecting] = useState(false);
@@ -710,7 +712,8 @@ const LadderEnd = ({
         {title}
       </Text>
       <Text color="fg.muted">
-        Où t’es-tu arrêté&nbsp;? Ton coach verra le palier atteint et le temps.
+        Où t’es-tu arrêté&nbsp;? {coach.opening} verra le palier atteint et le
+        temps.
       </Text>
       <Rungs
         reps={reps}

@@ -7,6 +7,7 @@ import { mondayIndex, startOfWeek, WEEKDAY_LETTERS } from '../../sessionDates';
 import { WeekBubbles } from '../WeekBubbles';
 import { countWord } from '../../weekRing';
 import { Ring } from '../scene/Ring';
+import { useCoachVoice } from '../../coach';
 
 interface WeekProps {
   /** Les séances que la semaine attend ; zéro quand rien n'est conseillé. */
@@ -44,6 +45,7 @@ export const Week = ({
   plannedDays,
   onFinish,
 }: WeekProps) => {
+  const coach = useCoachVoice();
   const [part, setPart] = useState(target > 0 ? before / target : 0);
   useEffect(() => {
     if (target === 0) return;
@@ -160,7 +162,7 @@ export const Week = ({
 
         <Box bg="bg.surface" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
           <Text fontSize="15px">
-            Ton coach verra ton ressenti, et pourra te répondre d’un mot.
+            {coach.opening} verra ton ressenti, et pourra te répondre d’un mot.
           </Text>
         </Box>
       </VStack>

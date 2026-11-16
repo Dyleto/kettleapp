@@ -2,6 +2,7 @@ import { Text, VStack } from '@chakra-ui/react';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { Mascot } from '@/shared/components/Mascot';
 import { Eyebrow, HomeCard } from './HomeCards';
+import { useCoachVoice } from '../../coach';
 
 /**
  * Un jour sans séance conseillée, quand la semaine en attend encore une.
@@ -84,20 +85,23 @@ export const FullCard = ({ onMore }: { onMore: () => void }) => (
  * savoir qu'on dira comment c'était à la fin, et que cela sert à régler la
  * suite, change la façon dont on fait la première séance.
  */
-export const HowItWorks = () => (
-  <VStack
-    as="section"
-    aria-label="Comment ça marche"
-    align="stretch"
-    gap="6px"
-    borderRadius="card"
-    p="18px"
-    boxShadow="inset 0 0 0 1.5px {colors.line}"
-  >
-    <Text fontWeight="bold">Comment ça marche</Text>
-    <Text fontSize="sm" color="fg.muted">
-      Tu suis la séance pas à pas. À la fin, tu dis comment c&rsquo;était : ton
-      coach s&rsquo;en sert pour régler la suite.
-    </Text>
-  </VStack>
-);
+export const HowItWorks = () => {
+  const coach = useCoachVoice();
+  return (
+    <VStack
+      as="section"
+      aria-label="Comment ça marche"
+      align="stretch"
+      gap="6px"
+      borderRadius="card"
+      p="18px"
+      boxShadow="inset 0 0 0 1.5px {colors.line}"
+    >
+      <Text fontWeight="bold">Comment ça marche</Text>
+      <Text fontSize="sm" color="fg.muted">
+        Tu suis la séance pas à pas. À la fin, tu dis comment c&rsquo;était :{' '}
+        {coach.inline} s&rsquo;en sert pour régler la suite.
+      </Text>
+    </VStack>
+  );
+};

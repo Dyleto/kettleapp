@@ -25,6 +25,7 @@ import {
   clean,
   launchClock,
   API,
+  COACHES,
 } from './common.mjs';
 
 const browser = await launch();
@@ -169,6 +170,7 @@ const boundedContext = async () => {
     r.fulfill({
       json: {
         program: { ...program, sessions: [...program.sessions, bounded] },
+        coaches: COACHES,
       },
     })
   );
@@ -250,7 +252,7 @@ const climb = async (p) => {
     .nth(2)
     .click()
     .catch(() => {});
-  await press(p, 'Envoyer à ton coach');
+  await press(p, 'Envoyer à Julie');
   await p.clock.runFor(2_000);
   await p.waitForTimeout(900);
   ok(
@@ -332,6 +334,7 @@ const climb = async (p) => {
     r.fulfill({
       json: {
         program: { ...program, sessions: [...program.sessions, second] },
+        coaches: COACHES,
       },
     })
   );

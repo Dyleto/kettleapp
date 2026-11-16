@@ -20,6 +20,7 @@ import {
   where,
   START,
   API,
+  COACHES,
 } from './common.mjs';
 
 const browser = await launch();
@@ -55,7 +56,7 @@ const openHome = async (date, { history, program } = {}) => {
     );
   if (program)
     await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
-      r.fulfill({ json: { program } })
+      r.fulfill({ json: { program, coaches: COACHES } })
     );
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('[pageerror]', e.message));
@@ -150,7 +151,7 @@ const lines = (text) =>
     'la dernière séance, son mot, et le coach qui ne l’a pas lue',
     /30 août · Full body A/.test(clean(h.last ?? '')) &&
       /« Dur sur la fin\. »/.test(clean(h.last ?? '')) &&
-      /Ton coach ne l'a pas encore lue/.test(h.last ?? ''),
+      /Julie ne l'a pas encore lue/.test(h.last ?? ''),
     lines(h.last).join(' | ')
   );
   ok('pas de suite de semaines à annoncer', h.streak === null, h.streak);
@@ -411,7 +412,8 @@ const lines = (text) =>
     ),
   };
   const PROGRAM_URL = /\/api\/client\/program(\?|$)/;
-  const editedRoute = (r) => r.fulfill({ json: { program: edited } });
+  const editedRoute = (r) =>
+    r.fulfill({ json: { program: edited, coaches: COACHES } });
   await ctx.route(PROGRAM_URL, editedRoute);
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
   await p.waitForTimeout(1800);

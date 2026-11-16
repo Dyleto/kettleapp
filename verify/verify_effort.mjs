@@ -116,7 +116,7 @@ const browser = await launch();
   ok(
     "  → et l'envoi attend un choix",
     await p
-      .getByRole('button', { name: /^Envoyer à ton coach$/ })
+      .getByRole('button', { name: /^Envoyer à Julie$/ })
       .isDisabled()
       .catch(() => false)
   );
@@ -149,7 +149,7 @@ const browser = await launch();
     picked
   );
 
-  await press(p, /^Envoyer à ton coach$/);
+  await press(p, /^Envoyer à Julie$/);
   await p.waitForTimeout(2200);
   ok(
     'il envoie 5, la valeur enregistrée pour « Trop dure »',

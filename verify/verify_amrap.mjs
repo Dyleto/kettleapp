@@ -21,6 +21,7 @@ import {
   launchClock,
   passBlock,
   API,
+  COACHES,
 } from './common.mjs';
 
 const browser = await launch();
@@ -228,7 +229,10 @@ const roundsOf = (p, id) =>
   const ctx = await browser.newContext(MOBILE);
   await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
     r.fulfill({
-      json: { program: { ...program, sessions: [...program.sessions, free] } },
+      json: {
+        program: { ...program, sessions: [...program.sessions, free] },
+        coaches: COACHES,
+      },
     })
   );
   const p = await signIn(ctx);

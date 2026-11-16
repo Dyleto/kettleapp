@@ -107,11 +107,14 @@ export const weekWords = ({
   sessions,
   history,
   streak,
+  coach = 'Ton coach',
   today = new Date(),
 }: {
   sessions: readonly Session[];
   history: readonly CompletedSession[];
   streak: number;
+  /** Le coach en tête de phrase : « Julie », ou « Ton coach ». */
+  coach?: string;
   today?: Date;
 }): { title: string; line: string } => {
   const target = weekTarget(sessions);
@@ -123,7 +126,7 @@ export const weekWords = ({
         done === 0
           ? 'Aucune séance cette semaine'
           : `${capitalized(countWord(done))} séance${plural(done)} cette semaine`,
-      line: "Ton coach n'a pas fixé de jours : fais-les quand tu veux.",
+      line: `${coach} n'a pas fixé de jours : fais-les quand tu veux.`,
     };
 
   const planned = [

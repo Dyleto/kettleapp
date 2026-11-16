@@ -36,6 +36,7 @@ import {
   signIn,
   MOBILE,
   clean,
+  COACHES,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -106,13 +107,19 @@ const browser = await launch();
   console.log('\n── un programme vide est une attente, pas une panne');
   const ctx = await browser.newContext(MOBILE);
   await ctx.route(PROGRAM, (r) =>
-    r.fulfill({ json: { program: { _id: 'p-empty', sessions: [] } } })
+    r.fulfill({
+      json: { program: { _id: 'p-empty', sessions: [] }, coaches: COACHES },
+    })
   );
   await ctx.route(HISTORY, (r) => r.fulfill({ json: { history: [] } }));
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
 
   ok("l'accueil annonce que le programme arrive", await appears(p, WAITING));
+  ok(
+    '  → et nomme qui le prépare',
+    await appears(p, 'Julie prépare tes séances', 3000)
+  );
   ok("  → et ne parle pas d'une panne", !(await screen(p)).includes(DOWN));
   ok(
     '  → avec le personnage endormi',

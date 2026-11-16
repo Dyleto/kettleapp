@@ -120,6 +120,16 @@ describe('weekWords', () => {
       title: 'Deux séances cette semaine',
       line: "Ton coach n'a pas fixé de jours : fais-les quand tu veux.",
     });
+    // Le coach se nomme quand on sait qui c'est.
+    expect(
+      weekWords({
+        sessions: free,
+        history: [],
+        streak: 0,
+        coach: 'Julie',
+        today: day(10),
+      }).line
+    ).toBe("Julie n'a pas fixé de jours : fais-les quand tu veux.");
   });
 
   it('les jours passés sans séance ne se nomment pas', () => {

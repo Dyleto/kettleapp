@@ -21,6 +21,7 @@ import { blockTitle } from '../../guided/outline';
 import { LANDSCAPE } from '../guided/media';
 import { Countdown } from './Countdown';
 import { ExerciseLines } from './ExerciseLines';
+import { CoachSays } from '../CoachSays';
 
 type LoopStep = Extract<GuidedStep, { type: 'block' }>;
 
@@ -237,9 +238,7 @@ export const AmrapBlock = ({
               px="14px"
               py={3}
             >
-              <Text fontSize="xs" color="fg.muted" mb={1}>
-                Ton coach te dit&nbsp;:
-              </Text>
+              <CoachSays />
               <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
                 {step.block.notes.trim()}
               </Text>

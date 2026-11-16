@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router';
 import { Container } from '@chakra-ui/react';
 import { CLIENT_CONTENT_MAX_W, useClientSessions } from '@/features/client';
+import { CoachVoiceContext } from '@/features/client/coach';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -57,7 +58,11 @@ const ClientProgramBoundary = () => {
     );
   }
 
-  return <Outlet context={clientSessions} />;
+  return (
+    <CoachVoiceContext.Provider value={clientSessions.coach}>
+      <Outlet context={clientSessions} />
+    </CoachVoiceContext.Provider>
+  );
 };
 
 export default ClientProgramBoundary;

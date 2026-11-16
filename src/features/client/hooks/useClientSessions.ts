@@ -15,6 +15,7 @@ import {
 import { buildLastPerformanceIndex } from '../lastPerformance';
 import { getSessionForToday } from '../weekPlan';
 import { forgetProgress } from '../sessionProgress';
+import { coachVoice } from '../coach';
 import { isUnavailable as hasNothingToShow } from '@/shared/utils/queryState';
 
 /**
@@ -41,6 +42,12 @@ export const useClientSessions = () => {
 
   const sessions = useMemo(
     () => programQuery.data?.sessions ?? [],
+    [programQuery.data]
+  );
+  // Comment nommer le coach : « Julie », ou « ton coach » tant qu'on ne sait
+  // pas — pendant le chargement, ou quand le client en suit plusieurs.
+  const coach = useMemo(
+    () => coachVoice(programQuery.data?.coaches),
     [programQuery.data]
   );
   const history = useMemo(
@@ -166,7 +173,7 @@ export const useClientSessions = () => {
             // rien ne disait que le bilan était parti.
             toaster.create({
               title: 'Séance enregistrée',
-              description: 'Ton coach la verra.',
+              description: `${coach.opening} la verra.`,
               type: 'success',
               // La durée par défaut tombe sous deux secondes et demie : trop
               // court pour un accusé de réception qui arrive en même temps
@@ -179,11 +186,12 @@ export const useClientSessions = () => {
         }
       );
     },
-    [activeSession, completeSession, navigate]
+    [activeSession, completeSession, navigate, coach]
   );
 
   return {
     sessions,
+    coach,
     nextSession,
     activeSession,
     isManualSelection,

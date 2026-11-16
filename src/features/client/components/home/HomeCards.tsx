@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { LuPlay } from 'react-icons/lu';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { hitArea } from '@/shared/components/hitArea';
+import { CoachSays } from '../CoachSays';
 
 /** Une carte de l'accueil : le fond, l'arrondi et l'espacement de la maquette. */
 export const HomeCard = ({
@@ -179,9 +180,7 @@ export const HeroCard = ({
         px="14px"
         py={3}
       >
-        <Text fontSize="xs" color="fg.muted" mb={1}>
-          Ton coach te dit&nbsp;:
-        </Text>
+        <CoachSays />
         <Text fontSize="15px" lineHeight="1.45" lineClamp={3}>
           {note}
         </Text>

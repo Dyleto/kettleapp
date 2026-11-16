@@ -112,8 +112,10 @@ const browser = await launch();
     screen.match(/≈ \d+ min/)?.[0] ?? '(rien)'
   );
   ok(
-    'le mot du coach ouvre la séance',
-    screen.includes('Focus qualité de mouvement')
+    'le mot du coach ouvre la séance, sous son prénom',
+    screen.includes('Focus qualité de mouvement') &&
+      /Julie te dit/.test(screen),
+    screen.match(/[^\n]*te dit[^\n]*/)?.[0] ?? '(aucune bulle)'
   );
 
   const rows = await blocks(p);
@@ -144,10 +146,7 @@ const browser = await launch();
     /(^|\n)7 exercices(\n|$)/.test(screen),
     screen.match(/\d+ exercices?/)?.[0] ?? '(rien)'
   );
-  ok(
-    "aucune bulle quand le coach n'a rien écrit",
-    !/Ton coach te dit/.test(screen)
-  );
+  ok("aucune bulle quand le coach n'a rien écrit", !/te dit\s*:/.test(screen));
   const rows = await blocks(p);
   ok(
     'les trois blocs sont annoncés dans leur ordre',

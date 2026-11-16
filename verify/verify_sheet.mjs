@@ -315,7 +315,7 @@ const sheet = (p) =>
     await feelingDate.inputValue().catch(() => '(ligne de date repliée)')
   );
   await p.getByRole('radio', { name: /Juste/ }).click();
-  await p.getByRole('button', { name: 'Envoyer à ton coach' }).click();
+  await p.getByRole('button', { name: 'Envoyer à Julie' }).click();
   await settle(p, 2500);
   ok(
     '  → et c’est elle qui part avec le bilan',

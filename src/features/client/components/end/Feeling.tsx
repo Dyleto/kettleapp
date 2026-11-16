@@ -10,6 +10,7 @@ import { DateInput } from '@/shared/components/DateInput';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { EffortScale } from '../EffortScale';
 import { FeedbackTags } from '../FeedbackTags';
+import { useCoachVoice } from '../../coach';
 
 interface FeelingProps {
   onSubmit: (
@@ -59,6 +60,7 @@ export const Feeling = ({
   onClose,
   date,
 }: FeelingProps) => {
+  const coach = useCoachVoice();
   const { user } = useAuth();
   const sharesHealth = user?.healthConsent?.granted === true;
 
@@ -131,7 +133,7 @@ export const Feeling = ({
             Alors, cette séance&nbsp;?
           </Text>
           <Text color="fg.muted">
-            Une touche. C’est ce qui permet à ton coach de régler la suite.
+            Une touche. C’est ce qui permet à {coach.inline} de régler la suite.
           </Text>
         </VStack>
 
@@ -150,8 +152,8 @@ export const Feeling = ({
             </Text>
             <FeedbackTags value={tags} onChange={setTags} />
             <AutoResizeTextarea
-              aria-label="Un mot pour ton coach"
-              placeholder="Un mot pour ton coach, si tu veux"
+              aria-label={`Un mot pour ${coach.inline}`}
+              placeholder={`Un mot pour ${coach.inline}, si tu veux`}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               border="1px solid"
@@ -234,7 +236,7 @@ export const Feeling = ({
           disabled={effort === undefined}
           loading={isSending}
         >
-          {failed ? 'Réessayer' : 'Envoyer à ton coach'}
+          {failed ? 'Réessayer' : `Envoyer à ${coach.inline}`}
         </ActionButton>
       </VStack>
     </Box>,

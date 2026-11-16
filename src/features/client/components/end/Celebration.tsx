@@ -5,6 +5,7 @@ import { LuTrophy } from 'react-icons/lu';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { Mascot } from '@/shared/components/Mascot';
 import type { Highlight, Recap } from '../../recap';
+import { useCoachVoice } from '../../coach';
 
 interface CelebrationProps {
   /** « Séance 2 · Haut du corps ». */
@@ -121,6 +122,7 @@ export const Celebration = ({
   onContinue,
   onCompleteLoads,
 }: CelebrationProps) => {
+  const coach = useCoachVoice();
   const partial = recap.setsTotal > 0 && recap.setsDone < recap.setsTotal;
   const heading = partial ? 'Séance arrêtée' : 'Séance terminée';
 
@@ -227,8 +229,8 @@ export const Celebration = ({
 
         {partial ? (
           <Card title="Ce qui est fait est fait">
-            Ton coach verra tes {recap.setsDone} séries et tours, tels quels. Tu
-            pourras refaire la séance en entier une autre fois.
+            {coach.opening} verra tes {recap.setsDone} séries et tours, tels
+            quels. Tu pourras refaire la séance en entier une autre fois.
           </Card>
         ) : highlight?.kind === 'record' ? (
           <Card title="Nouveau record" icon={<LuTrophy size={30} />}>

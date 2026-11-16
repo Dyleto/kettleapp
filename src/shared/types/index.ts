@@ -33,6 +33,7 @@ import type {
   PerformedPayload,
   PerformedSetPayload,
   ProgramPayload,
+  ClientProgramPayload,
   SessionBlockPayload,
   SessionPayload,
   TemplatePayload,
@@ -86,6 +87,9 @@ export type Session = SessionPayload;
 
 /** Le programme d'un client, du point de vue de l'écran : ses séances. */
 export type ClientProgram = Pick<ProgramPayload, 'sessions'>;
+
+/** Un coach du client, tel que ses écrans le nomment : son prénom. */
+export type ClientCoach = ClientProgramPayload['coaches'][number];
 
 /**
  * Une ligne de la liste des modèles : de quoi choisir, pas de quoi éditer.

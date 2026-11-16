@@ -2,6 +2,7 @@ import type { ReactElement } from 'react';
 import { Box, Grid, Text, VStack } from '@chakra-ui/react';
 import { useRef } from 'react';
 import { EFFORT_LEVELS, EFFORT_ZONE_COLOR, getEffortLevel } from '../constants';
+import { useCoachVoice } from '../coach';
 
 interface EffortScaleProps {
   /** `undefined` = rien de choisi. Jamais présélectionné : une valeur que
@@ -73,6 +74,7 @@ const FACES: Record<number, ReactElement> = {
  * nourrir la tendance que son coach lit.
  */
 export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
+  const coach = useCoachVoice();
   const refs = useRef<(HTMLDivElement | null)[]>([]);
   const selected = getEffortLevel(value);
 
@@ -174,7 +176,7 @@ export const EffortScale = ({ value, onChange }: EffortScaleProps) => {
           </>
         ) : (
           <Text fontSize="13px" color="fg.muted">
-            Du plus facile au plus dur, comme ton coach le lit.
+            Du plus facile au plus dur, comme {coach.inline} le lit.
           </Text>
         )}
       </VStack>

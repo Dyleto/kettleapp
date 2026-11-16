@@ -27,6 +27,7 @@ import {
   passBlock,
   timerLabel,
   API,
+  COACHES,
 } from './common.mjs';
 
 const browser = await launch();
@@ -313,7 +314,10 @@ const pauseOpen = (p) =>
   const ctx = await browser.newContext(MOBILE);
   await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
     r.fulfill({
-      json: { program: { ...program, sessions: [...program.sessions, open] } },
+      json: {
+        program: { ...program, sessions: [...program.sessions, open] },
+        coaches: COACHES,
+      },
     })
   );
   const p = await signIn(ctx);

@@ -5,6 +5,7 @@ import { getEffortSummary } from '../../format';
 import { pastDayLabel } from '../../home';
 import { openingTitle } from '../../guided/outline';
 import { HomeCard } from './HomeCards';
+import { useCoachVoice } from '../../coach';
 
 /**
  * La dernière séance faite, et où en est ce qu'on en a dit.
@@ -24,6 +25,7 @@ export const LastSessionCard = ({
   completed: CompletedSession;
   onOpen: () => void;
 }) => {
+  const coach = useCoachVoice();
   const effort = getEffortSummary(completed);
   // Le nom que le coach a donné, sinon le rang : « Dimanche · Full body A ».
   const title = openingTitle({
@@ -69,7 +71,8 @@ export const LastSessionCard = ({
           <Text fontSize="sm" color="fg.muted" mt="10px">
             {note && <>«&nbsp;{note}&nbsp;»</>}
             {note && !completed.viewedByCoach && ' · '}
-            {!completed.viewedByCoach && "Ton coach ne l'a pas encore lue."}
+            {!completed.viewedByCoach &&
+              `${coach.opening} ne l'a pas encore lue.`}
           </Text>
         )}
       </Box>

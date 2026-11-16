@@ -34,6 +34,14 @@ export const MOBILE = {
 };
 
 /**
+ * Le coach du client de démonstration, tel que `GET /api/client/program` le
+ * rend. Une suite qui compose son propre programme le joint à sa réponse :
+ * sans lui, l'écran retombe sur « ton coach », et un bouton « Envoyer à
+ * Julie » qu'on cherche n'existe pas.
+ */
+export const COACHES = [{ firstName: 'Julie' }];
+
+/**
  * Le serveur d'essai de cette suite.
  *
  * Le front de développement vise toujours `localhost:3001`. Quand le lanceur

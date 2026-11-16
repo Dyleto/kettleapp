@@ -43,7 +43,7 @@ assertions, environ 25 minutes pour le banc complet.
 | Couleurs, typographie, formes | **fait** | —                                                                                                                                                                                                                                                                                                |
 | Composants                    | partiel  | Les pièces existent mais sont dispersées : trois `Chip` différents, la bulle du coach écrite cinq fois, `HomeCard` et `Eyebrow` rangés dans l'accueil, l'ancien `Card` encore lu par quatre écrans. Pas de menu ni de bannière « Annuler » au kit.                                               |
 | Mouvement, son, vibration     | partiel  | Son : fait. Mouvement : l'appui, la feuille, les dernières secondes, les confettis et les chiffres de fin sont là ; manquent le saut d'une valeur qui change, l'entrée d'une scène, la coche qui se dessine. Vibration : seize appels directs dans sept fichiers, sans réglage ni motifs nommés. |
-| Navigation, largeurs, voix    | partiel  | Onglets du client : faits. Coach : trois entrées, pas de « À lire ». Voix : tenue et vérifiée, sauf « nommer le coach par son prénom » — le client lit partout « ton coach ».                                                                                                                    |
+| Navigation, largeurs, voix    | partiel  | Onglets du client : faits. Coach : trois entrées, pas de « À lire ». Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                                                                                                            |
 
 ### Séance guidée
 
@@ -227,7 +227,7 @@ banc actuel, inchangé, qui le prouve.
       Une route pour écrire, une pour marquer lue.
 - [ ] **D3** Fil « À lire » : les séances non lues de tous les clients, avec
       ce qui a été fait et le passage d'avant ; lue à l'unité.
-- [ ] **D4** Le prénom du coach dans le programme du client.
+- [x] **D4** Le prénom du coach dans le programme du client.
 - [ ] **D5** Étiquettes de clients : créer, renommer, supprimer, rattacher.
 - [ ] **D6** Liste des clients : séances de la semaine et cinq derniers
       ressentis par client.
@@ -303,13 +303,13 @@ banc actuel, inchangé, qui le prouve.
 
 ## 6. Écarts avec la maquette
 
-Un seul est un choix ; les deux autres attendent leur ligne du plan.
+Aucun n'est un choix : les deux qui restent attendent leur ligne du plan.
 
-- **Une série, et la liste du bloc dessous** — un choix, à confirmer. La
-  maquette montre une série par écran ; le terrain avait demandé « voir
-  toutes les infos d'un coup ». La série se lit en grand, la liste reste
-  sous elle. Suivre la maquette à la lettre voudrait dire passer la liste
-  dans une feuille, à une touche.
-- **« Ton coach » au lieu du prénom** — provisoire, jusqu'à D4.
-- **Le jour fait s'ouvre sur place**, dans un tiroir — provisoire, tant que
-  Progrès n'a pas son détail (F3).
+- **Le jour fait s'ouvre sur place**, dans un tiroir — tant que Progrès n'a
+  pas son détail (F3).
+- **La fiche dit « Reprendre », et la séance guidée demande encore** —
+  jusqu'à C1.
+
+Tranché le 16 novembre : la série en cours garde le bloc entier sous elle.
+Ce n'est plus un écart, c'est la maquette qui a changé — son chapitre
+« Séries, repos, exercices à durée » montre désormais la liste du bloc.

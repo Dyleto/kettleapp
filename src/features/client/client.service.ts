@@ -1,5 +1,6 @@
 ﻿import api from '@/shared/config/api';
 import {
+  ClientCoach,
   ClientProgram,
   CompletedSession,
   LadderDoneEntry,
@@ -46,11 +47,16 @@ export interface UpdateCompletedSessionPayload {
  * aussi petite.
  */
 export const clientService = {
-  getProgram: async (): Promise<ClientProgram> => {
-    const { data } = await api.get<{ program: ClientProgram }>(
-      '/api/client/program'
-    );
-    return data.program;
+  getProgram: async (): Promise<ClientProgram & { coaches: ClientCoach[] }> => {
+    const { data } = await api.get<{
+      program: ClientProgram;
+      coaches?: ClientCoach[];
+    }>('/api/client/program');
+    // `coaches` est facultatif ici, alors que le contrat le promet : un
+    // front déployé avant son API recevrait une réponse sans lui, et un
+    // prénom qui manque ne doit pas faire tomber tout l'espace du client —
+    // on y lit « ton coach » en attendant.
+    return { ...data.program, coaches: data.coaches ?? [] };
   },
 
   getHistory: async (): Promise<CompletedSession[]> => {
