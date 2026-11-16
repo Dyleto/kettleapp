@@ -17,9 +17,9 @@ import {
   start,
   skipRest,
   clean,
+  API,
 } from './common.mjs';
 
-const API = 'http://localhost:3001';
 const browser = await launch();
 // L'historique du décor, lu avant toute séance : le serveur de démonstration
 // garde ce que la première partie envoie, et l'historique composé de la

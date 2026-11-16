@@ -33,10 +33,48 @@ export const MOBILE = {
   hasTouch: true,
 };
 
-/** Ouvre un navigateur, en laissant Playwright trouver le sien quand on n'a
- * rien à lui dire. */
-export const launch = () =>
-  chromium.launch(CHROME ? { executablePath: CHROME } : {});
+/**
+ * Le serveur d'essai de cette suite.
+ *
+ * Le front de développement vise toujours `localhost:3001`. Quand le lanceur
+ * fait tourner plusieurs suites à la fois, chacune reçoit son propre serveur
+ * sur son propre port — sans quoi l'état de l'une (une séance envoyée, un
+ * exercice créé) fuirait dans l'autre. `API` est l'adresse à utiliser depuis
+ * Node ; ce qui part du navigateur est détourné par `launch`.
+ */
+export const MOCK_PORT = Number(process.env.KETTLE_MOCK_PORT ?? 3001);
+export const API = `http://localhost:${MOCK_PORT}`;
+
+/**
+ * Ouvre un navigateur, en laissant Playwright trouver le sien quand on n'a
+ * rien à lui dire.
+ *
+ * Quand la suite a son propre serveur d'essai, chaque contexte détourne vers
+ * lui ce que la page envoie à `localhost:3001`. La page n'en voit rien :
+ * même adresse, mêmes cookies. Une route posée par une suite passe devant
+ * celle-ci ; si elle laisse passer la requête, c'est par `fallback()` et non
+ * `continue()`, qui l'enverrait au port d'origine sans passer par ici.
+ */
+export const launch = async () => {
+  const browser = await chromium.launch(
+    CHROME ? { executablePath: CHROME } : {}
+  );
+  if (MOCK_PORT === 3001) return browser;
+  const newContext = browser.newContext.bind(browser);
+  browser.newContext = async (options) => {
+    const ctx = await newContext(options);
+    await ctx.route(/^http:\/\/localhost:3001\//, (route) =>
+      route.continue({
+        url: route
+          .request()
+          .url()
+          .replace('localhost:3001', `localhost:${MOCK_PORT}`),
+      })
+    );
+    return ctx;
+  };
+  return browser;
+};
 
 let failures = 0;
 /**

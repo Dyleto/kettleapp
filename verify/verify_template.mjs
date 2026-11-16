@@ -25,9 +25,16 @@
  * 8. le rail d'un modèle ne dit rien de ce qu'un client aurait fait — il
  *    écrivait « jamais faite » sous chaque séance, sur un écran sans client.
  */
-import { BASE, launch, ok, failureCount, signIn, clean } from './common.mjs';
+import {
+  BASE,
+  launch,
+  ok,
+  failureCount,
+  signIn,
+  clean,
+  API,
+} from './common.mjs';
 
-const API = 'http://localhost:3001';
 const CLIENT = '507f1f77bcf86cd799439012';
 
 /** Les modèles que le serveur d'essai porte vraiment, lus hors navigateur. */

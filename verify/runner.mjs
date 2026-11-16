@@ -1,12 +1,20 @@
 /**
- * Lance chaque suite avec un serveur d'essai neuf.
+ * Lance chaque suite avec un serveur d'essai neuf, plusieurs à la fois.
  *
  * Un serveur laissé par une exécution précédente garderait le port, le nôtre
  * échouerait en silence à s'y attacher, et chaque suite tournerait contre un
  * état déjà modifié. C'est exactement le faux échec qu'on cherche à éviter.
+ *
+ * Les suites passaient l'une après l'autre : trente suites, 14 min 23 s
+ * mesurées, sans qu'aucune ne soit anormalement longue — la pire faisait
+ * 82 s. Le temps était dans la file, pas dans une suite. Elles tournent
+ * maintenant côte à côte, chacune avec son propre serveur d'essai sur son
+ * propre port : c'est ce serveur qui porte l'état, et deux suites qui le
+ * partageraient se marcheraient dessus.
  */
 import { execSync, spawn } from 'node:child_process';
 import { readdirSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { setTimeout as wait } from 'node:timers/promises';
 
 /**
@@ -18,7 +26,13 @@ import { setTimeout as wait } from 'node:timers/promises';
  * dossier fait qu'un nouveau fichier `verify_*.mjs` est couvert dès qu'il
  * existe.
  */
-const asked = process.argv.slice(2);
+const args = process.argv.slice(2);
+const jobsFlag = args.findIndex((a) => a === '--jobs');
+const jobsAsked =
+  jobsFlag >= 0 ? Number(args[jobsFlag + 1]) : Number(process.env.KETTLE_JOBS);
+const asked = args.filter(
+  (a, i) => a !== '--jobs' && (jobsFlag < 0 || i !== jobsFlag + 1)
+);
 const suites = asked.includes('--all')
   ? readdirSync(import.meta.dirname)
       .filter((f) => /^verify_.+\.mjs$/.test(f))
@@ -26,11 +40,38 @@ const suites = asked.includes('--all')
   : asked;
 const results = [];
 
+/**
+ * Combien de suites à la fois.
+ *
+ * Un cœur de moins que la machine, quatre au plus : le serveur du front et
+ * les navigateurs se partagent les mêmes cœurs, et une machine saturée fait
+ * tomber les assertions qui attendent une durée. `--jobs 1` (ou
+ * `KETTLE_JOBS=1`) revient à la file d'avant — pour lire une sortie dans
+ * l'ordre, ou écarter le parallélisme quand une suite tombe.
+ */
+const jobs = Math.max(
+  1,
+  Math.min(
+    suites.length,
+    Number.isFinite(jobsAsked) && jobsAsked > 0
+      ? jobsAsked
+      : Math.min(4, availableParallelism() - 1)
+  )
+);
+/**
+ * Un port par file. Seule, une suite garde 3001 — celui que le front vise :
+ * rien n'est détourné, et un script de capture lancé à la main trouve le
+ * serveur où il l'attend.
+ */
+const ports = Array.from({ length: jobs }, (_, i) =>
+  jobs === 1 ? 3001 : 3101 + i
+);
+
 /** Le serveur d'essai répond-il ? Un statut, quel qu'il soit, suffit : on
  * demande s'il y a quelqu'un, pas s'il est content. */
-const ping = async () => {
+const ping = async (port) => {
   try {
-    const r = await fetch('http://localhost:3001/api/auth/me', {
+    const r = await fetch(`http://localhost:${port}/api/auth/me`, {
       redirect: 'manual',
     });
     return r.status > 0;
@@ -40,7 +81,7 @@ const ping = async () => {
 };
 
 /**
- * Libère le port 3001, en tuant s'il le faut ce qui l'occupe.
+ * Libère les ports du banc, en tuant s'il le faut ce qui les occupe.
  *
  * Un serveur laissé par une exécution précédente garderait le port, le nôtre
  * échouerait en silence à s'y attacher, et chaque suite tournerait contre un
@@ -49,9 +90,16 @@ const ping = async () => {
  * On y met fin plutôt que d'abandonner : c'est notre propre serveur, il
  * n'appartient à personne d'autre, et échouer dessus ne faisait que redemander
  * la même commande une seconde fois.
+ *
+ * Une seule fois, avant la première suite. Pendant le banc, chaque file tue
+ * le serveur qu'elle a lancé, par sa poignée : le motif ci-dessous ne
+ * distingue pas un port d'un autre, et s'en servir en cours de route tuerait
+ * les serveurs des files voisines.
  */
 const ensureFree = async () => {
-  if (!(await ping())) return;
+  const busy = async () =>
+    (await Promise.all(ports.map(ping))).some((answered) => answered);
+  if (!(await busy())) return;
   // Le motif est ancré sur toute la ligne de commande : un motif relâché se
   // reconnaît dans le shell qui l'invoque, et tue son propre appelant.
   try {
@@ -73,24 +121,37 @@ const ensureFree = async () => {
   }
   for (let i = 0; i < 20; i++) {
     await wait(300);
-    if (!(await ping())) return;
+    if (!(await busy())) return;
   }
-  throw new Error('le port 3001 reste occupé et refuse de céder');
+  throw new Error(
+    `un port du banc (${ports.join(', ')}) reste occupé et refuse de céder`
+  );
 };
 
 /** Démarre le serveur d'essai et attend qu'il réponde : le lancer sans
  * attendre ferait échouer la première requête de la suite. */
-const startMock = async () => {
-  await ensureFree();
+const startMock = async (port) => {
   const p = spawn('node', ['mock-server.mjs'], {
     cwd: import.meta.dirname,
     stdio: 'ignore',
+    env: { ...process.env, KETTLE_MOCK_PORT: String(port) },
   });
   for (let i = 0; i < 40; i++) {
     await wait(150);
-    if (await ping()) return p;
+    if (await ping(port)) return p;
   }
-  throw new Error("le serveur d'essai ne répond pas");
+  p.kill('SIGKILL');
+  throw new Error(`le serveur d'essai ne répond pas sur le port ${port}`);
+};
+
+/** Tue un serveur d'essai et attend que son port soit rendu : la suite
+ * suivante de la file le reprend aussitôt. */
+const stopMock = async (mock, port) => {
+  mock.kill('SIGKILL');
+  for (let i = 0; i < 20; i++) {
+    await wait(100);
+    if (!(await ping(port))) return;
+  }
 };
 
 /**
@@ -113,34 +174,62 @@ try {
   process.exit(2);
 }
 
-for (const suite of suites) {
-  const mock = await startMock();
+/** Lance une suite contre son serveur d'essai, et rend ce qu'elle a dit. */
+const runSuite = async (suite, port) => {
+  const suiteStart = Date.now();
+  const mock = await startMock(port);
   const out = await new Promise((resolve) => {
     let buf = '';
-    const c = spawn('node', [suite], { cwd: import.meta.dirname });
+    const c = spawn('node', [suite], {
+      cwd: import.meta.dirname,
+      env: { ...process.env, KETTLE_MOCK_PORT: String(port) },
+    });
     c.stdout.on('data', (d) => (buf += d));
     c.stderr.on('data', (d) => (buf += d));
     c.on('close', (code) => resolve({ buf, code }));
   });
-  mock.kill('SIGKILL');
-  await wait(300);
+  await stopMock(mock, port);
 
   const okCount = (out.buf.match(/^OK/gm) ?? []).length;
   const failLines = out.buf.match(/^FAIL.*$/gm) ?? [];
   const summary = `${okCount} OK · ${failLines.length} FAIL`;
-  results.push({ suite, summary, failLines, code: out.code });
-  console.log(
-    `${failLines.length === 0 && out.code === 0 ? '✓' : '✗'} ${suite.padEnd(22)} ${summary}`
-  );
-  failLines.forEach((l) => console.log('    ' + l));
+  // La durée de chaque suite, parce qu'un banc qui s'allonge ne dit pas où
+  // le temps passe : c'est la première chose à savoir pour le raccourcir,
+  // et la seule façon de voir une suite qui s'alourdit.
+  const seconds = Math.round((Date.now() - suiteStart) / 1000);
+  // Toute la sortie d'une suite d'un seul bloc : avec plusieurs files, des
+  // lignes écrites une à une s'entremêleraient avec celles des voisines.
+  const lines = [
+    `${failLines.length === 0 && out.code === 0 ? '✓' : '✗'} ${suite.padEnd(22)} ${summary.padEnd(18)} ${String(seconds).padStart(4)} s`,
+    ...failLines.map((l) => '    ' + l),
+  ];
   // Un code non nul sans une seule ligne FAIL est un plantage : la suite
   // s'est arrêtée en chemin et le résumé ne dit pas pourquoi. On le montre.
   if (out.code !== 0 && failLines.length === 0) {
-    const lines = out.buf.trimEnd().split('\n');
-    console.log(`    ─ planté (code ${out.code}), fin de la sortie :`);
-    lines.slice(-12).forEach((l) => console.log('    │ ' + l));
+    lines.push(`    ─ planté (code ${out.code}), fin de la sortie :`);
+    out.buf
+      .trimEnd()
+      .split('\n')
+      .slice(-12)
+      .forEach((l) => lines.push('    │ ' + l));
   }
-}
+  console.log(lines.join('\n'));
+  return { suite, summary, failLines, code: out.code, seconds };
+};
+
+const benchStart = Date.now();
+if (suites.length > 0) await ensureFree();
+// Une file par port : chacune prend la suite suivante dès qu'elle a fini la
+// sienne. Les plus longues d'abord quand on les connaît ne changerait rien
+// d'utile ici — trente suites de durées voisines se répartissent seules.
+const queue = [...suites];
+await Promise.all(
+  ports.map(async (port) => {
+    for (let suite = queue.shift(); suite; suite = queue.shift()) {
+      results.push(await runSuite(suite, port));
+    }
+  })
+);
 
 // Lancer le lanceur sans nommer de suite ne lance rien du tout, et annoncer
 // « tout est vert » pour zéro suite est le seul résultat auquel il ne faut
@@ -163,5 +252,10 @@ const red =
   bad.length === 1
     ? 'Une suite est en échec.'
     : `${bad.length} suites sont en échec.`;
-console.log('\n' + (bad.length === 0 ? green : red));
+const total = Math.round((Date.now() - benchStart) / 1000);
+console.log(
+  '\n' +
+    (bad.length === 0 ? green : red) +
+    ` ${Math.floor(total / 60)} min ${total % 60} s.`
+);
 process.exit(bad.length ? 1 : 0);

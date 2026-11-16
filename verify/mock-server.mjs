@@ -816,6 +816,10 @@ const server = http.createServer(async (req, res) => {
   return sendJson(res, 200, {});
 });
 
-server.listen(3001, () =>
-  console.log("serveur d'essai sur http://localhost:3001")
+// Le port vient de l'environnement quand le lanceur fait tourner plusieurs
+// suites à la fois : chacune a son serveur, donc son état. 3001 sinon, celui
+// que le front de développement vise.
+const PORT = Number(process.env.KETTLE_MOCK_PORT ?? 3001);
+server.listen(PORT, () =>
+  console.log(`serveur d'essai sur http://localhost:${PORT}`)
 );

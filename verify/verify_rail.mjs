@@ -13,7 +13,15 @@
  * réordonnancement pour ajouter un raccourci dont le bouton du bas tient
  * déjà lieu.
  */
-import { BASE, launch, ok, failureCount, signIn, clean } from './common.mjs';
+import {
+  BASE,
+  launch,
+  ok,
+  failureCount,
+  signIn,
+  clean,
+  API,
+} from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
 // On lit la séance 2 et on supprime la 3. Lire la 1 ne prouverait rien :
@@ -24,13 +32,13 @@ const WORKSHOP = `${BASE}/coach/clients/${CLIENT}/s/2`;
 
 /** Ce que le serveur d'essai porte vraiment comme séances. */
 const serverSessions = async () => {
-  const r = await fetch(`http://localhost:3001/api/coach/clients/${CLIENT}`);
+  const r = await fetch(`${API}/api/coach/clients/${CLIENT}`);
   const { program } = await r.json();
   return program.sessions;
 };
 
 const main = async () => {
-  await fetch('http://localhost:3001/api/mock/reset', { method: 'POST' });
+  await fetch(`${API}/api/mock/reset`, { method: 'POST' });
 
   const browser = await launch();
   const p = await signIn(await browser.newContext());

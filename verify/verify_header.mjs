@@ -20,9 +20,9 @@ import {
   start,
   MOBILE,
   clean,
+  API,
 } from './common.mjs';
 
-const API = 'http://localhost:3001';
 const TEAL = 'rgb(63, 168, 160)';
 const AMBER = 'rgb(207, 159, 63)';
 

@@ -20,9 +20,9 @@ import {
   clean,
   launchClock,
   passBlock,
+  API,
 } from './common.mjs';
 
-const API = 'http://localhost:3001';
 const browser = await launch();
 const settle = (p) => p.waitForTimeout(300);
 

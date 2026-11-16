@@ -24,6 +24,7 @@ import {
   signIn,
   clean,
   MOBILE,
+  API,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -37,12 +38,12 @@ const MOBILE_NAME = 'Swing témoin mobile';
 
 /** La bibliothèque telle que le serveur la porte, lue hors du navigateur. */
 const library = async () => {
-  const r = await fetch('http://localhost:3001/api/coach/exercises');
+  const r = await fetch(`${API}/api/coach/exercises`);
   return r.json();
 };
 
 const main = async () => {
-  await fetch('http://localhost:3001/api/mock/reset', { method: 'POST' });
+  await fetch(`${API}/api/mock/reset`, { method: 'POST' });
 
   const browser = await launch();
   const ctx = await browser.newContext();

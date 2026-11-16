@@ -26,6 +26,7 @@ import {
   launchClock,
   passBlock,
   timerLabel,
+  API,
 } from './common.mjs';
 
 const browser = await launch();
@@ -295,9 +296,7 @@ const pauseOpen = (p) =>
 // décor n'a pas de séance de cette forme : on la compose.
 {
   console.log("\n── un EMOM sans limite tourne jusqu'à ce qu'on l'arrête");
-  const { program } = await (
-    await fetch('http://localhost:3001/api/client/program')
-  ).json();
+  const { program } = await (await fetch(`${API}/api/client/program`)).json();
   const base = program.sessions.find((s) => s._id === 'sess1');
   const emomBlock = base.blocks.find((b) => b.type === 'emom');
   const amrapBlock = base.blocks.find((b) => b.type === 'amrap');

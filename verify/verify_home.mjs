@@ -19,9 +19,9 @@ import {
   skipRest,
   where,
   START,
+  API,
 } from './common.mjs';
 
-const API = 'http://localhost:3001';
 const browser = await launch();
 const { history: BASE_HISTORY } = await (
   await fetch(`${API}/api/client/history`)

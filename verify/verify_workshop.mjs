@@ -21,20 +21,28 @@
  *    périmé qu'on réenregistre devient une perte définitive, puisque le PUT
  *    remplace le programme entier.
  */
-import { BASE, launch, ok, failureCount, signIn, clean } from './common.mjs';
+import {
+  BASE,
+  launch,
+  ok,
+  failureCount,
+  signIn,
+  clean,
+  API,
+} from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
 const WORKSHOP = `${BASE}/coach/clients/${CLIENT}/s/1`;
 
 /** Ce que le serveur d'essai contient vraiment, lu hors du navigateur. */
 const serverSessions = async () => {
-  const r = await fetch(`http://localhost:3001/api/coach/clients/${CLIENT}`);
+  const r = await fetch(`${API}/api/coach/clients/${CLIENT}`);
   const { program } = await r.json();
   return program.sessions;
 };
 
 const putCount = async () => {
-  const r = await fetch('http://localhost:3001/api/mock/put-count');
+  const r = await fetch(`${API}/api/mock/put-count`);
   return (await r.json()).count;
 };
 
@@ -70,7 +78,7 @@ const rename = async (p, value) => {
 const main = async () => {
   // Le décor part à l'identique à chaque tour : les assertions portent sur
   // des noms, et hériter de l'état du tour précédent les rend illisibles.
-  await fetch('http://localhost:3001/api/mock/reset', { method: 'POST' });
+  await fetch(`${API}/api/mock/reset`, { method: 'POST' });
 
   const browser = await launch();
   const ctx = await browser.newContext();

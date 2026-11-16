@@ -31,6 +31,23 @@ node runner.mjs --all             # ce que lance `npm run verify`
 Le lanceur redémarre un serveur neuf avant chaque suite : une suite qui
 tournerait sur l'état laissé par la précédente ne prouverait rien.
 
+Il en fait tourner plusieurs à la fois — un cœur de moins que la machine,
+quatre au plus —, chacune contre son propre serveur d'essai sur son propre
+port. Trente suites l'une après l'autre prenaient 14 min 23 s ; sur trois
+files, 5 min 5 s. Chaque ligne du résultat porte la durée de sa suite : un
+banc qui s'allonge dit ainsi où.
+
+```bash
+node runner.mjs --all --jobs 1    # la file d'avant, pour lire dans l'ordre
+```
+
+Seule, une suite garde le port 3001, celui que le front vise. À plusieurs,
+`launch()` détourne vers le port de la suite ce que la page envoie à 3001 ;
+depuis Node, c'est `API` (de `common.mjs`) qui donne la bonne adresse. Une
+route posée par une suite qui laisse passer une requête le fait par
+`route.fallback()`, jamais `route.continue()` : ce dernier l'enverrait au
+port 3001 sans passer par le détour.
+
 Nommez les suites explicitement, ou passez `--all`. Sans argument, le lanceur
 ne lance rien du tout, et le dit plutôt que d'annoncer un vert qui ne couvre
 aucune assertion.

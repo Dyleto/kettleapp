@@ -25,9 +25,9 @@ import {
   signIn,
   MOBILE,
   clean,
+  API,
 } from './common.mjs';
 
-const API = 'http://localhost:3001';
 const CLIENT = '507f1f77bcf86cd799439012';
 const DESKTOP = { viewport: { width: 1280, height: 800 } };
 

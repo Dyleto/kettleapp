@@ -148,7 +148,7 @@ const progressKept = (p) =>
   await ctx.route(/\/api\/client\/sessions\/[^/]+\/complete$/, (r) =>
     refuse
       ? r.fulfill({ status: 500, json: { message: 'panne' } })
-      : r.continue()
+      : r.fallback()
   );
   const p = await signIn(ctx);
   await finishSess3(p);
