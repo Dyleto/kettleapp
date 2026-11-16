@@ -8,6 +8,10 @@ const PUBLIC_ROUTES = new Set([
   '/join',
   '/confidentialite',
   '/mentions-legales',
+  // La planche du kit, en développement : elle ne montre aucune donnée, et
+  // la regarder ne doit pas demander de se connecter. En production elle
+  // n'existe pas.
+  ...(import.meta.env.DEV ? ['/kit'] : []),
 ]);
 
 /** Une route qu'on atteint sans compte : le garde de navigation s'en sert

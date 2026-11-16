@@ -191,8 +191,9 @@ banc actuel, inchangé, qui le prouve.
       les états, les champs. Les copies disparaissent. L'ancienne carte
       devient `LegacyCard` et part avec les quatre écrans qui la lisent
       encore (F1, F3, F4). Le pas de charge reste à la séance guidée (B6).
-- [ ] **B3** Une planche du kit (`/kit`, hors production) que le banc ouvre :
-      chaque composant, chaque état.
+- [x] **B3** Une planche du kit (`/kit`, en développement seulement, sans
+      compte) que le banc ouvre : chaque pièce, chaque état ; rien ne
+      déborde, le focus est ambre, « moins d'animations » est respecté.
 - [ ] **B4** `domain/` : titre, durée, formats, doses, dessin, dernière fois,
       records, ressenti, semaine. Un seul nom pour une séance.
 - [ ] **B5** `features/client` en tranches (`home`, `program`, `sheet`,

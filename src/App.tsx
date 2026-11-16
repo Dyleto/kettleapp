@@ -67,6 +67,13 @@ const LegalNotice = React.lazy(
   () => import('@/features/legal/pages/LegalNotice')
 );
 
+// La planche du kit, en développement seulement. Le test sur
+// `import.meta.env.DEV` est résolu à la construction : en production la
+// branche disparaît, et la page avec elle — elle n'est pas dans le paquet.
+const KitBoard = import.meta.env.DEV
+  ? React.lazy(() => import('@/kit/board/KitBoard'))
+  : null;
+
 const ClientDetailsRedirect = () => {
   const { clientId } = useParams();
   return <Navigate to={COACH_ROUTES.clientSession(clientId!, 1)} replace />;
@@ -95,6 +102,7 @@ const router = createBrowserRouter(
       <Route path="auth/callback" element={<AuthCallback />} />
       <Route path="join" element={<Join />} />
       <Route path="no-role" element={<NoRole />} />
+      {KitBoard && <Route path="kit" element={<KitBoard />} />}
 
       {/* Servis par l'application, et lisibles sans compte. */}
       <Route path="confidentialite" element={<Privacy />} />
