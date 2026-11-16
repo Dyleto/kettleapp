@@ -23,6 +23,7 @@ import {
   leaveSession,
   advance,
   launchClock,
+  START,
 } from './common.mjs';
 
 const browser = await launch();
@@ -37,7 +38,7 @@ const record = (p, sess) =>
 /** Quitte la séance, y revient, et clique « Recommencer ». */
 const startOver = async (p) => {
   await leaveSession(p);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(900);
   await p.getByRole('button', { name: /Recommencer depuis le début/ }).click();
   await p.waitForTimeout(800);
@@ -185,7 +186,7 @@ const startOver = async (p) => {
   await startOver(p);
 
   await leaveSession(p);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(900);
   const panel = await p.evaluate(() => {
     const d = [...document.querySelectorAll('div')].filter(
@@ -233,7 +234,7 @@ const startOver = async (p) => {
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(900);
   const panel = await p.evaluate(() => {
     const d = [...document.querySelectorAll('div')].filter(
@@ -254,7 +255,10 @@ const startOver = async (p) => {
     (panel.match(/[^\n]*charges[^\n]*/) ?? ['(rien)'])[0]
   );
 
-  await p.getByRole('button', { name: /^Reprendre$/ }).click();
+  await p
+    .getByRole('dialog', { name: 'Reprendre où tu en étais ?' })
+    .getByRole('button', { name: 'Reprendre', exact: true })
+    .click();
   await p.waitForTimeout(800);
   // On reprend au premier exercice non coché : le troisième. Les deux
   // premiers sont derrière, cochés, avec la charge de l'ancien format.

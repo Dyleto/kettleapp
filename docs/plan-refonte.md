@@ -13,7 +13,7 @@ réalise.
 | ------------------------- | ------ | ---- | ------- | ------- |
 | Fondations                | 5      | 2    | 3       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
-| Client (hors séance)      | 6      | 1    | 3       | 2       |
+| Client (hors séance)      | 6      | 2    | 2       | 2       |
 | Coach                     | 7      | 0    | 2       | 5       |
 | Commun                    | 3      | 0    | 2       | 1       |
 | Ce que ça demande à l'API | 6      | 1    | 0       | 5       |
@@ -61,7 +61,7 @@ assertions, environ 25 minutes pour le banc complet.
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Accueil         | **fait** | Tous les cadres sauf « Réponse du coach non lue », qui attend l'API. Restent aussi « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                     |
 | Programme       | à faire  | L'ancien écran : pas de durée, pas de barre de composition, pas d'état « En cours » ni « Modifiée depuis ta dernière fois » en pastille.                                       |
-| Fiche de séance | en cours | Écrite, non livrée : cartes de bloc à doses, consigne en feuille, « Je l'ai déjà faite ». Restent le banc et les sabotages.                                                    |
+| Fiche de séance | **fait** | Reste la reprise sans question (C1) : la fiche dit « Reprendre », la séance guidée demande encore.                                                                             |
 | Progrès         | à faire  | L'ancien historique sous un nouveau nom : pas de records, des suites « 20 → 24 → 26 kg » au lieu de courbes, pas de feuille par mouvement, calendrier sans pastilles d'effort. |
 | Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                                              |
 | Premiers pas    | partiel  | La question des données de santé existe. Les trois cartes de bienvenue et le détail dépliable manquent.                                                                        |
@@ -116,8 +116,9 @@ Constaté, avec sa mesure.
    l'estimer, lire une dose, un record, un ressenti) n'a pas de lieu neutre.
 5. **Deux façons de nommer une séance** : « Séance 2 — Haut du corps » et
    « Haut du corps », selon l'écran.
-6. **Les sabotages sont hors du dépôt.** Vingt-sept fichiers de cas — 174
-   sabotages — et leur lanceur vivent dans un dossier temporaire. La règle « un vert ne vaut
+6. **Les sabotages sont hors du dépôt.** Vingt-huit fichiers de cas — 226
+   sabotages — et leur lanceur vivent dans un dossier temporaire. Vingt-trois
+   ne correspondent déjà plus au code qu'ils devaient casser. La règle « un vert ne vaut
    que si on l'a cassé » ne se vérifie donc que par moi, et se perd avec la
    session.
 7. **Le banc est lent et attend à l'aveugle** : 29 suites à la suite, 258
@@ -173,7 +174,7 @@ banc actuel, inchangé, qui le prouve.
 
 ### A. Fermer ce qui est ouvert
 
-- [ ] **A1** Fiche de séance : en-tête, cartes de bloc, consigne en feuille,
+- [x] **A1** Fiche de séance : en-tête, cartes de bloc, consigne en feuille,
       « Démarrer » / « Reprendre » collé en bas, « Je l'ai déjà faite ».
 
 ### B. Ranger
@@ -300,12 +301,15 @@ banc actuel, inchangé, qui le prouve.
       une machine en réseau, `npm run migrate:ladder` sur la base, l'API,
       puis le front.
 
-## 6. Écarts assumés avec la maquette
+## 6. Écarts avec la maquette
 
-- **Une série, et la liste du bloc dessous.** La maquette montre une série
-  par écran ; le terrain avait demandé « voir toutes les infos d'un coup ».
-  La série se lit en grand, la liste reste sous elle.
-- **Les bulles de la semaine portent le numéro du jour**, la lettre dessous.
-- **Le jour fait s'ouvre sur place**, dans un tiroir, tant que Progrès n'a
-  pas son détail (F3).
-- **« Ton coach » au lieu du prénom**, jusqu'à D4.
+Un seul est un choix ; les deux autres attendent leur ligne du plan.
+
+- **Une série, et la liste du bloc dessous** — un choix, à confirmer. La
+  maquette montre une série par écran ; le terrain avait demandé « voir
+  toutes les infos d'un coup ». La série se lit en grand, la liste reste
+  sous elle. Suivre la maquette à la lettre voudrait dire passer la liste
+  dans une feuille, à une touche.
+- **« Ton coach » au lieu du prénom** — provisoire, jusqu'à D4.
+- **Le jour fait s'ouvre sur place**, dans un tiroir — provisoire, tant que
+  Progrès n'a pas son détail (F3).

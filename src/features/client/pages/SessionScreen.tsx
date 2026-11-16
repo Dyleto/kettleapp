@@ -3,23 +3,22 @@ import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
-  Button,
   Container,
+  Grid,
   HStack,
   Skeleton,
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { LuArrowLeft } from 'react-icons/lu';
+import { LuArrowLeft, LuPlay } from 'react-icons/lu';
 import {
   CLIENT_CONTENT_MAX_W,
+  CLIENT_GRID_MAX_W,
   GuidedSession,
-  SessionDetail,
-  SuggestedDays,
-  getSessionSummary,
   useClientSessions,
 } from '@/features/client';
 import {
+  BlockExercise,
   PerformedEntry,
   PerformedValues,
   LadderDoneEntry,
@@ -32,7 +31,17 @@ import {
   readProgress,
 } from '@/features/client/sessionProgress';
 import { buildGuidedSteps } from '@/features/client/guidedSteps';
-import { buildRecap, highlightOf } from '@/features/client/recap';
+import { bestLoads, buildRecap, highlightOf } from '@/features/client/recap';
+import {
+  distinctExerciseCount,
+  estimatedMinutes,
+  openingTitle,
+} from '@/features/client/guided/outline';
+import { formatSuggestedDays } from '@/features/client/sessionDates';
+import { HomeChip } from '@/features/client/components/home/HomeCards';
+import { BlockDetailCard } from '@/features/client/components/detail/BlockDetailCard';
+import { InstructionSheet } from '@/features/client/components/detail/InstructionSheet';
+import { DeclareSheet } from '@/features/client/components/detail/DeclareSheet';
 import { Celebration } from '@/features/client/components/end/Celebration';
 import { Loads } from '@/features/client/components/end/Loads';
 import { Feeling } from '@/features/client/components/end/Feeling';
@@ -134,6 +143,18 @@ const SessionScreen = () => {
   const [flow, setFlow] = useState<
     'idle' | 'celebrate' | 'loads' | 'record' | 'review' | 'week'
   >('idle');
+  // D'où l'on vient, lu une fois : l'état de navigation est effacé dès
+  // qu'une séance guidée demandée depuis l'accueil s'est ouverte.
+  const [cameFrom] = useState(
+    () => (location.state as { from?: string } | null)?.from
+  );
+  const backLabel = cameFrom === 'today' ? "Aujourd'hui" : 'Programme';
+  /** La consigne ouverte en feuille, s'il y en a une. */
+  const [instruction, setInstruction] = useState<BlockExercise | null>(null);
+  /** La feuille « Je l'ai déjà faite ». */
+  const [declaring, setDeclaring] = useState(false);
+  /** La date que « Je l'ai déjà faite » a choisie, pour le ressenti. */
+  const [declaredDate, setDeclaredDate] = useState<string | undefined>();
   /** Le dernier envoi du ressenti n'est pas parti. */
   const [sendFailed, setSendFailed] = useState(false);
   /** La semaine telle que l'envoi l'a laissée, pour son dernier écran. */
@@ -223,6 +244,10 @@ const SessionScreen = () => {
     [activeSession]
   );
 
+  // Le record de chaque mouvement, pour la feuille de consigne : la série
+  // la plus lourde de tout l'historique, comme à la fin d'une séance.
+  const records = useMemo(() => bestLoads(history), [history]);
+
   if (isLoading) {
     return (
       <Container maxW={CLIENT_CONTENT_MAX_W} py={8} px={4}>
@@ -272,137 +297,190 @@ const SessionScreen = () => {
     );
   }
 
-  // « Séance choisie » disait « tu es arrivé ici en choisissant » — une
-  // information qui n'intéresse personne, le client sachant qu'il a cliqué.
-  // Elle prenait pourtant la place, la forme et la couleur d'un état de
-  // séance, et empêchait donc de lire ce que la séance a à dire.
-  //
-  // « À faire » est un état, pas une alerte. Le rouge dit « problème » partout
-  // ailleurs dans l'application — il reste à l'effort et à l'erreur.
-  const pillLabel = 'À faire';
-  const pillColor = 'app.primary';
-  const pillTextColor = 'app.primary';
+  // Une séance commencée sur ce téléphone : le bouton dit « Reprendre ».
+  // La séance guidée pose encore sa question en s'ouvrant d'ici — elle
+  // offre « Recommencer depuis le début », que la fiche ne porte pas.
+  const saved = readProgress(activeSession._id);
+  const started = !!saved && (saved.step > 0 || saved.done.length > 0);
   const hasExercises = activeSession.blocks.some((b) => b.exercises.length > 0);
-  const summary =
-    activeSession.blocks.length === 0
-      ? 'Aucun bloc'
-      : getSessionSummary(activeSession);
+  const blocks = [...activeSession.blocks].sort((a, b) => a.order - b.order);
+  const exerciseCount = distinctExerciseCount(activeSession);
+  const days = formatSuggestedDays(activeSession.suggestedDays);
+  const note = activeSession.notes?.trim();
+  const openGuided = () => setIsGuidedOpen(true);
+
+  const head = (
+    <VStack align="stretch" gap="14px">
+      <Text
+        as="h1"
+        fontSize="32px"
+        fontWeight="800"
+        lineHeight="1.1"
+        letterSpacing="-0.01em"
+        fontStretch="88%"
+      >
+        {openingTitle(activeSession)}
+      </Text>
+      <HStack gap="6px" wrap="wrap">
+        {hasExercises && (
+          <HomeChip tone="amber">
+            ≈&nbsp;{estimatedMinutes(activeSession)}&nbsp;min
+          </HomeChip>
+        )}
+        {days && <HomeChip>Conseillée {days}</HomeChip>}
+        <HomeChip tone="outline">
+          {blocks.length}&nbsp;bloc{blocks.length > 1 ? 's' : ''} ·{' '}
+          {exerciseCount}&nbsp;exercice{exerciseCount > 1 ? 's' : ''}
+        </HomeChip>
+      </HStack>
+      {note && (
+        <Box bg="bg.surface" borderRadius="20px 20px 20px 6px" px="14px" py={3}>
+          <Text fontSize="xs" color="fg.muted" mb={1}>
+            Ton coach te dit&nbsp;:
+          </Text>
+          <Text fontSize="15px" lineHeight="1.5" whiteSpace="pre-wrap">
+            {note}
+          </Text>
+        </Box>
+      )}
+    </VStack>
+  );
+
+  // Le pied : « Démarrer » d'abord, « Je l'ai déjà faite » en lien discret —
+  // ce n'est pas le chemin normal, et il ne se présente plus comme tel.
+  const actions = (
+    <VStack align="stretch" gap={1}>
+      {hasExercises && (
+        <ActionButton size="lg" w="full" onClick={openGuided}>
+          <LuPlay size={18} fill="currentColor" aria-hidden />
+          {started ? 'Reprendre' : 'Démarrer'}
+        </ActionButton>
+      )}
+      <Box
+        as="button"
+        alignSelf="center"
+        css={hitArea()}
+        color="fg.muted"
+        fontSize="sm"
+        fontWeight="700"
+        py={2}
+        onClick={() => setDeclaring(true)}
+        _hover={{ color: 'fg' }}
+      >
+        Je l&rsquo;ai déjà faite
+      </Box>
+    </VStack>
+  );
 
   return (
     <Container
-      maxW={CLIENT_CONTENT_MAX_W}
-      py={8}
+      maxW={{ base: CLIENT_CONTENT_MAX_W, lg: CLIENT_GRID_MAX_W }}
+      py={6}
       px={4}
-      pb={{ base: '220px', md: 8 }}
+      pb={{ base: '190px', lg: 8 }}
     >
-      <VStack align="stretch" gap={1} mb={4}>
-        {/* On repart d'où l'on vient neuf fois sur dix : l'accueil. Le
-            programme reste à un onglet. Un vrai bouton, et non un HStack
-            cliquable : il doit être atteignable au clavier. */}
-        <Box
-          as="button"
-          aria-label="Revenir à Aujourd'hui"
-          w="fit-content"
-          css={hitArea()}
-          onClick={() => navigate(CLIENT_ROUTES.today)}
-          color="fg.muted"
-          _hover={{ color: 'app.primary' }}
-          transition="color 0.15s"
+      {/* On revient d'où l'on vient : l'accueil ou le programme. Un vrai
+          bouton, atteignable au clavier. */}
+      <Box
+        as="button"
+        aria-label={`Revenir à ${backLabel}`}
+        w="fit-content"
+        mb={4}
+        css={hitArea()}
+        onClick={() =>
+          navigate(
+            cameFrom === 'today' ? CLIENT_ROUTES.today : CLIENT_ROUTES.program
+          )
+        }
+        color="fg.muted"
+        _hover={{ color: 'app.primary' }}
+        transition="color 0.15s"
+      >
+        <HStack gap={1.5}>
+          <LuArrowLeft size={14} />
+          <Text fontSize="sm" fontWeight="medium">
+            {backLabel}
+          </Text>
+        </HStack>
+      </Box>
+
+      <Grid
+        gap={4}
+        templateColumns={{ base: '1fr', lg: '1.5fr 1fr' }}
+        templateAreas={{ base: '"head" "blocks"', lg: '"blocks head"' }}
+        alignItems="start"
+      >
+        <VStack
+          gridArea="head"
+          align="stretch"
+          gap={4}
+          position={{ lg: 'sticky' }}
+          top={{ lg: 6 }}
+          bg={{ lg: 'surface.card' }}
+          borderRadius={{ lg: 'card' }}
+          p={{ lg: '18px' }}
         >
-          <HStack gap={1.5}>
-            <LuArrowLeft size={13} />
-            <Text fontSize="xs" fontWeight="medium">
-              Aujourd'hui
+          {head}
+          <Box display={{ base: 'none', lg: 'block' }}>{actions}</Box>
+        </VStack>
+        <VStack gridArea="blocks" align="stretch" gap={3}>
+          {blocks.map((block) => (
+            <BlockDetailCard
+              key={block._id ?? block.order}
+              block={block}
+              lastPerformance={lastPerformance}
+              onOpenExercise={setInstruction}
+            />
+          ))}
+          {blocks.length === 0 && (
+            <Text color="fg.muted" textAlign="center" py={6}>
+              Aucun bloc dans cette séance.
             </Text>
-          </HStack>
-        </Box>
-        <HStack justify="space-between" align="center">
-          <Text as="h1" fontSize="xl" fontWeight="bold">
-            {sessionTitle(activeSession.order, activeSession.name)}
-          </Text>
-          <Box
-            px={2}
-            py={0.5}
-            borderRadius="full"
-            bg={`${pillColor}/16`}
-            fontSize="xs"
-            fontWeight="bold"
-            color={pillTextColor}
-            textTransform="uppercase"
-            letterSpacing="wider"
-          >
-            {pillLabel}
-          </Box>
-        </HStack>
-        {/* Le rappel du jour, là où l'on décide de commencer : le
-            programme le disait, la carte non. Avec sa légende — on arrive ici
-            depuis l'accueil sans être forcément passé par le programme, et
-            deux pastilles nues se liraient « tu l'as faite lundi et jeudi ».
-            `wrap` parce qu'une séance peut en porter sept. */}
-        <HStack justify="space-between" align="center" gap={3} wrap="wrap">
-          <Text fontSize="xs" color="fg.muted">
-            {summary}
-          </Text>
-          <SuggestedDays days={activeSession.suggestedDays} withLabel />
-        </HStack>
-      </VStack>
+          )}
+        </VStack>
+      </Grid>
 
-      {/* En lecture, une séance se lit : pas de champ vide sous chaque
-          exercice avant même d'avoir commencé. La saisie vient à la fin, dans
-          « Mes charges » — mais ce qu'on a mis la dernière fois s'affiche dès
-          maintenant, parce que c'est là qu'on en a besoin. */}
-      <SessionDetail
-        session={activeSession}
-        lastPerformance={lastPerformance}
-      />
-
-      <VStack
-        align="stretch"
-        gap={2}
-        mt={5}
-        position={{ base: 'fixed', md: 'static' }}
-        // Ancré au bas de l'écran plutôt qu'à 70 px : la barre d'onglets ne
-        // fait pas exactement 70 px — cela dépend de la zone sûre du
-        // téléphone — et l'écart laissait passer un filet de page entre les
-        // deux. Le fond court maintenant derrière la barre.
-        bottom={{ base: 0, md: 'auto' }}
-        left={{ base: 0, md: 'auto' }}
-        right={{ base: 0, md: 'auto' }}
-        bg={{ base: 'bg.canvas', md: 'transparent' }}
-        p={{ base: 4, md: 0 }}
-        pb={{
-          base: 'calc(env(safe-area-inset-bottom, 0px) + 78px)',
-          md: 0,
-        }}
-        borderTop={{ base: '1px solid', md: 'none' }}
-        borderColor="whiteAlpha.100"
+      {/* Au téléphone, le pied reste collé en bas ; les blocs défilent
+          dessous. Ancré au bas de l'écran et non à la barre d'onglets, dont
+          la hauteur dépend de la zone sûre du téléphone. */}
+      <Box
+        display={{ base: 'block', lg: 'none' }}
+        position="fixed"
+        left={0}
+        right={0}
+        bottom={0}
+        bg="bg.canvas"
+        borderTop="1px solid"
+        borderColor="line"
+        px={4}
+        pt={3}
+        pb="calc(env(safe-area-inset-bottom, 0px) + 74px)"
         zIndex={20}
       >
-        {hasExercises && (
-          <Button
-            w="full"
-            bg="app.primary"
-            color="bg.canvas"
-            fontWeight="bold"
-            size="lg"
-            onClick={() => setIsGuidedOpen(true)}
-            _hover={{ bg: 'app.primary.hover' }}
-          >
-            Démarrer la séance
-          </Button>
-        )}
-        <Button
-          w="full"
-          variant="outline"
-          borderColor="whiteAlpha.200"
-          color="fg"
-          size="lg"
-          onClick={() => setFlow('record')}
-          _hover={{ bg: 'whiteAlpha.50' }}
-        >
-          J'ai terminé cette séance
-        </Button>
-      </VStack>
+        <Box maxW={CLIENT_CONTENT_MAX_W} mx="auto">
+          {actions}
+        </Box>
+      </Box>
+
+      {instruction && (
+        <InstructionSheet
+          entry={instruction}
+          last={lastPerformance?.get(instruction.exercise._id)}
+          record={records.get(instruction.exercise._id)}
+          onClose={() => setInstruction(null)}
+        />
+      )}
+
+      {declaring && (
+        <DeclareSheet
+          onClose={() => setDeclaring(false)}
+          onContinue={(date) => {
+            setDeclaring(false);
+            setDeclaredDate(date);
+            setFlow('record');
+          }}
+        />
+      )}
 
       {isGuidedOpen && (
         <GuidedSession
@@ -471,6 +549,7 @@ const SessionScreen = () => {
 
       {flow === 'review' && (
         <Feeling
+          date={declaredDate}
           isSending={isSubmitting}
           failed={sendFailed}
           onClose={() => {

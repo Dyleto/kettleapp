@@ -22,6 +22,7 @@ import {
   signIn,
   MOBILE,
   clean,
+  START,
 } from './common.mjs';
 
 const OPENING = '[role="dialog"][aria-label="Avant de commencer"]';
@@ -32,7 +33,7 @@ const open = async (p, session) => {
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(900);
 };
 
@@ -163,8 +164,7 @@ const browser = await launch();
   ok(
     'la croix revient à la fiche de séance',
     (await p.locator(OPENING).count()) === 0 &&
-      (await p.getByRole('button', { name: /Démarrer la séance/ }).count()) ===
-        1
+      (await p.getByRole('button', { name: START }).count()) === 1
   );
   ok(
     '  → sans que rien ne soit commencé',
@@ -173,7 +173,7 @@ const browser = await launch();
   );
 
   // Le décompte nomme le premier geste.
-  await press(p, /Démarrer la séance/);
+  await press(p, START);
   await p.waitForTimeout(800);
   await press(p, /C'est parti/);
   await p.waitForTimeout(300);

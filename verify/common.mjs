@@ -142,6 +142,29 @@ export const finishFromPause = async (p) => {
 };
 
 /**
+ * Le bouton de la fiche qui ouvre la séance guidée : « Démarrer », ou
+ * « Reprendre » quand elle est en cours sur l'appareil.
+ */
+export const START = /^(Démarrer|Reprendre)$/;
+
+/**
+ * « Je l'ai déjà faite » : la feuille qui demande la date, puis
+ * « Continuer ». On arrive sur « Mes charges ».
+ *
+ * Le bouton se cherche dans la feuille : « Mes charges » en porte un du
+ * même nom, et c'est celui de la feuille qu'on veut.
+ */
+export const declareDone = async (p) => {
+  await p.getByRole('button', { name: /^Je l.ai déjà faite$/ }).click();
+  await p.waitForTimeout(500);
+  await p
+    .getByRole('dialog', { name: /sans l.application/ })
+    .getByRole('button', { name: 'Continuer', exact: true })
+    .click();
+  await p.waitForTimeout(700);
+};
+
+/**
  * Ouvrir une séance et entrer en mode guidé.
  *
  * Les attentes sont des durées et non des sélecteurs : la séance charge son
@@ -153,7 +176,7 @@ export const start = async (p, sess) => {
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(800);
   // L'écran d'ouverture porte la note du coach : on le franchit pour
   // atteindre la séance elle-même.

@@ -35,6 +35,7 @@ import {
   skipRest,
   MOBILE,
   skipCountdown,
+  START,
 } from './common.mjs';
 
 const TICK = 880;
@@ -93,7 +94,7 @@ const browser = await launch();
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(800);
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 1000);
@@ -148,7 +149,7 @@ const browser = await launch();
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(800);
   await p.getByRole('button', { name: /C'est parti/ }).click();
   await p.waitForTimeout(300);

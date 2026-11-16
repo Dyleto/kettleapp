@@ -60,7 +60,7 @@ export const HomeChip = ({
   tone,
 }: {
   children: ReactNode;
-  tone?: 'amber' | 'coral' | 'outline';
+  tone?: 'amber' | 'coral' | 'teal' | 'outline';
 }) => (
   <HStack
     as="span"
@@ -73,16 +73,20 @@ export const HomeChip = ({
         ? 'app.primary.bg'
         : tone === 'coral'
           ? 'session.work/16'
-          : tone === 'outline'
-            ? 'transparent'
-            : 'bg.surface'
+          : tone === 'teal'
+            ? 'session.rest/18'
+            : tone === 'outline'
+              ? 'transparent'
+              : 'bg.surface'
     }
     color={
       tone === 'amber'
         ? 'app.primary.fg'
         : tone === 'coral'
           ? 'session.work.fg'
-          : 'fg'
+          : tone === 'teal'
+            ? 'session.rest.fg'
+            : 'fg'
     }
     boxShadow={
       tone === 'outline' ? 'inset 0 0 0 1.5px {colors.line}' : undefined

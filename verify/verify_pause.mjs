@@ -212,7 +212,9 @@ const browser = await launch();
 
   await press(p, 'Mettre la séance en pause');
   await settle(p);
-  const resume = p.getByRole('button', { name: 'Reprendre', exact: true });
+  const resume = p
+    .getByRole('dialog', { name: 'Pause' })
+    .getByRole('button', { name: 'Reprendre', exact: true });
   const resumeColor = await resume
     .evaluate((b) => getComputedStyle(b).backgroundColor)
     .catch(() => '');

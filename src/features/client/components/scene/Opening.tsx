@@ -1,15 +1,10 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuPlay, LuX } from 'react-icons/lu';
-import { Session, SessionBlock } from '@/shared/types';
-import {
-  BLOCK_ACCENT_COLOR,
-  blockSupportsRepsOnly,
-  getBlockAccent,
-} from '@/features/program/constants';
+import { Session } from '@/shared/types';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { Mascot } from '@/shared/components/Mascot';
 import { SoundToggle } from '../SoundToggle';
-import { setsOfBlock } from '../../guidedSteps';
+import { BlockRhythm } from '../detail/BlockRhythm';
 import {
   blockMarker,
   blockTitle,
@@ -41,51 +36,6 @@ const Chip = ({
     {children}
   </Box>
 );
-
-/** Au-delà, les traits deviennent trop fins pour se compter : on montre le
- * rythme, pas un inventaire. */
-const MAX_BARS = 12;
-
-/**
- * Le dessin d'un bloc : un trait par tour ou par série.
- *
- * Il dit d'un coup d'œil si le bloc est une rafale ou une longue série, ce
- * qu'un nombre seul ne montre pas. Un Tabata alterne travail et repos ; les
- * autres blocs alignent leurs efforts.
- */
-const Rhythm = ({ block }: { block: SessionBlock }) => {
-  const color = BLOCK_ACCENT_COLOR[getBlockAccent(block.type)];
-  const alternates =
-    blockSupportsRepsOnly(block.type) && (block.restDuration ?? 0) > 0;
-  const count = Math.min(
-    MAX_BARS,
-    Math.max(
-      1,
-      ['emom', 'every', 'tabata', 'onoff'].includes(block.type)
-        ? (block.rounds ?? 1)
-        : setsOfBlock(block).length
-    )
-  );
-
-  return (
-    <HStack gap="3px" h="18px" align="flex-end" aria-hidden>
-      {Array.from({ length: count }, (_, i) => (
-        <HStack key={i} gap="3px" flex={1} h="full" align="flex-end">
-          <Box flex={2} h="full" borderRadius="3px" bg={color} />
-          {alternates && (
-            <Box
-              flex={1}
-              h="55%"
-              borderRadius="3px"
-              bg="session.rest"
-              opacity={0.8}
-            />
-          )}
-        </HStack>
-      ))}
-    </HStack>
-  );
-};
 
 interface OpeningProps {
   session: Session;
@@ -229,7 +179,7 @@ export const Opening = ({ session, onStart, onClose }: OpeningProps) => {
                 <Text fontWeight="bold" lineClamp={1}>
                   {blockTitle(block)}
                 </Text>
-                <Rhythm block={block} />
+                <BlockRhythm block={block} />
               </VStack>
               {/* Sur une seule ligne, quelle que soit sa longueur : c'est le
                   dessin du bloc qui cède la place, pas le repère qui se

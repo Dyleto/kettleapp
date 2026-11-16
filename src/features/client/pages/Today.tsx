@@ -94,20 +94,24 @@ const Today = () => {
     setOpened(completed);
     setDrawerOpen(true);
   };
+  // `from` dit à la fiche d'où l'on vient : son lien de retour ramène ici,
+  // et non au programme.
   const openSheet = (session: Session) =>
-    navigate(CLIENT_ROUTES.sessionById(session._id));
+    navigate(CLIENT_ROUTES.sessionById(session._id), {
+      state: { from: 'today' },
+    });
   // Démarrer depuis l'accueil ouvre la séance guidée sur son écran
   // d'ouverture : la fiche est là-dessous, et la refermer y ramène.
   const startGuided = (session: Session) =>
     navigate(CLIENT_ROUTES.sessionById(session._id), {
-      state: { guided: 'start' },
+      state: { guided: 'start', from: 'today' },
     });
   // Reprendre mène au bloc et à la série où l'on s'était arrêté, sans
   // repasser par la question « Reprendre où tu en étais ? » : on vient d'y
   // répondre.
   const resumeGuided = (session: Session) =>
     navigate(CLIENT_ROUTES.sessionById(session._id), {
-      state: { guided: 'resume' },
+      state: { guided: 'resume', from: 'today' },
     });
   // Recommencer efface la position et ce qui est coché, puis repart de
   // l'ouverture. Les charges notées restent, comme quand on recommence

@@ -18,6 +18,7 @@ import {
   skipCountdown,
   skipRest,
   where,
+  START,
 } from './common.mjs';
 
 const API = 'http://localhost:3001';
@@ -171,8 +172,7 @@ const lines = (text) =>
   ok(
     '  → recharger la fiche ne relance pas la séance',
     (await p.getByRole('button', { name: /C'est parti/ }).count()) === 0 &&
-      (await p.getByRole('button', { name: /Démarrer la séance/ }).count()) ===
-        1
+      (await p.getByRole('button', { name: START }).count()) === 1
   );
   await ctx.close();
 }
@@ -335,7 +335,7 @@ const lines = (text) =>
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1500);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(800);
   await p.getByRole('button', { name: /C'est parti/ }).click();
   await p.waitForTimeout(300);

@@ -21,6 +21,7 @@ import {
   skipRest,
   skipCountdown,
   passBlock,
+  START,
 } from './common.mjs';
 
 const browser = await launch();
@@ -181,7 +182,7 @@ const cutWithNoRecourse = (p) =>
       waitUntil: 'domcontentloaded',
     });
     await p.waitForTimeout(1700);
-    await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+    await p.getByRole('button', { name: START }).click();
     await p.waitForTimeout(900);
     const overflow = await cutWithNoRecourse(p);
     ok(
@@ -204,7 +205,7 @@ const cutWithNoRecourse = (p) =>
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(800);
   await p
     .getByRole('button', { name: /^(C'est parti|Reprendre)$/ })
@@ -269,7 +270,7 @@ const cutWithNoRecourse = (p) =>
   await p.waitForTimeout(900);
 
   // 4. L'écran de reprise.
-  await p.getByRole('button', { name: /Démarrer la séance/ }).click();
+  await p.getByRole('button', { name: START }).click();
   await p.waitForTimeout(900);
   const resume = await cutWithNoRecourse(p);
   ok(

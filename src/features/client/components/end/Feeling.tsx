@@ -5,6 +5,7 @@ import { LuX } from 'react-icons/lu';
 import type { FeedbackTag, SessionFeedback } from '@/shared/types';
 import { ActionButton } from '@/shared/components/ActionButton';
 import { AutoResizeTextarea } from '@/shared/components/AutoResizeTextarea';
+import { dayKey } from '../../sessionDates';
 import { DateInput } from '@/shared/components/DateInput';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { EffortScale } from '../EffortScale';
@@ -22,9 +23,18 @@ interface FeelingProps {
   failed: boolean;
   /** Quitter sans envoyer : la séance reste « à valider ». */
   onClose: () => void;
+  /**
+   * La date déjà choisie dans « Je l'ai déjà faite », en `YYYY-MM-DD`. Un
+   * autre jour qu'aujourd'hui ouvre la ligne de date sur lui : on ne le
+   * redemande pas.
+   */
+  date?: string;
 }
 
-const toDateInputValue = (d: Date) => d.toISOString().slice(0, 10);
+// Le jour local, pas celui de Greenwich : `toISOString` rendait la veille
+// entre minuit et une heure du matin en France, et une séance déclarée à
+// 0 h 30 partait datée d'hier.
+const toDateInputValue = dayKey;
 
 /**
  * Le ressenti : la seule question de la fin de séance.
@@ -47,6 +57,7 @@ export const Feeling = ({
   isSending,
   failed,
   onClose,
+  date,
 }: FeelingProps) => {
   const { user } = useAuth();
   const sharesHealth = user?.healthConsent?.granted === true;
@@ -54,8 +65,12 @@ export const Feeling = ({
   const [effort, setEffort] = useState<number | undefined>(undefined);
   const [tags, setTags] = useState<FeedbackTag[]>([]);
   const [notes, setNotes] = useState('');
-  const [completedAt, setCompletedAt] = useState(toDateInputValue(new Date()));
-  const [isDateOpen, setIsDateOpen] = useState(false);
+  const [completedAt, setCompletedAt] = useState(
+    () => date ?? toDateInputValue(new Date())
+  );
+  const [isDateOpen, setIsDateOpen] = useState(
+    () => !!date && date !== toDateInputValue(new Date())
+  );
 
   const submit = () => {
     if (effort === undefined || isSending) return;

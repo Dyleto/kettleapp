@@ -549,7 +549,16 @@ export const GuidedSession = ({
     const root = document.getElementById('root');
     if (!root) return;
     root.setAttribute('inert', '');
-    return () => root.removeAttribute('inert');
+    // `aria-hidden` en plus : un navigateur qui ne connaît pas `inert`
+    // (Safari avant 15.5) garderait sinon toute la page dans l'arbre
+    // d'accessibilité. Depuis que la fiche porte « Reprendre », un lecteur
+    // d'écran y aurait annoncé deux boutons du même nom — celui de la pause
+    // et celui de la fiche dessous.
+    root.setAttribute('aria-hidden', 'true');
+    return () => {
+      root.removeAttribute('inert');
+      root.removeAttribute('aria-hidden');
+    };
   }, []);
 
   // … ce qui oblige à sortir la séance elle-même de `#root`, sans quoi elle

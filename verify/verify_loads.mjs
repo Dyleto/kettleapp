@@ -21,6 +21,7 @@ import {
   finishFromPause,
   dialogs,
   clean,
+  declareDone,
 } from './common.mjs';
 
 const browser = await launch();
@@ -130,17 +131,14 @@ const chips = (p, key) =>
 
 // ── Déclarée faite sans le mode guidé ───────────────────────────────────
 {
-  console.log(
-    '\n── « J’ai terminé cette séance » : les charges, puis le ressenti'
-  );
+  console.log('\n── « Je l’ai déjà faite » : les charges, puis le ressenti');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
   await p.waitForTimeout(1700);
-  await p.getByRole('button', { name: /J'ai terminé cette séance/ }).click();
-  await settle(p);
+  await declareDone(p);
   const t = await dialogs(p);
   ok(
     'pas de question : « Mes charges » directement',
@@ -165,15 +163,14 @@ const chips = (p, key) =>
     waitUntil: 'domcontentloaded',
   });
   await q.waitForTimeout(1700);
-  await q.getByRole('button', { name: /J'ai terminé cette séance/ }).click();
-  await settle(q);
+  await declareDone(q);
   await q.getByRole('button', { name: 'Revenir à la séance' }).click();
   await settle(q);
   ok(
     'la flèche revient à la séance, sans rien envoyer',
     (await q.locator('[role="dialog"]').count()) === 0 &&
       (await q
-        .getByRole('button', { name: /J'ai terminé cette séance/ })
+        .getByRole('button', { name: /^Je l.ai déjà faite$/ })
         .count()) === 1
   );
   await ctx2.close();
