@@ -15,7 +15,7 @@ import {
   useProgramWorkshop,
   InlineText,
   ProgramSaveStatus,
-} from '@/features/program';
+} from '@/features/workshop';
 import { ClientProgramTab, SessionRail } from '@/features/coach';
 import { ActionButton, BackLink, EmptyState, LoadFailure } from '@/kit';
 import { COACH_ROUTES } from '@/shared/config/routes';

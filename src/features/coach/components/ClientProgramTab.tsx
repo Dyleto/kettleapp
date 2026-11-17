@@ -30,7 +30,7 @@ import {
   ExerciseSelectorPanel,
   InlineText,
   SuggestedDaysPicker,
-} from '@/features/program';
+} from '@/features/workshop';
 import {
   SortableContext,
   arrayMove,

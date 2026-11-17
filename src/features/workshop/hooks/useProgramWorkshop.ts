@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
-import { useProgramEditor } from '@/features/program/hooks/useProgramEditor';
+import { useProgramEditor } from '@/features/workshop/hooks/useProgramEditor';
 import {
   useProgramAutoSave,
   type SaveState,
-} from '@/features/program/hooks/useProgramAutoSave';
+} from '@/features/workshop/hooks/useProgramAutoSave';
 import { getBlockLabel } from '@/domain/session/blocks';
 import { undoable } from '@/shared/components/undoable';
 import type {

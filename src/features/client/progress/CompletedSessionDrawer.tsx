@@ -25,7 +25,7 @@ import {
   LEGACY_METRIC_LABELS,
 } from '@/domain/history/tags';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/domain/history/effort';
-import { BlockCard } from '@/features/program';
+import { BlockCard } from '@/features/workshop';
 import { AutoResizeTextarea } from '@/kit';
 import { LuPencil, LuX } from 'react-icons/lu';
 import { useState } from 'react';

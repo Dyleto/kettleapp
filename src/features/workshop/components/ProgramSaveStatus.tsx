@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, HStack, Spinner, Text } from '@chakra-ui/react';
 import { LuCheck, LuTriangleAlert } from 'react-icons/lu';
-import type { SaveState } from '@/features/program/hooks/useProgramAutoSave';
+import type { SaveState } from '@/features/workshop/hooks/useProgramAutoSave';
 import { useClaimBottomBar } from '@/shared/hooks/useBottomBar';
 
 interface Props {

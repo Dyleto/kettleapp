@@ -6,7 +6,7 @@ export default {
       name: "l'échelle n'a pas de limite à régler",
       edits: [
         {
-          file: 'src/features/program/components/BlockConfigInline.tsx',
+          file: 'src/features/workshop/components/BlockConfigInline.tsx',
           from: '              ariaLabel="Limite de temps en minutes"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
           to: '              ariaLabel="Limite de temps"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
         },
@@ -20,7 +20,7 @@ export default {
       name: "la limite saisie n'est pas enregistrée",
       edits: [
         {
-          file: 'src/features/program/components/BlockConfigInline.tsx',
+          file: 'src/features/workshop/components/BlockConfigInline.tsx',
           from: '              value={block.durationMinutes}\n              onChange={(v) => onUpdate({ durationMinutes: v })}\n              suffix="min"\n              format={inMinutes}\n              emptyLabel="sans limite"\n              ariaLabel="Limite de temps en minutes"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
           to: '              value={block.durationMinutes}\n              onChange={() => {}}\n              suffix="min"\n              format={inMinutes}\n              emptyLabel="sans limite"\n              ariaLabel="Limite de temps en minutes"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
         },

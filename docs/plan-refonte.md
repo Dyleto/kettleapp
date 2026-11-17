@@ -235,7 +235,7 @@ banc actuel, inchangé, qui le prouve.
       différé de l'atelier (`autosaved`). 4 min 23 s → 2 min 50 s,
       trois passages verts de suite. Le décor typé a trouvé deux écarts au
       contrat.
-- [ ] **B11** `features/program` devient `features/workshop`, sans rien
+- [x] **B11** `features/program` devient `features/workshop`, sans rien
       changer d'autre : le lot D le réécrit.
 - [ ] **B12** Passe complète des sabotages : réparer les cas marqués, les
       rejouer tous, corriger les assertions creuses qu'ils montrent.

@@ -21,7 +21,7 @@ import {
   InlineText,
   useUpdateProgramSessions,
   ProgramSaveStatus,
-} from '@/features/program';
+} from '@/features/workshop';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
