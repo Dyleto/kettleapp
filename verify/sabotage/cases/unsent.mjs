@@ -90,7 +90,9 @@ export default {
         '→ « Envoyer maintenant » sans réseau le dit, et garde tout',
         'au retour du réseau, il part seul, tel qu’il a été dit',
         '→ « Séance envoyée », et la carte d’attente s’en va',
-        'la requête coupée met le ressenti en attente, sans parler d’échec',
+        // La coupure en route lit le stockage brut, où le ressenti sans date
+        // est bien écrit : c'est la lecture qui l'écarte, et l'accueil qui
+        // n'a plus rien à envoyer.
         '→ « Envoyer maintenant » l’envoie, une fois',
       ],
     },
