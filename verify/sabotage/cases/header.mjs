@@ -32,11 +32,15 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '        rank={`Bloc ${segmentIndex + 1} sur ${segments.length}`}',
-          to: '        rank={`Bloc 1 sur ${segments.length}`}',
+          from: '  const rank = `Bloc ${segmentIndex + 1} sur ${segments.length}`;',
+          to: '  const rank = `Bloc 1 sur ${segments.length}`;',
         },
       ],
-      falls: ['on passe au bloc 2', 'un bloc nommé par le coach porte son nom'],
+      falls: [
+        'on passe au bloc 2',
+        'un bloc nommé par le coach porte son nom',
+        'pendant « Bloc suivant », le haut se tait',
+      ],
     },
     {
       name: 'le titre ignore le nom libre',
@@ -99,6 +103,17 @@ export default {
         'la barre se lit en blocs et en tours',
         'le repos entre deux blocs garde le nom du bloc qu’il termine',
       ],
+    },
+    {
+      name: 'le haut répète le bloc pendant « Bloc suivant »',
+      edits: [
+        {
+          file: 'src/features/client/guided/SceneShell.tsx',
+          from: "visibility={quietHeading ? 'hidden' : undefined}",
+          to: 'visibility={undefined}',
+        },
+      ],
+      falls: ['pendant « Bloc suivant », le haut se tait'],
     },
   ],
 };

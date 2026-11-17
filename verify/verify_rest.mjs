@@ -27,6 +27,7 @@ import {
   signIn,
   start,
   settle,
+  pastInterlude,
 } from './common.mjs';
 
 const CARD = '[data-rest]';
@@ -60,6 +61,7 @@ const tickOneSet = async (p) => {
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
+  await pastInterlude(p);
   await p
     .locator('[data-set-hero] input')
     .fill('26')
@@ -296,6 +298,13 @@ const withBlockRest = async (ctx, { clock = false } = {}) => {
       .catch(() => '')
   ).replace(/\n+/g, ' | ');
   ok('→ et annonce ce qui vient', card.includes(next), card);
+  // Ce repos termine un bloc : il nomme le bloc qui vient, pas seulement son
+  // premier mouvement.
+  ok(
+    '→ en nommant le bloc suivant',
+    card.includes('Bloc suivant : Renfo B'),
+    card
+  );
   await press(p, 'Quinze secondes de repos de plus');
   const longer = await restSeconds(p);
   ok(

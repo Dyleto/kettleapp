@@ -116,7 +116,7 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/session.ts',
-          from: '      return next === -1 ? closed : goTo(closed, next);',
+          from: "      return next === -1 ? closed : goTo(closed, next, 'skipped');",
           to: '      return closed;',
         },
       ],

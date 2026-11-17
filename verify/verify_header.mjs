@@ -23,6 +23,7 @@ import {
   API,
   COACHES,
   settle,
+  pastInterlude,
 } from './common.mjs';
 
 const TEAL = 'rgb(63, 168, 160)';
@@ -113,8 +114,15 @@ const browser = await launch();
 
   // Le bloc suivant : le premier segment est fait, en sarcelle.
   await press(p, /^(Fait|Série faite|Palier fait|Bloc suivant)$/);
-  await press(p, /^Bloc suivant$/);
-  await settle(p);
+  // L'écran « Bloc suivant » porte le rang et le nom en grand : le haut se
+  // tait, plutôt que de les dire deux fois l'un au-dessus de l'autre.
+  h = await header(p);
+  ok(
+    'pendant « Bloc suivant », le haut se tait',
+    h.rank === '' && h.title === '' && /BLOC 2 SUR 3/.test(clean(h.text)),
+    `${h.rank} · ${h.title}`
+  );
+  await pastInterlude(p);
   h = await header(p);
   ok('on passe au bloc 2', clean(h.rank) === 'BLOC 2 SUR 3', h.rank);
   ok(
@@ -148,6 +156,7 @@ const browser = await launch();
     .getByRole('button', { name: 'Passer ce bloc' })
     .click();
   await settle(p);
+  await pastInterlude(p);
   let h = await header(p);
   ok(
     'un bloc nommé par le coach porte son nom',

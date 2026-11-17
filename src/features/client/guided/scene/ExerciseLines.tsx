@@ -22,21 +22,28 @@ const lineDose = (exercise: BlockExercise): string => {
  * rien pendant un bloc chronométré, les mains sont prises. Avant le départ
  * elle dit d'où elle vient, « la dernière fois 20 kg » ; ensuite le chiffre
  * suffit.
+ *
+ * L'écran « Bloc suivant » s'en sert aussi, avec deux différences : la dose
+ * y compte les séries, « 4 × 10 », parce qu'on y lit tout le bloc d'un coup
+ * d'œil ; et la consigne ne s'y ouvre pas — l'écran entier enchaîne au
+ * toucher, et un nom qui ouvrirait autre chose serait un piège.
  */
 export const ExerciseLines = ({
   exercises,
   lastPerformance,
   running,
   onOpenDetail,
+  doseOf = lineDose,
 }: {
   exercises: BlockExercise[];
   lastPerformance?: Map<string, LastPerformance>;
   running: boolean;
-  onOpenDetail: (exercise: BlockExercise) => void;
+  onOpenDetail?: (exercise: BlockExercise) => void;
+  doseOf?: (exercise: BlockExercise) => string;
 }) => {
   const lines = exercises.map((exercise) => ({
     exercise,
-    dose: lineDose(exercise),
+    dose: doseOf(exercise),
   }));
   // Une colonne de doses dès qu'une ligne en porte une : les noms
   // s'alignent sur la plus large — « 1:00 » d'un rameur à côté de « 10 »
@@ -59,9 +66,10 @@ export const ExerciseLines = ({
           lastPerformance?.get(exercise.exercise._id)?.sets
         );
         const hasDetail =
-          !!exercise.note?.trim() ||
-          !!exercise.exercise.description?.trim() ||
-          !!exercise.exercise.videoUrl?.trim();
+          !!onOpenDetail &&
+          (!!exercise.note?.trim() ||
+            !!exercise.exercise.description?.trim() ||
+            !!exercise.exercise.videoUrl?.trim());
         return (
           <Fragment key={`${exercise.order}-${exercise.exercise._id}`}>
             {withDoses && (
@@ -86,7 +94,7 @@ export const ExerciseLines = ({
                   minH="44px"
                   my="-12px"
                   aria-label={`Voir la consigne — ${exercise.exercise.name}`}
-                  onClick={() => onOpenDetail(exercise)}
+                  onClick={() => onOpenDetail?.(exercise)}
                 >
                   <HStack gap={1.5}>
                     <Text fontSize="19px" fontWeight="bold">

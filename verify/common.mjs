@@ -422,10 +422,27 @@ export const skipRest = async (p) => {
 };
 
 /**
+ * L'écran « Bloc suivant », franchi d'une touche quand il est là.
+ *
+ * Il se pose trois secondes entre deux blocs, puis s'efface seul. Les
+ * suites qui traversent une séance le touchent, comme quelqu'un qui est
+ * déjà en place : attendre ses trois secondes à chaque bloc coûterait au
+ * banc sans rien éprouver. `verify_chaining` éprouve qu'il s'efface seul.
+ */
+export const pastInterlude = async (p) => {
+  const go = p.getByRole('button', { name: /^Partir tout de suite/ });
+  if (await go.count()) {
+    await go.click();
+    await settle(p);
+  }
+};
+
+/**
  * Lancer l'horloge d'un bloc chronométré : « Lancer », puis le décompte
  * franchi d'une touche.
  */
 export const launchClock = async (p) => {
+  await pastInterlude(p);
   // Absent, il n'est pas cliqué : c'est l'assertion qui juge, la suite ne
   // plante pas sur un bouton qui manque.
   const button = p.getByRole('button', { name: 'Lancer', exact: true });
@@ -457,10 +474,15 @@ export const passBlock = async (p) => {
   await settle(p);
   await p.getByRole('button', { name: 'Passer ce bloc' }).click();
   await settle(p);
+  await pastInterlude(p);
 };
 
 /**
  * Un écran plus loin, quel qu'il soit.
+ *
+ * L'écran « Bloc suivant » ne compte pas : il se franchit avec le geste qui
+ * l'a fait venir, et une suite qui compte ses pas n'a pas à savoir s'il en
+ * passe un.
  *
  * Le bouton principal quand il y en a un — une série, un repos, la fin d'un
  * bloc. Sur un bloc chronométré il n'y en a pas : la flèche « Tour suivant »,
@@ -469,12 +491,14 @@ export const passBlock = async (p) => {
  * sans avoir à savoir quel format elles franchissent.
  */
 export const advance = async (p) => {
+  await pastInterlude(p);
   const main = p.getByRole('button', {
     name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant|Passer|Terminer)$/,
   });
   if (await main.count()) {
     await main.first().click();
     await settle(p);
+    await pastInterlude(p);
     return;
   }
   const round = p.getByRole('button', { name: 'Tour suivant', exact: true });

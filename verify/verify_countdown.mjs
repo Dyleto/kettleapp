@@ -25,6 +25,7 @@ import {
   timerLabel,
   settle,
   hold,
+  pastInterlude,
 } from './common.mjs';
 
 const browser = await launch();
@@ -159,6 +160,7 @@ const goToEmom = async (p) => {
     /— Every/i.test(await where(p)),
     await where(p)
   );
+  await pastInterlude(p);
   const fresh = await clock(p);
   ok(
     '  → son horloge attend à son tour',

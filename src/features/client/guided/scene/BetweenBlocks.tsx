@@ -17,9 +17,13 @@ import { RestHero } from './RestHero';
  */
 export const BetweenBlocks = ({
   step,
+  nextBlock,
   onDone,
 }: {
   step: Extract<GuidedStep, { type: 'rest' }>;
+  /** Le nom du bloc qui vient : ce repos termine un bloc, il n'annonce pas
+   * une série. */
+  nextBlock?: string;
   onDone: () => void;
 }) => {
   // Les secondes ajoutées : ce repos n'appartient à aucune série, il garde
@@ -40,8 +44,12 @@ export const BetweenBlocks = ({
         <RestHero
           duration={step.duration}
           bonus={bonus}
-          nextTitle={step.nextExerciseName ?? ''}
-          nextDetail=""
+          nextTitle={
+            nextBlock
+              ? `Bloc suivant : ${nextBlock}`
+              : (step.nextExerciseName ?? '')
+          }
+          nextDetail={nextBlock ? (step.nextExerciseName ?? '') : ''}
           onDone={onDone}
         />
       </VStack>

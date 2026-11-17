@@ -314,6 +314,55 @@ describe('aller et venir', () => {
   });
 });
 
+describe('l’écran « Bloc suivant »', () => {
+  it('se pose quand un bloc mène droit au suivant', () => {
+    const t = run(at(3), { type: 'finishTimedBlock', blockOrder: 2 });
+    expect(t.state.interlude).toEqual({ fromBlock: 2, ending: 'finished' });
+    // L'index a déjà changé : c'est lui qu'on retrouve en revenant.
+    expect(t.persist).toEqual({ step: 5 });
+  });
+
+  it('pas en entrant dans le repos qui termine un bloc', () => {
+    const last = run(at(0), { type: 'markDone' }, { type: 'markDone' });
+    expect(last.state.index).toBe(0);
+    const t = run(last.state, { type: 'markDone' });
+    expect(t.state.index).toBe(1);
+    expect(t.state.interlude).toBeNull();
+  });
+
+  it('ni en en sortant : ce repos annonçait déjà la suite', () => {
+    expect(run(at(1), { type: 'next' }).state.interlude).toBeNull();
+  });
+
+  it('ni en revenant en arrière', () => {
+    expect(run(at(5), { type: 'previous' }).state.interlude).toBeNull();
+  });
+
+  it('dit qu’un bloc a été passé depuis la pause', () => {
+    const t = run({ ...at(0), pause: 'open' }, { type: 'skipBlock' });
+    expect(t.state.interlude).toEqual({ fromBlock: 1, ending: 'skipped' });
+  });
+
+  it('et qu’un bloc sans limite a été arrêté, non mené au bout', () => {
+    const t = run({ ...at(3), pause: 'open' }, { type: 'endBlock' });
+    expect(t.state.interlude).toEqual({ fromBlock: 2, ending: 'stopped' });
+  });
+
+  it('se retire sans rien écrire ni rien demander', () => {
+    const shown = run(at(3), { type: 'finishTimedBlock', blockOrder: 2 });
+    const t = guidedTransition(shown.state, { type: 'interludeDone' });
+    expect(t.state.interlude).toBeNull();
+    expect(t.state.index).toBe(5);
+    expect(t.persist).toEqual({});
+    expect(t.signals).toEqual([]);
+  });
+
+  it('aller ailleurs le retire', () => {
+    const shown = run(at(3), { type: 'finishTimedBlock', blockOrder: 2 });
+    expect(run(shown.state, { type: 'previous' }).state.interlude).toBeNull();
+  });
+});
+
 describe('finir', () => {
   it('« Terminer » au dernier écran joue sa note et rend la main', () => {
     expect(run(at(5), { type: 'next' }).signals).toEqual([

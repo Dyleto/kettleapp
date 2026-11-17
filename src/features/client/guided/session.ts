@@ -57,6 +57,30 @@ export interface SetRest {
  */
 export type PauseState = 'closed' | 'open' | 'resuming';
 
+/**
+ * Comment on a quitté un bloc, pour que l'écran « Bloc suivant » le dise
+ * sans mentir : un Tabata mené au bout a fait ses huit tours, un EMOM sans
+ * limite arrêté depuis la pause n'en a pas de compte sûr, un bloc passé n'a
+ * rien fait.
+ */
+export type BlockEnding = 'finished' | 'stopped' | 'skipped';
+
+/**
+ * L'écran « Bloc suivant », posé trois secondes entre deux blocs.
+ *
+ * On passait d'un bloc au suivant sans transition : la dernière série
+ * cochée, l'écran changeait de format sous le pouce, et le premier geste du
+ * bloc suivant était déjà là — un EMOM pouvait recevoir le « Lancer » d'un
+ * doigt qui venait de toucher « Série faite ». L'index a déjà changé : la
+ * barre du haut et la pause parlent du bloc qui vient, l'écran dit encore
+ * celui qui finit.
+ */
+export interface Interlude {
+  /** Le bloc qu'on vient de quitter — son ordre, son identité. */
+  fromBlock: number;
+  ending: BlockEnding;
+}
+
 export interface GuidedState {
   /** Découpées une fois : les blocs ne changent pas pendant la séance. */
   steps: GuidedStep[];
@@ -67,6 +91,8 @@ export interface GuidedState {
    * secondes, « Reprise au bloc 2 », le temps de retrouver où l'on est.
    */
   resumed: boolean;
+  /** Entre deux blocs, l'écran « Bloc suivant » ; `null` partout ailleurs. */
+  interlude: Interlude | null;
   /**
    * Les séries faites, indépendamment de la position.
    *
@@ -132,6 +158,7 @@ export type GuidedAction =
   | { type: 'start' }
   | { type: 'countdownDone' }
   | { type: 'dismissResume' }
+  | { type: 'interludeDone' }
   | { type: 'markDone' }
   | { type: 'undo'; key: string }
   | { type: 'skipExercise' }
@@ -187,6 +214,7 @@ export const initialGuidedState = (
     phase,
     index: started ? savedIndex : 0,
     resumed: phase === 'scene',
+    interlude: null,
     done: saved?.done ?? [],
     skipped: saved?.skipped ?? [],
     rounds: saved?.rounds ?? {},
@@ -345,8 +373,17 @@ const remainsAfter = (
  * cherche sa kettlebell. Deux notes quand on quitte un bloc vers l'avant ;
  * revenir en arrière ne termine rien, et sortir d'un repos entre deux blocs
  * non plus — son horloge a déjà sonné.
+ *
+ * Passer d'un bloc au suivant pose l'écran « Bloc suivant ». Pas en entrant
+ * dans le repos qui termine un bloc, ni en en sortant : ce repos annonce
+ * déjà ce qui vient, et trois secondes de plus après lui ne seraient qu'une
+ * attente.
  */
-const goTo = (t: Transition, next: number): Transition => {
+const goTo = (
+  t: Transition,
+  next: number,
+  ending: BlockEnding = 'finished'
+): Transition => {
   const { state } = t;
   const target = state.steps[next];
   const targetBlock =
@@ -364,6 +401,10 @@ const goTo = (t: Transition, next: number): Transition => {
       armedBlock: targetBlock === state.armedBlock ? state.armedBlock : null,
       liveRound: null,
       detail: null,
+      interlude:
+        leavesBlock && targetBlock !== null
+          ? { fromBlock: here.block.order, ending }
+          : null,
     },
     { step: next },
     leavesBlock ? ['blockEnd'] : []
@@ -384,14 +425,18 @@ const goNext = (t: Transition): Transition =>
 
 /** Le dernier tour est tombé : l'écran qui suit le bloc, d'où que l'index en
  * soit — un téléphone verrouillé peut avoir sauté plusieurs tours. */
-const finishTimedBlock = (t: Transition, blockOrder: number): Transition => {
+const finishTimedBlock = (
+  t: Transition,
+  blockOrder: number,
+  ending: BlockEnding = 'finished'
+): Transition => {
   const { state } = t;
   const after = state.steps.findIndex(
     (candidate, i) =>
       i > state.index &&
       (candidate.type === 'rest' || candidate.block.order !== blockOrder)
   );
-  return after === -1 ? finish(t, true) : goTo(t, after);
+  return after === -1 ? finish(t, true) : goTo(t, after, ending);
 };
 
 /** Les blocs que « C'est parti » arme : leurs trois secondes valent le
@@ -427,6 +472,9 @@ export const guidedTransition = (
 
     case 'dismissResume':
       return state.resumed ? merge(t, { resumed: false }) : t;
+
+    case 'interludeDone':
+      return state.interlude ? merge(t, { interlude: null }) : t;
 
     case 'markDone': {
       const current = currentSet(state);
@@ -558,7 +606,7 @@ export const guidedTransition = (
     case 'skipBlock': {
       const closed = merge(t, { pause: 'closed' });
       const next = nextBlockIndex(state);
-      return next === -1 ? closed : goTo(closed, next);
+      return next === -1 ? closed : goTo(closed, next, 'skipped');
     }
 
     case 'finishNow':
@@ -566,7 +614,11 @@ export const guidedTransition = (
 
     case 'endBlock':
       return step && step.type === 'round'
-        ? finishTimedBlock(merge(t, { pause: 'closed' }), step.block.order)
+        ? finishTimedBlock(
+            merge(t, { pause: 'closed' }),
+            step.block.order,
+            'stopped'
+          )
         : t;
 
     case 'openDetail':

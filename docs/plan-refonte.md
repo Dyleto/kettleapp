@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 584 tests unitaires, 31 suites de banc et 580
-assertions, 2 min 56 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 599 tests unitaires, 31 suites de banc et 593
+assertions, 3 min 5 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -51,13 +51,13 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Séance guidée
 
-| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                                                                                                         |
-| ---------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ouverture, décompte, enchaînement, pause | partiel  | L'écran « Bloc suivant » (trois secondes, sans geste) n'existe pas. La reprise se fait sans question, avec son bandeau (C1).                                                                                                                                                                                          |
-| Séries, repos, exercices à durée         | partiel  | Le repos entre blocs a pris la carte des séries (B6). Pas de ligne « Ensuite ». Chipper et TimeCap n'ont ni chrono de limite ni feuille « Temps écoulé ». On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. |
-| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                                                                                                                      |
-| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                                                                                                                      |
-| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                                                                                                                    |
+| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                         |
+| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                                                                                                       |
+| Séries, repos, exercices à durée         | partiel  | Chipper et TimeCap n'ont ni chrono de limite ni feuille « Temps écoulé ». On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. |
+| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                                      |
+| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                                      |
+| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                                    |
 
 ### Client
 
@@ -246,8 +246,14 @@ banc actuel, inchangé, qui le prouve.
 - [x] **C1** Reprise sans question : la fiche et l'accueil mènent droit à la
       série, bandeau « Reprise au bloc 2 » trois secondes. Recommencer se
       décide sur l'accueil, qui le demande d'abord.
-- [ ] **C2** « Bloc suivant », trois secondes sans geste ; ~~le repos entre
+- [x] **C2** « Bloc suivant », trois secondes sans geste ; ~~le repos entre
       blocs sur la scène de repos~~ (fait en B6) ; la ligne « Ensuite ».
+      L'écran dit ce qui finit (« Bloc 1 terminé · 8 tours », jamais le nom
+      du bloc devant « terminé », qu'on n'accorde pas) et ce qui vient ; un
+      toucher n'importe où enchaîne, la pause le fige, à plat il passe sur
+      deux colonnes. Pas après le repos qui termine un bloc : il annonce
+      déjà la suite, et nomme maintenant le bloc. Le dernier geste d'un bloc
+      dit « Ensuite · bloc suivant : EMOM ».
 - [ ] **C3** Chipper et TimeCap : chrono de limite, feuille « Temps écoulé ».
 - [ ] **C4** Noter des répétitions différentes du prescrit.
 - [ ] **C5** « Dire comment c'était » : un ressenti quitté sans envoyer se

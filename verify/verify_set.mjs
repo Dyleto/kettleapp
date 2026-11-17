@@ -24,6 +24,7 @@ import {
   clean,
   settle,
   hold,
+  pastInterlude,
 } from './common.mjs';
 
 const HERO = '[data-set-hero]';
@@ -77,6 +78,7 @@ const reachRenfo = async (p) => {
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
+  await pastInterlude(p);
 };
 
 const browser = await launch();

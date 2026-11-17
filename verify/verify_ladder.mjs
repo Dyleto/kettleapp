@@ -27,6 +27,7 @@ import {
   API,
   COACHES,
   settle,
+  pastInterlude,
 } from './common.mjs';
 
 const browser = await launch();
@@ -342,6 +343,7 @@ const climb = async (p) => {
   await start(p, 'sess-ladder-2');
   await press(p, 'Mettre la séance en pause');
   await press(p, 'Passer ce bloc');
+  await pastInterlude(p);
   ok(
     'le chrono attend : « Lancer », et pas encore « Palier fait »',
     (await p.getByRole('button', { name: 'Lancer', exact: true }).count()) ===

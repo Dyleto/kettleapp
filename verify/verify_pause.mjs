@@ -30,6 +30,7 @@ import {
   MOBILE,
   skipCountdown,
   settle,
+  pastInterlude,
 } from './common.mjs';
 
 const SHEET = '[role="dialog"][aria-label="Pause"]';
@@ -65,15 +66,18 @@ const press = async (p, name, options = {}) => {
 /** Franchit l'échauffement de la séance 1 jusqu'à l'EMOM. */
 const reachEmom = async (p) => {
   for (let i = 0; i < 6; i++) {
-    if (/— EMOM$/.test(await where(p))) return;
+    if (/— EMOM$/.test(await where(p))) break;
     const next = p.getByRole('button', {
       name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
     });
-    if (!(await next.count())) return;
+    if (!(await next.count())) break;
     await next.first().click();
     await settle(p);
     await skipRest(p);
   }
+  // La barre parle déjà de l'EMOM pendant « Bloc suivant » : c'est la scène
+  // qu'on veut, pas l'écran qui l'annonce.
+  await pastInterlude(p);
 };
 
 const browser = await launch();
@@ -301,6 +305,7 @@ const browser = await launch();
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
+  await pastInterlude(p);
   await press(p, 'Série faite', { exact: true });
   await settle(p);
   const before = await secondsLeft(p);

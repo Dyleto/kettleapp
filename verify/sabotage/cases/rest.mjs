@@ -126,8 +126,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/scene/BetweenBlocks.tsx',
-          from: "nextTitle={step.nextExerciseName ?? ''}",
-          to: 'nextTitle=""',
+          from: "nextDetail={nextBlock ? (step.nextExerciseName ?? '') : ''}",
+          to: 'nextDetail=""',
         },
       ],
       falls: ['→ et annonce ce qui vient'],
@@ -153,6 +153,17 @@ export default {
         },
       ],
       falls: ['à zéro, le bloc suivant vient de lui-même'],
+    },
+    {
+      name: 'le repos entre deux blocs ne nomme pas le bloc suivant',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/BetweenBlocks.tsx',
+          from: '              ? `Bloc suivant : ${nextBlock}`',
+          to: "              ? (step.nextExerciseName ?? '')",
+        },
+      ],
+      falls: ['→ en nommant le bloc suivant'],
     },
   ],
 };

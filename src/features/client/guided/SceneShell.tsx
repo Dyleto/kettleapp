@@ -21,6 +21,11 @@ interface SceneShellProps {
   onHeaderSlot: (element: HTMLElement | null) => void;
   /** Un mot posé quelques secondes sous la barre : « Reprise au bloc 2 ». */
   notice?: string;
+  /**
+   * Le haut se tait : l'écran « Bloc suivant » porte déjà le rang et le nom
+   * du bloc, en grand, juste dessous. Les deux boutons restent.
+   */
+  quietHeading?: boolean;
   children: ReactNode;
 }
 
@@ -47,6 +52,7 @@ export const SceneShell = ({
   onPause,
   onHeaderSlot,
   notice,
+  quietHeading = false,
   children,
 }: SceneShellProps) => {
   // Le son se coupe là où il s'entend, à côté de la pause.
@@ -128,7 +134,13 @@ export const SceneShell = ({
           gap={2.5}
           css={{ [LANDSCAPE]: { display: 'none' } }}
         >
-          <VStack align="start" gap="6px" flex={1} minW={0}>
+          <VStack
+            align="start"
+            gap="6px"
+            flex={1}
+            minW={0}
+            visibility={quietHeading ? 'hidden' : undefined}
+          >
             <Text
               fontSize="11px"
               fontWeight="800"

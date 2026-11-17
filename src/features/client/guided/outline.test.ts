@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  blockOutcome,
   blockSegments,
   firstGesture,
   openingEyebrow,
@@ -222,5 +223,94 @@ describe('blockSegments', () => {
 
   it('ne rend rien pour une séance sans écran', () => {
     expect(blockSegments([])).toEqual([]);
+  });
+});
+
+describe('blockOutcome', () => {
+  const classic = makeBlock({
+    order: 1,
+    exercises: [
+      makeBlockExercise({ order: 1, exercise: swing, sets: 4 }),
+      makeBlockExercise({ order: 2, exercise: lunge, sets: 3 }),
+    ],
+  });
+  const tabata = makeBlock({ order: 2, type: 'tabata', rounds: 8 });
+  const emom = makeBlock({ order: 3, type: 'emom' });
+  const amrap = makeBlock({ order: 4, type: 'amrap', durationMinutes: 12 });
+  const ladder = makeBlock({
+    order: 5,
+    type: 'ladder',
+    repsScheme: [2, 4, 6],
+    exercises: [
+      makeBlockExercise({ order: 1, exercise: swing }),
+      makeBlockExercise({ order: 2, exercise: lunge }),
+    ],
+  });
+  const session = makeSession({
+    blocks: [classic, tabata, emom, amrap, ladder],
+  });
+  const keys = (block: typeof classic) =>
+    setsOfBlock(block).map((set) => set.key);
+
+  it('compte les séries faites, toutes', () => {
+    expect(blockOutcome(session, classic, 'finished', keys(classic), 0)).toBe(
+      'Bloc 1 terminé · 7\u00A0séries'
+    );
+  });
+
+  it('dit ce qui a été fait, pas ce qui était prescrit', () => {
+    const done = keys(classic).slice(0, 5);
+    expect(blockOutcome(session, classic, 'finished', done, 0)).toBe(
+      'Bloc 1 terminé · 5\u00A0séries sur 7'
+    );
+  });
+
+  it('un bloc quitté sans rien y cocher est passé', () => {
+    expect(blockOutcome(session, classic, 'finished', [], 0)).toBe(
+      'Bloc 1 passé'
+    );
+    expect(blockOutcome(session, classic, 'skipped', keys(classic), 0)).toBe(
+      'Bloc 1 passé'
+    );
+  });
+
+  it('un bloc mené par l’horloge jusqu’au bout a fait tous ses tours', () => {
+    expect(blockOutcome(session, tabata, 'finished', [], 0)).toBe(
+      'Bloc 2 terminé · 8\u00A0tours'
+    );
+  });
+
+  it('un bloc à horloge arrêté avant la fin ne donne pas de compte', () => {
+    expect(blockOutcome(session, emom, 'stopped', [], 0)).toBe(
+      'Bloc 3 terminé'
+    );
+    // Borné ou non : arrêté, il n'a pas fait ses huit tours.
+    expect(blockOutcome(session, tabata, 'stopped', [], 0)).toBe(
+      'Bloc 2 terminé'
+    );
+  });
+
+  it('un AMRAP compte les tours tapés, quand il y en a', () => {
+    expect(blockOutcome(session, amrap, 'finished', [], 5)).toBe(
+      'Bloc 4 terminé · 5\u00A0tours'
+    );
+    expect(blockOutcome(session, amrap, 'finished', [], 1)).toBe(
+      'Bloc 4 terminé · 1\u00A0tour'
+    );
+    expect(blockOutcome(session, amrap, 'finished', [], 0)).toBe(
+      'Bloc 4 terminé'
+    );
+  });
+
+  it('un palier de l’échelle ne compte que tous ses mouvements cochés', () => {
+    const sets = setsOfBlock(ladder);
+    // Le premier palier entier, et un seul mouvement du deuxième.
+    const done = [
+      ...sets.filter((set) => set.rank === 1).map((set) => set.key),
+      sets.find((set) => set.rank === 2)!.key,
+    ];
+    expect(blockOutcome(session, ladder, 'finished', done, 0)).toBe(
+      'Bloc 5 terminé · 1\u00A0palier sur 3'
+    );
   });
 });

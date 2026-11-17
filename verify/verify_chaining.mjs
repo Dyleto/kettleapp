@@ -23,6 +23,8 @@ import {
   timerLabel,
   launchClock,
   settle,
+  hold,
+  pastInterlude,
 } from './common.mjs';
 
 const browser = await launch();
@@ -61,6 +63,15 @@ const record = (p, sess) =>
     await where(p)
   );
 
+  // Le dernier geste du bloc dit ce qui vient après lui : la liste dessous
+  // s'arrête là, et rien n'annonçait que cocher allait changer d'écran.
+  const lastGesture = await guidedScreen(p);
+  ok(
+    '  → le dernier geste du bloc annonce le bloc suivant',
+    /Ensuite · bloc suivant : EMOM/.test(lastGesture),
+    lastGesture.match(/Ensuite[^\n]*/)?.[0] ?? '(rien)'
+  );
+
   await p
     .getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
@@ -73,10 +84,32 @@ const record = (p, sess) =>
     await where(p)
   );
 
+  // Trois secondes entre les deux : ce qui vient de finir, ce qui vient.
+  const between = await guidedScreen(p);
+  ok(
+    "  → l'écran « Bloc suivant » dit ce qui finit et ce qui vient",
+    (await p.locator('[data-next-block]').count()) === 1 &&
+      /Bloc 1 terminé · 2 exercices/.test(between) &&
+      /Bloc 2 sur 3/i.test(between) &&
+      /Kettlebell Swing/.test(between),
+    between.replace(/\n+/g, ' | ').slice(0, 160)
+  );
+
   // Aucun écran mort : on n'a jamais eu de « Bloc suivant » à toucher.
   ok(
     '  → sans avoir jamais eu à toucher « Bloc suivant »',
     (await p.getByRole('button', { name: /^Bloc suivant$/ }).count()) === 0
+  );
+
+  await hold(
+    p,
+    3_400,
+    "l'écran « Bloc suivant » s'efface seul au bout de trois secondes"
+  );
+  await settle(p);
+  ok(
+    '  → et il s’efface seul, sans un geste',
+    (await p.locator('[data-next-block]').count()) === 0
   );
 
   // Le bloc sur lequel on arrive est bien neuf.
@@ -184,6 +217,7 @@ const record = (p, sess) =>
     })
     .click();
   await settle(p);
+  await pastInterlude(p);
   ok("on est passé à l'EMOM", /— EMOM$/.test(await where(p)), await where(p));
 
   await p.getByRole('button', { name: /^Bloc précédent$/ }).click();
@@ -202,6 +236,70 @@ const record = (p, sess) =>
   ok(
     '  → et « Bloc suivant » est là pour en ressortir',
     (await p.getByRole('button', { name: /^Bloc suivant$/ }).count()) === 1
+  );
+  await ctx.close();
+}
+
+// ── L'écran « Bloc suivant » ─────────────────────────────────────────────
+//
+// Trois secondes entre deux blocs, puis la suite vient seule. Toucher
+// l'écran n'importe où enchaîne tout de suite ; la pause fige le décompte.
+
+/** La séance 1 jusqu'à l'écran « Bloc suivant » : les deux mouvements de
+ * l'échauffement cochés. */
+const toInterlude = async (p) => {
+  await start(p, 'sess1');
+  for (let i = 0; i < 2; i++) {
+    await p.getByRole('button', { name: /^(Fait|Série faite)$/ }).click();
+    await settle(p);
+    await skipRest(p);
+  }
+};
+
+{
+  console.log("\n── toucher l'écran « Bloc suivant » enchaîne tout de suite");
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await toInterlude(p);
+  ok(
+    "l'écran « Bloc suivant » est là",
+    (await p.locator('[data-next-block]').count()) === 1
+  );
+  // N'importe où : le nom du bloc, pas le bouton du pied.
+  await p
+    .locator('[data-next-block] h1')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '  → un toucher sur le nom du bloc suffit, sans attendre',
+    (await p.locator('[data-next-block]').count()) === 0 &&
+      (await p.getByRole('button', { name: 'Lancer', exact: true }).count()) ===
+        1
+  );
+  await ctx.close();
+}
+
+{
+  console.log("\n── la pause fige l'écran « Bloc suivant »");
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await toInterlude(p);
+  await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
+  await settle(p);
+  await p.clock.runFor(10_000);
+  await p.getByRole('button', { name: 'Reprendre', exact: true }).click();
+  await settle(p);
+  ok(
+    'dix secondes de pause ne le font pas partir',
+    (await p.locator('[data-next-block]').count()) === 1
+  );
+  await p.clock.runFor(3_500);
+  await settle(p);
+  ok(
+    '  → il repart de là où il était, et s’efface',
+    (await p.locator('[data-next-block]').count()) === 0
   );
   await ctx.close();
 }

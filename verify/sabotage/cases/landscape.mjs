@@ -27,5 +27,16 @@ export default {
       ],
       falls: ['la pause ne coupe rien sans recours'],
     },
+    {
+      name: '« Bloc suivant » sur une seule colonne, à plat',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/NextBlock.tsx',
+          from: "            display: 'grid',",
+          to: "            display: 'flex',",
+        },
+      ],
+      falls: ["« Bloc suivant » tient dans l'écran, sans défiler"],
+    },
   ],
 };

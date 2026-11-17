@@ -23,6 +23,7 @@ import {
   passBlock,
   START,
   settle,
+  pastInterlude,
 } from './common.mjs';
 
 const browser = await launch();
@@ -315,16 +316,38 @@ for (const [name, vp] of [
   const ctx = await browser.newContext(vp);
   const p = await signIn(ctx);
   await start(p, 'sess1');
-  for (let i = 0; i < 3; i++) {
-    const btn = p.getByRole('button', {
-      name: /^(Fait|Série faite|Palier fait|Suivant|Bloc suivant)$/,
-    });
-    if (await btn.count()) {
-      await btn.first().click();
-      await settle(p);
-    }
+  // Les deux mouvements de l'échauffement : on arrive sur « Bloc suivant ».
+  for (let i = 0; i < 2; i++) {
+    await p.getByRole('button', { name: /^(Fait|Série faite)$/ }).click();
+    await settle(p);
     await skipRest(p);
   }
+
+  // Un écran de trois secondes ne se fait pas défiler : il se lit d'un coup.
+  const between = await viewport(p);
+  ok(
+    "« Bloc suivant » tient dans l'écran, sans défiler",
+    (await p.locator('[data-next-block]').count()) === 1 &&
+      between &&
+      between.content <= between.seen,
+    between
+      ? `${between.seen} px vus pour ${between.content} px de contenu`
+      : '(aucune zone)'
+  );
+  const go = await p.evaluate(() => {
+    const el = document.querySelector('[data-next-block] > button');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { bottom: Math.round(r.bottom), h: Math.round(r.height) };
+  });
+  ok(
+    "  → et son pied reste dans l'écran",
+    go && go.bottom <= vp.viewport.height && go.h >= 44,
+    go
+      ? `${go.h} px, bas à ${go.bottom} sur ${vp.viewport.height}`
+      : '(introuvable)'
+  );
+  await pastInterlude(p);
 
   const z = await viewport(p);
   ok(
@@ -468,6 +491,7 @@ for (const [name, vp] of [
     }
     await skipRest(p);
   }
+  await pastInterlude(p);
   const measures = await p.evaluate(() => {
     const card = document.querySelector(
       '[aria-label="Séance guidée"]'

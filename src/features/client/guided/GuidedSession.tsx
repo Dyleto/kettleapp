@@ -8,7 +8,12 @@ import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { InstructionSheet } from '@/features/client/sheet/InstructionSheet';
 import { buildGuidedSteps } from './steps';
 import { readProgress, writeProgress } from './sessionProgress';
-import { blockSegments, firstGesture, positionLabel } from './outline';
+import {
+  blockOutcome,
+  blockSegments,
+  firstGesture,
+  positionLabel,
+} from './outline';
 import {
   firstRoundIndex,
   initialGuidedState,
@@ -26,6 +31,7 @@ import { BetweenBlocks } from './scene/BetweenBlocks';
 import { Countdown } from './scene/Countdown';
 import { LadderBlock } from './scene/LadderBlock';
 import { ListScene } from './scene/ListScene';
+import { NextBlock } from './scene/NextBlock';
 import { NoSteps } from './scene/NoSteps';
 import { Opening } from './scene/Opening';
 import { PauseSheet } from './scene/PauseSheet';
@@ -203,11 +209,17 @@ export const GuidedSession = ({
     state.index > 0 ? () => act({ type: 'previous' }) : undefined;
   const openDetail = (exercise: BlockExercise) =>
     act({ type: 'openDetail', exercise });
+  // Le bloc qu'on vient de quitter, tant que l'écran « Bloc suivant » en
+  // parle.
+  const leftBlock = state.interlude
+    ? session.blocks.find((block) => block.order === state.interlude?.fromBlock)
+    : undefined;
+  const rank = `Bloc ${segmentIndex + 1} sur ${segments.length}`;
 
   return overlay(
     <PauseContext.Provider value={state.pause !== 'closed'}>
       <SceneShell
-        rank={`Bloc ${segmentIndex + 1} sur ${segments.length}`}
+        rank={rank}
         title={title}
         parts={parts}
         current={segmentIndex}
@@ -215,8 +227,24 @@ export const GuidedSession = ({
         onPause={() => act({ type: 'pause' })}
         onHeaderSlot={setHeaderSlot}
         notice={state.resumed ? `Reprise au bloc ${resumedBlock}` : undefined}
+        quietHeading={!!leftBlock}
       >
-        {step.type === 'block' && step.block.type === 'ladder' ? (
+        {leftBlock && state.interlude && step.type !== 'rest' ? (
+          <NextBlock
+            key={state.index}
+            outcome={blockOutcome(
+              session,
+              leftBlock,
+              state.interlude.ending,
+              state.done,
+              state.rounds[String(leftBlock.order)] ?? 0
+            )}
+            rank={rank}
+            block={step.block}
+            lastPerformance={lastPerformance}
+            onDone={() => act({ type: 'interludeDone' })}
+          />
+        ) : step.type === 'block' && step.block.type === 'ladder' ? (
           // L'échelle a sa propre scène : ses paliers se cochent entiers, un
           // par geste, et ne passent jamais par la liste.
           <LadderBlock
@@ -246,6 +274,7 @@ export const GuidedSession = ({
             step={step}
             state={state}
             act={act}
+            nextBlock={blockAfter(session, step.block.order)}
             lastPerformance={lastPerformance}
             performed={performed}
             onPerformedChange={onPerformedChange}
@@ -300,6 +329,9 @@ export const GuidedSession = ({
           <BetweenBlocks
             key={state.index}
             step={step}
+            nextBlock={
+              titled ? blockAfter(session, titled.block.order) : undefined
+            }
             onDone={() => act({ type: 'next' })}
           />
         )}
@@ -347,6 +379,17 @@ export const GuidedSession = ({
       )}
     </PauseContext.Provider>
   );
+};
+
+/** Le nom du bloc qui suit celui-ci, ou `undefined` au dernier. */
+const blockAfter = (
+  session: Session,
+  blockOrder: number
+): string | undefined => {
+  const next = sortByOrder(session.blocks).find(
+    (block) => block.order > blockOrder
+  );
+  return next ? blockTitle(next) : undefined;
 };
 
 /** Ce qu'annonce le pied d'un bloc chronométré : « AMRAP 12 · 12 min ». */

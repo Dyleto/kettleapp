@@ -168,3 +168,76 @@ export const blockSegments = (
   });
   return segments;
 };
+
+/** « 1 tour », « 8 tours ». */
+const counted = (count: number, word: string): string =>
+  `${count}\u00A0${word}${count > 1 ? 's' : ''}`;
+
+/**
+ * Ce que l'écran « Bloc suivant » dit du bloc qui vient de finir : « Bloc 1
+ * terminé · 8 tours ».
+ *
+ * « Bloc », et non le nom du bloc, parce que « terminé » s'accorde : un
+ * coach qui nomme son bloc « Mobilité » aurait lu « Mobilité terminé ». On
+ * n'accorde pas ce qu'on ne connaît pas.
+ *
+ * Le compte est ce que la personne a fait, jamais ce qui était prescrit :
+ * « 5 séries sur 7 » quand deux ont été passées. Un bloc quitté sans rien y
+ * cocher est « passé », qu'on l'ait passé depuis la pause ou d'un « Bloc
+ * suivant ». Un EMOM sans limite arrêté depuis la pause n'a pas de compte
+ * sûr — le tour en cours n'est peut-être pas fini — et n'en donne pas.
+ */
+export const blockOutcome = (
+  session: Pick<Session, 'blocks'>,
+  block: SessionBlock,
+  ending: 'finished' | 'stopped' | 'skipped',
+  doneKeys: readonly string[],
+  countedRounds: number
+): string => {
+  const blocks = sortByOrder(session.blocks);
+  const rank = blocks.findIndex((b) => b.order === block.order) + 1;
+  const passed = `Bloc ${rank} passé`;
+  const ended = `Bloc ${rank} terminé`;
+  if (ending === 'skipped') return passed;
+
+  if (isRoundBased(block)) {
+    return ending === 'finished' && block.rounds
+      ? `${ended} · ${counted(block.rounds, 'tour')}`
+      : ended;
+  }
+  if (block.type === 'amrap') {
+    return countedRounds > 0
+      ? `${ended} · ${counted(countedRounds, 'tour')}`
+      : ended;
+  }
+
+  const sets = setsOfBlock(block);
+  if (sets.length === 0) return ended;
+  const isDone = (set: GuidedSet) => doneKeys.includes(set.key);
+  let done: number;
+  let total: number;
+  let unit: string;
+  if (blockDefinesOwnMetrics(block.type)) {
+    // Un palier se fait avec tous ses mouvements : il ne compte que quand
+    // chacun est coché.
+    const ranks = [...new Set(sets.map((set) => set.rank))];
+    total = ranks.length;
+    done = ranks.filter((rank) =>
+      sets.filter((set) => set.rank === rank).every(isDone)
+    ).length;
+    unit = 'palier';
+  } else {
+    total = sets.length;
+    done = sets.filter(isDone).length;
+    unit =
+      block.type === 'chipper' || block.type === 'timecap'
+        ? 'mouvement'
+        : sets.every((set) => set.total === 1)
+          ? 'exercice'
+          : 'série';
+  }
+  if (done === 0) return passed;
+  return done === total
+    ? `${ended} · ${counted(total, unit)}`
+    : `${ended} · ${counted(done, unit)} sur ${total}`;
+};

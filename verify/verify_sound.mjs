@@ -37,6 +37,7 @@ import {
   skipCountdown,
   START,
   settle,
+  pastInterlude,
 } from './common.mjs';
 
 const TICK = 880;
@@ -203,6 +204,7 @@ const browser = await launch();
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 1000);
   const startedAt = await where(p);
+  await pastInterlude(p);
   // « Lancer », puis son décompte franchi d'une touche : ses bips sont ceux
   // du décompte, vérifiés plus haut. On ne compte qu'à partir du départ.
   await p.getByRole('button', { name: 'Lancer', exact: true }).click();

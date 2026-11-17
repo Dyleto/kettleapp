@@ -36,6 +36,8 @@ interface ListSceneProps {
    */
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
+  /** Le nom du bloc qui suit, `undefined` au dernier. */
+  nextBlock?: string;
 }
 
 /**
@@ -56,6 +58,7 @@ export const ListScene = ({
   lastPerformance,
   performed,
   onPerformedChange,
+  nextBlock,
 }: ListSceneProps) => {
   const current = currentSet(state);
   const { rest } = state;
@@ -134,6 +137,17 @@ export const ListScene = ({
     />
   );
   const lastDone = lastDoneInBlock(state);
+  // Le dernier geste du bloc dit ce qui vient après lui. Plus tôt, la liste
+  // dessous le dit déjà ; là, elle s'arrête, et rien n'annonçait que cocher
+  // cette série allait changer d'écran.
+  const lastGesture =
+    !!current &&
+    !rest &&
+    step.sets.filter(
+      (set) =>
+        !state.done.includes(set.key) &&
+        !state.skipped.includes(exerciseKeyOf(set))
+    ).length === 1;
 
   return (
     <>
@@ -217,6 +231,14 @@ export const ListScene = ({
               }
             />
           )
+        )}
+        {lastGesture && (
+          <Text fontSize="sm" color="fg.muted" data-next-line>
+            Ensuite ·{' '}
+            <Text as="b" color="fg">
+              {nextBlock ? `bloc suivant : ${nextBlock}` : 'fin de la séance'}
+            </Text>
+          </Text>
         )}
         <VStack align="stretch" gap={1}>
           <Text fontSize="sm" color="fg.muted">
