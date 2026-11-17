@@ -47,6 +47,14 @@ const main = async () => {
   await settle(p);
 
   const rows = () => p.getByRole('button', { name: /^Séance \d/ });
+  // Le rail se dessine une fois l'atelier chargé, juste après que le réseau
+  // s'est tu : sous la charge de quatre files, il arrivait d'être compté
+  // une fraction de seconde trop tôt. On attend qu'il soit là, pas une
+  // durée.
+  await rows()
+    .first()
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
   const before = await serverSessions();
   ok(
     'le rail liste les séances du programme',

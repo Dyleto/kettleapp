@@ -132,7 +132,7 @@ const press = async (p, key) => {
 }
 
 {
-  console.log('\n── au clavier');
+  console.log('\n── au clavier : Espace, puis ←');
   const ctx = await browser.newContext(WIDE);
   const p = await signIn(ctx);
   await reachRenfo(p);
@@ -156,30 +156,58 @@ const press = async (p, key) => {
     before.includes('2:1:1') && !(await record(p)).done?.includes('2:1:1'),
     `${JSON.stringify(before)} → ${JSON.stringify((await record(p)).done)}`
   );
+  await ctx.close();
+}
+
+{
+  // Chaque silence se mesure par ce qui change, et non par ce qui est
+  // coché : une touche précédente qui aurait coché quelque chose ne doit
+  // pas faire tomber celle-ci.
+  console.log('\n── au clavier : P, et ce qui fait taire les touches');
+  const ctx = await browser.newContext(WIDE);
+  const p = await signIn(ctx);
+  await reachRenfo(p);
+  const done = async () => ((await record(p)).done ?? []).length;
 
   await press(p, 'p');
   ok(
     'P met en pause',
     (await p.locator('[role="dialog"][aria-label="Pause"]').count()) === 1
   );
+  const paused = await done();
   await press(p, 'Space');
   ok(
     '  → et la pause ouverte, Espace ne coche rien derrière elle',
-    !(await record(p)).done?.includes('2:1:1'),
-    JSON.stringify((await record(p)).done)
+    (await done()) === paused,
+    `${paused} → ${await done()}`
   );
-  await p.keyboard.press('Escape');
+  await p
+    .getByRole('button', { name: 'Reprendre', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
   await settle(p);
+  await skipRest(p);
 
-  await p.locator('[data-set-hero] input[aria-label^="Poids utilisé"]').focus();
+  const typing = await done();
+  await p
+    .locator('[data-set-hero] input[aria-label^="Poids utilisé"]')
+    .focus({ timeout: 2000 })
+    .catch(() => {});
   await p.keyboard.press('Space');
   await settle(p);
   ok(
     'dans un champ, Espace s’écrit et ne coche rien',
-    !(await record(p)).done?.includes('2:1:1'),
-    JSON.stringify((await record(p)).done)
+    (await done()) === typing,
+    `${typing} → ${await done()}`
   );
+  await ctx.close();
+}
 
+{
+  console.log('\n── au clavier : →');
+  const ctx = await browser.newContext(WIDE);
+  const p = await signIn(ctx);
+  await reachRenfo(p);
   await press(p, 'ArrowRight');
   ok(
     '→ passe l’exercice en cours',
