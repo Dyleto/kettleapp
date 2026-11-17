@@ -461,6 +461,7 @@ let HISTORY = EMPTY_PROGRAM
         clientNotes:
           "Fatigué ce matin, j'ai réduit un peu les charges sur le renfo.",
         viewedByCoach: true,
+        replies: [],
       },
       {
         _id: 'cs3',
@@ -474,6 +475,7 @@ let HISTORY = EMPTY_PROGRAM
         metrics: { stress: 1, mood: 5, energy: 4, sleep: 5, soreness: 1 },
         clientNotes: 'Très bonne séance, forme du jour excellente.',
         viewedByCoach: true,
+        replies: [],
       },
       // Trois tentatives enregistrées de la séance 1, plus dures à chaque
       // fois.
@@ -491,6 +493,7 @@ let HISTORY = EMPTY_PROGRAM
         feedback: { effort: 3, tags: [] },
         clientNotes: 'Bon rythme.',
         viewedByCoach: true,
+        replies: [],
       },
       {
         _id: 'cs5',
@@ -506,6 +509,7 @@ let HISTORY = EMPTY_PROGRAM
         feedback: { effort: 4, tags: ['pain'] },
         clientNotes: 'Épaule un peu sensible sur les swings.',
         viewedByCoach: true,
+        replies: [],
       },
       {
         _id: 'cs6',
@@ -522,6 +526,7 @@ let HISTORY = EMPTY_PROGRAM
         feedback: { effort: 5, tags: ['fatigue'] },
         clientNotes: 'Dur sur la fin.',
         viewedByCoach: false,
+        replies: [],
       },
       {
         // La séance 3 a été faite une fois, puis remaniée : même
@@ -533,6 +538,7 @@ let HISTORY = EMPTY_PROGRAM
         blocks: reworkedSnapshot(SESSIONS[2]),
         feedback: { effort: 3 },
         viewedByCoach: true,
+        replies: [],
       },
     ];
 
@@ -811,6 +817,7 @@ const server = http.createServer(async (req, res) => {
       feedback: body.feedback,
       clientNotes: body.clientNotes || '',
       viewedByCoach: false,
+      replies: [],
     };
     HISTORY = [completed, ...HISTORY];
     return sendJson(res, 201, { completed });

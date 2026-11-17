@@ -96,7 +96,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | ---------------------------------------------------------- | -------------------- |
 | Chrono et palier de l'échelle                              | **fait** (`cfee928`) |
 | Mouvements faits et temps du chipper borné                 | **fait** (`01b53b6`) |
-| Réponse du coach (réaction, texte, « lue par le client »)  | à faire              |
+| Réponse du coach (réaction, texte, « lue par le client »)  | **fait** (`fa19c04`) |
 | Fil « À lire », et marquer lue une séance à la fois        | à faire              |
 | Étiquettes de clients                                      | à faire              |
 | Régularité dans la liste des clients                       | à faire              |
@@ -291,8 +291,9 @@ banc actuel, inchangé, qui le prouve.
 - [x] **D1** Les cinq `verify:*` sous Vitest ; les agrégations de
       `roster.controller` dans un service ; `CLAUDE.md` à jour (`ac4df0b`).
       En chemin : un ressenti absent faisait répondre 500 à toute la liste.
-- [ ] **D2** Réponse du coach : réaction, texte, date, « lue par le client ».
-      Une route pour écrire, une pour marquer lue.
+- [x] **D2** Réponse du coach : réaction, texte, date, « lue par le client ».
+      Une route pour écrire, une pour marquer lue (`fa19c04`). Une liste de
+      réponses : modifiable tant que non lue, puis une nouvelle.
 - [ ] **D3** Fil « À lire » : les séances non lues de tous les clients, avec
       ce qui a été fait et le passage d'avant ; lue à l'unité.
 - [x] **D4** Le prénom du coach dans le programme du client.

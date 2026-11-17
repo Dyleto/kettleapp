@@ -124,6 +124,7 @@ export const makeCompleted = (
   sessionOrder: 1,
   blocks: [makeBlockSnapshot()],
   viewedByCoach: false,
+  replies: [],
   completedAt: '2026-09-01T10:00:00.000Z',
   ...overrides,
 });
