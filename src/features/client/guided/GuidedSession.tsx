@@ -7,7 +7,7 @@ import { sortByOrder } from '@/domain/session/sets';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 import { InstructionSheet } from '@/features/client/sheet/InstructionSheet';
 import { buildGuidedSteps } from './steps';
-import { countRecorded, readProgress, writeProgress } from './sessionProgress';
+import { readProgress, writeProgress } from './sessionProgress';
 import { blockSegments, firstGesture, positionLabel } from './outline';
 import {
   firstRoundIndex,
@@ -29,7 +29,6 @@ import { ListScene } from './scene/ListScene';
 import { NoSteps } from './scene/NoSteps';
 import { Opening } from './scene/Opening';
 import { PauseSheet } from './scene/PauseSheet';
-import { ResumeQuestion } from './scene/ResumeQuestion';
 import { TimedBlock } from './scene/TimedBlock';
 
 interface GuidedSessionProps {
@@ -40,12 +39,11 @@ interface GuidedSessionProps {
   /** Ce qui a déjà été noté, et de quoi y ajouter : voir `ListScene`. */
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
-  /**
-   * On arrive de « Reprendre » sur l'accueil : la question « Reprendre où
-   * tu en étais ? » a déjà reçu sa réponse, on va droit à l'étape gardée.
-   */
-  resumeSaved?: boolean;
 }
+
+/** Combien de temps le haut dit « Reprise au bloc 2 » : de quoi le lire en
+ * reprenant sa kettlebell, pas assez pour qu'il gêne la série. */
+const RESUME_NOTICE = 3_000;
 
 /**
  * La séance guidée : l'écran qu'on a devant soi en s'entraînant.
@@ -63,8 +61,8 @@ interface GuidedSessionProps {
  * états. L'état et ses transitions vivent dans `session.ts`, testés sans
  * écran ; le cadre, le haut et la barre dans `SceneShell` ; chaque forme de
  * bloc dans sa scène. Il reste ici ce qui les relie : la phase (ouverture,
- * décompte, question, scène), l'écran tenu allumé et inerte autour, le
- * retour et Échap, et la pause par-dessus.
+ * décompte, scène), l'écran tenu allumé et inerte autour, le retour et
+ * Échap, et la pause par-dessus.
  */
 export const GuidedSession = ({
   session,
@@ -73,23 +71,20 @@ export const GuidedSession = ({
   lastPerformance,
   performed,
   onPerformedChange,
-  resumeSaved = false,
 }: GuidedSessionProps) => {
   const [state, act] = useGuidedSession(
     session._id,
     () =>
-      initialGuidedState(
-        buildGuidedSteps(session),
-        readProgress(session._id),
-        resumeSaved
-      ),
+      initialGuidedState(buildGuidedSteps(session), readProgress(session._id)),
     onFinish
   );
   const { steps } = state;
   // Les blocs ne changent pas pendant la séance : on les découpe une fois.
   const [segments] = useState(() => blockSegments(steps));
-  const [keptCount] = useState(() =>
-    countRecorded(readProgress(session._id)?.performed ?? {})
+  // Le bloc où la séance reprend, lu une fois : avancer pendant les trois
+  // secondes du bandeau ne doit pas le faire changer de numéro.
+  const [resumedBlock] = useState(
+    () => segmentProgress(state, segments).current + 1
   );
   /** La ligne du haut, où une scène peut poser une puce — le temps d'un
    * AMRAP. Un état et non une référence : la scène doit être rendue de
@@ -111,6 +106,17 @@ export const GuidedSession = ({
       writeProgress(session._id, { startedAt: Date.now() });
     }
   }, [session._id, pastOpening]);
+
+  // Le bandeau de reprise se retire de lui-même ; la séance, elle, ne
+  // bouge pas.
+  useEffect(() => {
+    if (!state.resumed) return;
+    const timer = setTimeout(
+      () => act({ type: 'dismissResume' }),
+      RESUME_NOTICE
+    );
+    return () => clearTimeout(timer);
+  }, [state.resumed, act]);
 
   // Le retour du téléphone et Échap ouvrent la pause : ils ne quittent
   // jamais directement. Sur Android, retour est le geste d'annulation
@@ -168,18 +174,6 @@ export const GuidedSession = ({
     );
   }
 
-  if (state.phase === 'resumeQuestion') {
-    return overlay(
-      <ResumeQuestion
-        savedIndex={state.savedIndex}
-        stepCount={steps.length}
-        keptCount={keptCount}
-        onResume={() => act({ type: 'resumeSaved' })}
-        onRestart={() => act({ type: 'restart' })}
-      />
-    );
-  }
-
   // Un repos n'a pas de bloc à lui : il porte le titre du bloc qu'il
   // termine.
   const titled = steps
@@ -220,6 +214,7 @@ export const GuidedSession = ({
         valuetext={`${position} — ${step.blockLabel}`}
         onPause={() => act({ type: 'pause' })}
         onHeaderSlot={setHeaderSlot}
+        notice={state.resumed ? `Reprise au bloc ${resumedBlock}` : undefined}
       >
         {step.type === 'block' && step.block.type === 'ladder' ? (
           // L'échelle a sa propre scène : ses paliers se cochent entiers, un

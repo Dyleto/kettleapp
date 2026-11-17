@@ -33,11 +33,12 @@ export type GuidedSignal =
 /**
  * Où en est l'écran, avant la scène elle-même.
  *
- * `resumeQuestion` est la question « Reprendre où tu en étais ? » ; elle
- * part avec C1, quand la fiche et l'accueil mèneront droit à la série.
+ * Il y avait une phase de plus : la question « Reprendre où tu en étais ? ».
+ * Elle se posait à qui venait de toucher « Reprendre » sur la fiche — on
+ * redemandait ce qu'on venait de répondre. La reprise se décide sur
+ * l'accueil, qui porte aussi « Recommencer depuis le début ».
  */
-export type GuidedPhase =
-  'empty' | 'opening' | 'counting' | 'resumeQuestion' | 'scene';
+export type GuidedPhase = 'empty' | 'opening' | 'counting' | 'scene';
 
 /** Le repos déclenché par « Série faite » : il appartient à la série qui
  * vient de finir, et n'a pas d'étape à lui. */
@@ -61,8 +62,11 @@ export interface GuidedState {
   steps: GuidedStep[];
   phase: GuidedPhase;
   index: number;
-  /** L'étape gardée sur l'appareil, que la question de reprise propose. */
-  savedIndex: number;
+  /**
+   * La séance reprend là où elle avait été quittée : le haut le dit trois
+   * secondes, « Reprise au bloc 2 », le temps de retrouver où l'on est.
+   */
+  resumed: boolean;
   /**
    * Les séries faites, indépendamment de la position.
    *
@@ -127,8 +131,7 @@ export interface Transition {
 export type GuidedAction =
   | { type: 'start' }
   | { type: 'countdownDone' }
-  | { type: 'resumeSaved' }
-  | { type: 'restart' }
+  | { type: 'dismissResume' }
   | { type: 'markDone' }
   | { type: 'undo'; key: string }
   | { type: 'skipExercise' }
@@ -168,29 +171,22 @@ type Saved = Pick<SessionProgress, 'step' | 'done' | 'skipped' | 'rounds'>;
  * commencé, et lui remontrer l'ouverture reviendrait à lui dire qu'il n'a
  * rien fait.
  *
- * `resumeSaved` : on arrive de « Reprendre » ; la question a déjà reçu sa
- * réponse, on va droit à l'étape gardée.
+ * Une séance commencée s'ouvre sur l'étape gardée, sans ouverture ni
+ * question : on revient pour reprendre, pas pour relire le programme.
  */
 export const initialGuidedState = (
   steps: GuidedStep[],
-  saved: Saved | null,
-  resumeSaved: boolean
+  saved: Saved | null
 ): GuidedState => {
   const savedIndex = Math.min(saved?.step ?? 0, Math.max(0, steps.length - 1));
   const started = (saved?.step ?? 0) > 0 || (saved?.done.length ?? 0) > 0;
   const phase: GuidedPhase =
-    steps.length === 0
-      ? 'empty'
-      : !started
-        ? 'opening'
-        : resumeSaved
-          ? 'scene'
-          : 'resumeQuestion';
+    steps.length === 0 ? 'empty' : started ? 'scene' : 'opening';
   return {
     steps,
     phase,
-    index: resumeSaved ? savedIndex : 0,
-    savedIndex,
+    index: started ? savedIndex : 0,
+    resumed: phase === 'scene',
     done: saved?.done ?? [],
     skipped: saved?.skipped ?? [],
     rounds: saved?.rounds ?? {},
@@ -429,22 +425,8 @@ export const guidedTransition = (
         armedBlock: armedByStart(step) ?? state.armedBlock,
       });
 
-    case 'resumeSaved':
-      return merge(t, { phase: 'scene', index: state.savedIndex });
-
-    case 'restart':
-      // Tout ce qui dit « où j'en suis » repart à zéro : l'étape, les séries
-      // cochées, les tours comptés. Réinitialiser la seule étape ne suffisait
-      // pas — sur un bloc en liste, une étape unique, on « recommençait » un
-      // chipper en gardant ses trois mouvements cochés.
-      //
-      // Les charges restent : effacer ce que quelqu'un a soulevé parce qu'il
-      // reprend du début serait la perte qu'on venait de corriger.
-      return merge(
-        t,
-        { phase: 'scene', index: 0, done: [], rounds: {} },
-        { step: 0, done: [], rounds: {} }
-      );
+    case 'dismissResume':
+      return state.resumed ? merge(t, { resumed: false }) : t;
 
     case 'markDone': {
       const current = currentSet(state);

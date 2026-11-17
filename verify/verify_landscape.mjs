@@ -154,10 +154,14 @@ const cutWithNoRecourse = (p) =>
     const cuts = (n) => {
       if (n.getAttribute('aria-hidden') === 'true') return null;
       const st = getComputedStyle(n);
+      // Seul ce qui rogne coupe. Un contenu qui dépasse une boîte sans la
+      // rogner (`overflow: visible`) reste lu : le « 15 » d'une série, à
+      // l'interligne plus court que la taille du chiffre, déborde de 14 px
+      // sans que rien ne le cache. Ce qui le cacherait est un parent qui
+      // rogne, et c'est lui que la descente trouve d'abord.
       if (
         n.scrollHeight > n.clientHeight + 1 &&
-        st.overflowY !== 'auto' &&
-        st.overflowY !== 'scroll'
+        (st.overflowY === 'hidden' || st.overflowY === 'clip')
       )
         return {
           tag: n.tagName,
@@ -277,22 +281,27 @@ const cutWithNoRecourse = (p) =>
     .click();
   await settle(p);
 
-  // 4. L'écran de reprise.
+  // 4. La séance reprise : elle s'ouvre sur la série, avec son bandeau.
   await p.getByRole('button', { name: START }).click();
   await settle(p);
   const resume = await cutWithNoRecourse(p);
   ok(
-    "l'écran de reprise ne coupe rien",
+    'la séance reprise ne coupe rien',
     resume === null,
     resume
       ? `${resume.tag} : ${resume.seen} px vus sur ${resume.content} — « ${resume.txt} »`
       : ''
   );
-  const resumeBtn = await buttonBox(p, '^Reprendre$');
+  const banner = await p
+    .locator('[data-resume-notice]')
+    .boundingBox({ timeout: 1000 })
+    .catch(() => null);
   ok(
-    "  → « Reprendre » est dans l'écran",
-    resumeBtn && resumeBtn.belowFold === 0 && resumeBtn.aboveFold === 0,
-    resumeBtn ? `bas à ${resumeBtn.bottom} sur 390` : '(introuvable)'
+    "  → et son bandeau « Reprise » tient dans l'écran",
+    banner !== null && banner.y >= 0 && banner.y + banner.height <= 390,
+    banner
+      ? `de ${Math.round(banner.y)} à ${Math.round(banner.y + banner.height)} sur 390`
+      : '(introuvable)'
   );
   await ctx.close();
 }

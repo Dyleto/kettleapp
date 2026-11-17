@@ -72,7 +72,7 @@ const steps = buildGuidedSteps(session);
 
 /** La scène ouverte à cette étape, avec ces séries déjà faites. */
 const at = (index: number, done: string[] = []): GuidedState => ({
-  ...initialGuidedState(steps, null, false),
+  ...initialGuidedState(steps, null),
   phase: 'scene',
   index,
   done,
@@ -106,66 +106,58 @@ describe('le découpage attendu', () => {
 
 describe("l'arrivée", () => {
   it("une séance jamais commencée s'ouvre sur l'ouverture", () => {
-    expect(initialGuidedState(steps, null, false).phase).toBe('opening');
+    const state = initialGuidedState(steps, null);
+    expect(state).toMatchObject({ phase: 'opening', resumed: false });
   });
 
-  it('une séance commencée demande où reprendre, sans bouger', () => {
-    const state = initialGuidedState(
-      steps,
-      { step: 3, done: [], skipped: [], rounds: {} },
-      false
-    );
-    expect(state).toMatchObject({
-      phase: 'resumeQuestion',
-      savedIndex: 3,
-      index: 0,
+  it('une séance commencée reprend à son étape, sans question', () => {
+    // La question « Reprendre où tu en étais ? » se posait à qui venait de
+    // toucher « Reprendre » : on redemandait ce qu'on venait de répondre.
+    const state = initialGuidedState(steps, {
+      step: 3,
+      done: [],
+      skipped: [],
+      rounds: {},
     });
+    expect(state).toMatchObject({ phase: 'scene', index: 3, resumed: true });
   });
 
   it('des séries cochées sans avoir avancé, c’est commencé aussi', () => {
     // Un bloc en liste est une étape unique : on y coche sans que l'étape
     // bouge, et l'ouverture remontrée dirait qu'on n'a rien fait.
-    const state = initialGuidedState(
-      steps,
-      { step: 0, done: ['1:1:1'], skipped: [], rounds: {} },
-      false
-    );
-    expect(state.phase).toBe('resumeQuestion');
-  });
-
-  it('venu de « Reprendre », droit à l’étape gardée', () => {
-    const state = initialGuidedState(
-      steps,
-      { step: 3, done: [], skipped: [], rounds: {} },
-      true
-    );
-    expect(state).toMatchObject({ phase: 'scene', index: 3 });
+    const state = initialGuidedState(steps, {
+      step: 0,
+      done: ['1:1:1'],
+      skipped: [],
+      rounds: {},
+    });
+    expect(state).toMatchObject({ phase: 'scene', index: 0, resumed: true });
   });
 
   it('une étape gardée hors de la séance revient à la dernière', () => {
-    const state = initialGuidedState(
-      steps,
-      { step: 40, done: [], skipped: [], rounds: {} },
-      true
-    );
+    const state = initialGuidedState(steps, {
+      step: 40,
+      done: [],
+      skipped: [],
+      rounds: {},
+    });
     expect(state.index).toBe(steps.length - 1);
   });
 
   it('sans exercice, rien à suivre', () => {
-    expect(initialGuidedState([], null, false).phase).toBe('empty');
+    expect(initialGuidedState([], null).phase).toBe('empty');
   });
 
-  it('« Recommencer » remet tout à zéro sauf les charges', () => {
-    const state = initialGuidedState(
-      steps,
-      { step: 3, done: ['1:1:1'], skipped: [], rounds: { '2': 4 } },
-      false
-    );
-    const { state: next, persist } = guidedTransition(state, {
-      type: 'restart',
+  it('le bandeau de reprise se retire, et la séance ne bouge pas', () => {
+    const resumed = initialGuidedState(steps, {
+      step: 3,
+      done: [],
+      skipped: [],
+      rounds: {},
     });
-    expect(next).toMatchObject({ phase: 'scene', index: 0, done: [] });
-    expect(persist).toEqual({ step: 0, done: [], rounds: {} });
+    const t = run(resumed, { type: 'dismissResume' });
+    expect(t.state).toMatchObject({ resumed: false, index: 3, phase: 'scene' });
+    expect(t.persist).toEqual({});
   });
 });
 
@@ -175,7 +167,7 @@ describe('le décompte de départ', () => {
       makeSession({ blocks: [session.blocks[1]] })
     );
     const state = {
-      ...initialGuidedState(emomFirst, null, false),
+      ...initialGuidedState(emomFirst, null),
       phase: 'counting' as const,
     };
     expect(
@@ -185,7 +177,7 @@ describe('le décompte de départ', () => {
 
   it("n'arme rien devant une liste", () => {
     const state = {
-      ...initialGuidedState(steps, null, false),
+      ...initialGuidedState(steps, null),
       phase: 'counting' as const,
     };
     const { state: next } = guidedTransition(state, { type: 'countdownDone' });
@@ -304,7 +296,7 @@ describe('aller et venir', () => {
         blocks: [{ ...session.blocks[1], rounds: undefined }],
       })
     );
-    const state = { ...initialGuidedState(unbounded, null, false), index: 0 };
+    const state = { ...initialGuidedState(unbounded, null), index: 0 };
     const t = run(state, { type: 'round', blockOrder: 2, round: 7 });
     expect(t.state).toMatchObject({ index: 0, liveRound: 7 });
   });
@@ -334,7 +326,7 @@ describe('finir', () => {
     const emomLast = buildGuidedSteps(
       makeSession({ blocks: [session.blocks[1]] })
     );
-    const state = { ...initialGuidedState(emomLast, null, false), index: 1 };
+    const state = { ...initialGuidedState(emomLast, null), index: 1 };
     expect(
       run(state, { type: 'finishTimedBlock', blockOrder: 2 }).signals
     ).toEqual(['sessionEnd', 'finish']);

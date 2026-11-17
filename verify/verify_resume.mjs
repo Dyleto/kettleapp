@@ -2,8 +2,12 @@
  * Reprendre, ou recommencer.
  *
  * Arrêter le mode guidé n'efface rien : on retrouve sa place et ses charges
- * en revenant. Pour repartir de zéro, l'écran de reprise le propose — et
- * « recommencer » doit alors réellement tout remettre à zéro.
+ * en revenant, sans ouverture ni question — « Reprise au bloc 2 » le dit
+ * trois secondes. Pour repartir de zéro, l'accueil le propose, et le demande
+ * d'abord ; « recommencer » doit alors réellement tout remettre à zéro.
+ *
+ * La question « Reprendre où tu en étais ? » vivait dans la séance guidée :
+ * elle se posait à qui venait de toucher « Reprendre » sur la fiche.
  *
  * La suite précédente vérifiait que les charges survivent à « recommencer » —
  * ce qui doit persister — sans jamais vérifier ce qui doit repartir à zéro.
@@ -24,6 +28,7 @@ import {
   advance,
   launchClock,
   START,
+  skipCountdown,
   settle,
 } from './common.mjs';
 
@@ -36,13 +41,39 @@ const record = (p, sess) =>
     sess
   );
 
-/** Quitte la séance, y revient, et clique « Recommencer ». */
+/** Le bandeau de reprise, s'il est là. */
+const notice = (p) =>
+  p
+    .locator('[data-resume-notice]')
+    .innerText({ timeout: 500 })
+    .then((text) => text.replace(/\u00A0/g, ' ').trim())
+    .catch(() => null);
+
+/**
+ * Quitte la séance et recommence depuis l'accueil : le lien, la feuille qui
+ * le demande, puis l'ouverture et son décompte.
+ */
 const startOver = async (p) => {
   await leaveSession(p);
-  await p.getByRole('button', { name: START }).click();
+  await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
   await settle(p);
-  await p.getByRole('button', { name: /Recommencer depuis le début/ }).click();
+  await p
+    .getByRole('button', { name: 'Recommencer depuis le début' })
+    .click({ timeout: 3000 })
+    .catch(() => {});
   await settle(p);
+  await p
+    .getByRole('dialog', { name: 'Recommencer la séance ?' })
+    .getByRole('button', { name: 'Recommencer', exact: true })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  await p
+    .getByRole('button', { name: /C'est parti/ })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  await skipCountdown(p);
 };
 
 // ── Un bloc en liste : le cas où « recommencer » ne faisait rien ────────
@@ -59,7 +90,7 @@ const startOver = async (p) => {
     // seulement « Noter une charge » : on le demande d'abord.
     const ask = p.getByRole('button', { name: 'Noter une charge' });
     if (await ask.count()) {
-      await ask.click();
+      await ask.click({ timeout: 3000 }).catch(() => {});
       await settle(p);
     }
     const kg = p
@@ -75,7 +106,8 @@ const startOver = async (p) => {
       .getByRole('button', {
         name: /^(Fait|Série faite|Palier fait)$/,
       })
-      .click();
+      .click({ timeout: 3000 })
+      .catch(() => {});
     await settle(p);
     await skipRest(p);
   }
@@ -115,7 +147,8 @@ const startOver = async (p) => {
   const value = await p
     .locator('[aria-label="Séance guidée"] input[aria-label^="Poids utilisé"]')
     .first()
-    .inputValue();
+    .inputValue({ timeout: 2000 })
+    .catch(() => '');
   ok(
     '  → et la première se relit dans son champ',
     value === '20',
@@ -141,7 +174,7 @@ const startOver = async (p) => {
   await launchClock(p);
   const plus = p.getByRole('button', { name: /^Ajouter un tour/ });
   for (let i = 0; i < 6; i++) {
-    await plus.click();
+    await plus.click({ timeout: 3000 }).catch(() => {});
     await settle(p);
   }
   const before = await record(p, 'sess1');
@@ -181,26 +214,27 @@ const startOver = async (p) => {
     .getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
-    .click();
+    .click({ timeout: 3000 })
+    .catch(() => {});
   await settle(p);
   await skipRest(p);
   await startOver(p);
 
   await leaveSession(p);
-  await p.getByRole('button', { name: START }).click();
+  const label = await p
+    .getByRole('button', { name: START })
+    .innerText({ timeout: 2000 })
+    .catch(() => '(absent)');
+  await p
+    .getByRole('button', { name: START })
+    .click({ timeout: 3000 })
+    .catch(() => {});
   await settle(p);
-  const panel = await p.evaluate(() => {
-    const d = [...document.querySelectorAll('div')].filter(
-      (e) =>
-        getComputedStyle(e).position === 'fixed' &&
-        /Reprendre|C'est parti/.test(e.innerText)
-    );
-    return d[d.length - 1]?.innerText ?? '';
-  });
+  const opening = await p.getByRole('button', { name: /C'est parti/ }).count();
   ok(
     'on ne propose plus de reprendre une séance remise à zéro',
-    !/Reprendre où tu en étais/i.test(panel),
-    panel.split('\n').filter(Boolean)[0] ?? '(rien)'
+    label.trim() === 'Démarrer' && opening === 1 && (await notice(p)) === null,
+    `« ${label.trim()} », ${opening} ouverture`
   );
   await ctx.close();
 }
@@ -235,32 +269,17 @@ const startOver = async (p) => {
     waitUntil: 'domcontentloaded',
   });
   await settle(p);
-  await p.getByRole('button', { name: START }).click();
-  await settle(p);
-  const panel = await p.evaluate(() => {
-    const d = [...document.querySelectorAll('div')].filter(
-      (e) =>
-        getComputedStyle(e).position === 'fixed' &&
-        /Reprendre|C'est parti/.test(e.innerText)
-    );
-    return (d[d.length - 1]?.innerText ?? '').replace(/\u00A0/g, ' ');
-  });
-  ok(
-    "on propose de reprendre une séance rangée à l'ancien format",
-    /Reprendre où tu en étais/i.test(panel),
-    panel.split('\n').filter(Boolean)[0] ?? '(rien)'
-  );
-  ok(
-    '  → et la charge notée avant la mise en production est annoncée',
-    /charges sur 1 exercice/i.test(panel),
-    (panel.match(/[^\n]*charges[^\n]*/) ?? ['(rien)'])[0]
-  );
-
   await p
-    .getByRole('dialog', { name: 'Reprendre où tu en étais ?' })
-    .getByRole('button', { name: 'Reprendre', exact: true })
-    .click();
+    .getByRole('button', { name: START })
+    .click({ timeout: 3000 })
+    .catch(() => {});
   await settle(p);
+  ok(
+    "une séance rangée à l'ancien format reprend où elle en était",
+    (await notice(p)) === 'Reprise au bloc 1' &&
+      (await p.getByRole('button', { name: /C'est parti/ }).count()) === 0,
+    (await notice(p)) ?? '(aucun bandeau)'
+  );
   // On reprend au premier exercice non coché : le troisième. Les deux
   // premiers sont derrière, cochés, avec la charge de l'ancien format.
   const screen = await guidedScreen(p);
@@ -281,7 +300,8 @@ const startOver = async (p) => {
     .getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
-    .click();
+    .click({ timeout: 3000 })
+    .catch(() => {});
   await settle(p);
   const migrated = await record(p, 'sess3');
   ok(
@@ -291,9 +311,61 @@ const startOver = async (p) => {
   );
   ok(
     "  → en gardant ce qu'il portait",
-    migrated.done.length === 3 &&
-      migrated.performed['1:1'].sets[0].weight === 37,
-    `${migrated.done.length} faits, ${JSON.stringify(migrated.performed['1:1'])}`
+    migrated.done?.length === 3 &&
+      migrated.performed?.['1:1']?.sets?.[0]?.weight === 37,
+    `${migrated.done?.length} faits, ${JSON.stringify(migrated.performed?.['1:1'])}`
+  );
+  await ctx.close();
+}
+
+// ── Reprendre depuis la fiche, sans question ────────────────────────────
+//
+// « Reprendre » sur la fiche ouvrait une question — « Reprendre où tu en
+// étais ? » — à qui venait de répondre. On arrive maintenant sur la série,
+// et le haut le dit trois secondes.
+{
+  console.log('\n── « Reprendre » mène droit à la série');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await start(p, 'sess3');
+  for (let i = 0; i < 2; i++) {
+    await p
+      .getByRole('button', { name: /^(Fait|Série faite|Palier fait)$/ })
+      .click({ timeout: 3000 })
+      .catch(() => {});
+    await settle(p);
+    await skipRest(p);
+  }
+  await leaveSession(p);
+  await p
+    .getByRole('button', { name: START })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  const screen = await guidedScreen(p);
+  ok(
+    '« Reprendre » mène droit à la série, sans ouverture ni question',
+    /2 sur 4 faits/.test(screen) &&
+      (await p.getByRole('button', { name: /C'est parti/ }).count()) === 0 &&
+      (await p.getByRole('dialog', { name: /Reprendre où/ }).count()) === 0,
+    (screen.match(/[^\n]*faits dans ce bloc[^\n]*/) ?? ['(rien)'])[0]
+  );
+  ok(
+    '→ le haut dit « Reprise au bloc 1 »',
+    (await notice(p)) === 'Reprise au bloc 1',
+    (await notice(p)) ?? '(aucun bandeau)'
+  );
+  await p.clock.runFor(3_100);
+  await settle(p);
+  ok(
+    '→ trois secondes, puis le bandeau s’efface',
+    (await notice(p)) === null,
+    (await notice(p)) ?? ''
+  );
+  ok(
+    '→ et la séance n’a pas bougé',
+    /2 sur 4 faits/.test(await guidedScreen(p))
   );
   await ctx.close();
 }

@@ -19,6 +19,8 @@ interface SceneShellProps {
   /** La place, en haut, où une scène peut poser une puce — le temps d'un
    * AMRAP. */
   onHeaderSlot: (element: HTMLElement | null) => void;
+  /** Un mot posé quelques secondes sous la barre : « Reprise au bloc 2 ». */
+  notice?: string;
   children: ReactNode;
 }
 
@@ -44,6 +46,7 @@ export const SceneShell = ({
   valuetext,
   onPause,
   onHeaderSlot,
+  notice,
   children,
 }: SceneShellProps) => {
   // Le son se coupe là où il s'entend, à côté de la pause.
@@ -206,6 +209,32 @@ export const SceneShell = ({
             </HStack>
           </Box>
         </HStack>
+
+        {/* Posé par-dessus et non dans le flux : la série ne doit pas
+            descendre de cinquante pixels puis remonter quand il part. Un
+            `status` : un lecteur d'écran l'annonce sans voler le focus. */}
+        {notice && (
+          <Box
+            role="status"
+            position="absolute"
+            top="96px"
+            left={5}
+            right={5}
+            zIndex={2}
+            px={4}
+            py={3}
+            borderRadius="16px"
+            bg="bg.raised"
+            boxShadow="0 12px 32px rgba(0, 0, 0, 0.45)"
+            fontWeight="bold"
+            fontSize="15px"
+            textAlign="center"
+            css={{ [LANDSCAPE]: { top: '44px' } }}
+            data-resume-notice
+          >
+            {notice}
+          </Box>
+        )}
 
         {children}
       </Box>

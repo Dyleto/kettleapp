@@ -410,7 +410,8 @@ const felt = (p) => p.evaluate(() => window.__buzz ?? []);
         'off'
   );
 
-  // La même séance, reprise : le mouvement suivant se coche sans vibrer.
+  // La même séance, reprise — sans question, droit au mouvement suivant,
+  // qui se coche sans vibrer.
   await p.goto(`${BASE}/client/session/sess3`, {
     waitUntil: 'domcontentloaded',
   });
@@ -418,11 +419,6 @@ const felt = (p) => p.evaluate(() => window.__buzz ?? []);
   await p
     .getByRole('button', { name: /^(Reprendre|Démarrer)$/ })
     .click({ timeout: 3000 })
-    .catch(() => {});
-  await settle(p);
-  await p
-    .getByRole('button', { name: 'Reprendre', exact: true })
-    .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
   const muted = (await felt(p)).length;

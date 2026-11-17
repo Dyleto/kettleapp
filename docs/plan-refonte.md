@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 585 tests unitaires, 31 suites de banc et 577
-assertions, 2 min 51 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 584 tests unitaires, 31 suites de banc et 580
+assertions, 2 min 56 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -53,7 +53,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 | Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                                                                                                         |
 | ---------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ouverture, décompte, enchaînement, pause | partiel  | L'écran « Bloc suivant » (trois secondes, sans geste) n'existe pas. La question « Reprendre où tu en étais ? » survit quand on entre par la fiche ; le bandeau « Reprise au bloc 2 » manque.                                                                                                                          |
+| Ouverture, décompte, enchaînement, pause | partiel  | L'écran « Bloc suivant » (trois secondes, sans geste) n'existe pas. La reprise se fait sans question, avec son bandeau (C1).                                                                                                                                                                                          |
 | Séries, repos, exercices à durée         | partiel  | Le repos entre blocs a pris la carte des séries (B6). Pas de ligne « Ensuite ». Chipper et TimeCap n'ont ni chrono de limite ni feuille « Temps écoulé ». On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. |
 | Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                                                                                                                      |
 | Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                                                                                                                      |
@@ -65,7 +65,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Accueil         | **fait** | Tous les cadres sauf « Réponse du coach non lue », qui attend l'API. Restent aussi « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                     |
 | Programme       | à faire  | L'ancien écran : pas de durée, pas de barre de composition, pas d'état « En cours » ni « Modifiée depuis ta dernière fois » en pastille.                                       |
-| Fiche de séance | **fait** | Reste la reprise sans question (C1) : la fiche dit « Reprendre », la séance guidée demande encore.                                                                             |
+| Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                                      |
 | Progrès         | à faire  | L'ancien historique sous un nouveau nom : pas de records, des suites « 20 → 24 → 26 kg » au lieu de courbes, pas de feuille par mouvement, calendrier sans pastilles d'effort. |
 | Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                                              |
 | Premiers pas    | partiel  | La question des données de santé existe. Les trois cartes de bienvenue et le détail dépliable manquent.                                                                        |
@@ -132,7 +132,7 @@ Constaté, avec sa mesure.
    réglée : les suites tournent sur quatre files.
 8. **Restes de l'ancien mode guidé** : `Timer`, `BlockList`, la question de
    reprise, `PerformedFields`, `SuggestedDays` — `Timer` et `BlockList`
-   partis en B6.
+   partis en B6, la question en C1.
 9. **API** : cinq scripts `verify:*` gardent chacun leur `ok()` (85
    assertions à passer sous Vitest) ; `roster.controller.ts` porte des
    agrégations qui appartiennent à un service ; `CLAUDE.md` cite un
@@ -243,8 +243,9 @@ banc actuel, inchangé, qui le prouve.
 
 ### C. Finir la séance guidée
 
-- [ ] **C1** Reprise sans question : la fiche et l'accueil mènent droit à la
-      série, bandeau « Reprise au bloc 2 » trois secondes.
+- [x] **C1** Reprise sans question : la fiche et l'accueil mènent droit à la
+      série, bandeau « Reprise au bloc 2 » trois secondes. Recommencer se
+      décide sur l'accueil, qui le demande d'abord.
 - [ ] **C2** « Bloc suivant », trois secondes sans geste ; ~~le repos entre
       blocs sur la scène de repos~~ (fait en B6) ; la ligne « Ensuite ».
 - [ ] **C3** Chipper et TimeCap : chrono de limite, feuille « Temps écoulé ».
@@ -339,12 +340,10 @@ banc actuel, inchangé, qui le prouve.
 
 ## 6. Écarts avec la maquette
 
-Aucun n'est un choix : les deux qui restent attendent leur ligne du plan.
+Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 
 - **Le jour fait s'ouvre sur place**, dans un tiroir — tant que Progrès n'a
   pas son détail (F3).
-- **La fiche dit « Reprendre », et la séance guidée demande encore** —
-  jusqu'à C1.
 
 Tranché le 16 novembre : la série en cours garde le bloc entier sous elle.
 Ce n'est plus un écart, c'est la maquette qui a changé — son chapitre

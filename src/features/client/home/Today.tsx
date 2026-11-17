@@ -103,16 +103,11 @@ const Today = () => {
     });
   // Démarrer depuis l'accueil ouvre la séance guidée sur son écran
   // d'ouverture : la fiche est là-dessous, et la refermer y ramène.
+  // Reprendre passe par la même porte : une séance commencée s'ouvre
+  // d'elle-même sur le bloc et la série où l'on s'était arrêté.
   const startGuided = (session: Session) =>
     navigate(CLIENT_ROUTES.sessionById(session._id), {
       state: { guided: 'start', from: 'today' },
-    });
-  // Reprendre mène au bloc et à la série où l'on s'était arrêté, sans
-  // repasser par la question « Reprendre où tu en étais ? » : on vient d'y
-  // répondre.
-  const resumeGuided = (session: Session) =>
-    navigate(CLIENT_ROUTES.sessionById(session._id), {
-      state: { guided: 'resume', from: 'today' },
     });
   // Recommencer efface la position et ce qui est coché, puis repart de
   // l'ouverture. Les charges notées restent, comme quand on recommence
@@ -249,7 +244,7 @@ const Today = () => {
       onCta={() =>
         unfinished.changed
           ? setConfirmRestart(true)
-          : resumeGuided(unfinished.session)
+          : startGuided(unfinished.session)
       }
       link={unfinished.changed ? undefined : 'Recommencer depuis le début'}
       onLink={() => setConfirmRestart(true)}

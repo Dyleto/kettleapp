@@ -198,12 +198,12 @@ export default {
       ],
     },
     {
-      name: '« Reprendre » repose la question',
+      name: "« Reprendre » repasse par l'ouverture",
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: "          resumeSaved={guidedEntry === 'resume'}",
-          to: '          resumeSaved={false}',
+          file: 'src/features/client/guided/session.ts',
+          from: "    steps.length === 0 ? 'empty' : started ? 'scene' : 'opening';",
+          to: "    steps.length === 0 ? 'empty' : 'opening';",
         },
       ],
       falls: [
@@ -264,6 +264,19 @@ export default {
         },
       ],
       falls: ['→ la barre : le Tabata fait, deux séries sur sept du renfo'],
+    },
+    {
+      name: 'la reprise repart de la première étape',
+      edits: [
+        {
+          file: 'src/features/client/guided/session.ts',
+          from: '    index: started ? savedIndex : 0,',
+          to: '    index: 0,',
+        },
+      ],
+      falls: [
+        '« Reprendre » rouvre la séance au même endroit, sans redemander',
+      ],
     },
   ],
 };

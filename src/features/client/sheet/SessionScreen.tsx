@@ -40,16 +40,12 @@ const SessionScreen = () => {
     coach,
   } = useOutletContext<ClientSessionsData>();
   const location = useLocation();
-  // « Démarrer » sur l'accueil arrive ici avec `guided: 'start'` : la séance
-  // guidée s'ouvre d'emblée, sur son écran d'ouverture, et la fiche attend
-  // dessous. Une touche au lieu de trois avant le premier exercice.
-  const [guidedEntry] = useState(
-    () => (location.state as { guided?: string } | null)?.guided
-  );
-  // « Reprendre » sur l'accueil arrive avec `guided: 'resume'` : même
-  // ouverture d'emblée, mais droit à l'étape gardée.
+  // « Démarrer » ou « Reprendre » sur l'accueil arrive ici avec
+  // `guided: 'start'` : la séance guidée s'ouvre d'emblée — sur son
+  // ouverture, ou sur l'étape gardée si elle est commencée — et la fiche
+  // attend dessous. Une touche au lieu de trois avant le premier exercice.
   const [isGuidedOpen, setIsGuidedOpen] = useState(
-    () => guidedEntry === 'start' || guidedEntry === 'resume'
+    () => (location.state as { guided?: string } | null)?.guided === 'start'
   );
   // La demande est lue une fois puis effacée de l'historique : revenir sur
   // la fiche par « Précédent », ou la recharger, ne doit pas relancer la
@@ -153,9 +149,9 @@ const SessionScreen = () => {
     );
   }
 
-  // Une séance commencée sur ce téléphone : le bouton dit « Reprendre ».
-  // La séance guidée pose encore sa question en s'ouvrant d'ici — elle
-  // offre « Recommencer depuis le début », que la fiche ne porte pas.
+  // Une séance commencée sur ce téléphone : le bouton dit « Reprendre », et
+  // la séance guidée rouvre l'étape gardée. Recommencer se décide sur
+  // l'accueil, qui le demande d'abord.
   const saved = readProgress(activeSession._id);
   const started = !!saved && (saved.step > 0 || saved.done.length > 0);
 
@@ -179,7 +175,6 @@ const SessionScreen = () => {
       {isGuidedOpen && (
         <GuidedSession
           session={activeSession}
-          resumeSaved={guidedEntry === 'resume'}
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
