@@ -1,6 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuCheck } from 'react-icons/lu';
+import { LuCheck, LuPlay } from 'react-icons/lu';
 import type { PerformedValues } from '@/shared/types';
 import type { GuidedSet } from '@/domain/session/sets';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
@@ -23,6 +23,25 @@ import { LoadStepper } from './LoadStepper';
 import { RestHero } from './RestHero';
 import { SetHero } from './SetHero';
 
+/**
+ * Ce qu'une liste bornée par une limite — un chipper, un TimeCap — demande
+ * à la liste : son chrono vit autour d'elle, dans `ChipperBlock`.
+ */
+export interface CappedList {
+  /** Le chrono attend « Lancer » : la liste se lit, rien ne se coche. */
+  waiting: boolean;
+  onLaunch: () => void;
+  /**
+   * La liste s'épuise — dernière série cochée ou passée. Le chrono s'arrête
+   * là, sur ce qui est fait à cet instant : c'est le temps du chipper.
+   */
+  onListEnd: (done: string[]) => void;
+  /** « limite 20 min », à droite du rang. */
+  limitLabel: string;
+  /** La puce du temps, téléphone couché, où le haut de la scène disparaît. */
+  chip: ReactNode;
+}
+
 interface ListSceneProps {
   step: Extract<GuidedStep, { type: 'block' }>;
   state: GuidedState;
@@ -38,6 +57,7 @@ interface ListSceneProps {
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   /** Le nom du bloc qui suit, `undefined` au dernier. */
   nextBlock?: string;
+  capped?: CappedList;
 }
 
 /**
@@ -59,6 +79,7 @@ export const ListScene = ({
   performed,
   onPerformedChange,
   nextBlock,
+  capped,
 }: ListSceneProps) => {
   const current = currentSet(state);
   const { rest } = state;
@@ -100,6 +121,13 @@ export const ListScene = ({
     writeLoad(current, next);
   };
 
+  /** Il ne reste rien à faire une fois ces séries faites et ces mouvements
+   * passés. */
+  const exhausted = (done: string[], skipped: string[]) =>
+    step.sets.every(
+      (set) => done.includes(set.key) || skipped.includes(exerciseKeyOf(set))
+    );
+
   const markDone = () => {
     // La charge affichée est enregistrée avec la série : c'est celle qu'on a
     // sous les yeux, proposée ou corrigée. Rien n'était noté tant qu'on ne
@@ -108,7 +136,21 @@ export const ListScene = ({
     if (current && ownNoted === undefined && currentLoad !== undefined) {
       writeLoad(current, currentLoad);
     }
+    // Le chrono d'une liste bornée s'arrête avant que la scène ne passe au
+    // bloc suivant : après, il n'y aurait plus personne pour le lire.
+    if (current && capped) {
+      const done = [...state.done, current.key];
+      if (exhausted(done, state.skipped)) capped.onListEnd(done);
+    }
     act({ type: 'markDone' });
+  };
+
+  const skipExercise = () => {
+    if (current && capped) {
+      const skipped = [...state.skipped, exerciseKeyOf(current)];
+      if (exhausted(state.done, skipped)) capped.onListEnd(state.done);
+    }
+    act({ type: 'skipExercise' });
   };
 
   const showLoad =
@@ -162,19 +204,26 @@ export const ListScene = ({
         pb={2}
       >
         {/* Le nom du bloc est dans le haut de la scène ; il ne se répète ici
-            que téléphone couché, où ce haut disparaît. */}
-        <Text
+            que téléphone couché, où ce haut disparaît — avec la puce du
+            temps d'une liste bornée. */}
+        <HStack
           display="none"
-          css={{ [LANDSCAPE]: { display: 'block' } }}
-          fontSize="xs"
-          letterSpacing="2px"
-          textTransform="uppercase"
-          fontWeight="800"
-          color="session.work"
+          css={{ [LANDSCAPE]: { display: 'flex' } }}
+          justify="space-between"
+          gap={3}
         >
-          {step.blockLabel}
-          {step.block.label ? ` · ${step.block.label}` : ''}
-        </Text>
+          <Text
+            fontSize="xs"
+            letterSpacing="2px"
+            textTransform="uppercase"
+            fontWeight="800"
+            color="session.work"
+          >
+            {step.blockLabel}
+            {step.block.label ? ` · ${step.block.label}` : ''}
+          </Text>
+          {capped?.chip}
+        </HStack>
         {rest ? (
           <RestHero
             key={rest.afterKey}
@@ -221,6 +270,7 @@ export const ListScene = ({
               onLoadChange={changeLoad}
               loadLabel={loadLabel}
               onTimedDone={markDone}
+              aside={capped?.limitLabel}
               onOpenDetail={
                 current.exercise.note?.trim() ||
                 current.exercise.exercise.description?.trim() ||
@@ -283,6 +333,27 @@ export const ListScene = ({
             </ActionButton>
           </HStack>
         </Footer>
+      ) : current && capped?.waiting ? (
+        // Une liste bornée attend son départ : « Lancer », comme tout bloc
+        // dont l'horloge compte. Cocher avant ferait une série hors chrono.
+        <Footer gap={1}>
+          <ActionButton
+            size="xl"
+            w="full"
+            onClick={capped.onLaunch}
+            css={{ [LANDSCAPE]: { minHeight: '52px' } }}
+          >
+            <LuPlay size={20} />
+            Lancer
+          </ActionButton>
+          {state.index > 0 && (
+            <HStack>
+              <FooterLink onClick={() => act({ type: 'previous' })}>
+                Bloc précédent
+              </FooterLink>
+            </HStack>
+          )}
+        </Footer>
       ) : current ? (
         // Une série : un seul geste principal, en très grand, et deux liens
         // discrets dessous. « Précédent » prenait un tiers de la largeur pour
@@ -312,9 +383,7 @@ export const ListScene = ({
             ) : (
               <Box />
             )}
-            <FooterLink onClick={() => act({ type: 'skipExercise' })}>
-              Passer cet exercice
-            </FooterLink>
+            <FooterLink onClick={skipExercise}>Passer cet exercice</FooterLink>
           </HStack>
         </Footer>
       ) : (

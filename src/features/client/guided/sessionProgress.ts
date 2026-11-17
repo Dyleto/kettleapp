@@ -63,6 +63,12 @@ export interface SessionProgress {
    */
   ladder: Record<string, { rungs: number; seconds: number }>;
   /**
+   * Ce qu'un chipper ou un TimeCap borné a donné, par rang de bloc : les
+   * mouvements entièrement faits et le temps au chrono. Envoyé avec le bilan
+   * (`chipperDone`), lu avec la même indulgence que `ladder`.
+   */
+  chipper: Record<string, { movements: number; seconds: number }>;
+  /**
    * Quand la séance a commencé, en millisecondes.
    *
    * Posé à la première ouverture et jamais redéfini : ce qu'on veut annoncer
@@ -95,6 +101,7 @@ const empty = (): SessionProgress => ({
   rounds: {},
   skipped: [],
   ladder: {},
+  chipper: {},
   updatedAt: Date.now(),
 });
 
@@ -122,6 +129,29 @@ interface LegacyProgress {
   debutLe?: number;
   majLe: number;
 }
+
+/**
+ * Les résultats de chipper lisibles, et eux seuls : des entiers positifs,
+ * sans quoi le serveur refuserait tout le bilan.
+ */
+const readChipper = (raw: unknown): SessionProgress['chipper'] => {
+  if (!raw || typeof raw !== 'object') return {};
+  const kept: SessionProgress['chipper'] = {};
+  for (const [order, entry] of Object.entries(raw)) {
+    const { movements, seconds } = (entry ?? {}) as Record<string, unknown>;
+    if (
+      Number.isInteger(movements) &&
+      Number.isInteger(seconds) &&
+      (movements as number) >= 0 &&
+      (seconds as number) >= 0
+    )
+      kept[order] = {
+        movements: movements as number,
+        seconds: seconds as number,
+      };
+  }
+  return kept;
+};
 
 /** Les résultats d'échelle lisibles, et eux seuls. */
 const readLadder = (raw: unknown): SessionProgress['ladder'] => {
@@ -181,6 +211,7 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
         ? stored.skipped.filter((k): k is string => typeof k === 'string')
         : [],
       ladder: readLadder(stored.ladder),
+      chipper: readChipper(stored.chipper),
       startedAt: typeof startedAt === 'number' ? startedAt : undefined,
       updatedAt,
     };
@@ -243,6 +274,7 @@ export const restartProgress = (sessionId: string) =>
     rounds: {},
     skipped: [],
     ladder: {},
+    chipper: {},
     startedAt: undefined,
   });
 

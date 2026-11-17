@@ -114,6 +114,7 @@ describe('l’aller-retour', () => {
       rounds: {},
       skipped: [],
       ladder: {},
+      chipper: {},
       updatedAt: expect.any(Number),
     });
   });
@@ -197,6 +198,7 @@ describe('un enregistrement d’avant le passage aux noms anglais', () => {
       rounds: { '3': 5 },
       skipped: [],
       ladder: {},
+      chipper: {},
       startedAt: 1_700_000_000_000,
       updatedAt: expect.any(Number),
     });
@@ -286,6 +288,7 @@ describe('ce qu’on redresse plutôt que de refuser', () => {
       rounds: {},
       skipped: [],
       ladder: {},
+      chipper: {},
       startedAt: undefined,
       updatedAt: expect.any(Number),
     });
@@ -327,6 +330,24 @@ describe('ce qu’on redresse plutôt que de refuser', () => {
     expect(readProgress('sess1')?.ladder).toEqual({
       '1': { rungs: 4, seconds: 720 },
     });
+  });
+
+  it('relit le résultat d’un chipper, et écarte une entrée abîmée', () => {
+    storage.put(
+      KEY,
+      withFields({
+        chipper: {
+          '1': { movements: 3, seconds: 1200 },
+          '2': { movements: 1.5, seconds: 1200 },
+          '3': { movements: 2 },
+        },
+      })
+    );
+    expect(readProgress('sess1')?.chipper).toEqual({
+      '1': { movements: 3, seconds: 1200 },
+    });
+    storage.put(KEY, withFields({ chipper: 'rien' }));
+    expect(readProgress('sess1')?.chipper).toEqual({});
   });
 
   it('un enregistrement d’avant l’échelle bornée en a une forme vide', () => {

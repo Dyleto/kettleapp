@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 599 tests unitaires, 31 suites de banc et 593
-assertions, 3 min 5 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 610 tests unitaires, 32 suites de banc et 605
+assertions, 3 min 11 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -51,13 +51,13 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Séance guidée
 
-| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                         |
-| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                                                                                                       |
-| Séries, repos, exercices à durée         | partiel  | Chipper et TimeCap n'ont ni chrono de limite ni feuille « Temps écoulé ». On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. |
-| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                                      |
-| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                                      |
-| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                                    |
+| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                  |
+| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                                                                                                |
+| Séries, repos, exercices à durée         | partiel  | On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. Le chipper borné a son chrono et sa feuille « Temps écoulé » (C3). |
+| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                               |
+| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                               |
+| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                             |
 
 ### Client
 
@@ -95,6 +95,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Nouveauté                                                  | État                 |
 | ---------------------------------------------------------- | -------------------- |
 | Chrono et palier de l'échelle                              | **fait** (`cfee928`) |
+| Mouvements faits et temps du chipper borné                 | **fait** (`01b53b6`) |
 | Réponse du coach (réaction, texte, « lue par le client »)  | à faire              |
 | Fil « À lire », et marquer lue une séance à la fois        | à faire              |
 | Étiquettes de clients                                      | à faire              |
@@ -254,7 +255,14 @@ banc actuel, inchangé, qui le prouve.
       deux colonnes. Pas après le repos qui termine un bloc : il annonce
       déjà la suite, et nomme maintenant le bloc. Le dernier geste d'un bloc
       dit « Ensuite · bloc suivant : EMOM ».
-- [ ] **C3** Chipper et TimeCap : chrono de limite, feuille « Temps écoulé ».
+- [x] **C3** Chipper et TimeCap : chrono de limite, feuille « Temps écoulé ».
+      Une limite fixée par le coach donne à la liste un chrono : « Lancer »
+      (sauf au premier bloc, que « C'est parti » arme), la puce qui descend,
+      trois bips, puis la feuille qui propose le mouvement en cours, à
+      confirmer. La liste écoulée avant la limite arrête le chrono à la
+      dernière série. Mouvements faits et temps partent avec le bilan
+      (`chipperDone`, API `01b53b6` — à déployer avant le front). Sans
+      limite, rien ne change.
 - [ ] **C4** Noter des répétitions différentes du prescrit.
 - [ ] **C5** « Dire comment c'était » : un ressenti quitté sans envoyer se
       retrouve sur l'accueil, et part quand le réseau revient.

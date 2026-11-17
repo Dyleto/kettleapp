@@ -34,6 +34,12 @@ interface SetHeroProps {
   onOpenDetail?: () => void;
   /** Un exercice à durée arrivé à zéro : sa série est faite. */
   onTimedDone: () => void;
+  /**
+   * Ce qui se lit à droite du rang, à la place des points : « limite
+   * 20 min » dans un chipper borné, où un point par mouvement ne dirait que
+   * ce que « Mouvement 2 sur 4 » vient de dire.
+   */
+  aside?: string;
 }
 
 /** « 10 reps » en deux morceaux : le nombre, en très grand, et son unité. */
@@ -99,6 +105,7 @@ export const SetHero = ({
   loadLabel,
   onOpenDetail,
   onTimedDone,
+  aside,
 }: SetHeroProps) => {
   // « Remettre à 2 min » repart d'un anneau neuf : changer sa clé le
   // remonte, échéance comprise.
@@ -123,7 +130,13 @@ export const SetHero = ({
         >
           {rankLabel(block, set, blockSets)}
         </Text>
-        <SetDots set={set} blockSets={blockSets} doneKeys={doneKeys} />
+        {aside ? (
+          <Text fontSize="sm" color="fg.muted" flexShrink={0}>
+            {aside}
+          </Text>
+        ) : (
+          <SetDots set={set} blockSets={blockSets} doneKeys={doneKeys} />
+        )}
       </HStack>
 
       <HStack align="start" gap={2.5}>

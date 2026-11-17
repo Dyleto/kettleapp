@@ -27,6 +27,8 @@ import { useInertRoot, useSoundUnlock, useWakeLock } from './screen';
 import { PauseContext } from './PauseContext';
 import { SceneShell } from './SceneShell';
 import { AmrapBlock } from './scene/AmrapBlock';
+import { ChipperBlock } from './scene/ChipperBlock';
+import { isCappedList } from './chipper';
 import { BetweenBlocks } from './scene/BetweenBlocks';
 import { Countdown } from './scene/Countdown';
 import { LadderBlock } from './scene/LadderBlock';
@@ -268,6 +270,30 @@ export const GuidedSession = ({
             headerSlot={headerSlot}
             lastPerformance={lastPerformance}
             onOpenDetail={openDetail}
+          />
+        ) : step.type === 'block' &&
+          step.shape === 'list' &&
+          isCappedList(step.block) ? (
+          <ChipperBlock
+            key={step.block.order}
+            step={step}
+            state={state}
+            act={act}
+            armed={state.armedBlock === step.block.order}
+            onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
+            onResult={(result) =>
+              writeProgress(session._id, {
+                chipper: {
+                  ...(readProgress(session._id)?.chipper ?? {}),
+                  [String(step.block.order)]: result,
+                },
+              })
+            }
+            headerSlot={headerSlot}
+            lastPerformance={lastPerformance}
+            performed={performed}
+            onPerformedChange={onPerformedChange}
+            nextBlock={blockAfter(session, step.block.order)}
           />
         ) : step.type === 'block' && step.shape === 'list' ? (
           <ListScene

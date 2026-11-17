@@ -38,6 +38,7 @@ const saved = (patch: Partial<Saved> = {}): Saved => ({
   rounds: {},
   skipped: [],
   ladder: {},
+  chipper: {},
   startedAt: STARTED,
   updatedAt: STARTED + 20 * 60000,
   ...patch,

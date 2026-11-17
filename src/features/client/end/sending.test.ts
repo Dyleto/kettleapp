@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  toChipperDone,
   toLadderDone,
   toPerformedEntries,
   toRoundsDone,
@@ -48,6 +49,13 @@ describe('les tours et les échelles', () => {
   it('rien de gardé, rien d’envoyé', () => {
     expect(toRoundsDone(undefined)).toEqual([]);
     expect(toLadderDone(undefined)).toEqual([]);
+  });
+
+  it('un chipper garde ses mouvements et son temps', () => {
+    expect(toChipperDone(undefined)).toEqual([]);
+    expect(toChipperDone({ '2': { movements: 3, seconds: 1200 } })).toEqual([
+      { blockOrder: 2, movements: 3, seconds: 1200 },
+    ]);
   });
 
   it('une échelle garde son palier et son temps', () => {

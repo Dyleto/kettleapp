@@ -1,4 +1,5 @@
 import type {
+  ChipperDoneEntry,
   CompletedSession,
   LadderDoneEntry,
   PerformedEntry,
@@ -64,6 +65,16 @@ export const toLadderDone = (
   ladder?: Record<string, { rungs: number; seconds: number }>
 ): LadderDoneEntry[] =>
   Object.entries(ladder ?? {}).map(([blockOrder, result]) => ({
+    blockOrder: Number(blockOrder),
+    ...result,
+  }));
+
+/** Ce que les chipper et TimeCap bornés ont donné, tel que l'API
+ * l'attend. */
+export const toChipperDone = (
+  chipper?: Record<string, { movements: number; seconds: number }>
+): ChipperDoneEntry[] =>
+  Object.entries(chipper ?? {}).map(([blockOrder, result]) => ({
     blockOrder: Number(blockOrder),
     ...result,
   }));

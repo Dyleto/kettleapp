@@ -3,6 +3,7 @@ import {
   ClientCoach,
   ClientProgram,
   CompletedSession,
+  ChipperDoneEntry,
   LadderDoneEntry,
   PerformedEntry,
   RoundsDoneEntry,
@@ -24,6 +25,9 @@ export interface CompleteSessionPayload {
   roundsDone?: RoundsDoneEntry[];
   /** Ce qu'une échelle bornée a donné : paliers faits et temps. */
   ladderDone?: LadderDoneEntry[];
+  /** Ce qu'un chipper ou un TimeCap borné a donné : mouvements faits et
+   * temps. */
+  chipperDone?: ChipperDoneEntry[];
   clientNotes?: string;
   completedAt?: string;
 }

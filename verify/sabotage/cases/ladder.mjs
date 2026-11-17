@@ -152,8 +152,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/end/EndFlow.tsx',
-          from: '            toLadderDone(saved?.ladder),',
-          to: '            [],',
+          from: '              ladderDone: toLadderDone(saved?.ladder),',
+          to: '              ladderDone: [],',
         },
       ],
       falls: ['le bilan envoie le résultat de l’échelle'],

@@ -178,3 +178,16 @@ export interface LadderDoneEntry {
   rungs: number;
   seconds: number;
 }
+
+/**
+ * Ce qu'un chipper ou un TimeCap borné a donné : les mouvements entièrement
+ * faits et le temps au chrono. Le même raisonnement que l'échelle — « 4 sur
+ * 4 » dit que la liste est écoulée. L'instantané les rend en
+ * `performedMovements` et `performedSeconds`, ce dernier partagé avec
+ * l'échelle.
+ */
+export interface ChipperDoneEntry {
+  blockOrder: number;
+  movements: number;
+  seconds: number;
+}

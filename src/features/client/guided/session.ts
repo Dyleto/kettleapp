@@ -4,6 +4,7 @@ import { performedKey } from '@/domain/history/lastPerformance';
 import type { BlockSegment } from './outline';
 import type { GuidedStep } from './steps';
 import type { SessionProgress } from './sessionProgress';
+import { isCappedList } from './chipper';
 
 /**
  * L'état d'une séance guidée, et tout ce qui le fait changer.
@@ -440,14 +441,16 @@ const finishTimedBlock = (
 };
 
 /** Les blocs que « C'est parti » arme : leurs trois secondes valent le
- * « Lancer » d'un premier bloc à horloge, et un second décompte juste
- * derrière ne ferait que redemander ce qui vient d'être décidé. */
+ * « Lancer » d'un premier bloc à horloge — tours, AMRAP, échelle ou liste
+ * bornées — et un second décompte juste derrière ne ferait que redemander
+ * ce qui vient d'être décidé. */
 const armedByStart = (step: GuidedStep | undefined): number | null => {
   if (!step || step.type === 'rest') return null;
   if (step.type === 'round') return step.block.order;
   if (step.shape === 'loop') return step.block.order;
   if (step.block.type === 'ladder' && step.block.durationMinutes)
     return step.block.order;
+  if (isCappedList(step.block)) return step.block.order;
   return null;
 };
 

@@ -8,6 +8,7 @@ import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useCompleteSession } from '@/features/client/common/useCompleteSession';
 import {
   PerformedEntry,
+  ChipperDoneEntry,
   LadderDoneEntry,
   RoundsDoneEntry,
   SessionFeedback,
@@ -138,9 +139,20 @@ export const useClientSessions = () => {
       feedback: SessionFeedback,
       clientNotes: string,
       completedAt?: string,
-      performed?: PerformedEntry[],
-      roundsDone?: RoundsDoneEntry[],
-      ladderDone?: LadderDoneEntry[],
+      // Ce qui a été fait, en un seul objet : quatre listes positionnelles,
+      // dont trois se ressemblent, s'intervertissaient sans que le typage le
+      // voie le jour où deux d'entre elles auraient la même forme.
+      {
+        performed,
+        roundsDone,
+        ladderDone,
+        chipperDone,
+      }: {
+        performed?: PerformedEntry[];
+        roundsDone?: RoundsDoneEntry[];
+        ladderDone?: LadderDoneEntry[];
+        chipperDone?: ChipperDoneEntry[];
+      } = {},
       // L'écran du ressenti reste ouvert jusqu'à la réponse : c'est lui qui
       // dit qu'un envoi n'est pas parti, et qui le refait. Réussi, c'est à
       // lui de dire où aller — la semaine qui avance.
@@ -156,6 +168,7 @@ export const useClientSessions = () => {
           ...(performed && performed.length > 0 ? { performed } : {}),
           ...(roundsDone && roundsDone.length > 0 ? { roundsDone } : {}),
           ...(ladderDone && ladderDone.length > 0 ? { ladderDone } : {}),
+          ...(chipperDone && chipperDone.length > 0 ? { chipperDone } : {}),
         },
         {
           onSuccess: () => {

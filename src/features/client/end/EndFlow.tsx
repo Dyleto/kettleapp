@@ -17,6 +17,7 @@ import { Week } from './Week';
 import type { EndFlowAction, EndFlowState } from './flow';
 import { buildRecap } from './recap';
 import {
+  toChipperDone,
   toLadderDone,
   toPerformedEntries,
   toRoundsDone,
@@ -125,9 +126,12 @@ export const EndFlow = ({
             feedback,
             notes,
             completedAt,
-            toPerformedEntries(performed),
-            toRoundsDone(saved?.rounds),
-            toLadderDone(saved?.ladder),
+            {
+              performed: toPerformedEntries(performed),
+              roundsDone: toRoundsDone(saved?.rounds),
+              ladderDone: toLadderDone(saved?.ladder),
+              chipperDone: toChipperDone(saved?.chipper),
+            },
             {
               onError: () => dispatch({ type: 'sendFailed' }),
               onSuccess: () =>

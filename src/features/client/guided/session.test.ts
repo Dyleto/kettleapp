@@ -183,6 +183,33 @@ describe('le décompte de départ', () => {
     const { state: next } = guidedTransition(state, { type: 'countdownDone' });
     expect(next).toMatchObject({ phase: 'scene', armedBlock: null });
   });
+
+  it('arme un chipper borné, pas un chipper sans limite', () => {
+    const chipperFirst = (durationMinutes?: number) => ({
+      ...initialGuidedState(
+        buildGuidedSteps(
+          makeSession({
+            blocks: [
+              makeBlock({
+                order: 4,
+                type: 'chipper',
+                durationMinutes,
+                exercises: [makeBlockExercise({ exercise: swing, reps: 15 })],
+              }),
+            ],
+          })
+        ),
+        null
+      ),
+      phase: 'counting' as const,
+    });
+    const arm = (durationMinutes?: number) =>
+      guidedTransition(chipperFirst(durationMinutes), {
+        type: 'countdownDone',
+      }).state.armedBlock;
+    expect(arm(20)).toBe(4);
+    expect(arm(undefined)).toBeNull();
+  });
 });
 
 describe('cocher', () => {
