@@ -87,18 +87,16 @@ export default {
     },
     {
       name: "un compteur de battements au lieu de l'heure",
-      stale:
-        'le motif correspond 0 fois dans TimedBlock.tsx; le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/scene/TimedBlock.tsx',
-          from: '  const originRef = useRef<number | null>(null);',
-          to: '  const originRef = useRef<number | null>(null);\n  const countedRef = useRef(0);',
+          file: 'src/features/client/guided/useBlockClock.ts',
+          from: '        onBeatRef.current(Date.now() - originRef.current);',
+          to: '        onBeatRef.current((countedRef.current += 250));',
         },
         {
-          file: 'src/features/client/guided/scene/TimedBlock.tsx',
-          from: 'readClock(plan, Date.now() - originRef.current)',
-          to: 'readClock(plan, (countedRef.current += 250))',
+          file: 'src/features/client/guided/useBlockClock.ts',
+          from: '  const frozenAtRef = useRef<number | null>(null);',
+          to: '  const frozenAtRef = useRef<number | null>(null);\n  const countedRef = useRef(0);',
         },
       ],
       falls: [
@@ -211,12 +209,11 @@ export default {
     },
     {
       name: 'le dernier tour tombé, rien ne suit',
-      stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
           file: 'src/features/client/guided/scene/TimedBlock.tsx',
-          from: '      setRunning(false);\n      onFinish();',
-          to: '      setRunning(false);',
+          from: '        clock.stop();\n        onFinish();',
+          to: '        clock.stop();',
         },
       ],
       falls: ['le dernier tour tombé, la séance passe au bloc suivant'],

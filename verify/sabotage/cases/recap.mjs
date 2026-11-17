@@ -90,12 +90,11 @@ export default {
     },
     {
       name: "« OK » ne ramène pas à l'écran de fin",
-      stale: 'le motif correspond 0 fois dans SessionScreen.tsx',
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: "        onContinue={() => setFlow('celebrate')}",
-          to: "        onContinue={() => setFlow('review')}",
+          file: 'src/features/client/end/flow.ts',
+          from: "    case 'loadsDone':\n      if (state.stage === 'loads') return { ...state, stage: 'celebrate' };",
+          to: "    case 'loadsDone':\n      if (state.stage === 'loads') return { ...state, stage: 'review' };",
         },
       ],
       falls: ['→ et « OK » ramène à l’écran de fin'],

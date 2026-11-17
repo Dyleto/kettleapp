@@ -83,7 +83,19 @@ const defects = (set) => {
       const quoted = new RegExp(
         `(['"\`])\\s*${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\1`
       );
-      if (!quoted.test(suite))
+      // Un libellé bâti sur un gabarit — `l'onglet « ${name} » ouvre…` —
+      // n'existe entier qu'à l'exécution : on le compare aux gabarits de la
+      // suite, chaque `${…}` valant n'importe quel texte.
+      const templated = [...suite.matchAll(/`([^`]*\$\{[^`]*)`/g)].some(
+        ([, body]) =>
+          new RegExp(
+            `^\\s*${body
+              .split(/\$\{[^}]*\}/)
+              .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+              .join('.+')}$`
+          ).test(label)
+      );
+      if (!quoted.test(suite) && !templated)
         found.push(
           `[${rank}] ${c.name} : « ${label} » n'est pas un libellé entier de ${set.suite}`
         );

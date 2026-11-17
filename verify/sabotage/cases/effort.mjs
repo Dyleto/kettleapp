@@ -95,12 +95,11 @@ export default {
     },
     {
       name: "l'envoi n'attend plus de choix",
-      stale: "CompleteSessionModal.tsx n'existe plus",
       edits: [
         {
-          file: 'src/features/client/components/CompleteSessionModal.tsx',
-          from: 'disabled={effort === undefined}',
-          to: 'disabled={false}',
+          file: 'src/features/client/end/Feeling.tsx',
+          from: '          disabled={effort === undefined}',
+          to: '          disabled={false}',
         },
       ],
       falls: ["→ et l'envoi attend un choix"],

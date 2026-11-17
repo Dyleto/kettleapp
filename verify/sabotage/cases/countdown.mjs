@@ -15,12 +15,11 @@ export default {
     },
     {
       name: "le décompte de l'ouverture ne lance pas le premier bloc",
-      stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: "          if (step.type === 'round') setArmedBlock(step.block.order);\n",
-          to: '',
+          file: 'src/features/client/guided/session.ts',
+          from: "  if (step.type === 'round') return step.block.order;",
+          to: "  if (step.type === 'round') return null;",
         },
       ],
       falls: [
@@ -30,10 +29,9 @@ export default {
     },
     {
       name: "l'horloge part au montage, sans attendre « Lancer »",
-      stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/scene/TimedBlock.tsx',
+          file: 'src/features/client/guided/useBlockClock.ts',
           from: '  const [running, setRunning] = useState(armed);',
           to: '  const [running, setRunning] = useState(true);',
         },

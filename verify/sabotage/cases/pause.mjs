@@ -145,32 +145,14 @@ export default {
     },
     {
       name: "la pause ne décale pas l'origine : le temps figé est perdu",
-      stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/scene/TimedBlock.tsx',
-          from: '      frozenAtRef.current = Date.now();\n    };',
-          to: '    };',
+          file: 'src/features/client/guided/useBlockClock.ts',
+          from: '      originRef.current += now - frozenAtRef.current;\n',
+          to: '',
         },
       ],
       falls: ['puis le tour repart d’où il était, sans rien perdre ni gagner'],
-    },
-    {
-      name: "l'horloge ne se fige pas pendant la pause",
-      stale: 'le motif correspond 0 fois dans TimedBlock.tsx',
-      edits: [
-        {
-          file: 'src/features/client/guided/scene/TimedBlock.tsx',
-          from: '  const ticking = running && !paused;',
-          to: '  const ticking = running;',
-        },
-      ],
-      falls: [
-        "l'horloge du tour s'est figée pendant la pause",
-        '→ et la scène est restée sur le même tour',
-        "→ pendant lequel l'horloge reste figée",
-        'puis le tour repart d’où il était, sans rien perdre ni gagner',
-      ],
     },
   ],
 };

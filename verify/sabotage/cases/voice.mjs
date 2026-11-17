@@ -4,8 +4,6 @@ export default {
   cases: [
     {
       name: "l'onglet du client redevient « Historique »",
-      stale:
-        "« l'onglet « Progrès » ouvre l'écran « Progrès » » n'est plus un libellé de la suite",
       edits: [
         {
           file: 'src/features/client/shell/navItems.tsx',
@@ -20,8 +18,6 @@ export default {
     },
     {
       name: "l'écran des progrès garde son ancien titre",
-      stale:
-        "« l'onglet « Progrès » ouvre l'écran « Progrès » » n'est plus un libellé de la suite",
       edits: [
         {
           file: 'src/features/client/progress/History.tsx',

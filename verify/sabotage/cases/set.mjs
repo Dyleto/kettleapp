@@ -163,24 +163,22 @@ export default {
     },
     {
       name: 'le champ « kg » revient sous la corde à sauter',
-      stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                    (!current.exercise.duration ||',
-          to: '                    (true ||',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '    (!current.exercise.duration || heaviest(lastTimeOfCurrent) !== undefined);',
+          to: '    (true || heaviest(lastTimeOfCurrent) !== undefined);',
         },
       ],
       falls: ['la corde à sauter n’a ni charge ni proposition d’en noter'],
     },
     {
       name: "« Noter une charge » n'ouvre rien",
-      stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '                  onAskLoad={() =>\n                    setAskedLoad(',
-          to: '                  onAskLoad={() =>\n                    void (',
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: "              onAskLoad={() =>\n                act({ type: 'askLoad', exerciseKey: exerciseKeyOf(current) })\n              }",
+          to: '              onAskLoad={() => {}}',
         },
       ],
       falls: ['→ et le sélecteur apparaît vide'],

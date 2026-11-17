@@ -4,8 +4,6 @@ export default {
   cases: [
     {
       name: 'le rond compte avant « Lancer »',
-      stale:
-        "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
           file: 'src/features/client/guided/scene/AmrapBlock.tsx',
@@ -20,13 +18,11 @@ export default {
         '→ « Retirer un tour » fait de même, pour qui ne peut pas appuyer longtemps',
         '→ préremplie de ce qui a été tapé, avec l’objectif',
         'le score se corrige dans la feuille',
-        '« Valider » termine la séance, et le constat compte trois tours',
+        '« Valider » termine la séance, et la fin compte trois tours',
       ],
     },
     {
       name: "le relâchement d'un appui long rajoute le tour retiré",
-      stale:
-        "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
           file: 'src/features/client/guided/scene/AmrapBlock.tsx',
@@ -39,7 +35,7 @@ export default {
         '→ « Retirer un tour » fait de même, pour qui ne peut pas appuyer longtemps',
         '→ préremplie de ce qui a été tapé, avec l’objectif',
         'le score se corrige dans la feuille',
-        '« Valider » termine la séance, et le constat compte trois tours',
+        '« Valider » termine la séance, et la fin compte trois tours',
       ],
     },
     {
@@ -85,8 +81,6 @@ export default {
     },
     {
       name: 'à zéro, aucune feuille',
-      stale:
-        "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
           file: 'src/features/client/guided/scene/AmrapBlock.tsx',
@@ -98,14 +92,12 @@ export default {
         'à zéro, la feuille « Temps écoulé » demande le score',
         '→ préremplie de ce qui a été tapé, avec l’objectif',
         'le score se corrige dans la feuille',
-        '« Valider » termine la séance, et le constat compte trois tours',
+        '« Valider » termine la séance, et la fin compte trois tours',
       ],
     },
     {
       name: "à zéro, l'AMRAP passe la main de lui-même",
       note: 'Sans feuille, rien pour corriger le score : il reste à deux.',
-      stale:
-        "« « Valider » termine la séance, et le constat compte trois tours » n'est plus un libellé de la suite",
       edits: [
         {
           file: 'src/features/client/guided/scene/AmrapBlock.tsx',
@@ -118,7 +110,7 @@ export default {
         '→ préremplie de ce qui a été tapé, avec l’objectif',
         "→ et la séance n'a pas bougé d'elle-même",
         'le score se corrige dans la feuille',
-        '« Valider » termine la séance, et le constat compte trois tours',
+        '« Valider » termine la séance, et la fin compte trois tours',
       ],
     },
     {
@@ -148,12 +140,11 @@ export default {
     },
     {
       name: "le décompte de l'ouverture n'arme pas l'AMRAP",
-      stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: "          if (step.type === 'round' || isLoop)",
-          to: "          if (step.type === 'round')",
+          file: 'src/features/client/guided/session.ts',
+          from: "  if (step.shape === 'loop') return step.block.order;",
+          to: "  if (step.shape === 'loop') return null;",
         },
       ],
       falls: [

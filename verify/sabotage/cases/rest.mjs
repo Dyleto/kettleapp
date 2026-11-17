@@ -65,12 +65,11 @@ export default {
     },
     {
       name: 'le pied de série reste pendant le repos',
-      stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: "          {step.type === 'block' && step.shape === 'list' && rest ? (",
-          to: "          {step.type === 'block' && step.shape === 'list' && rest && false ? (",
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '      {rest ? (\n        // Le repos : rallonger',
+          to: '      {rest && false ? (\n        // Le repos : rallonger',
         },
       ],
       falls: [

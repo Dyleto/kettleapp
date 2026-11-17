@@ -132,12 +132,11 @@ export default {
     },
     {
       name: "« La faire aujourd'hui » lance la séance",
-      stale: 'le motif correspond 0 fois dans Today.tsx',
       edits: [
         {
           file: 'src/features/client/home/Today.tsx',
-          from: '        onOpen={() => openSheet(focus.session)}',
-          to: '        onOpen={() => startGuided(focus.session)}',
+          from: '      onOpen={() => openSheet(focus.session)}',
+          to: '      onOpen={() => startGuided(focus.session)}',
         },
       ],
       falls: ['« La faire aujourd’hui » ouvre la fiche, sans lancer la séance'],

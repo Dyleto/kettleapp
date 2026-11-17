@@ -84,10 +84,9 @@ export default {
     },
     {
       name: 'finir la séance ne sonne plus',
-      stale: 'le motif correspond 2 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/useGuidedSession.ts',
           from: "      playCue('sessionEnd');\n",
           to: '',
         },
@@ -99,12 +98,11 @@ export default {
     },
     {
       name: 'le lecteur ignore le réglage',
-      stale: 'le motif correspond 0 fois dans sound.ts',
       edits: [
         {
           file: 'src/shared/feedback/sound.ts',
-          from: '  if (!isSoundEnabled()) return;\n',
-          to: '',
+          from: '  if (!isSoundEnabled() || !context) return;',
+          to: '  if (!context) return;',
         },
       ],
       falls: ['un tour entier se passe alors sans un bip'],
@@ -190,12 +188,11 @@ export default {
     },
     {
       name: 'la séance perd son bouton de son',
-      stale: 'le motif correspond 0 fois dans GuidedSession.tsx',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
-          from: '          {soundToggle}\n          {quitButton}\n        </HStack>',
-          to: '          {quitButton}\n        </HStack>',
+          file: 'src/features/client/guided/SceneShell.tsx',
+          from: '  const soundToggle = <SoundToggle color="fg.muted" />;',
+          to: '  const soundToggle = null;',
         },
       ],
       falls: [

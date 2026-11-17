@@ -4,12 +4,11 @@ export default {
   cases: [
     {
       name: 'un envoi manqué ne se dit pas',
-      stale: 'le motif correspond 0 fois dans SessionScreen.tsx',
       edits: [
         {
-          file: 'src/features/client/sheet/SessionScreen.tsx',
-          from: '              () => setSendFailed(true)',
-          to: '              () => {}',
+          file: 'src/features/client/end/EndFlow.tsx',
+          from: "              onError: () => dispatch({ type: 'sendFailed' }),",
+          to: '              onError: () => {},',
         },
       ],
       falls: [
