@@ -94,13 +94,19 @@ export const toChipperDone = (
  * qui fait foi quand le stockage est refusé (navigation privée).
  */
 export const completionPayload = (
-  saved: Pick<SessionProgress, 'rounds' | 'ladder' | 'chipper'> | null,
+  saved: Pick<
+    SessionProgress,
+    'rounds' | 'ladder' | 'chipper' | 'sendKey'
+  > | null,
   feeling: {
     feedback: CompleteSessionPayload['feedback'];
     clientNotes: string;
     completedAt?: string;
   },
-  performed: Record<string, PerformedValues> = {}
+  performed: Record<string, PerformedValues> = {},
+  // La clé gardée sur l'appareil, sauf quand l'écran la tient lui-même —
+  // le stockage refusé, elle n'est que là.
+  sendKey: string | undefined = saved?.sendKey
 ): CompleteSessionPayload => {
   const entries = toPerformedEntries(performed);
   const roundsDone = toRoundsDone(saved?.rounds);
@@ -110,6 +116,7 @@ export const completionPayload = (
     feedback: feeling.feedback,
     clientNotes: feeling.clientNotes,
     ...(feeling.completedAt ? { completedAt: feeling.completedAt } : {}),
+    ...(sendKey ? { sendKey } : {}),
     // Ce qui est vide ne part pas : ne rien avoir à dire n'est pas une
     // valeur, et le serveur distingue l'absence de la liste vide.
     ...(entries.length > 0 ? { performed: entries } : {}),

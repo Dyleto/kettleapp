@@ -30,6 +30,9 @@ export interface CompleteSessionPayload {
   chipperDone?: ChipperDoneEntry[];
   clientNotes?: string;
   completedAt?: string;
+  /** La même à chaque essai d'un même bilan : le serveur ne le compte
+   * qu'une fois. */
+  sendKey?: string;
 }
 
 /** La correction d'un bilan déjà envoyé : les mêmes champs, tous

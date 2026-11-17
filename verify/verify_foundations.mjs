@@ -105,6 +105,20 @@ const readFonts = (p) =>
  * conforme : c'est ce que le plancher refuse.
  */
 const noCodeFont = async (p, label) => {
+  // Le plancher est aussi ce qu'on attend. Sous charge — quatre files à la
+  // fois —, `settle` peut rendre la main avant qu'une page chargée à la
+  // demande ait seulement demandé son code : rien en vol pendant que le
+  // navigateur exécute, et rien encore à l'écran. Vu une fois, sur les
+  // exercices, au banc complet ; jamais la suite seule.
+  await p
+    .waitForFunction(
+      () =>
+        document.body.innerText.split('\n').filter((line) => line.trim())
+          .length >= 10,
+      null,
+      { timeout: 5_000 }
+    )
+    .catch(() => {});
   const { read, offenders } = await readFonts(p);
   ok(
     `aucune police de code (${label})`,

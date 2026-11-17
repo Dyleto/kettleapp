@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 642 tests unitaires, 34 suites de banc et 637
-assertions, 3 min 16 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 654 tests unitaires, 34 suites de banc et 640
+assertions, 3 min 5 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -307,11 +307,12 @@ banc actuel, inchangé, qui le prouve.
       coach : l'écran envoie `?weekStart=` avec son décalage.
 - [x] **D7** Modèles : compteur d'imports, dupliquer, « Enregistrer comme
       modèle » (`620f552`). Le compteur retient des clients, pas des imports.
-- [ ] **D8** Un bilan reçu deux fois ne compte qu'une : une clé d'envoi,
-      posée par le front, reconnue par l'API. Depuis C5, un envoi dont la
-      réponse s'est perdue en route est gardé puis renvoyé ; le front
+- [x] **D8** Un bilan reçu deux fois ne compte qu'une : une clé d'envoi,
+      posée par le front, reconnue par l'API (`94648e3`). Depuis C5, un envoi
+      dont la réponse s'est perdue en route est gardé puis renvoyé ; le front
       empêche deux envois croisés, il ne peut pas savoir qu'un envoi coupé
-      était arrivé.
+      était arrivé. La clé est gardée avant le premier envoi, renvoyée à
+      chaque essai ; le banc perd une réponse et compte les bilans reçus.
 
 ### E. Le coach
 

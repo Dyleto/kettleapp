@@ -28,8 +28,13 @@ import { completionPayload } from './sending';
  *
  * Le ressenti est maintenant gardé sur l'appareil, dans l'enregistrement de
  * la séance, et il part seul : au retour du réseau, ou à la prochaine
- * ouverture de l'application. Le serveur ne sait pas reconnaître un
- * doublon ; tout ce qui suit est fait pour qu'il n'en reçoive pas.
+ * ouverture de l'application.
+ *
+ * Deux gardes contre le doublon, qui ne se remplacent pas. Ici, deux envois
+ * qui se croisent partagent la même requête. Mais une réponse perdue en
+ * route — le serveur a enregistré, l'appareil ne l'a pas su — ne se voit
+ * que du serveur : chaque essai porte la même clé d'envoi (`sendKeyFor`), et
+ * il reconnaît ce qu'il a déjà.
  */
 
 /**

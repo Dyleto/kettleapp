@@ -96,6 +96,13 @@ export interface SessionProgress {
    * répare.
    */
   pending?: PendingFeeling;
+  /**
+   * La clé d'envoi du bilan, posée au premier envoi et renvoyée à chaque
+   * essai : une coupure sur le chemin de la réponse laissait l'appareil
+   * renvoyer un bilan que le serveur avait déjà, et la séance comptait deux
+   * fois. Le serveur reconnaît la clé (voir `sendKeyFor`).
+   */
+  sendKey?: string;
   /** Quand, en millisecondes. Sert à savoir si cela concerne encore
    * aujourd'hui. */
   updatedAt: number;
@@ -207,6 +214,13 @@ const readPending = (raw: unknown): PendingFeeling | undefined => {
   };
 };
 
+/**
+ * Une clé d'envoi telle que le serveur l'accepte. Une clé abîmée serait
+ * refusée, et le bilan avec elle — à chaque retour du réseau.
+ */
+export const isSendKey = (value: unknown): value is string =>
+  typeof value === 'string' && /^[A-Za-z0-9_-]{8,64}$/.test(value);
+
 /** Les résultats d'échelle lisibles, et eux seuls. */
 const readLadder = (raw: unknown): SessionProgress['ladder'] => {
   if (!raw || typeof raw !== 'object') return {};
@@ -270,6 +284,7 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
       finishedAt:
         typeof stored.finishedAt === 'number' ? stored.finishedAt : undefined,
       pending: readPending(stored.pending),
+      sendKey: isSendKey(stored.sendKey) ? stored.sendKey : undefined,
       updatedAt,
     };
   } catch {
@@ -335,6 +350,9 @@ export const restartProgress = (sessionId: string) =>
     startedAt: undefined,
     finishedAt: undefined,
     pending: undefined,
+    // Une autre tentative, une autre clé : celle d'avant désigne un bilan
+    // que le serveur a peut-être déjà.
+    sendKey: undefined,
   });
 
 /** Combien d'exercices portent au moins une valeur notée. */

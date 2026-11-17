@@ -143,5 +143,47 @@ export default {
       ],
       falls: ['→ « Envoyer maintenant » sans réseau le dit, et garde tout'],
     },
+    {
+      name: 'le bilan part sans sa clé d’envoi',
+      edits: [
+        {
+          file: 'src/features/client/end/sending.ts',
+          from: '    ...(sendKey ? { sendKey } : {}),\n',
+          to: '',
+        },
+      ],
+      falls: [
+        'la réponse perdue met le ressenti en attente, avec la clé de l’envoi',
+        '→ le renvoi porte la même clé, et la séance ne compte qu’une fois',
+      ],
+    },
+    {
+      name: 'la clé n’est pas gardée avant l’envoi',
+      edits: [
+        {
+          file: 'src/features/client/end/sendKey.ts',
+          from: '  writeProgress(sessionId, { sendKey });\n',
+          to: '',
+        },
+      ],
+      falls: [
+        'la réponse perdue met le ressenti en attente, avec la clé de l’envoi',
+        '→ le renvoi porte la même clé, et la séance ne compte qu’une fois',
+      ],
+    },
+    {
+      name: 'la clé gardée ne se relit pas',
+      edits: [
+        {
+          file: 'src/features/client/guided/sessionProgress.ts',
+          from: '      sendKey: isSendKey(stored.sendKey) ? stored.sendKey : undefined,',
+          to: '      sendKey: undefined,',
+        },
+      ],
+      falls: [
+        'la réponse perdue met le ressenti en attente, avec la clé de l’envoi',
+        '→ le renvoi porte la même clé, et la séance ne compte qu’une fois',
+      ],
+    },
   ],
 };

@@ -431,6 +431,15 @@ const withLadder = (blocks, entries) =>
       : b;
   });
 
+/**
+ * Les clés d'envoi reçues, et le bilan de chacune : l'index unique
+ * `{ clientId, sendKey }` de l'API. Hors de `HISTORY`, parce que la clé ne
+ * sort pas — l'API ne la renvoie pas, le faux serveur non plus.
+ *
+ * @type {Map<string, string>}
+ */
+const RECEIVED = new Map();
+
 /** @type {CompletedSessionPayload[]} */
 let HISTORY = EMPTY_PROGRAM
   ? []
@@ -800,6 +809,11 @@ const server = http.createServer(async (req, res) => {
     /^\/api\/client\/sessions\/([^/]+)\/complete$/
   );
   if (completeMatch && method === 'POST') {
+    // Un renvoi d'un bilan déjà reçu sous la même clé : rendu tel quel, en
+    // 200, sans rien créer, et avant de chercher la séance — comme l'API.
+    const known =
+      body.sendKey && HISTORY.find((c) => c._id === RECEIVED.get(body.sendKey));
+    if (known) return sendJson(res, 200, { completed: known });
     const source = SESSIONS.find((s) => s._id === completeMatch[1]);
     if (!source) return sendJson(res, 404, { message: 'introuvable' });
     const completed = {
@@ -822,6 +836,7 @@ const server = http.createServer(async (req, res) => {
       replies: [],
     };
     HISTORY = [completed, ...HISTORY];
+    if (body.sendKey) RECEIVED.set(body.sendKey, completed._id);
     return sendJson(res, 201, { completed });
   }
 

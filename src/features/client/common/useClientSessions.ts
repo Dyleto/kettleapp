@@ -15,6 +15,7 @@ import {
 } from '@/features/client/guided/sessionProgress';
 import { completionPayload } from '@/features/client/end/sending';
 import { queueFeeling, usePendingSends } from '@/features/client/end/pending';
+import { sendKeyFor } from '@/features/client/end/sendKey';
 import { coachVoice } from '@/features/client/common/coach';
 import {
   isNetworkCut,
@@ -160,6 +161,9 @@ export const useClientSessions = () => {
     ) => {
       if (!activeSession) return;
       const sessionId = activeSession._id;
+      // Posée avant tout envoi, gardée avec le ressenti s'il attend : le
+      // renvoi portera la même, et le serveur reconnaîtra ce qu'il a déjà.
+      const sendKey = sendKeyFor(sessionId);
       // Sans réseau, rien ne part : la requête attendrait en mémoire, et
       // quitter l'écran la perdrait. Le ressenti est gardé, il partira seul.
       if (!navigator.onLine) {
@@ -170,7 +174,12 @@ export const useClientSessions = () => {
       completeSession.mutate(
         {
           sessionId,
-          ...completionPayload(readProgress(sessionId), feeling, performed),
+          ...completionPayload(
+            readProgress(sessionId),
+            feeling,
+            performed,
+            sendKey
+          ),
         },
         {
           onSuccess: () => {

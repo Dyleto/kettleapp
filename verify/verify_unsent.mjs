@@ -18,6 +18,7 @@ import {
   start,
   MOBILE,
   BASE,
+  API,
   START,
   clean,
   settle,
@@ -258,6 +259,84 @@ const toFeeling = async (p) => {
       /Séance envoyée/.test(await page(p)) &&
       (await record(p)) === null,
     `${posts.length} envoi(s)`
+  );
+  await ctx.close();
+}
+
+{
+  // La requête arrive, le serveur enregistre, et c'est la réponse qui se
+  // perd : l'appareil ne sait pas que son bilan est parti, et le renvoie.
+  // Sans clé d'envoi, la séance comptait deux fois — une semaine faussée,
+  // un « trop dure » lu deux fois par le coach.
+  console.log('\n── une réponse perdue : le renvoi ne compte pas double');
+  const ctx = await browser.newContext(MOBILE);
+  // Chaque essai, arrivé ou non : c'est la clé qu'il porte qu'on compare.
+  const bodies = [];
+  ctx.on('request', (r) => {
+    if (r.method() === 'POST' && /\/complete$/.test(new URL(r.url()).pathname))
+      bodies.push(r.postDataJSON());
+  });
+  // Ce que le serveur a reçu, lu chez lui et non à l'écran.
+  const received = async () =>
+    (await (await fetch(`${API}/api/client/history`)).json()).history.length;
+  const before = await received();
+  const COMPLETE = /\/api\/client\/sessions\/[^/]+\/complete$/;
+  // Ce qui a empêché la requête d'atteindre le serveur, s'il y en a : sans
+  // elle, la réponse perdue ne l'est pas, et le cas ne prouve rien.
+  const routeErrors = [];
+  // Vers le serveur de cette file, `API`, et non l'adresse que la page
+  // vise : cette route passe devant le détour de `launch`, et `fetch`
+  // partirait sinon vers le port 3001, où rien n'écoute quand les suites
+  // tournent à plusieurs.
+  await ctx.route(COMPLETE, async (r) => {
+    try {
+      await r.fetch({ url: API + new URL(r.request().url()).pathname });
+    } catch (error) {
+      routeErrors.push(String(error).split('\n')[0]);
+    }
+    await r.abort('connectionreset').catch(() => {});
+  });
+  const p = await signIn(ctx);
+  await toFeeling(p);
+  await p
+    .getByRole('radio', { name: /Juste/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await button(p, 'Envoyer à Julie')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const kept = await record(p);
+  const first = await received();
+  ok(
+    'la réponse perdue met le ressenti en attente, avec la clé de l’envoi',
+    kept?.pending !== undefined &&
+      /^[A-Za-z0-9_-]{8,64}$/.test(kept?.sendKey ?? '') &&
+      bodies[0]?.sendKey === kept?.sendKey &&
+      first === before + 1,
+    `clé ${JSON.stringify(kept?.sendKey)} · ${bodies.length} essai(s) · ${first - before} bilan(s) reçu(s) · ${routeErrors.join(' / ')}`
+  );
+
+  await ctx.unroute(COMPLETE);
+  await button(p, 'Revenir à l’accueil')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  await button(p, 'Envoyer maintenant')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const total = await received();
+  ok(
+    '  → le renvoi porte la même clé, et la séance ne compte qu’une fois',
+    bodies.length === 2 &&
+      bodies[1]?.sendKey === bodies[0]?.sendKey &&
+      total === before + 1,
+    `${bodies.length} essai(s) · ${total - before} bilan(s) reçu(s)`
+  );
+  ok(
+    '  → « Séance envoyée », et l’enregistrement s’efface',
+    /Séance envoyée/.test(await page(p)) && (await record(p)) === null
   );
   await ctx.close();
 }
