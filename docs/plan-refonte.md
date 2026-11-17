@@ -98,7 +98,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Mouvements faits et temps du chipper borné                 | **fait** (`01b53b6`) |
 | Réponse du coach (réaction, texte, « lue par le client »)  | **fait** (`fa19c04`) |
 | Fil « À lire », et marquer lue une séance à la fois        | **fait** (`e15ef30`) |
-| Étiquettes de clients                                      | à faire              |
+| Étiquettes de clients                                      | **fait** (`a69e976`) |
 | Régularité dans la liste des clients                       | à faire              |
 | Modèles : usage, duplication, « Enregistrer comme modèle » | à faire              |
 
@@ -300,7 +300,8 @@ banc actuel, inchangé, qui le prouve.
       lecture envoyée. Quand E11 lira séance par séance, la route qui marque
       tout l'historique d'un client pourra partir.
 - [x] **D4** Le prénom du coach dans le programme du client.
-- [ ] **D5** Étiquettes de clients : créer, renommer, supprimer, rattacher.
+- [x] **D5** Étiquettes de clients : créer, renommer, supprimer, rattacher
+      (`a69e976`). Posées sur le lien coach–client : chacun les siennes.
 - [ ] **D6** Liste des clients : séances de la semaine et cinq derniers
       ressentis par client.
 - [ ] **D7** Modèles : compteur d'imports, dupliquer, « Enregistrer comme

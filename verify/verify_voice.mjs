@@ -234,6 +234,7 @@ const browser = await launch();
           linkedAt: '2026-06-01T09:00:00.000Z',
           lastCompletedAt: history[0]?.completedAt,
           lastEffort: 4,
+          tagIds: [],
         },
       ],
     })
