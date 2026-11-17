@@ -21,6 +21,7 @@ import {
   signIn,
   clean,
   API,
+  settle,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -43,7 +44,7 @@ const main = async () => {
   const browser = await launch();
   const p = await signIn(await browser.newContext());
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   const rows = () => p.getByRole('button', { name: /^Séance \d/ });
   const before = await serverSessions();
@@ -60,7 +61,7 @@ const main = async () => {
   ok('la séance 3 est dans le rail', (await target.count()) === 1);
 
   await target.click({ button: 'right' });
-  await p.waitForTimeout(600);
+  await settle(p);
 
   const entry = p.getByRole('menuitem', { name: /Supprimer la séance 3/ });
   ok(
@@ -79,7 +80,7 @@ const main = async () => {
   }
 
   await entry.click();
-  await p.waitForTimeout(1500);
+  await settle(p);
 
   ok(
     'la séance part du rail',
@@ -120,7 +121,7 @@ const main = async () => {
 
   if (await undo.count()) {
     await undo.first().click();
-    await p.waitForTimeout(1800);
+    await settle(p);
     const restored = await serverSessions();
     ok(
       '  → et « Annuler » la remet, à sa place',

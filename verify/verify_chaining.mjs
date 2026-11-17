@@ -22,6 +22,7 @@ import {
   advance,
   timerLabel,
   launchClock,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -52,7 +53,7 @@ const record = (p, sess) =>
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(450);
+  await settle(p);
   await skipRest(p);
   ok(
     '  → après le premier, on y est toujours',
@@ -65,7 +66,7 @@ const record = (p, sess) =>
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(700);
+  await settle(p);
   ok(
     '  → après le dernier, on est sur le bloc suivant',
     /— EMOM$/.test(await where(p)),
@@ -110,7 +111,7 @@ const record = (p, sess) =>
     });
     if (!(await f.count())) break;
     await f.click();
-    await p.waitForTimeout(350);
+    await settle(p);
     await skipRest(p);
   }
   // L'échelle a sa scène : elle annonce ses paliers au-dessus des marches,
@@ -154,7 +155,7 @@ const record = (p, sess) =>
   const before = await where(p);
   for (let i = 0; i < 4; i++) {
     await p.getByRole('button', { name: /^Ajouter un tour/ }).click();
-    await p.waitForTimeout(150);
+    await settle(p);
   }
   ok(
     "  → compter des tours ne fait pas avancer d'un pouce",
@@ -175,18 +176,18 @@ const record = (p, sess) =>
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await skipRest(p);
   await p
     .getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(700);
+  await settle(p);
   ok("on est passé à l'EMOM", /— EMOM$/.test(await where(p)), await where(p));
 
   await p.getByRole('button', { name: /^Bloc précédent$/ }).click();
-  await p.waitForTimeout(500);
+  await settle(p);
   ok(
     "  → « Bloc précédent » nous ramène à l'échauffement",
     /— Échauffement$/.test(await where(p)),

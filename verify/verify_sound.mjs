@@ -36,6 +36,7 @@ import {
   MOBILE,
   skipCountdown,
   START,
+  settle,
 } from './common.mjs';
 
 const TICK = 880;
@@ -78,10 +79,6 @@ const heard = (p, from = 0) =>
 
 const pitches = (notes) => notes.map((n) => n.frequency).join(' ');
 
-/** Laisse à l'écran le temps de se redessiner : l'horloge de la page est
- * menée à la main, mais React rend sur son propre rythme. */
-const settle = (p) => p.waitForTimeout(250);
-
 const browser = await launch();
 
 {
@@ -93,9 +90,9 @@ const browser = await launch();
   await p.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 1000);
 
@@ -148,15 +145,15 @@ const browser = await launch();
   await p.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   await p.getByRole('button', { name: /C'est parti/ }).click();
-  await p.waitForTimeout(300);
+  await settle(p);
   const countdown = p.getByRole('button', { name: /^Départ dans/ });
   ok('le décompte est à l’écran', (await countdown.count()) === 1);
   if (await countdown.count()) await countdown.click();
-  await p.waitForTimeout(400);
+  await settle(p);
   ok(
     'une touche mène tout de suite à la séance',
     (await countdown.count()) === 0 && /^Bloc 1 sur 3/.test(await where(p)),
@@ -186,7 +183,7 @@ const browser = await launch();
     });
     if (!(await next.count())) break;
     await next.first().click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipRest(p);
   }
   ok("on est bien sur l'EMOM", /— EMOM$/.test(await where(p)), await where(p));
@@ -327,7 +324,7 @@ const browser = await launch();
     });
     if (!(await done.count())) break;
     await done.click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipRest(p);
   }
   const rungs = await heard(p, opened);
@@ -339,7 +336,7 @@ const browser = await launch();
 
   const finish = p.getByRole('button', { name: 'Terminer', exact: true });
   if (await finish.count()) await finish.click();
-  await p.waitForTimeout(600);
+  await settle(p);
   const ending = await heard(p, opened);
   ok(
     'terminer joue trois notes montantes',
@@ -417,7 +414,7 @@ const felt = (p) => p.evaluate(() => window.__buzz ?? []);
   await p.goto(`${BASE}/client/session/sess3`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await p
     .getByRole('button', { name: /^(Reprendre|Démarrer)$/ })
     .click({ timeout: 3000 })

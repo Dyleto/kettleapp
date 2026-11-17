@@ -37,6 +37,7 @@ import {
   MOBILE,
   clean,
   COACHES,
+  settle,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -140,7 +141,7 @@ const browser = await launch();
     await appears(p, 'Rien à montrer encore', 4000)
   );
   await press(p, 'Voir mon programme');
-  await p.waitForTimeout(500);
+  await settle(p);
   ok(
     '  → et son bouton mène au programme',
     new URL(p.url()).pathname === '/client/program',
@@ -177,7 +178,7 @@ const browser = await launch();
   );
 
   await tab(p, 'Programme');
-  await p.waitForTimeout(600);
+  await settle(p);
   const program = await screen(p);
   ok(
     'le programme aussi',
@@ -186,7 +187,7 @@ const browser = await launch();
   );
 
   await tab(p, 'Progrès');
-  await p.waitForTimeout(600);
+  await settle(p);
   const history = await screen(p);
   ok(
     "l'historique aussi",
@@ -198,7 +199,7 @@ const browser = await launch();
   // suite : on vérifie d'abord que la panne est toujours affichée, puis que
   // c'est bien le bouton qui ramène le programme.
   await tab(p, "Aujourd'hui");
-  await p.waitForTimeout(400);
+  await settle(p);
   await ctx.unroute(PROGRAM, cut);
   await press(p, 'Réessayer');
   ok('« Réessayer » ramène le programme', await programShown(p));
@@ -244,7 +245,7 @@ const browser = await launch();
       .then(() => true)
       .catch(() => false)
   );
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     '  → sans même demander le programme',
     programRequests === 0,
@@ -313,7 +314,7 @@ const browser = await launch();
     (await p.getByRole('button', { name: /Recharger|Réessayer/ }).count()) === 0
   );
   await press(p, "Revenir à l'accueil");
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     "  → et son bouton ramène à l'accueil",
     !new URL(p.url()).pathname.startsWith('/nimporte'),

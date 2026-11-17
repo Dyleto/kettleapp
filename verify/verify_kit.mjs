@@ -7,7 +7,7 @@
  * la fois : rien ne déborde à la largeur d'un téléphone, rien ne casse,
  * le focus se voit en ambre, et « moins d'animations » coupe le mouvement.
  */
-import { BASE, launch, MOBILE, ok, failureCount } from './common.mjs';
+import { BASE, launch, MOBILE, ok, failureCount, settle } from './common.mjs';
 
 const DESKTOP = { viewport: { width: 1280, height: 800 } };
 const PIECES = [
@@ -135,10 +135,10 @@ const openBoard = async (options) => {
     .getByRole('button', { name: 'Ouvrir la feuille' })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(500);
+  await settle(p);
   const opened = await p.getByRole('dialog', { name: 'Une feuille' }).count();
   await p.mouse.click(195, 40);
-  await p.waitForTimeout(400);
+  await settle(p);
   ok(
     'la feuille s’ouvre, et toucher le fond la referme',
     opened === 1 &&
@@ -193,7 +193,7 @@ const openBoard = async (options) => {
     .getByRole('button', { name: 'Ouvrir la feuille' })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(300);
+  await settle(p);
   const animation = await p.evaluate(() => {
     const sheet = document.querySelector('[role="dialog"]');
     return sheet ? getComputedStyle(sheet).animationName : '(pas de feuille)';

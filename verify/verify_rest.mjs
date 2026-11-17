@@ -26,6 +26,7 @@ import {
   failureCount,
   signIn,
   start,
+  settle,
 } from './common.mjs';
 
 const CARD = '[data-rest]';
@@ -45,7 +46,7 @@ const press = async (p, name) => {
     .first()
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(300);
+  await settle(p);
   return true;
 };
 
@@ -58,14 +59,14 @@ const tickOneSet = async (p) => {
     .getByRole('button', { name: 'Passer ce bloc' })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(400);
+  await settle(p);
   await p
     .locator('[data-set-hero] input')
     .fill('26')
     .catch(() => {});
-  await p.waitForTimeout(200);
+  await settle(p);
   await press(p, 'Série faite');
-  await p.waitForTimeout(300);
+  await settle(p);
 };
 
 /** Ce qui a été noté pour le Goblet Squat, série par série. */
@@ -201,7 +202,7 @@ const browser = await launch();
   await tickOneSet(p);
   ok('le repos a commencé', (await p.locator(CARD).count()) === 1);
   await p.clock.runFor(61_000);
-  await p.waitForTimeout(300);
+  await settle(p);
   ok(
     'à zéro, la carte de repos s’efface d’elle-même',
     (await p.locator(CARD).count()) === 0
@@ -274,7 +275,7 @@ const withBlockRest = async (ctx, { clock = false } = {}) => {
   if (clock) await p.clock.install();
   await start(p, 'sess-breath');
   await press(p, 'Fait');
-  await p.waitForTimeout(300);
+  await settle(p);
   return { p, next: classic.exercises[0].exercise.name };
 };
 
@@ -321,7 +322,7 @@ const withBlockRest = async (ctx, { clock = false } = {}) => {
     (await p.locator(CARD).count()) === 1
   );
   await p.clock.runFor(31_000);
-  await p.waitForTimeout(300);
+  await settle(p);
   ok(
     'à zéro, le bloc suivant vient de lui-même',
     (await p.locator(CARD).count()) === 0 &&

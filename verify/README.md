@@ -34,7 +34,7 @@ tournerait sur l'état laissé par la précédente ne prouverait rien.
 Il en fait tourner plusieurs à la fois — autant que la machine a de cœurs,
 quatre au plus —, chacune contre son propre serveur d'essai sur son propre
 port. Trente suites l'une après l'autre prenaient 14 min 23 s ; sur quatre
-files, 4 min 12 s. Chaque ligne du résultat porte la durée de sa suite : un
+files, 4 min 12 s ; en attendant des états plutôt que des durées, 2 min 50 s. Chaque ligne du résultat porte la durée de sa suite : un
 banc qui s'allonge dit ainsi où.
 
 ```bash
@@ -55,7 +55,7 @@ aucune assertion.
 ## Écrire une suite
 
 `common.mjs` porte ce qu'elles refont toutes : se connecter, lancer une séance
-guidée, lire l'écran. Trois pièges méritent d'être connus :
+guidée, lire l'écran. Quatre pièges méritent d'être connus :
 
 - **Ne jamais naviguer au texte de l'écran.** Chaque tour d'un EMOM
   annonce déjà le bloc suivant — « Ensuite · AMRAP 12 · 12 min » — et un
@@ -69,6 +69,19 @@ guidée, lire l'écran. Trois pièges méritent d'être connus :
   l'horloge, `launchClock(page)`. Le temps se mène avec `page.clock` :
   `runFor` laisse battre la page, `fastForward` saute d'un coup, comme un
   téléphone verrouillé.
+- **Attendre un état, pas une durée.** Après un geste ou une navigation,
+  `settle(page)` attend que plus aucune requête ne soit en vol, puis que les
+  mouvements de moins d'une seconde — une feuille qui monte, une couleur qui
+  glisse — soient finis : c'est ce que la page attend elle aussi. Le banc attendait 258 fois une durée fixe,
+  choisie un jour où la machine allait vite. Trois choses tardent sans
+  requête, et ont leur propre attente : l'enregistrement de l'atelier, 800 ms
+  après la dernière frappe (`autosaved`) ; une couche qui glisse hors de
+  l'écran (`gone`) ; et le temps lui-même — trois secondes qui ne doivent
+  rien coûter, un appui long, une couleur qui glisse — qui s'écrit
+  `hold(page, ms, raison)`, la raison en toutes lettres. Remplacer un `hold`
+  par `settle` rend l'assertion creuse sans qu'elle tombe : c'est arrivé une
+  fois pendant la conversion, sur « trois secondes d'attente ne mordent pas
+  sur le tour ».
 
 La règle de langue est celle du projet : tout ce qui est technique en anglais
 — identifiants, noms de fichiers, marqueurs `OK` et `FAIL` que le lanceur lit

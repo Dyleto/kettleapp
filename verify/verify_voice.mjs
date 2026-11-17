@@ -26,6 +26,7 @@ import {
   MOBILE,
   clean,
   API,
+  settle,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -78,7 +79,7 @@ const browser = await launch();
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
 
   const labels = await navLabels(p);
   ok(
@@ -94,7 +95,7 @@ const browser = await launch();
       .getByRole('navigation', { name: 'Navigation principale' })
       .getByRole('link', { name });
     if (await link.count()) await link.first().click();
-    await p.waitForTimeout(700);
+    await settle(p);
     const title = await pageTitle(p);
     ok(`l'onglet « ${name} » ouvre l'écran « ${name} »`, title === name, title);
   }
@@ -106,7 +107,7 @@ const browser = await launch();
   const ctx = await browser.newContext(DESKTOP);
   const p = await signIn(ctx);
   await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
 
   const labels = await navLabels(p);
   ok(
@@ -122,7 +123,7 @@ const browser = await launch();
   );
 
   await p.goto(`${BASE}/coach/exercises`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
   const exercisesTitle = await pageTitle(p);
   ok(
     "l'entrée « Exercices » ouvre l'écran « Exercices »",
@@ -253,7 +254,7 @@ const browser = await launch();
   const card = p.getByRole('button').filter({ hasText: 'Dur sur la fin' });
   ok("l'aperçu montre la séance commentée", (await card.count()) >= 1);
   if (await card.count()) await card.first().click();
-  await p.waitForTimeout(700);
+  await settle(p);
 
   const drawer = clean(
     await p
@@ -283,7 +284,7 @@ const browser = await launch();
   await appears(p, 'Dur sur la fin');
   const card = p.getByRole('button').filter({ hasText: 'Dur sur la fin' });
   if (await card.count()) await card.first().click();
-  await p.waitForTimeout(700);
+  await settle(p);
 
   const drawer = clean(
     await p

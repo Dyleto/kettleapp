@@ -119,7 +119,16 @@ const withoutQuotes = (block) =>
     // l'accent de son exemple concluait au français — le troisième angle mort,
     // ressorti par la porte des parenthèses. Au-delà de quarante caractères on
     // laisse : c'est une incise, et une incise se rédige.
-    .replace(/\([^()]{1,40}\)/g, ' ');
+    .replace(/\([^()]{1,40}\)/g, ' ')
+    // Une annotation de type JSDoc — `@returns {ProgramPayload}`, `@param
+    // {number} order` — est une directive au vérificateur de types, comme
+    // `@ts-expect-error` : le décor du banc en porte depuis qu'il est typé
+    // par le contrat. Seule l'annotation part ; la prose qui l'entoure reste
+    // jugée.
+    .replace(
+      /@(?:type|typedef|returns?|param)\s*\{[^}]*\}(?:\s*\[?[\w.$]+\]?)?/g,
+      ' '
+    );
 
 const files = [];
 const walk = (path) => {

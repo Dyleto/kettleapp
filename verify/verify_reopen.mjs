@@ -19,6 +19,7 @@ import {
   guidedScreen,
   skipRest,
   passBlock,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -42,14 +43,14 @@ const tickTwoSets = async (p) => {
       .first();
     if (await kg.count()) {
       await kg.fill(String(24 + i));
-      await p.waitForTimeout(250);
+      await settle(p);
     }
     await p
       .getByRole('button', {
         name: /^(Fait|Série faite|Palier fait)$/,
       })
       .click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipRest(p);
   }
 };
@@ -78,7 +79,7 @@ const tickTwoSets = async (p) => {
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
 
   const field = p.locator('input[aria-label^="Corriger le poids"]');
   const howMany = await field.count();
@@ -99,7 +100,7 @@ const tickTwoSets = async (p) => {
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 2/ })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   ok(
     '  → une seule ligne ouverte à la fois',
     (await p.locator('input[aria-label^="Corriger le poids"]').count()) === 1
@@ -116,9 +117,9 @@ const tickTwoSets = async (p) => {
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p.locator('input[aria-label^="Corriger le poids"]').first().fill('30');
-  await p.waitForTimeout(400);
+  await settle(p);
 
   const g = await record(p);
   ok(
@@ -143,7 +144,7 @@ const tickTwoSets = async (p) => {
   );
 
   await p.getByRole('button', { name: /^Fermer$/ }).click();
-  await p.waitForTimeout(300);
+  await settle(p);
   ok(
     '  → la refermer ne défait rien non plus',
     (await record(p)).done.length === 2 &&
@@ -161,9 +162,9 @@ const tickTwoSets = async (p) => {
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p.getByRole('button', { name: /^Refaire$/ }).click();
-  await p.waitForTimeout(500);
+  await settle(p);
 
   const g = await record(p);
   ok(
@@ -207,9 +208,9 @@ const tickTwoSets = async (p) => {
   await p
     .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p.getByRole('button', { name: /^Revoir le mouvement$/ }).click();
-  await p.waitForTimeout(500);
+  await settle(p);
   const screen = await guidedScreen(p);
   ok(
     "la consigne du mouvement s'ouvre",

@@ -67,22 +67,157 @@ export const launch = async () => {
   const browser = await chromium.launch(
     CHROME ? { executablePath: CHROME } : {}
   );
-  if (MOCK_PORT === 3001) return browser;
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async (options) => {
     const ctx = await newContext(options);
-    await ctx.route(/^http:\/\/localhost:3001\//, (route) =>
-      route.continue({
-        url: route
-          .request()
-          .url()
-          .replace('localhost:3001', `localhost:${MOCK_PORT}`),
-      })
-    );
+    track(ctx);
+    if (MOCK_PORT !== 3001)
+      await ctx.route(/^http:\/\/localhost:3001\//, (route) =>
+        route.continue({
+          url: route
+            .request()
+            .url()
+            .replace('localhost:3001', `localhost:${MOCK_PORT}`),
+        })
+      );
     return ctx;
   };
   return browser;
 };
+
+/**
+ * Les requêtes en vol d'un contexte : le programme, l'historique, un envoi,
+ * un morceau de code chargé à la demande.
+ *
+ * C'est l'état que le banc attend, plutôt qu'une durée. Il attendait 258
+ * fois une durée fixe — 300 ms ici, 1 800 là —, choisie un jour où la
+ * machine allait vite : trop courte, l'assertion lisait l'écran d'avant ;
+ * trop longue, le banc payait l'attente à chaque passage.
+ *
+ * Une navigation remet le compte à zéro. Ce qu'elle interrompt — un
+ * morceau de code en cours de chargement, la connexion lancée juste avant —
+ * ne signale pas toujours sa fin : compté, il restait « en vol » pour
+ * toujours, et chaque attente butait sur son plafond.
+ */
+const track = (ctx) => {
+  const open = new Set();
+  ctx.__open = open;
+  ctx.on('request', (request) => open.add(request));
+  ctx.on('requestfinished', (request) => open.delete(request));
+  ctx.on('requestfailed', (request) => open.delete(request));
+  ctx.on('page', (page) =>
+    page.on('framenavigated', (frame) => {
+      if (frame !== page.mainFrame()) return;
+      for (const request of open)
+        if (!request.isNavigationRequest()) open.delete(request);
+    })
+  );
+};
+
+/**
+ * Attendre que la page se soit posée : plus aucune requête en vol depuis
+ * `quiet` millisecondes, puis plus aucune animation qui finit.
+ *
+ * Le calme compte, pas seulement le zéro : une requête en appelle une autre
+ * — la session, puis le programme, puis le morceau de l'écran — et entre
+ * deux, le compte retombe à zéro le temps d'un rendu. Un clic qui ne
+ * demande rien au serveur se pose en un calme : React a rendu bien avant.
+ *
+ * Les animations ensuite, parce qu'une feuille qui monte en 380 ms ou une
+ * carte qui glisse vers sa couleur se lisent mal en route : la pause
+ * « coupait » deux pixels un passage sur deux, et la prochaine séance
+ * avait parfois le fond des autres. Seules comptent celles de moins d'une
+ * seconde — le mouvement d'une interface qui se pose. Au-delà, c'est une
+ * horloge ou une fête : l'anneau d'un repos avance d'un cran par seconde,
+ * et l'attendre faisait perdre deux secondes au repos à chaque lecture ; les
+ * confettis tombent en 2,5 s ; le personnage se balance sans fin.
+ *
+ * Il ne lit pas l'horloge de la page, que certaines suites figent : le
+ * plafond se compte côté Node.
+ *
+ * Ce qui tarde sans réseau ni animation — une saisie qui attend qu'on
+ * s'arrête de taper, trois secondes qui ne doivent rien coûter — n'est pas
+ * couvert : `autosaved` et `hold` le disent, avec leur raison. Un plafond
+ * atteint se dit aussi : c'est une requête qui ne revient pas, et une suite
+ * qui ralentit sans raison.
+ */
+export const settle = async (p, { quiet = 150, timeout = 8_000 } = {}) => {
+  const open = p.context().__open ?? new Set();
+  const until = Date.now() + timeout;
+  let calmSince = Date.now();
+  while (Date.now() < until) {
+    if (open.size > 0) calmSince = Date.now();
+    else if (Date.now() - calmSince >= quiet) return animationsDone(p);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  console.log(
+    `[settle] encore en vol après ${timeout} ms : ${[...open]
+      .map((request) => request.url())
+      .join(', ')}`
+  );
+};
+
+/** Les animations et transitions en cours de moins d'une seconde,
+ * attendues jusqu'à `cap` millisecondes. */
+const animationsDone = (p, cap = 1_000) =>
+  Promise.race([
+    p
+      .evaluate(() =>
+        Promise.all(
+          document
+            .getAnimations()
+            .filter(
+              (animation) =>
+                (animation.playState === 'running' || animation.pending) &&
+                Number(
+                  animation.effect?.getComputedTiming().endTime ?? Infinity
+                ) < 1_000
+            )
+            .map((animation) => animation.finished.catch(() => {}))
+        ).then(() => {})
+      )
+      .catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, cap)),
+  ]);
+
+/**
+ * Attendre qu'une couche parte — un tiroir, une feuille — le temps de son
+ * animation de sortie, et pas plus.
+ *
+ * Ce n'est pas une assertion creuse : si la couche reste, l'attente cesse
+ * après son plafond et l'assertion qui suit la trouve encore là.
+ */
+export const gone = (locator, timeout = 3000) =>
+  locator
+    .first()
+    .waitFor({ state: 'detached', timeout })
+    .catch(() => {});
+
+/**
+ * Attendre que l'atelier ait enregistré une valeur.
+ *
+ * Un changement de valeur — un nom, une consigne — part 800 ms après la
+ * dernière frappe (`useProgramAutoSave`) : aucune requête n'est en vol
+ * avant, et `settle` rendrait la main trop tôt. On laisse passer le délai,
+ * puis on attend la requête.
+ */
+export const autosaved = async (p) => {
+  await hold(
+    p,
+    900,
+    "l'atelier n'envoie une valeur que 800 ms après la dernière frappe"
+  );
+  await settle(p);
+};
+
+/**
+ * Une durée voulue : c'est le temps lui-même qui est éprouvé, ou ce qui ne
+ * dépend d'aucune requête — une saisie qui attend qu'on s'arrête de taper,
+ * une animation dont on lit la fin. `why` le dit, pour que personne ne la
+ * remplace par `settle` sans savoir ce qu'elle attend.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const hold = (p, ms, why) => p.waitForTimeout(ms);
 
 let failures = 0;
 /**
@@ -151,7 +286,7 @@ export const skipCountdown = async (p) => {
   const countdown = p.getByRole('button', { name: /^Départ dans/ });
   if (await countdown.count()) {
     await countdown.click();
-    await p.waitForTimeout(300);
+    await settle(p);
   }
 };
 
@@ -164,11 +299,11 @@ export const skipCountdown = async (p) => {
  */
 export const leaveSession = async (p) => {
   await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p
     .getByRole('button', { name: 'Arrêter et reprendre plus tard' })
     .click();
-  await p.waitForTimeout(900);
+  await settle(p);
 };
 
 /**
@@ -180,11 +315,11 @@ export const leaveSession = async (p) => {
  */
 export const finishFromPause = async (p) => {
   await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p
     .getByRole('button', { name: 'Terminer la séance maintenant' })
     .click();
-  await p.waitForTimeout(1300);
+  await settle(p);
 };
 
 /**
@@ -202,34 +337,36 @@ export const START = /^(Démarrer|Reprendre)$/;
  */
 export const declareDone = async (p) => {
   await p.getByRole('button', { name: /^Je l.ai déjà faite$/ }).click();
-  await p.waitForTimeout(500);
+  await settle(p);
   await p
     .getByRole('dialog', { name: /sans l.application/ })
     .getByRole('button', { name: 'Continuer', exact: true })
     .click();
-  await p.waitForTimeout(700);
+  await settle(p);
 };
 
 /**
  * Ouvrir une séance et entrer en mode guidé.
  *
- * Les attentes sont des durées et non des sélecteurs : la séance charge son
- * programme, puis monte son plein écran, et attendre l'apparition d'un
- * élément précis ferait de chaque changement de maquette une panne du banc.
+ * Les attentes portent sur le réseau et non sur un élément précis : la
+ * séance charge son programme, puis monte son plein écran, et attendre
+ * l'apparition d'un sélecteur ferait de chaque changement de maquette une
+ * panne du banc. Elles portaient sur des durées — 2,8 s par séance ouverte,
+ * quelle que soit la machine ; c'est 1,2 s.
  */
 export const start = async (p, sess) => {
   await p.goto(`${BASE}/client/session/${sess}`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   // L'écran d'ouverture porte la note du coach : on le franchit pour
   // atteindre la séance elle-même.
   const c = p.getByRole('button', { name: /C'est parti/ });
   if (await c.count()) {
     await c.click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipCountdown(p);
   }
 };
@@ -280,7 +417,7 @@ export const skipRest = async (p) => {
   const r = p.getByRole('button', { name: 'Passer', exact: true });
   if (await r.count()) {
     await r.click();
-    await p.waitForTimeout(250);
+    await settle(p);
   }
 };
 
@@ -294,7 +431,7 @@ export const launchClock = async (p) => {
   const button = p.getByRole('button', { name: 'Lancer', exact: true });
   if (!(await button.count())) return;
   await button.click();
-  await p.waitForTimeout(300);
+  await settle(p);
   await skipCountdown(p);
 };
 
@@ -317,9 +454,9 @@ export const timerLabel = (p) =>
  */
 export const passBlock = async (p) => {
   await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p.getByRole('button', { name: 'Passer ce bloc' }).click();
-  await p.waitForTimeout(400);
+  await settle(p);
 };
 
 /**
@@ -337,13 +474,13 @@ export const advance = async (p) => {
   });
   if (await main.count()) {
     await main.first().click();
-    await p.waitForTimeout(220);
+    await settle(p);
     return;
   }
   const round = p.getByRole('button', { name: 'Tour suivant', exact: true });
   if (await round.count()) {
     await round.click();
-    await p.waitForTimeout(220);
+    await settle(p);
     return;
   }
   await passBlock(p);
@@ -362,7 +499,7 @@ export const reachFeeling = async (p) => {
     const button = p.getByRole('button', { name });
     if (await button.count()) {
       await button.first().click();
-      await p.waitForTimeout(900);
+      await settle(p);
       return;
     }
   }

@@ -13,10 +13,27 @@
  */
 import http from 'node:http';
 
+/**
+ * Le décor est typé par le contrat de l'API : un champ que l'API n'envoie
+ * pas, ou un type qui a changé, est refusé par `npm run typecheck` avant
+ * d'avoir trompé une seule assertion. Le décor décrivait la même charge que
+ * le contrat, à la main, et les deux pouvaient diverger sans bruit.
+ *
+ * @typedef {import('../src/shared/types/contract.js').ExercisePayload} ExercisePayload
+ * @typedef {import('../src/shared/types/contract.js').BlockExercisePayload} BlockExercisePayload
+ * @typedef {import('../src/shared/types/contract.js').SessionPayload} SessionPayload
+ * @typedef {import('../src/shared/types/contract.js').ProgramPayload} ProgramPayload
+ * @typedef {import('../src/shared/types/contract.js').TemplatePayload} TemplatePayload
+ * @typedef {import('../src/shared/types/contract.js').TemplateRowPayload} TemplateRowPayload
+ * @typedef {import('../src/shared/types/contract.js').CompletedSessionPayload} CompletedSessionPayload
+ * @typedef {import('../src/shared/types/contract.js').UserPayload} UserPayload
+ */
+
 const COACH_ID = '507f1f77bcf86cd799439011';
 const CLIENT_ID = '507f1f77bcf86cd799439012';
 const PROGRAM_ID = '507f1f77bcf86cd799439013';
 
+/** @returns {ExercisePayload} */
 const ex = (id, name, videoUrl, usageCount = 0, description = '') => ({
   _id: id,
   name,
@@ -28,6 +45,7 @@ const ex = (id, name, videoUrl, usageCount = 0, description = '') => ({
   usageCount,
 });
 
+/** @type {ExercisePayload[]} */
 const EXERCISES = [
   // Deux exercices portent une description de bibliothèque : c'est le seul
   // moyen de vérifier que la consigne d'une séance et la technique générale du
@@ -57,12 +75,19 @@ const EXERCISES = [
   ex('ex10', 'Planche', '', 0),
 ];
 
+/**
+ * @param {ExercisePayload} exercise
+ * @param {number} order
+ * @param {Partial<BlockExercisePayload>} [extra]
+ * @returns {BlockExercisePayload}
+ */
 const blockExercise = (exercise, order, extra = {}) => ({
   exercise,
   order,
   ...extra,
 });
 
+/** @type {SessionPayload[]} */
 const SESSIONS = [
   {
     _id: 'sess1',
@@ -246,9 +271,9 @@ const SESSIONS = [
 
 const EMPTY_PROGRAM = process.env.MOCK_EMPTY === '1';
 
+/** @returns {ProgramPayload} */
 const program = () => ({
   _id: PROGRAM_ID,
-  clientId: CLIENT_ID,
   createdAt: '2026-06-01T10:00:00.000Z',
   updatedAt: '2026-06-01T10:00:00.000Z',
   sessions: EMPTY_PROGRAM ? [] : SESSIONS,
@@ -308,6 +333,7 @@ const shaped = (sessions, idPrefix) =>
  * remplace vraiment le programme du client — qui en compte davantage — plutôt
  * que de s'y ajouter.
  */
+/** @returns {TemplatePayload[]} */
 const initialTemplates = () => [
   {
     _id: 'tpl1',
@@ -321,6 +347,7 @@ const initialTemplates = () => [
 let TEMPLATES = initialTemplates();
 
 /** Ce qu'une ligne de liste porte : le nom et le compte, pas les séances. */
+/** @returns {TemplateRowPayload} */
 const templateRow = (template) => ({
   _id: template._id,
   name: template.name,
@@ -402,6 +429,7 @@ const withLadder = (blocks, entries) =>
       : b;
   });
 
+/** @type {CompletedSessionPayload[]} */
 let HISTORY = EMPTY_PROGRAM
   ? []
   : [
@@ -508,6 +536,7 @@ let HISTORY = EMPTY_PROGRAM
       },
     ];
 
+/** @type {UserPayload} */
 const USER = {
   id: '69345f880326b1ba42100de8',
   email: 'corentin@example.com',
@@ -687,12 +716,17 @@ const server = http.createServer(async (req, res) => {
   // quitter la séance. Le serveur d'essai rend donc un exercice créé, et
   // accepte qu'on le complète ensuite.
   if (pathname === '/api/coach/exercises' && method === 'POST') {
+    // Ce que l'API rend d'un exercice créé, ni plus ni moins : il portait un
+    // `isPublic` qu'elle n'envoie pas, et pas son auteur ni ses dates.
+    /** @type {ExercisePayload} */
     const created = {
       _id: `ex-new-${CREATED_EXERCISES.length + 1}`,
       name: body.name ?? 'Sans nom',
       description: body.description ?? '',
       videoUrl: body.videoUrl ?? '',
-      isPublic: false,
+      createdBy: COACH_ID,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       usageCount: 0,
     };
     CREATED_EXERCISES.push(created);

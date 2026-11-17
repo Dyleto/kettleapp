@@ -22,10 +22,10 @@ import {
   passBlock,
   API,
   COACHES,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
-const settle = (p) => p.waitForTimeout(300);
 
 const pad = (p) => p.getByRole('button', { name: /^Ajouter un tour/ });
 const padName = async (p) =>
@@ -102,7 +102,7 @@ const roundsOf = (p, id) =>
   await launchClock(p);
   for (let i = 0; i < 4; i++) {
     await pad(p).click();
-    await p.waitForTimeout(120);
+    await settle(p);
   }
   ok(
     'une fois lancé, chaque toucher compte un tour',
@@ -194,7 +194,7 @@ const roundsOf = (p, id) =>
   );
   await tap('Valider');
   await p.clock.runFor(2_000);
-  await p.waitForTimeout(900);
+  await settle(p);
   // L'écran de fin : ses tuiles s'annoncent par leur valeur finale.
   const tiles = await p.evaluate(() =>
     [...document.querySelectorAll('[role="dialog"] [role="group"]')].map(

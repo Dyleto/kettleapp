@@ -24,11 +24,11 @@ import {
   skipRest,
   passBlock,
   leaveSession,
+  settle,
 } from './common.mjs';
 
 const DESKTOP = { viewport: { width: 1280, height: 800 } };
 const browser = await launch();
-const settle = (p, ms = 600) => p.waitForTimeout(ms);
 const open = async (p, sess = 'sess2') => {
   await p.goto(`${BASE}/client/session/${sess}`, {
     waitUntil: 'domcontentloaded',
@@ -240,7 +240,7 @@ const sheet = (p) =>
     .getByRole('button', { name: /^(Fait|Série faite)$/ })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await settle(p, 300);
+  await settle(p);
   await skipRest(p);
   await leaveSession(p);
   await settle(p);
@@ -294,9 +294,9 @@ const sheet = (p) =>
   await settle(p);
   await field.fill('10/11/2026');
   await field.press('Enter');
-  await settle(p, 400);
+  await settle(p);
   await declare.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await settle(p, 800);
+  await settle(p);
   ok(
     '« Continuer » mène à « Mes charges »',
     (await p.getByRole('dialog', { name: 'Mes charges' }).count()) === 1
@@ -305,7 +305,7 @@ const sheet = (p) =>
     .getByRole('button', { name: 'Continuer', exact: true })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await settle(p, 800);
+  await settle(p);
   const feelingDate = p.getByRole('textbox', {
     name: 'Date de réalisation de la séance',
   });
@@ -316,7 +316,7 @@ const sheet = (p) =>
   );
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.getByRole('button', { name: 'Envoyer à Julie' }).click();
-  await settle(p, 2500);
+  await settle(p);
   ok(
     '  → et c’est elle qui part avec le bilan',
     sent?.completedAt === '2026-11-10',
@@ -358,7 +358,7 @@ const sheet = (p) =>
       .getByRole('button', { name: /— conseillée :/ })
       .first()
       .click();
-  await settle(p, 900);
+  await settle(p);
   ok(
     'ouverte depuis l’accueil : « Aujourd’hui »',
     (await p.getByRole('button', { name: "Revenir à Aujourd'hui" }).count()) ===

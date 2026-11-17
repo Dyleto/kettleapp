@@ -33,9 +33,9 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 16 novembre : 585 tests unitaires, 31 suites de banc et 576
-assertions, 4 min 23 s pour le banc complet (14 min 23 s avant qu'il tourne
-sur quatre files).
+Mesures au 17 novembre : 585 tests unitaires, 31 suites de banc et 576
+assertions, 2 min 50 s pour le banc complet (14 min 23 s avant qu'il tourne
+sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
 
@@ -228,8 +228,13 @@ banc actuel, inchangé, qui le prouve.
       fonctionnalité. Le bouton Google et le fournisseur de session passent
       dans `auth` ; quinze imports profonds passent par les `index.ts` ;
       chaque règle a été éprouvée par une violation posée exprès.
-- [ ] **B10** Banc : attendre un état plutôt qu'une durée (les 258), décor
-      typé par le contrat. (Les files parallèles sont faites.)
+- [x] **B10** Banc : attendre un état plutôt qu'une durée (les 258), décor
+      typé par le contrat. (Les files parallèles sont faites.) `settle`
+      attend le réseau puis les mouvements courts ; restent quatre `hold`
+      nommés, là où c'est le temps qui est éprouvé, et l'enregistrement
+      différé de l'atelier (`autosaved`). 4 min 23 s → 2 min 50 s,
+      trois passages verts de suite. Le décor typé a trouvé deux écarts au
+      contrat.
 - [ ] **B11** `features/program` devient `features/workshop`, sans rien
       changer d'autre : le lot D le réécrit.
 - [ ] **B12** Passe complète des sabotages : réparer les cas marqués, les

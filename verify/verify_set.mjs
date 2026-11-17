@@ -22,6 +22,8 @@ import {
   start,
   MOBILE,
   clean,
+  settle,
+  hold,
 } from './common.mjs';
 
 const HERO = '[data-set-hero]';
@@ -61,7 +63,7 @@ const press = async (p, name) => {
     .first()
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(250);
+  await settle(p);
   return true;
 };
 
@@ -74,7 +76,7 @@ const reachRenfo = async (p) => {
     .getByRole('button', { name: 'Passer ce bloc' })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(500);
+  await settle(p);
 };
 
 const browser = await launch();
@@ -118,9 +120,9 @@ const browser = await launch();
   if (box) {
     await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await p.mouse.down();
-    await p.waitForTimeout(1000);
+    await hold(p, 1000, 'un appui long : on tient le bouton');
     await p.mouse.up();
-    await p.waitForTimeout(250);
+    await settle(p);
   }
   const afterHold = Number(await shownLoad(p));
   ok(
@@ -131,7 +133,7 @@ const browser = await launch();
   // 28 et non 26 : une valeur égale à celle de la dernière fois ne dirait
   // pas d'où vient ce que l'écran propose ensuite.
   await p.locator(`${HERO} input`).fill('28');
-  await p.waitForTimeout(200);
+  await settle(p);
 
   await press(p, 'Série faite');
   const once = await noted(p, GOBLET);
@@ -168,7 +170,7 @@ const browser = await launch();
   // Effacer la charge : une série au poids du corps doit pouvoir se noter.
   await press(p, 'Passer');
   await p.locator(`${HERO} input`).fill('');
-  await p.waitForTimeout(250);
+  await settle(p);
   ok(
     'une charge effacée reste effacée',
     (await shownLoad(p)) === '' && !(await hero(p)).includes('dernière fois'),
@@ -272,11 +274,11 @@ const browser = await launch();
     .getByRole('button', { name: /^Lancer le décompte/ })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(200);
+  await settle(p);
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 500);
   await p.clock.runFor(30_000);
-  await p.waitForTimeout(300);
+  await settle(p);
   ok(
     'une touche le lance, et il décompte',
     /^Mettre en pause — 1:3\d restant$/.test(clean(await ring())),
@@ -294,9 +296,9 @@ const browser = await launch();
     .getByRole('button', { name: /^Lancer le décompte/ })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(200);
+  await settle(p);
   await p.clock.runFor(121_000);
-  await p.waitForTimeout(400);
+  await settle(p);
   const done = await p.evaluate(
     () => JSON.parse(localStorage.getItem('kettle-seance-sess1') || '{}').done
   );

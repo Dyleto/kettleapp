@@ -18,6 +18,7 @@ import {
   skipRest,
   clean,
   API,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -25,7 +26,6 @@ const browser = await launch();
 // garde ce que la première partie envoie, et l'historique composé de la
 // seconde compterait cette séance-là en plus.
 const { history } = await (await fetch(`${API}/api/client/history`)).json();
-const settle = (p) => p.waitForTimeout(300);
 
 /** Mène la séance 3 jusqu'au ressenti, et l'envoie. */
 const sendSess3 = async (p) => {
@@ -36,16 +36,16 @@ const sendSess3 = async (p) => {
     });
     if (!(await done.count())) break;
     await done.click();
-    await p.waitForTimeout(250);
+    await settle(p);
     await skipRest(p);
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1500);
+  await settle(p);
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
   await p.getByRole('button', { name: 'Envoyer à Julie' }).click();
-  await p.waitForTimeout(2500);
+  await settle(p);
 };
 
 /** L'écran de la semaine : son texte, son anneau, ses jours. */
@@ -106,7 +106,7 @@ const today = (new Date().getDay() + 6) % 7;
     .getByRole('button', { name: 'Terminer', exact: true })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(1200);
+  await settle(p);
   ok(
     '« Terminer » revient à l’accueil',
     new URL(p.url()).pathname === '/client',

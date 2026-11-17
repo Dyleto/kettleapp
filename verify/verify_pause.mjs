@@ -29,6 +29,7 @@ import {
   skipRest,
   MOBILE,
   skipCountdown,
+  settle,
 } from './common.mjs';
 
 const SHEET = '[role="dialog"][aria-label="Pause"]';
@@ -61,8 +62,6 @@ const press = async (p, name, options = {}) => {
     .catch(() => {});
 };
 
-const settle = (p) => p.waitForTimeout(250);
-
 /** Franchit l'échauffement de la séance 1 jusqu'à l'EMOM. */
 const reachEmom = async (p) => {
   for (let i = 0; i < 6; i++) {
@@ -72,7 +71,7 @@ const reachEmom = async (p) => {
     });
     if (!(await next.count())) return;
     await next.first().click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipRest(p);
   }
 };
@@ -168,7 +167,7 @@ const browser = await launch();
   const at = new URL(p.url()).pathname;
 
   await p.goBack();
-  await p.waitForTimeout(500);
+  await settle(p);
   const openedByBack = await sheetOpen(p);
   ok('le retour ouvre la pause', openedByBack);
   ok(
@@ -178,28 +177,28 @@ const browser = await launch();
     new URL(p.url()).pathname
   );
   await p.goBack();
-  await p.waitForTimeout(500);
+  await settle(p);
   // « Referme » suppose qu'elle était ouverte : une feuille jamais ouverte
   // donnerait le même état sans que le retour ait rien refermé.
   ok('un second retour la referme', openedByBack && !(await sheetOpen(p)));
   await p.goBack();
-  await p.waitForTimeout(500);
+  await settle(p);
   ok(
     '  → et un troisième la rouvre, sans jamais quitter',
     (await sheetOpen(p)) && new URL(p.url()).pathname === at
   );
 
   await p.keyboard.press('Escape');
-  await p.waitForTimeout(300);
+  await settle(p);
   ok('Échap la referme', !(await sheetOpen(p)));
   await p.keyboard.press('Escape');
-  await p.waitForTimeout(300);
+  await settle(p);
   ok('  → et la rouvre', await sheetOpen(p));
 
   // Toucher le fond assombri reprend : c'est le geste de qui veut
   // continuer.
   await p.mouse.click(195, 60);
-  await p.waitForTimeout(300);
+  await settle(p);
   ok('toucher le fond reprend la séance', !(await sheetOpen(p)));
   await ctx.close();
 }
@@ -229,7 +228,7 @@ const browser = await launch();
     .getByRole('button', { name: 'Passer ce bloc' })
     .click({ timeout: 2000 })
     .catch(() => {});
-  await p.waitForTimeout(500);
+  await settle(p);
   ok(
     '« Passer ce bloc » mène au bloc suivant',
     /— EMOM$/.test(await where(p)) && !(await sheetOpen(p)),
@@ -239,7 +238,7 @@ const browser = await launch();
   await press(p, 'Mettre la séance en pause');
   await settle(p);
   await press(p, 'Arrêter et reprendre plus tard');
-  await p.waitForTimeout(900);
+  await settle(p);
   ok(
     '« Arrêter et reprendre plus tard » ferme la séance',
     (await p.locator('[aria-label="Séance guidée"]').count()) === 0
@@ -266,7 +265,7 @@ const browser = await launch();
       (await p.getByRole('button', { name: 'Passer ce bloc' }).count()) === 0
   );
   await press(p, 'Terminer la séance maintenant');
-  await p.waitForTimeout(1400);
+  await settle(p);
   const dialogs = await p.evaluate(() =>
     [...document.querySelectorAll('[role="dialog"]')]
       .map((d) => d.innerText)

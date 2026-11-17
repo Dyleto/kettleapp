@@ -29,6 +29,7 @@ import {
   signIn,
   clean,
   API,
+  settle,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -63,7 +64,7 @@ const displayedName = (p) =>
 const awaitSaved = async (p) => {
   for (let i = 0; i < 30; i++) {
     if (await p.getByText('Enregistré', { exact: true }).count()) return true;
-    await p.waitForTimeout(120);
+    await settle(p);
   }
   return false;
 };
@@ -86,13 +87,13 @@ const main = async () => {
 
   // ── Le coach écrit, et l'application dit « Enregistré » ──────────────────
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   const before = await displayedName(p);
   ok("l'atelier s'ouvre sur la séance du client", before.length > 0, before);
 
   await rename(p, 'Atelier premier jet');
-  await p.waitForTimeout(2000);
+  await settle(p);
 
   ok("l'écran annonce l'enregistrement", await awaitSaved(p));
 
@@ -127,7 +128,7 @@ const main = async () => {
     .getByRole('link', { name: /Exercices/ })
     .first()
     .click();
-  await p.waitForTimeout(1200);
+  await settle(p);
   ok(
     'la bibliothèque est atteinte sans quitter l’application',
     p.url().includes('/coach/exercises'),
@@ -137,7 +138,7 @@ const main = async () => {
   // Le retour arrière du navigateur : un `popstate`, que react-router traite
   // sans recharger. C'est aussi le geste que le coach décrit.
   await p.goBack();
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   const witness = await p.evaluate(() => window.__benchWitness ?? 'perdu');
   ok(
@@ -164,7 +165,7 @@ const main = async () => {
     .first()
     .click();
   await awaitSaved(p);
-  await p.waitForTimeout(600);
+  await settle(p);
 
   const final = await serverSessions();
   ok(
@@ -198,7 +199,7 @@ const main = async () => {
     await field.press('Enter');
   }
   await awaitSaved(p);
-  await p.waitForTimeout(600);
+  await settle(p);
   const ladder = (await serverSessions()).find((s) => s.order === 5)?.blocks[0];
   ok(
     '  → douze minutes, enregistrées sur le bloc',

@@ -25,6 +25,8 @@ import {
   clean,
   MOBILE,
   API,
+  settle,
+  gone,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -50,24 +52,24 @@ const main = async () => {
   const p = await signIn(ctx);
 
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   // ── Créer en tapant un nom ───────────────────────────────────────────────
   await p
     .getByRole('button', { name: /^exercice$/ })
     .first()
     .click();
-  await p.waitForTimeout(600);
+  await settle(p);
 
   const search = p.getByRole('textbox', { name: 'Chercher un exercice' });
   ok('le sélecteur s’ouvre', (await search.count()) >= 1);
   await search.first().fill(NAME);
-  await p.waitForTimeout(500);
+  await settle(p);
 
   const createButton = p.getByRole('button', { name: new RegExp('Créer') });
   ok('il propose de créer ce nom', (await createButton.count()) >= 1);
   await createButton.first().click();
-  await p.waitForTimeout(1200);
+  await settle(p);
 
   // ── La fiche s'ouvre sur place ───────────────────────────────────────────
   //
@@ -83,7 +85,7 @@ const main = async () => {
     .getByRole('textbox', { name: 'Chercher un exercice' })
     .waitFor({ state: 'detached', timeout: 5000 })
     .catch(() => {});
-  await p.waitForTimeout(600);
+  await settle(p);
 
   // Cadré sur la fiche, et en correspondance exacte. `getByLabel` cherche
   // par défaut une sous-chaîne : « Consigne — X » attrapait aussi « Ajouter
@@ -113,20 +115,20 @@ const main = async () => {
   // second geste — la modification — jamais éprouvé.
   if ((await note.count()) === 1) {
     await note.click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await sheet
       .getByRole('textbox', { name: `Consigne — ${NAME}`, exact: true })
       .fill(NOTE);
     await p.keyboard.press('Tab');
-    await p.waitForTimeout(800);
+    await settle(p);
 
     await video.click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await sheet
       .getByRole('textbox', { name: `Lien vidéo — ${NAME}`, exact: true })
       .fill(VIDEO);
     await p.keyboard.press('Tab');
-    await p.waitForTimeout(1000);
+    await settle(p);
 
     const created = (await library()).find((e) => e.name === NAME);
     ok(
@@ -151,7 +153,7 @@ const main = async () => {
 
   // ── Modifier un exercice existant, depuis le même sélecteur ──────────────
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   // Ce que la page porte déjà, avant d'ouvrir le sélecteur : les lignes du
   // programme.
@@ -163,7 +165,7 @@ const main = async () => {
     .getByRole('button', { name: /^exercice$/ })
     .first()
     .click();
-  await p.waitForTimeout(700);
+  await settle(p);
 
   // L'écart avant/après ouverture, et non un compte absolu.
   //
@@ -188,7 +190,7 @@ const main = async () => {
     const label = await openers.first().getAttribute('aria-label');
     const existing = (label ?? '').replace('Ouvrir la fiche de ', '');
     await openers.first().click();
-    await p.waitForTimeout(1200);
+    await settle(p);
 
     const openSheet = p.getByRole('dialog');
     const existingNote = openSheet.getByLabel(`Consigne — ${existing}`, {
@@ -202,12 +204,12 @@ const main = async () => {
 
     if ((await existingNote.count()) === 1) {
       await existingNote.click();
-      await p.waitForTimeout(300);
+      await settle(p);
       await openSheet
         .getByRole('textbox', { name: `Consigne — ${existing}`, exact: true })
         .fill(EDIT);
       await p.keyboard.press('Tab');
-      await p.waitForTimeout(900);
+      await settle(p);
 
       const edited = (await library()).find((e) => e.name === existing);
       ok(
@@ -225,7 +227,7 @@ const main = async () => {
   // fallait rechercher le mouvement comme pour l'ajouter, ou quitter le
   // programme pour la bibliothèque.
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   const inProgram = p
     .locator('main')
@@ -241,7 +243,7 @@ const main = async () => {
     const label = await inProgram.first().getAttribute('aria-label');
     const name = (label ?? '').replace('Ouvrir la fiche de ', '');
     await inProgram.first().click();
-    await p.waitForTimeout(1200);
+    await settle(p);
 
     const placedSheet = p.getByRole('dialog');
     const field = placedSheet.getByLabel(`Consigne — ${name}`, {
@@ -261,7 +263,7 @@ const main = async () => {
     // où le coach croit valider.
     if ((await field.count()) === 1) {
       await field.click();
-      await p.waitForTimeout(300);
+      await settle(p);
       await placedSheet
         .getByRole('textbox', { name: `Consigne — ${name}`, exact: true })
         .fill(PLACED);
@@ -273,7 +275,7 @@ const main = async () => {
 
       if (await done.count()) {
         await done.click();
-        await p.waitForTimeout(1200);
+        await gone(p.getByRole('dialog'));
 
         ok(
           '  → elle referme la fiche et rend le programme',
@@ -310,20 +312,20 @@ const main = async () => {
   const mobile = await browser.newContext(MOBILE);
   const m = await signIn(mobile);
   await m.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
-  await m.waitForTimeout(1800);
+  await settle(m);
 
   await m
     .getByRole('button', { name: /^exercice$/ })
     .first()
     .click();
-  await m.waitForTimeout(800);
+  await settle(m);
   await m
     .getByRole('textbox', { name: 'Chercher un exercice' })
     .first()
     .fill(MOBILE_NAME);
-  await m.waitForTimeout(500);
+  await settle(m);
   await m.getByRole('button', { name: /Créer/ }).first().click();
-  await m.waitForTimeout(2500);
+  await settle(m);
 
   const mobileNote = m
     .getByRole('dialog')
@@ -339,7 +341,7 @@ const main = async () => {
   // de ceux de l'utilisateur : s'il en avalait un de trop, c'est ici que ça
   // se verrait.
   await m.goBack();
-  await m.waitForTimeout(1200);
+  await gone(m.getByRole('dialog'));
   ok(
     '  → et le retour la referme, sans quitter le programme',
     (await m.getByRole('dialog').count()) === 0 &&
@@ -366,7 +368,7 @@ const main = async () => {
     .getByRole('button', { name: /^exercice$/ })
     .first()
     .click();
-  await m.waitForTimeout(800);
+  await settle(m);
   ok('le sélecteur est ouvert', (await m.getByRole('dialog').count()) >= 1);
 
   const fromSelector = m.getByRole('button', {
@@ -374,7 +376,7 @@ const main = async () => {
   });
   if (await fromSelector.count()) {
     await fromSelector.first().click();
-    await m.waitForTimeout(1200);
+    await settle(m);
     ok(
       'la fiche s’empile par-dessus le sélecteur',
       (await m
@@ -384,7 +386,7 @@ const main = async () => {
     );
 
     await m.goBack();
-    await m.waitForTimeout(1200);
+    await settle(m);
     ok(
       '  → le retour referme la fiche et rend le sélecteur',
       (await m
@@ -398,7 +400,7 @@ const main = async () => {
     );
 
     await m.goBack();
-    await m.waitForTimeout(1200);
+    await settle(m);
     ok(
       '  → et le retour suivant referme le sélecteur, sans quitter la page',
       (await m

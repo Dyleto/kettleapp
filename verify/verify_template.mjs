@@ -33,6 +33,8 @@ import {
   signIn,
   clean,
   API,
+  settle,
+  autosaved,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -69,7 +71,7 @@ const main = async () => {
 
   // ── 1. La liste ──────────────────────────────────────────────────────────
   await p.goto(`${BASE}/coach/templates`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
 
   const seeded = p.getByRole('button', {
     name: /Ouvrir le modèle Prise de masse/,
@@ -106,7 +108,7 @@ const main = async () => {
     createColor
   );
   await field.press('Enter');
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   ok(
     "l'atelier s'ouvre sur le modèle créé",
@@ -125,7 +127,7 @@ const main = async () => {
 
   // ── 3. Ce qu'on écrit arrive dans le modèle ──────────────────────────────
   await p.getByRole('button', { name: 'Ajouter une séance' }).click();
-  await p.waitForTimeout(2000);
+  await settle(p);
 
   const templateRail = await body();
   ok(
@@ -145,7 +147,7 @@ const main = async () => {
   const sessionName = p.getByRole('textbox', { name: /^Nom de la séance 1$/ });
   await sessionName.fill('Poussée');
   await sessionName.press('Enter');
-  await p.waitForTimeout(2000);
+  await autosaved(p);
 
   const named = await serverTemplate(createdId);
   ok(
@@ -168,7 +170,7 @@ const main = async () => {
   const templateName = p.getByRole('textbox', { name: 'Nom du modèle' });
   await templateName.fill('Haut du corps');
   await templateName.press('Enter');
-  await p.waitForTimeout(2000);
+  await autosaved(p);
 
   const renamed = await serverTemplate(createdId);
   ok(
@@ -189,7 +191,7 @@ const main = async () => {
   await p.goto(`${BASE}/coach/clients/${CLIENT}/s/1`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1800);
+  await settle(p);
   ok(
     '  → alors que celui d’un client le propose',
     (await p.getByRole('button', { name: /Copier vers un client/ }).count()) >=
@@ -204,12 +206,12 @@ const main = async () => {
 
   // ── 6. La suppression, et sa question ────────────────────────────────────
   await p.goto(`${BASE}/coach/templates`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
 
   await p
     .getByRole('button', { name: /Supprimer le modèle Haut du corps/ })
     .click();
-  await p.waitForTimeout(600);
+  await settle(p);
 
   const asked = (await body()).includes('Supprimer « Haut du corps » ?');
   ok(
@@ -228,7 +230,7 @@ const main = async () => {
   }
 
   await p.getByRole('button', { name: /^Supprimer$/ }).click();
-  await p.waitForTimeout(1500);
+  await settle(p);
 
   const left = await serverTemplates();
   ok(
@@ -247,7 +249,7 @@ const main = async () => {
     await empty.goto(`${BASE}/coach/templates`, {
       waitUntil: 'domcontentloaded',
     });
-    await empty.waitForTimeout(1500);
+    await settle(empty);
     const text = clean(await empty.locator('body').innerText());
     ok(
       'sans modèle, la liste dit à quoi ils servent',

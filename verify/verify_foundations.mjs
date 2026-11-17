@@ -29,6 +29,7 @@ import {
   start,
   MOBILE,
   passBlock,
+  settle,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -131,7 +132,7 @@ const browser = await launch();
 
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
 
   ok('la police de texte est chargée', await loaded(p, BODY_FONT));
   ok('la police de titre est chargée', await loaded(p, HEADING_FONT));
@@ -167,21 +168,21 @@ const browser = await launch();
   await noCodeFont(p, "l'accueil");
 
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await noCodeFont(p, 'le programme');
 
   await p.goto(`${BASE}/client/history`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await noCodeFont(p, "l'historique");
 
   await p.goto(`${BASE}/client/account`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await noCodeFont(p, 'le compte');
 
   await p.goto(`${BASE}/client/session/sess2`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await noCodeFont(p, 'la fiche de séance');
 
   // La séance guidée portait le plus de chasse fixe : chaque dose, chaque
@@ -202,27 +203,27 @@ const browser = await launch();
   const p = await signIn(ctx);
 
   await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await noCodeFont(p, 'les clients');
 
   await p.goto(`${BASE}/coach/clients/${CLIENT}`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1800);
+  await settle(p);
   await noCodeFont(p, "l'atelier");
 
   await p.goto(`${BASE}/coach/clients/${CLIENT}/journal`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await noCodeFont(p, 'les ressentis');
 
   await p.goto(`${BASE}/coach/exercises`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await noCodeFont(p, 'les exercices');
 
   await p.goto(`${BASE}/confidentialite`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1200);
+  await settle(p);
   await noCodeFont(p, 'la politique de confidentialité');
 
   await ctx.close();

@@ -25,6 +25,7 @@ import {
   MOBILE,
   clean,
   passBlock,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -66,7 +67,7 @@ const recordedWeights = (p) =>
   await field.click();
   // Caractère par caractère : c'est le seul geste qui reproduit le défaut.
   await field.pressSequentially('22,5', { delay: 60 });
-  await p.waitForTimeout(300);
+  await settle(p);
 
   const shown = clean(await field.inputValue());
   ok(
@@ -91,7 +92,7 @@ const recordedWeights = (p) =>
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(600);
+  await settle(p);
   const after = await recordedWeights(p);
   ok(
     'elle est toujours là après validation de la série',
@@ -111,7 +112,7 @@ const recordedWeights = (p) =>
   const field = p.locator(WEIGHT).first();
   await field.click();
   await field.pressSequentially('26', { delay: 60 });
-  await p.waitForTimeout(300);
+  await settle(p);
 
   ok('le champ montre 26', clean(await field.inputValue()) === '26');
   ok(

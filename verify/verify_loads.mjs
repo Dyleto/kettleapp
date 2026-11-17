@@ -22,10 +22,10 @@ import {
   dialogs,
   clean,
   declareDone,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
-const settle = (p) => p.waitForTimeout(300);
 
 const performedOf = (p, id) =>
   p.evaluate(
@@ -60,7 +60,7 @@ const chips = (p, key) =>
     const done = p.getByRole('button', { name: /^(Série faite|Fait)$/ });
     if (!(await done.count())) break;
     await done.click();
-    await p.waitForTimeout(250);
+    await settle(p);
     await skipRest(p);
   }
   await finishFromPause(p);
@@ -137,7 +137,7 @@ const chips = (p, key) =>
   await p.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await declareDone(p);
   const t = await dialogs(p);
   ok(
@@ -150,7 +150,7 @@ const chips = (p, key) =>
     !/Corde à sauter/.test(t) && /Mountain Climbers/.test(t)
   );
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     '« Continuer » mène au ressenti',
     /Alors, cette séance/.test(await dialogs(p))
@@ -162,7 +162,7 @@ const chips = (p, key) =>
   await q.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
-  await q.waitForTimeout(1700);
+  await settle(q);
   await declareDone(q);
   await q.getByRole('button', { name: 'Revenir à la séance' }).click();
   await settle(q);

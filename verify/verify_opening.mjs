@@ -23,6 +23,7 @@ import {
   MOBILE,
   clean,
   START,
+  settle,
 } from './common.mjs';
 
 const OPENING = '[role="dialog"][aria-label="Avant de commencer"]';
@@ -32,9 +33,9 @@ const open = async (p, session) => {
   await p.goto(`${BASE}/client/session/${session}`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(900);
+  await settle(p);
 };
 
 /** Tout le texte de l'ouverture. */
@@ -159,7 +160,7 @@ const browser = await launch();
 
   // La croix : on est venu voir, on repart sans avoir rien commencé.
   await press(p, 'Revenir à la séance');
-  await p.waitForTimeout(600);
+  await settle(p);
   ok(
     'la croix revient à la fiche de séance',
     (await p.locator(OPENING).count()) === 0 &&
@@ -173,9 +174,9 @@ const browser = await launch();
 
   // Le décompte nomme le premier geste.
   await press(p, START);
-  await p.waitForTimeout(800);
+  await settle(p);
   await press(p, /C'est parti/);
-  await p.waitForTimeout(300);
+  await settle(p);
   const countdown = clean(
     await p
       .getByRole('button', { name: /^Départ dans/ })

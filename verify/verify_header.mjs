@@ -22,6 +22,7 @@ import {
   clean,
   API,
   COACHES,
+  settle,
 } from './common.mjs';
 
 const TEAL = 'rgb(63, 168, 160)';
@@ -68,7 +69,7 @@ const press = async (p, name) => {
   const button = p.getByRole('button', { name });
   if (!(await button.count())) return false;
   await button.first().click();
-  await p.waitForTimeout(250);
+  await settle(p);
   return true;
 };
 
@@ -102,6 +103,7 @@ const browser = await launch();
   // Une série cochée sur deux : le bloc courant est à moitié rempli, en
   // ambre.
   await press(p, /^(Fait|Série faite|Palier fait)$/);
+  await settle(p);
   h = await header(p);
   ok(
     'le bloc en cours se remplit au prorata, en ambre',
@@ -112,6 +114,7 @@ const browser = await launch();
   // Le bloc suivant : le premier segment est fait, en sarcelle.
   await press(p, /^(Fait|Série faite|Palier fait|Bloc suivant)$/);
   await press(p, /^Bloc suivant$/);
+  await settle(p);
   h = await header(p);
   ok('on passe au bloc 2', clean(h.rank) === 'BLOC 2 SUR 3', h.rank);
   ok(
@@ -139,12 +142,12 @@ const browser = await launch();
   await start(p, 'sess2');
   // Le Tabata d'abord : on le passe pour arriver au bloc nommé.
   await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await p
     .locator('[role="dialog"][aria-label="Pause"]')
     .getByRole('button', { name: 'Passer ce bloc' })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   let h = await header(p);
   ok(
     'un bloc nommé par le coach porte son nom',

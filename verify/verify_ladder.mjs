@@ -26,10 +26,10 @@ import {
   launchClock,
   API,
   COACHES,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
-const settle = (p) => p.waitForTimeout(300);
 
 const press = async (p, name) => {
   const button = p.getByRole('button', { name, exact: true });
@@ -242,11 +242,11 @@ const climb = async (p) => {
 
   // La séance n'avait que ce bloc : on va jusqu'au bilan.
   await p.clock.runFor(2_000);
-  await p.waitForTimeout(900);
+  await settle(p);
   // L'écran de fin d'abord, puis le ressenti.
   await press(p, 'Continuer');
   await p.clock.runFor(1_000);
-  await p.waitForTimeout(700);
+  await settle(p);
   await p
     .locator('[role="radiogroup"] [role="radio"]')
     .nth(2)
@@ -254,7 +254,7 @@ const climb = async (p) => {
     .catch(() => {});
   await press(p, 'Envoyer à Julie');
   await p.clock.runFor(2_000);
-  await p.waitForTimeout(900);
+  await settle(p);
   ok(
     'le bilan envoie le résultat de l’échelle',
     JSON.stringify(sent?.ladderDone) ===

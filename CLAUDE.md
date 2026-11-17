@@ -133,7 +133,9 @@ désigne encore un endroit du code, et un seul.
 
 `npm test` (Vitest) éprouve la logique pure, sans navigateur : quelques
 secondes. `npm run verify` mène l'application dans un vrai navigateur :
-quatre minutes, sur quatre files.
+trois minutes, sur quatre files. Il attend des états — plus de requête en
+vol, plus d'animation — et non des durées ; une durée voulue s'écrit
+`hold(page, ms, raison)`.
 
 Ils ne se remplacent pas. Le banc attrape ce que l'écran fait — un bouton
 sorti de l'écran, un repos qui cache un bloc, une séance qui cesse

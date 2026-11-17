@@ -23,6 +23,8 @@ import {
   launchClock,
   passBlock,
   timerLabel,
+  settle,
+  hold,
 } from './common.mjs';
 
 const browser = await launch();
@@ -75,7 +77,7 @@ const goToEmom = async (p) => {
   );
 
   // Le point qui compte : attendre ne coûte aucun temps.
-  await p.waitForTimeout(3000);
+  await hold(p, 3000, "c'est l'attente elle-même qui est éprouvée");
   const after = await clock(p);
   ok(
     "trois secondes d'attente ne mordent pas sur le tour",
@@ -84,7 +86,7 @@ const goToEmom = async (p) => {
   );
 
   await launchClock(p);
-  await p.waitForTimeout(2500);
+  await hold(p, 2500, "l'horloge doit avoir battu");
   const started = await clock(p);
   ok(
     'une touche la lance, et elle tourne',
@@ -113,7 +115,7 @@ const goToEmom = async (p) => {
   const now = await p.evaluate(() => Date.now());
   await p.clock.pauseAt(now + 300);
   await p.clock.runFor(61_000);
-  await p.waitForTimeout(400);
+  await settle(p);
   const round2 = await clock(p);
   ok(
     'la minute écoulée, le tour 2 tourne sans rien demander',
@@ -151,7 +153,7 @@ const goToEmom = async (p) => {
   await p.clock.pauseAt(now + 300);
   // Huit tours de 40 s d'effort et 20 s de repos, et un peu de marge.
   await p.clock.runFor(8 * 60_000 + 1_000);
-  await p.waitForTimeout(500);
+  await settle(p);
   ok(
     'le dernier tour tombé, on atteint le bloc suivant',
     /— Every/i.test(await where(p)),
@@ -182,7 +184,7 @@ const goToEmom = async (p) => {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(2200);
+  await hold(p, 2200, 'le repos doit avoir compté deux secondes');
   // Le repos est une carte qui annonce ses secondes, et non plus une
   // horloge à bouton : on lit ce qu'elle annonce.
   const label = await p

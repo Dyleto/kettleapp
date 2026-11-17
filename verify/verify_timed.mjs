@@ -28,10 +28,10 @@ import {
   timerLabel,
   API,
   COACHES,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
-const settle = (p) => p.waitForTimeout(300);
 
 /** La séance 1, à l'EMOM qui attend « Lancer », horloge de la page figée. */
 const emom = async (ctx) => {
@@ -214,7 +214,7 @@ const pauseOpen = (p) =>
   await start(p, 'sess2');
   await freeze(p);
   await p.clock.runFor(6_000);
-  await p.waitForTimeout(800);
+  await settle(p);
   const phase = () =>
     p.evaluate(() => {
       const layer = document.querySelector('[data-phase]');
@@ -228,7 +228,7 @@ const pauseOpen = (p) =>
     await phase()
   );
   await p.clock.runFor(17_000);
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     'pendant le repos, il passe au sarcelle',
     (await phase()) === 'rest rgb(18, 50, 47)',

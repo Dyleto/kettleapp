@@ -24,6 +24,7 @@ import {
   advance,
   launchClock,
   START,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -39,9 +40,9 @@ const record = (p, sess) =>
 const startOver = async (p) => {
   await leaveSession(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(900);
+  await settle(p);
   await p.getByRole('button', { name: /Recommencer depuis le début/ }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
 };
 
 // ── Un bloc en liste : le cas où « recommencer » ne faisait rien ────────
@@ -59,7 +60,7 @@ const startOver = async (p) => {
     const ask = p.getByRole('button', { name: 'Noter une charge' });
     if (await ask.count()) {
       await ask.click();
-      await p.waitForTimeout(150);
+      await settle(p);
     }
     const kg = p
       .locator(
@@ -68,14 +69,14 @@ const startOver = async (p) => {
       .first();
     if (await kg.count()) {
       await kg.fill(String(20 + i));
-      await p.waitForTimeout(150);
+      await settle(p);
     }
     await p
       .getByRole('button', {
         name: /^(Fait|Série faite|Palier fait)$/,
       })
       .click();
-    await p.waitForTimeout(280);
+    await settle(p);
     await skipRest(p);
   }
   const before = await record(p, 'sess3');
@@ -141,7 +142,7 @@ const startOver = async (p) => {
   const plus = p.getByRole('button', { name: /^Ajouter un tour/ });
   for (let i = 0; i < 6; i++) {
     await plus.click();
-    await p.waitForTimeout(120);
+    await settle(p);
   }
   const before = await record(p, 'sess1');
   ok(
@@ -181,13 +182,13 @@ const startOver = async (p) => {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(300);
+  await settle(p);
   await skipRest(p);
   await startOver(p);
 
   await leaveSession(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(900);
+  await settle(p);
   const panel = await p.evaluate(() => {
     const d = [...document.querySelectorAll('div')].filter(
       (e) =>
@@ -233,9 +234,9 @@ const startOver = async (p) => {
   await p.goto(`${BASE}/client/session/sess3`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(900);
+  await settle(p);
   const panel = await p.evaluate(() => {
     const d = [...document.querySelectorAll('div')].filter(
       (e) =>
@@ -259,7 +260,7 @@ const startOver = async (p) => {
     .getByRole('dialog', { name: 'Reprendre où tu en étais ?' })
     .getByRole('button', { name: 'Reprendre', exact: true })
     .click();
-  await p.waitForTimeout(800);
+  await settle(p);
   // On reprend au premier exercice non coché : le troisième. Les deux
   // premiers sont derrière, cochés, avec la charge de l'ancien format.
   const screen = await guidedScreen(p);
@@ -281,7 +282,7 @@ const startOver = async (p) => {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   const migrated = await record(p, 'sess3');
   ok(
     '  → à la première écriture, il passe au nouveau format',

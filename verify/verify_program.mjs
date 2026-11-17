@@ -28,6 +28,7 @@ import {
   skipRest,
   clean,
   reachFeeling,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -47,7 +48,7 @@ const TITLES = [
  * droite. */
 const cards = async (p) => {
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
   return p.evaluate((titles) => {
     const out = {};
     for (const el of document.querySelectorAll('*')) {
@@ -116,7 +117,7 @@ const cards = async (p) => {
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
   const text = clean(await p.evaluate(() => document.body.innerText));
 
   ok('aucune pastille « TERMINÉE »', !/TERMINÉE/i.test(text));
@@ -178,18 +179,18 @@ const cards = async (p) => {
     });
     if (!(await f.count())) break;
     await f.click();
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipRest(p);
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1400);
+  await settle(p);
   // L'écran de fin, puis le ressenti : ce qui est éprouvé ici est la
   // carte, pas ces écrans.
   await reachFeeling(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
-  await p.waitForTimeout(200);
+  await settle(p);
   await p.getByRole('button', { name: /^Envoyer à Julie$/ }).click();
-  await p.waitForTimeout(2200);
+  await settle(p);
 
   const after = await cards(p);
   ok(

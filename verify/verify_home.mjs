@@ -21,6 +21,7 @@ import {
   START,
   API,
   COACHES,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -161,7 +162,7 @@ const lines = (text) =>
     .getByRole('button', { name: 'Démarrer' })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(1200);
+  await settle(p);
   ok(
     '« Démarrer » ouvre la séance guidée sur son ouverture',
     new URL(p.url()).pathname === '/client/session/sess1' &&
@@ -169,7 +170,7 @@ const lines = (text) =>
     new URL(p.url()).pathname
   );
   await p.reload({ waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
   ok(
     '  → recharger la fiche ne relance pas la séance',
     (await p.getByRole('button', { name: /C'est parti/ }).count()) === 0 &&
@@ -209,18 +210,18 @@ const lines = (text) =>
     .getByRole('button', { name: /^Lundi 9 — faite/ })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     'la bulle d’un jour fait ouvre la séance faite',
     (await p.getByRole('dialog').count()) === 1
   );
   await p.keyboard.press('Escape');
-  await p.waitForTimeout(500);
+  await settle(p);
   await p
     .getByRole('button', { name: /La faire aujourd/ })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(1000);
+  await settle(p);
   ok(
     '« La faire aujourd’hui » ouvre la fiche, sans lancer la séance',
     new URL(p.url()).pathname === '/client/session/sess1' &&
@@ -266,7 +267,7 @@ const lines = (text) =>
     .getByRole('button', { name: /semaines d’affilée/ })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     '  → un toucher ouvre Progrès',
     new URL(p.url()).pathname === '/client/history',
@@ -335,11 +336,11 @@ const lines = (text) =>
   await p.goto(`${BASE}/client/session/sess2`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1500);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   await p.getByRole('button', { name: /C'est parti/ }).click();
-  await p.waitForTimeout(300);
+  await settle(p);
   await skipCountdown(p);
   await passBlock(p);
   for (let i = 0; i < 2; i++) {
@@ -347,7 +348,7 @@ const lines = (text) =>
       .getByRole('button', { name: /^(Fait|Série faite)$/ })
       .click({ timeout: 3000 })
       .catch(() => {});
-    await p.waitForTimeout(250);
+    await settle(p);
     await skipRest(p);
   }
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
@@ -392,7 +393,7 @@ const lines = (text) =>
     .getByRole('button', { name: 'Reprendre', exact: true })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(1200);
+  await settle(p);
   ok(
     '« Reprendre » rouvre la séance au même endroit, sans redemander',
     (await p
@@ -416,7 +417,7 @@ const lines = (text) =>
     r.fulfill({ json: { program: edited, coaches: COACHES } });
   await ctx.route(PROGRAM_URL, editedRoute);
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
   const region = p.getByRole('region', { name: 'En cours' });
   ok(
     'modifiée par le coach depuis : seulement « Recommencer »',
@@ -427,12 +428,12 @@ const lines = (text) =>
   await ctx.unroute(PROGRAM_URL, editedRoute);
 
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1800);
+  await settle(p);
   await p
     .getByRole('button', { name: 'Recommencer depuis le début' })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(600);
+  await settle(p);
   const sheet = p.getByRole('dialog', { name: 'Recommencer la séance ?' });
   ok(
     '« Recommencer depuis le début » demande d’abord',
@@ -444,7 +445,7 @@ const lines = (text) =>
     .getByRole('button', { name: 'Recommencer', exact: true })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await p.waitForTimeout(1200);
+  await settle(p);
   const record = await p.evaluate(() =>
     JSON.parse(localStorage.getItem('kettle-seance-sess2') ?? 'null')
   );

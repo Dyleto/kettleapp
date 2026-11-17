@@ -21,6 +21,7 @@ import {
   start,
   skipRest,
   clean,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -36,22 +37,22 @@ const finishSess3 = async (p) => {
       .first();
     if (await kg.count()) {
       await kg.fill(String(10 + i));
-      await p.waitForTimeout(150);
+      await settle(p);
     }
     const done = p.getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     });
     if (!(await done.count())) break;
     await done.click();
-    await p.waitForTimeout(250);
+    await settle(p);
     await skipRest(p);
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1500);
+  await settle(p);
   // L'écran de fin vient d'abord ; le ressenti, que cette suite éprouve,
   // suit « Continuer ».
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
 };
 
 const SEND = /^(Envoyer à Julie|Réessayer)$/;
@@ -119,7 +120,7 @@ const progressKept = (p) =>
   );
 
   await p.getByRole('button', { name: /Ce n.était pas aujourd/ }).click();
-  await p.waitForTimeout(500);
+  await settle(p);
   const after = await measure(p);
   ok(
     'le corps fait exactement la même hauteur une fois la date ouverte',
@@ -153,7 +154,7 @@ const progressKept = (p) =>
   const p = await signIn(ctx);
   await finishSess3(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
-  await p.waitForTimeout(200);
+  await settle(p);
   await p.getByRole('button', { name: SEND }).click();
   // Une mutation est reprise deux fois avant d'échouer : on attend ce que
   // l'écran dit, pas un délai choisi au hasard.
@@ -194,7 +195,7 @@ const progressKept = (p) =>
 
   refuse = false;
   await p.getByRole('button', { name: SEND }).click();
-  await p.waitForTimeout(2200);
+  await settle(p);
   ok(
     'la seconde fois, il part : la semaine, et la séance effacée du téléphone',
     (await p.locator('[role="dialog"][aria-label="Ta semaine"]').count()) ===
@@ -214,7 +215,7 @@ const progressKept = (p) =>
   const p = await signIn(ctx);
   await finishSess3(p);
   await p.getByRole('button', { name: 'Quitter sans envoyer' }).click();
-  await p.waitForTimeout(500);
+  await settle(p);
   ok(
     'la croix referme le ressenti sans rien envoyer',
     (await p.locator('[role="dialog"]').count()) === 0 &&

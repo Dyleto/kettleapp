@@ -23,6 +23,7 @@ import {
   passBlock,
   advance,
   launchClock,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -45,7 +46,7 @@ const runSess2 = async (p, goblet, lunges) => {
       .first();
     if (await kg.count()) {
       await kg.fill(String(i < 4 ? goblet : lunges));
-      await p.waitForTimeout(200);
+      await settle(p);
     }
     const done = p.getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
@@ -53,12 +54,12 @@ const runSess2 = async (p, goblet, lunges) => {
     if (await done.count()) {
       await done.click();
     } else break;
-    await p.waitForTimeout(300);
+    await settle(p);
     await skipRest(p);
   }
   // Le bouton principal, au dernier geste de la séance.
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1600);
+  await settle(p);
 };
 
 /** L'écran de fin : son nom, ses tuiles telles qu'elles s'annoncent, son
@@ -129,7 +130,7 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   ok('  → pas le Goblet, tenu à sa charge', !/Goblet Squat ·/.test(e.text));
 
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   const t = await dialogs(p);
   ok(
     '« Continuer » mène au ressenti',
@@ -144,9 +145,9 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
     box ? `bas à ${Math.round(box.y + box.height)} px` : '(introuvable)'
   );
   await p.getByRole('radio', { name: /Juste/ }).click();
-  await p.waitForTimeout(200);
+  await settle(p);
   await submit.click();
-  await p.waitForTimeout(2000);
+  await settle(p);
   const leftovers = await p.evaluate(() =>
     Object.keys(localStorage).filter((k) => k.startsWith('kettle-seance-'))
   );
@@ -165,11 +166,11 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   const p = await signIn(ctx);
   await runSess2(p, 26, 18);
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await p.waitForTimeout(600);
+  await settle(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
-  await p.waitForTimeout(200);
+  await settle(p);
   await p.getByRole('button', { name: /^Envoyer à Julie$/ }).click();
-  await p.waitForTimeout(2200);
+  await settle(p);
 
   // Les fentes à 18 ne battent plus rien : 18 est désormais le meilleur.
   await runSess2(p, 30, 18);
@@ -213,7 +214,7 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
     const ask = p.getByRole('button', { name: 'Noter une charge' });
     if (await ask.count()) {
       await ask.click();
-      await p.waitForTimeout(200);
+      await settle(p);
     }
     const kg = p
       .locator(
@@ -222,18 +223,18 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
       .first();
     if (await kg.count()) {
       await kg.fill('40');
-      await p.waitForTimeout(200);
+      await settle(p);
     }
     const done = p.getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     });
     if (!(await done.count())) break;
     await done.click();
-    await p.waitForTimeout(280);
+    await settle(p);
     await skipRest(p);
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1600);
+  await settle(p);
   const e = await ending(p);
   ok(
     'le seul mouvement qui a un passé fait le record',
@@ -295,10 +296,10 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   ok('on atteint la boucle', (await plus.count()) > 0);
   for (let i = 0; i < 6; i++) {
     await plus.click();
-    await p.waitForTimeout(150);
+    await settle(p);
   }
   await finishFromPause(p);
-  await p.waitForTimeout(600);
+  await settle(p);
   const e = await ending(p);
   ok(
     'aucune charge notée : la troisième tuile compte les tours bouclés',
@@ -310,14 +311,14 @@ const cleanTiles = (e) => e.tiles.map((x) => clean(x));
   await p
     .getByRole('button', { name: 'Compléter mes charges', exact: true })
     .click();
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     '« Compléter mes charges » ouvre la saisie',
     /Mes charges/.test(await dialogs(p)),
     (await dialogs(p)).split('\n').filter(Boolean)[0] ?? '(rien)'
   );
   await p.getByRole('button', { name: 'OK', exact: true }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   ok(
     '  → et « OK » ramène à l’écran de fin',
     (await ending(p)).name !== null,

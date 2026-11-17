@@ -28,6 +28,7 @@ import {
   clean,
   reachFeeling,
   declareDone,
+  settle,
 } from './common.mjs';
 
 const ORDER = ['Trop facile', 'Facile', 'Juste', 'Dure', 'Trop dure'];
@@ -81,7 +82,7 @@ const browser = await launch();
   await p.goto(`${BASE}/client/session/sess2`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await declareDone(p);
   // Les charges d'abord, sans question : on les franchit.
   await reachFeeling(p);
@@ -124,14 +125,14 @@ const browser = await launch();
   // Le cran de gauche, puis une flèche vers la droite : on doit aller vers
   // plus dur, pas vers plus facile.
   await p.locator(`${SCALE} [role="radio"]`).first().click();
-  await p.waitForTimeout(250);
+  await settle(p);
   ok(
     'le visage de gauche se nomme « Trop facile »',
     (await caption(p)).includes('Trop facile'),
     await caption(p)
   );
   await p.keyboard.press('ArrowRight');
-  await p.waitForTimeout(250);
+  await settle(p);
   const afterArrow = (await steps(p)).find((s) => s.checked)?.name ?? '';
   ok(
     'la flèche droite mène au cran plus dur',
@@ -140,7 +141,7 @@ const browser = await launch();
   );
 
   await p.locator(`${SCALE} [role="radio"]`).last().click();
-  await p.waitForTimeout(250);
+  await settle(p);
   const picked = await caption(p);
   ok(
     'le visage de droite se nomme « Trop dure »',
@@ -150,7 +151,7 @@ const browser = await launch();
   );
 
   await press(p, /^Envoyer à Julie$/);
-  await p.waitForTimeout(2200);
+  await settle(p);
   ok(
     'il envoie 5, la valeur enregistrée pour « Trop dure »',
     sent?.feedback?.effort === 5,
@@ -162,7 +163,7 @@ const browser = await launch();
   // porte déjà une séance 1 « Trop dure », qui ferait passer l'assertion
   // sans rien prouver.
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
-  await p.waitForTimeout(1700);
+  await settle(p);
   const card = clean(
     await p
       .getByRole('region', { name: 'Ta dernière séance' })

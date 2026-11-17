@@ -22,6 +22,7 @@ import {
   skipCountdown,
   passBlock,
   START,
+  settle,
 } from './common.mjs';
 
 const browser = await launch();
@@ -134,6 +135,12 @@ const viewport = (p) =>
  * C'est la seule chose qu'on ne peut pas rattraper : un contenu plus haut que
  * sa boîte, et aucun moyen d'atteindre le reste. On descend l'arbre jusqu'au
  * premier coupable et on le nomme.
+ *
+ * Ce qui est décoratif (`aria-hidden`) n'est pas un contenu : le personnage
+ * se balance sans fin, et à certains instants de son cycle son dessin
+ * pivoté dépasse de sa boîte de deux pixels. La vérification dépendait de
+ * l'instant où elle lisait l'écran — verte après 900 ms d'attente, rouge
+ * après 500.
  */
 const cutWithNoRecourse = (p) =>
   p.evaluate(() => {
@@ -145,6 +152,7 @@ const cutWithNoRecourse = (p) =>
     const el = panels[panels.length - 1];
     if (!el) return null;
     const cuts = (n) => {
+      if (n.getAttribute('aria-hidden') === 'true') return null;
       const st = getComputedStyle(n);
       if (
         n.scrollHeight > n.clientHeight + 1 &&
@@ -181,9 +189,9 @@ const cutWithNoRecourse = (p) =>
     await p.goto(`${BASE}/client/session/${sess}`, {
       waitUntil: 'domcontentloaded',
     });
-    await p.waitForTimeout(1700);
+    await settle(p);
     await p.getByRole('button', { name: START }).click();
-    await p.waitForTimeout(900);
+    await settle(p);
     const overflow = await cutWithNoRecourse(p);
     ok(
       `l'écran d'ouverture ne coupe rien sans recours (${what})`,
@@ -204,14 +212,14 @@ const cutWithNoRecourse = (p) =>
   await p.goto(`${BASE}/client/session/sess1`, {
     waitUntil: 'domcontentloaded',
   });
-  await p.waitForTimeout(1700);
+  await settle(p);
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   await p
     .getByRole('button', { name: /^(C'est parti|Reprendre)$/ })
     .first()
     .click();
-  await p.waitForTimeout(400);
+  await settle(p);
   await skipCountdown(p);
 
   // 2. Le repos déclenché par « Fait ».
@@ -220,14 +228,14 @@ const cutWithNoRecourse = (p) =>
     .first();
   if (await kg.count()) {
     await kg.fill('20');
-    await p.waitForTimeout(200);
+    await settle(p);
   }
   await p
     .getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     })
     .click();
-  await p.waitForTimeout(500);
+  await settle(p);
   const skip = await buttonBox(p, 'Passer le repos');
   if (skip) {
     ok(
@@ -236,7 +244,7 @@ const cutWithNoRecourse = (p) =>
       `${skip.h} px, bas à ${skip.bottom}`
     );
     await p.getByRole('button', { name: /^Passer le repos$/ }).click();
-    await p.waitForTimeout(300);
+    await settle(p);
   } else {
     ok(
       "le repos garde son bouton entier et dans l'écran",
@@ -249,7 +257,7 @@ const cutWithNoRecourse = (p) =>
   //    une feuille basse n'a que 390 px de haut pour ses cinq commandes : la
   //    dernière, « Terminer la séance maintenant », doit rester atteignable.
   await p.getByRole('button', { name: 'Mettre la séance en pause' }).click();
-  await p.waitForTimeout(600);
+  await settle(p);
   const leaving = await cutWithNoRecourse(p);
   ok(
     'la pause ne coupe rien sans recours',
@@ -267,11 +275,11 @@ const cutWithNoRecourse = (p) =>
   await p
     .getByRole('button', { name: 'Arrêter et reprendre plus tard' })
     .click();
-  await p.waitForTimeout(900);
+  await settle(p);
 
   // 4. L'écran de reprise.
   await p.getByRole('button', { name: START }).click();
-  await p.waitForTimeout(900);
+  await settle(p);
   const resume = await cutWithNoRecourse(p);
   ok(
     "l'écran de reprise ne coupe rien",
@@ -304,7 +312,7 @@ for (const [name, vp] of [
     });
     if (await btn.count()) {
       await btn.first().click();
-      await p.waitForTimeout(250);
+      await settle(p);
     }
     await skipRest(p);
   }
@@ -389,18 +397,18 @@ for (const [name, vp] of [
       .first();
     if (await kg.count()) {
       await kg.fill(String(10 + i));
-      await p.waitForTimeout(150);
+      await settle(p);
     }
     const done = p.getByRole('button', {
       name: /^(Fait|Série faite|Palier fait)$/,
     });
     if (!(await done.count())) break;
     await done.click();
-    await p.waitForTimeout(250);
+    await settle(p);
     await skipRest(p);
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
-  await p.waitForTimeout(1500);
+  await settle(p);
   const next = await buttonBox(p, '^Continuer$');
   ok(
     "l'écran de fin garde « Continuer » entier et dans l'écran",
@@ -408,7 +416,7 @@ for (const [name, vp] of [
     next ? `de ${next.top} à ${next.bottom} sur 390` : '(introuvable)'
   );
   await p.getByRole('button', { name: 'Continuer', exact: true }).click();
-  await p.waitForTimeout(800);
+  await settle(p);
   const submit = await buttonBox(p, '^Envoyer à Julie$');
   ok(
     "« Envoyer à Julie » reste entier et dans l'écran",
@@ -447,7 +455,7 @@ for (const [name, vp] of [
     });
     if (await btn.count()) {
       await btn.first().click();
-      await p.waitForTimeout(250);
+      await settle(p);
     }
     await skipRest(p);
   }
