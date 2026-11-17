@@ -235,6 +235,10 @@ const browser = await launch();
           lastCompletedAt: history[0]?.completedAt,
           lastEffort: 4,
           tagIds: [],
+          weekDone: 1,
+          weekTarget: 3,
+          sessionCount: 3,
+          recentEfforts: [3, 4],
         },
       ],
     })

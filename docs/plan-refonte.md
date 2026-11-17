@@ -99,7 +99,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Réponse du coach (réaction, texte, « lue par le client »)  | **fait** (`fa19c04`) |
 | Fil « À lire », et marquer lue une séance à la fois        | **fait** (`e15ef30`) |
 | Étiquettes de clients                                      | **fait** (`a69e976`) |
-| Régularité dans la liste des clients                       | à faire              |
+| Régularité dans la liste des clients                       | **fait** (`ee60e69`) |
 | Modèles : usage, duplication, « Enregistrer comme modèle » | à faire              |
 
 ## 3. Ce que le code doit ranger
@@ -302,8 +302,9 @@ banc actuel, inchangé, qui le prouve.
 - [x] **D4** Le prénom du coach dans le programme du client.
 - [x] **D5** Étiquettes de clients : créer, renommer, supprimer, rattacher
       (`a69e976`). Posées sur le lien coach–client : chacun les siennes.
-- [ ] **D6** Liste des clients : séances de la semaine et cinq derniers
-      ressentis par client.
+- [x] **D6** Liste des clients : séances de la semaine et cinq derniers
+      ressentis par client (`ee60e69`). La semaine commence au minuit du
+      coach : l'écran envoie `?weekStart=` avec son décalage.
 - [ ] **D7** Modèles : compteur d'imports, dupliquer, « Enregistrer comme
       modèle ».
 - [ ] **D8** Un bilan reçu deux fois ne compte qu'une : une clé d'envoi,
