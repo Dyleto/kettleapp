@@ -25,6 +25,7 @@ import { formatWeight, heaviest } from '@/domain/history/load';
 import { blockTitle } from '@/domain/session/measure';
 import { Countdown } from '@/features/client/guided/scene/Countdown';
 import { RestHero } from '@/features/client/guided/scene/RestHero';
+import { LimitChip } from '@/features/client/guided/scene/LimitChip';
 import { useCoachVoice } from '@/features/client/common/coach';
 import { buzz } from '@/shared/feedback/haptics';
 
@@ -62,7 +63,6 @@ interface LadderBlockProps {
 
 /** Corriger le temps au chrono se fait par quinze secondes. */
 const TIME_STEP = 15;
-const CORAL = 'session.work.fg';
 
 type Ending = { kind: 'timeUp' | 'stopped' | 'complete'; seconds: number };
 
@@ -187,26 +187,8 @@ export const LadderBlock = ({
     setEnding({ kind: 'stopped', seconds: elapsedSeconds() });
   };
 
-  const hot = running && reading.seconds <= 3;
   const chip = limit ? (
-    <Box
-      role="timer"
-      aria-label={`Temps restant — ${chipTime(reading.seconds)}`}
-      px="15px"
-      py="9px"
-      borderRadius="full"
-      bg={hot ? 'session.work/20' : 'app.primary.bg'}
-      color={hot ? CORAL : 'app.primary.fg'}
-      fontFamily="heading"
-      fontSize="20px"
-      fontWeight="800"
-      lineHeight="1"
-      fontVariantNumeric="tabular-nums"
-      opacity={running || ending ? 1 : 0.6}
-      flexShrink={0}
-    >
-      {chipTime(reading.seconds)}
-    </Box>
+    <LimitChip seconds={reading.seconds} live={running || !!ending} />
   ) : null;
 
   const shownRung = Math.min(state.current, state.count);
