@@ -137,8 +137,11 @@ export default {
           to: '      chipper: {},',
         },
       ],
+      // Chaque écriture repart de cette lecture. « Valider » écrit le
+      // résultat en dernier et rien ne réécrit derrière lui : il reste vert,
+      // l'assertion lisant le stockage brut. Au second bloc, la série cochée
+      // réécrit juste après le résultat, et l'efface.
       falls: [
-        '→ « Valider » retient deux mouvements faits et la limite',
         'le bilan envoie le résultat du chipper',
         'la dernière série arrête le chrono : quatre mouvements en 40 s',
       ],
