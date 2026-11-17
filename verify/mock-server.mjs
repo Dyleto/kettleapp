@@ -352,6 +352,8 @@ const templateRow = (template) => ({
   _id: template._id,
   name: template.name,
   sessionCount: template.sessions.length,
+  // Le banc n'importe aucun modèle chez un client : chez personne, donc.
+  usageCount: (template.importedFor ?? []).length,
   updatedAt: template.updatedAt,
 });
 

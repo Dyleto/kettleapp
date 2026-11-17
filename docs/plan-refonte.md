@@ -100,7 +100,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Fil « À lire », et marquer lue une séance à la fois        | **fait** (`e15ef30`) |
 | Étiquettes de clients                                      | **fait** (`a69e976`) |
 | Régularité dans la liste des clients                       | **fait** (`ee60e69`) |
-| Modèles : usage, duplication, « Enregistrer comme modèle » | à faire              |
+| Modèles : usage, duplication, « Enregistrer comme modèle » | **fait** (`620f552`) |
 
 ## 3. Ce que le code doit ranger
 
@@ -305,8 +305,8 @@ banc actuel, inchangé, qui le prouve.
 - [x] **D6** Liste des clients : séances de la semaine et cinq derniers
       ressentis par client (`ee60e69`). La semaine commence au minuit du
       coach : l'écran envoie `?weekStart=` avec son décalage.
-- [ ] **D7** Modèles : compteur d'imports, dupliquer, « Enregistrer comme
-      modèle ».
+- [x] **D7** Modèles : compteur d'imports, dupliquer, « Enregistrer comme
+      modèle » (`620f552`). Le compteur retient des clients, pas des imports.
 - [ ] **D8** Un bilan reçu deux fois ne compte qu'une : une clé d'envoi,
       posée par le front, reconnue par l'API. Depuis C5, un envoi dont la
       réponse s'est perdue en route est gardé puis renvoyé ; le front
