@@ -54,6 +54,14 @@ export default {
           from: '      onClick={onDone}',
           to: '      onClick={undefined}',
         },
+        // Le bouton du pied garde son geste : c'est le toucher n'importe où
+        // qui est visé, pas le chemin du clavier — sans lui, le banc ne
+        // franchirait plus aucun bloc et la suite planterait.
+        {
+          file: 'src/features/client/guided/scene/NextBlock.tsx',
+          from: '        aria-label={`Partir tout de suite',
+          to: '        onClick={onDone}\n        aria-label={`Partir tout de suite',
+        },
       ],
       falls: ['→ un toucher sur le nom du bloc suffit, sans attendre'],
     },

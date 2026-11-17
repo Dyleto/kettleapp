@@ -36,7 +36,11 @@ export default {
           to: "            display: 'flex',",
         },
       ],
-      falls: ["« Bloc suivant » tient dans l'écran, sans défiler"],
+      // Deux fois : l'iPhone à plat et le petit Android à plat.
+      falls: [
+        "« Bloc suivant » tient dans l'écran, sans défiler",
+        "« Bloc suivant » tient dans l'écran, sans défiler",
+      ],
     },
   ],
 };
