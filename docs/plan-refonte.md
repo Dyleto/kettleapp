@@ -97,7 +97,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Chrono et palier de l'échelle                              | **fait** (`cfee928`) |
 | Mouvements faits et temps du chipper borné                 | **fait** (`01b53b6`) |
 | Réponse du coach (réaction, texte, « lue par le client »)  | **fait** (`fa19c04`) |
-| Fil « À lire », et marquer lue une séance à la fois        | à faire              |
+| Fil « À lire », et marquer lue une séance à la fois        | **fait** (`e15ef30`) |
 | Étiquettes de clients                                      | à faire              |
 | Régularité dans la liste des clients                       | à faire              |
 | Modèles : usage, duplication, « Enregistrer comme modèle » | à faire              |
@@ -294,8 +294,11 @@ banc actuel, inchangé, qui le prouve.
 - [x] **D2** Réponse du coach : réaction, texte, date, « lue par le client ».
       Une route pour écrire, une pour marquer lue (`fa19c04`). Une liste de
       réponses : modifiable tant que non lue, puis une nouvelle.
-- [ ] **D3** Fil « À lire » : les séances non lues de tous les clients, avec
-      ce qui a été fait et le passage d'avant ; lue à l'unité.
+- [x] **D3** Fil « À lire » : les séances non lues de tous les clients, avec
+      ce qui a été fait et le passage d'avant ; lue à l'unité (`e15ef30`).
+      Lue ou non lue, une ou plusieurs à la fois : « Annuler » défait une
+      lecture envoyée. Quand E11 lira séance par séance, la route qui marque
+      tout l'historique d'un client pourra partir.
 - [x] **D4** Le prénom du coach dans le programme du client.
 - [ ] **D5** Étiquettes de clients : créer, renommer, supprimer, rattacher.
 - [ ] **D6** Liste des clients : séances de la semaine et cinq derniers
