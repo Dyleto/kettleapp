@@ -65,6 +65,7 @@ export const BetweenBlocks = ({
             + 15 s
           </ActionButton>
           <ActionButton
+            data-guided-primary
             tone="soft"
             size="xl"
             flex={1}

@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuChevronLeft, LuChevronRight, LuPlay } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
-import { ActionButton, Dots, LANDSCAPE, Ring } from '@/kit';
+import { ActionButton, Dots, LANDSCAPE, Ring, WIDE } from '@/kit';
 import { blockSupportsRepsOnly } from '@/domain/session/blocks';
 import type { GuidedStep } from '@/features/client/guided/steps';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { playCue } from '@/shared/feedback/sound';
 import { useSoundSetting } from '@/shared/feedback/settings';
-import { useScenePaused } from '@/features/client/guided/PauseContext';
 import { useBlockClock } from '@/features/client/guided/useBlockClock';
 import {
   clockFace,
@@ -97,7 +96,6 @@ export const TimedBlock = ({
   onOpenDetail,
 }: TimedBlockProps) => {
   const plan = planOf(step);
-  const paused = useScenePaused();
   const [sound] = useSoundSetting();
   const [launching, setLaunching] = useState(false);
   const [reading, setReading] = useState<ClockReading>(() =>
@@ -160,22 +158,9 @@ export const TimedBlock = ({
     setReading(fresh);
     onRound(target);
   };
-  const shiftRef = useRef(shift);
-  useEffect(() => {
-    shiftRef.current = shift;
-  });
-
-  // Les flèches du clavier : sur une tablette posée avec un clavier, ou pour
-  // qui ne balaie pas.
-  useEffect(() => {
-    if (paused || launching) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowRight') shiftRef.current(1);
-      if (event.key === 'ArrowLeft') shiftRef.current(-1);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [paused, launching]);
+  // Les flèches du clavier passent par les raccourcis de la séance, qui
+  // touchent « Tour précédent » et « Tour suivant » : ce bloc avait son
+  // propre écouteur, et → avançait de deux tours une fois l'autre arrivé.
 
   const touchRef = useRef<{ x: number; y: number } | null>(null);
   const onPointerUp = (event: React.PointerEvent) => {
@@ -364,6 +349,14 @@ export const TimedBlock = ({
               paddingTop: 0,
               paddingBottom: 0,
             },
+            // Sur grand écran, la même disposition qu'à plat, à l'échelle
+            // d'une pièce : le temps à gauche, ce qu'on fait à droite.
+            [WIDE]: {
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: '64px',
+              padding: '0 56px',
+            },
           }}
         >
           <Box
@@ -378,6 +371,7 @@ export const TimedBlock = ({
               part={shown.length > 0 ? shown.remaining / shown.length : 0}
               size={step.exercises.length > 4 ? 220 : 300}
               landscapeSize={230}
+              wideSize={460}
               color={hot ? CORAL : AMBER}
             >
               <Text
@@ -389,7 +383,10 @@ export const TimedBlock = ({
                 letterSpacing="-0.02em"
                 fontVariantNumeric="tabular-nums"
                 color={hot ? CORAL : 'fg'}
-                css={{ [LANDSCAPE]: { fontSize: '82px' } }}
+                css={{
+                  [LANDSCAPE]: { fontSize: '82px' },
+                  [WIDE]: { fontSize: '150px' },
+                }}
               >
                 {face}
               </Text>
@@ -402,6 +399,7 @@ export const TimedBlock = ({
             align="stretch"
             gap={4}
             minW={0}
+            flex={1}
             css={{ [LANDSCAPE]: { gap: '8px' } }}
           >
             {/* Le nom du bloc est dans le haut de la scène ; il ne se
@@ -448,6 +446,7 @@ export const TimedBlock = ({
             }}
           >
             <ActionButton
+              data-guided-primary
               size="xl"
               w="full"
               onClick={() => setLaunching(true)}
@@ -469,6 +468,7 @@ export const TimedBlock = ({
                 onClick={onPrevious}
                 flexShrink={0}
                 _hover={{ color: 'fg' }}
+                data-guided-previous
               >
                 Bloc précédent
               </Box>
@@ -532,6 +532,7 @@ const RoundTrack = ({
   >
     <TrackArrow
       label="Tour précédent"
+      shortcut="previous"
       hidden={round <= 1}
       onClick={() => onShift(-1)}
     >
@@ -567,6 +568,7 @@ const RoundTrack = ({
     )}
     <TrackArrow
       label="Tour suivant"
+      shortcut="next"
       hidden={rounds !== null && round >= rounds}
       onClick={() => onShift(1)}
     >
@@ -579,15 +581,19 @@ const TrackArrow = ({
   label,
   hidden,
   onClick,
+  shortcut,
   children,
 }: {
   label: string;
   hidden: boolean;
   onClick: () => void;
+  /** La flèche du clavier qui la touche, sur grand écran. */
+  shortcut: 'previous' | 'next';
   children: React.ReactNode;
 }) => (
   <Box
     as="button"
+    {...{ [`data-guided-${shortcut}`]: '' }}
     aria-label={label}
     aria-hidden={hidden || undefined}
     tabIndex={hidden ? -1 : undefined}

@@ -23,6 +23,7 @@ import {
   stepOf,
 } from './session';
 import { useGuidedSession } from './useGuidedSession';
+import { guidedKey } from './keys';
 import { useInertRoot, useSoundUnlock, useWakeLock } from './screen';
 import { PauseContext } from './PauseContext';
 import { SceneShell } from './SceneShell';
@@ -37,6 +38,7 @@ import { NextBlock } from './scene/NextBlock';
 import { NoSteps } from './scene/NoSteps';
 import { Opening } from './scene/Opening';
 import { PauseSheet } from './scene/PauseSheet';
+import { SessionOutline } from './scene/SessionOutline';
 import { TimedBlock } from './scene/TimedBlock';
 
 interface GuidedSessionProps {
@@ -142,7 +144,25 @@ export const GuidedSession = ({
   useEffect(() => {
     if (!sceneActive) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') act({ type: 'escape' });
+      if (event.key === 'Escape') {
+        act({ type: 'escape' });
+        return;
+      }
+      const intent = guidedKey(event, event.target as HTMLElement | null);
+      // Une feuille par-dessus — la pause, une consigne, une fin de bloc —
+      // et la scène dessous ne répond plus : Espace validait la série
+      // cachée derrière la pause.
+      if (!intent || overlayOpen()) return;
+      // Pendant un décompte, les flèches ne déplacent rien derrière lui :
+      // on ne change pas de tour pendant qu'on se met en place.
+      if (
+        (intent === 'previous' || intent === 'next') &&
+        document.querySelector('[data-guided-countdown]')
+      )
+        return;
+      event.preventDefault();
+      if (intent === 'pause') act({ type: 'pause' });
+      else pressMarked(intent);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -217,6 +237,7 @@ export const GuidedSession = ({
     ? session.blocks.find((block) => block.order === state.interlude?.fromBlock)
     : undefined;
   const rank = `Bloc ${segmentIndex + 1} sur ${segments.length}`;
+  const outline = <SessionOutline session={session} current={segmentIndex} />;
 
   return overlay(
     <PauseContext.Provider value={state.pause !== 'closed'}>
@@ -294,6 +315,7 @@ export const GuidedSession = ({
             performed={performed}
             onPerformedChange={onPerformedChange}
             nextBlock={blockAfter(session, step.block.order)}
+            outline={outline}
           />
         ) : step.type === 'block' && step.shape === 'list' ? (
           <ListScene
@@ -301,6 +323,7 @@ export const GuidedSession = ({
             state={state}
             act={act}
             nextBlock={blockAfter(session, step.block.order)}
+            outline={outline}
             lastPerformance={lastPerformance}
             performed={performed}
             onPerformedChange={onPerformedChange}
@@ -405,6 +428,37 @@ export const GuidedSession = ({
       )}
     </PauseContext.Provider>
   );
+};
+
+/** Une feuille est ouverte par-dessus la séance : la pause, une consigne,
+ * la fin d'un bloc. La séance elle-même est le seul autre dialogue. */
+const overlayOpen = (): boolean =>
+  document.querySelector(
+    '[role="dialog"][aria-modal="true"]:not([aria-label="Séance guidée"])'
+  ) !== null;
+
+/**
+ * Touche la commande que la scène a marquée pour ce raccourci.
+ *
+ * La dernière visible : un décompte qui se pose par-dessus la scène vient
+ * après elle dans la page, et c'est lui qu'Espace doit franchir. Une
+ * commande cachée ou désactivée ne compte pas — la flèche « Tour
+ * précédent » existe au premier tour, invisible.
+ */
+const pressMarked = (intent: 'primary' | 'previous' | 'next') => {
+  const marked = Array.from(
+    document.querySelectorAll<HTMLElement>(`[data-guided-${intent}]`)
+  ).filter(
+    (el) =>
+      // `getClientRects` et non `offsetParent`, qui vaut toujours `null`
+      // pour un élément fixe — le décompte l'est, et Espace retouchait
+      // « Lancer » derrière lui au lieu de le franchir.
+      el.getClientRects().length > 0 &&
+      getComputedStyle(el).visibility !== 'hidden' &&
+      !el.hasAttribute('disabled') &&
+      el.getAttribute('aria-disabled') !== 'true'
+  );
+  marked.at(-1)?.click();
 };
 
 /** Le nom du bloc qui suit celui-ci, ou `undefined` au dernier. */

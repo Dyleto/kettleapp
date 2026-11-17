@@ -23,7 +23,7 @@ export { hitArea, touchGap, touchHitArea, touchRow, TOUCH } from './hitArea';
 export { LinkButton } from './LinkButton';
 export { LoadFailure } from './LoadFailure';
 export { Mascot, type MascotMood } from './Mascot';
-export { LANDSCAPE } from './media';
+export { LANDSCAPE, WIDE } from './media';
 export { Ring } from './Ring';
 export { Segments } from './Segments';
 export { Sheet } from './Sheet';

@@ -378,6 +378,7 @@ export const LadderBlock = ({
           {waiting ? (
             <>
               <ActionButton
+                data-guided-primary
                 size="xl"
                 w="full"
                 onClick={() => setLaunching(true)}
@@ -386,7 +387,9 @@ export const LadderBlock = ({
                 Lancer
               </ActionButton>
               {onPrevious && (
-                <FooterLink onClick={onPrevious}>Bloc précédent</FooterLink>
+                <FooterLink shortcut="previous" onClick={onPrevious}>
+                  Bloc précédent
+                </FooterLink>
               )}
             </>
           ) : rest ? (
@@ -400,6 +403,7 @@ export const LadderBlock = ({
                 + 15 s
               </ActionButton>
               <ActionButton
+                data-guided-primary
                 tone="soft"
                 size="xl"
                 flex={1}
@@ -410,22 +414,37 @@ export const LadderBlock = ({
             </HStack>
           ) : allDone ? (
             // Sans limite, au dernier bloc : finir la séance reste un geste.
-            <ActionButton size="xl" w="full" onClick={onFinish}>
+            <ActionButton
+              data-guided-primary
+              size="xl"
+              w="full"
+              onClick={onFinish}
+            >
               Terminer
             </ActionButton>
           ) : (
             <>
-              <ActionButton size="xl" w="full" onClick={markRung}>
+              <ActionButton
+                data-guided-primary
+                size="xl"
+                w="full"
+                onClick={markRung}
+              >
                 <LuCheck size={22} />
                 Palier fait
               </ActionButton>
               <HStack justify="space-between" gap={4}>
                 {state.done > 0 ? (
-                  <FooterLink onClick={() => goToRung(state.current - 1)}>
+                  <FooterLink
+                    shortcut="previous"
+                    onClick={() => goToRung(state.current - 1)}
+                  >
                     Palier précédent
                   </FooterLink>
                 ) : onPrevious ? (
-                  <FooterLink onClick={onPrevious}>Bloc précédent</FooterLink>
+                  <FooterLink shortcut="previous" onClick={onPrevious}>
+                    Bloc précédent
+                  </FooterLink>
                 ) : (
                   <Box />
                 )}
@@ -468,12 +487,16 @@ export const LadderBlock = ({
 const FooterLink = ({
   children,
   onClick,
+  shortcut,
 }: {
   children: React.ReactNode;
   onClick: () => void;
+  /** La flèche du clavier qui le touche : ← pour reculer. */
+  shortcut?: 'previous' | 'next';
 }) => (
   <Box
     as="button"
+    {...(shortcut ? { [`data-guided-${shortcut}`]: '' } : {})}
     minH="44px"
     display="inline-flex"
     alignItems="center"

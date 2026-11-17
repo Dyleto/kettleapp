@@ -5,7 +5,7 @@ import type { PerformedSet, PerformedValues } from '@/shared/types';
 import type { GuidedSet } from '@/domain/session/sets';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { formatWeight, heaviest } from '@/domain/history/load';
-import { ActionButton, LANDSCAPE } from '@/kit';
+import { ActionButton, LANDSCAPE, WIDE } from '@/kit';
 import type { GuidedStep } from '@/features/client/guided/steps';
 import { rankLabel } from '@/features/client/guided/outline';
 import { loadLegend, proposedLoad } from '@/features/client/guided/load';
@@ -58,7 +58,43 @@ interface ListSceneProps {
   /** Le nom du bloc qui suit, `undefined` au dernier. */
   nextBlock?: string;
   capped?: CappedList;
+  /** Le plan de la séance, sur grand écran : à droite, sous le bloc. */
+  outline?: ReactNode;
 }
+
+/**
+ * Sur grand écran, deux colonnes : la série et son geste à gauche, le bloc
+ * entier et le plan de la séance à droite. Posé sur les morceaux existants
+ * plutôt qu'en les déplaçant : le défilement unique du téléphone s'efface
+ * (`display: contents`) et ses enfants deviennent les cases de la grille.
+ * Une seule scène, deux mises en page — une seconde scène aurait divergé à
+ * la première retouche.
+ */
+const WIDE_LAYOUT = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 0.8fr)',
+  gridTemplateRows: 'minmax(0, 1fr) auto auto',
+  columnGap: '56px',
+  padding: '16px 48px 24px',
+  '& > [data-list-scroll]': { display: 'contents' },
+  '& > [data-list-scroll] > *': { gridColumn: '1' },
+  '& [data-set-hero], & [data-rest]': {
+    gridRow: '1',
+    alignSelf: 'center',
+    minHeight: 0,
+    overflowY: 'auto',
+  },
+  '& [data-next-line]': { gridRow: '2' },
+  '& [data-list-side]': {
+    gridColumn: '2',
+    gridRow: '1 / 4',
+    alignSelf: 'center',
+    maxHeight: '100%',
+    overflowY: 'auto',
+    gap: '16px',
+  },
+  '& > [data-scene-footer]': { gridColumn: '1', gridRow: '3', padding: 0 },
+};
 
 /**
  * Un bloc qui se coche : la série en grand, et le bloc entier dessous.
@@ -80,6 +116,7 @@ export const ListScene = ({
   onPerformedChange,
   nextBlock,
   capped,
+  outline,
 }: ListSceneProps) => {
   const current = currentSet(state);
   const { rest } = state;
@@ -195,8 +232,15 @@ export const ListScene = ({
     ).length === 1;
 
   return (
-    <>
+    <Box
+      flex={1}
+      minH={0}
+      display="flex"
+      flexDirection="column"
+      css={{ [WIDE]: WIDE_LAYOUT }}
+    >
       <VStack
+        data-list-scroll
         flex={1}
         minH={0}
         overflowY="auto"
@@ -304,7 +348,7 @@ export const ListScene = ({
             </Text>
           </Text>
         )}
-        <VStack align="stretch" gap={1}>
+        <VStack align="stretch" gap={1} data-list-side>
           <Text fontSize="sm" color="fg.muted">
             {doneInBlock(state)} sur {step.sets.length} faits dans ce bloc
           </Text>
@@ -318,6 +362,7 @@ export const ListScene = ({
             onOpenDetail={(exercise) => act({ type: 'openDetail', exercise })}
             onUndo={(key) => act({ type: 'undo', key })}
           />
+          {outline}
         </VStack>
       </VStack>
 
@@ -337,6 +382,7 @@ export const ListScene = ({
               + 15 s
             </ActionButton>
             <ActionButton
+              data-guided-primary
               tone="soft"
               size="xl"
               flex={1}
@@ -352,6 +398,7 @@ export const ListScene = ({
         // dont l'horloge compte. Cocher avant ferait une série hors chrono.
         <Footer gap={1}>
           <ActionButton
+            data-guided-primary
             size="xl"
             w="full"
             onClick={capped.onLaunch}
@@ -362,7 +409,10 @@ export const ListScene = ({
           </ActionButton>
           {state.index > 0 && (
             <HStack>
-              <FooterLink onClick={() => act({ type: 'previous' })}>
+              <FooterLink
+                shortcut="previous"
+                onClick={() => act({ type: 'previous' })}
+              >
                 Bloc précédent
               </FooterLink>
             </HStack>
@@ -374,6 +424,7 @@ export const ListScene = ({
         // un geste rare, à côté du seul qu'on fait vingt fois par séance.
         <Footer gap={1}>
           <ActionButton
+            data-guided-primary
             size="xl"
             w="full"
             onClick={markDone}
@@ -387,17 +438,25 @@ export const ListScene = ({
           </ActionButton>
           <HStack justify="space-between" gap={4}>
             {lastDone ? (
-              <FooterLink onClick={() => act({ type: 'undo', key: lastDone })}>
+              <FooterLink
+                shortcut="previous"
+                onClick={() => act({ type: 'undo', key: lastDone })}
+              >
                 {current.total > 1 ? 'Série précédente' : 'Exercice précédent'}
               </FooterLink>
             ) : state.index > 0 ? (
-              <FooterLink onClick={() => act({ type: 'previous' })}>
+              <FooterLink
+                shortcut="previous"
+                onClick={() => act({ type: 'previous' })}
+              >
                 Bloc précédent
               </FooterLink>
             ) : (
               <Box />
             )}
-            <FooterLink onClick={skipExercise}>Passer cet exercice</FooterLink>
+            <FooterLink shortcut="next" onClick={skipExercise}>
+              Passer cet exercice
+            </FooterLink>
           </HStack>
         </Footer>
       ) : (
@@ -406,6 +465,7 @@ export const ListScene = ({
         <Footer>
           <HStack gap={3}>
             <ActionButton
+              data-guided-previous
               tone="ghost"
               size="lg"
               flexShrink={0}
@@ -415,6 +475,7 @@ export const ListScene = ({
               Précédent
             </ActionButton>
             <ActionButton
+              data-guided-primary
               size="lg"
               flex={1}
               onClick={() => act({ type: 'next' })}
@@ -428,7 +489,7 @@ export const ListScene = ({
           </HStack>
         </Footer>
       )}
-    </>
+    </Box>
   );
 };
 
@@ -449,6 +510,7 @@ export const Footer = ({
     pt={3}
     pb={3}
     css={{ [LANDSCAPE]: { padding: '6px 12px', gap: '0' } }}
+    data-scene-footer
   >
     {children}
   </VStack>
@@ -463,12 +525,16 @@ export const Footer = ({
 const FooterLink = ({
   children,
   onClick,
+  shortcut,
 }: {
   children: ReactNode;
   onClick: () => void;
+  /** La flèche du clavier qui le touche : ← pour reculer, → pour avancer. */
+  shortcut?: 'previous' | 'next';
 }) => (
   <Box
     as="button"
+    {...(shortcut ? { [`data-guided-${shortcut}`]: '' } : {})}
     minH="44px"
     display="inline-flex"
     alignItems="center"

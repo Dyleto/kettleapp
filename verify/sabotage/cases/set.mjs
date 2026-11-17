@@ -141,8 +141,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/scene/ListScene.tsx',
-          from: "              <FooterLink onClick={() => act({ type: 'undo', key: lastDone })}>",
-          to: '              <FooterLink onClick={() => {}}>',
+          from: "                onClick={() => act({ type: 'undo', key: lastDone })}",
+          to: '                onClick={() => {}}',
         },
       ],
       falls: ['« Série précédente » décoche la dernière série faite'],

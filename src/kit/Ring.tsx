@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box } from '@chakra-ui/react';
-import { LANDSCAPE } from './media';
+import { LANDSCAPE, WIDE } from './media';
 
 interface RingProps {
   /** Ce qui reste, entre 0 et 1. */
@@ -10,6 +10,8 @@ interface RingProps {
   color: string;
   /** La taille téléphone couché, où la hauteur manque. */
   landscapeSize?: number;
+  /** La taille sur grand écran, lu à trois mètres. */
+  wideSize?: number;
   children?: ReactNode;
 }
 
@@ -26,6 +28,7 @@ export const Ring = ({
   stroke = 7,
   color,
   landscapeSize,
+  wideSize,
   children,
 }: RingProps) => {
   const radius = 50 - stroke / 2 - 1;
@@ -37,16 +40,19 @@ export const Ring = ({
       w={`${size}px`}
       h={`${size}px`}
       flexShrink={0}
-      css={
-        landscapeSize
+      css={{
+        ...(landscapeSize
           ? {
               [LANDSCAPE]: {
                 width: `${landscapeSize}px`,
                 height: `${landscapeSize}px`,
               },
             }
-          : undefined
-      }
+          : {}),
+        ...(wideSize
+          ? { [WIDE]: { width: `${wideSize}px`, height: `${wideSize}px` } }
+          : {}),
+      }}
     >
       <svg
         viewBox="0 0 100 100"

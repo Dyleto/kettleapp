@@ -287,6 +287,9 @@ export const AmrapBlock = ({
 
           <Box
             as="button"
+            // Espace compte un tour : c'est le geste de l'AMRAP, celui qu'on
+            // répète du pied de la tablette posée au sol.
+            data-guided-primary
             aria-label={`Ajouter un tour — ${roundsLabel(rounds)}`}
             aria-disabled={!running || undefined}
             w="206px"
@@ -395,6 +398,7 @@ export const AmrapBlock = ({
             }}
           >
             <ActionButton
+              data-guided-primary
               size="xl"
               w="full"
               onClick={() => setLaunching(true)}
@@ -416,6 +420,7 @@ export const AmrapBlock = ({
                 flexShrink={0}
                 onClick={onPrevious}
                 _hover={{ color: 'fg' }}
+                data-guided-previous
               >
                 Bloc précédent
               </Box>

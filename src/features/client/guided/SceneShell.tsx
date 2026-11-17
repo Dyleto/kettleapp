@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuPause } from 'react-icons/lu';
-import { LANDSCAPE } from '@/kit';
+import { LANDSCAPE, WIDE } from '@/kit';
 import { SoundToggle } from '@/features/client/guided/SoundToggle';
 
 interface SceneShellProps {
@@ -98,6 +98,13 @@ export const SceneShell = ({
       // hauteur qui décide.
       css={{
         [LANDSCAPE]: { justifyContent: 'stretch', background: 'transparent' },
+        // Sur grand écran, plus de boîte au milieu d'un voile : la séance
+        // prend la pièce. Le fond est celui de la séance, d'un bord à
+        // l'autre.
+        [WIDE]: {
+          justifyContent: 'stretch',
+          background: 'var(--chakra-colors-bg-canvas)',
+        },
       }}
     >
       <Box
@@ -108,6 +115,15 @@ export const SceneShell = ({
         css={{
           [LANDSCAPE]: {
             maxWidth: '100%',
+            height: '100%',
+            maxHeight: '100%',
+            borderRadius: 0,
+            boxShadow: 'none',
+          },
+          // Au-delà de 1 280 px, les deux colonnes s'écarteraient au point
+          // qu'on ne lirait plus l'une en regardant l'autre.
+          [WIDE]: {
+            maxWidth: '1280px',
             height: '100%',
             maxHeight: '100%',
             borderRadius: 0,

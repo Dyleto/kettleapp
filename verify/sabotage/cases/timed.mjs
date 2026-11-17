@@ -160,8 +160,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/scene/TimedBlock.tsx',
-          from: "      if (event.key === 'ArrowRight') shiftRef.current(1);\n",
-          to: '',
+          from: '      label="Tour suivant"\n      shortcut="next"',
+          to: '      label="Tour suivant"\n      shortcut="previous"',
         },
       ],
       falls: ['→ et la flèche du clavier aussi'],

@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 637 tests unitaires, 33 suites de banc et 623
-assertions, 3 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 642 tests unitaires, 34 suites de banc et 637
+assertions, 3 min 16 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -51,13 +51,13 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Séance guidée
 
-| Écran                                    | État     | Ce qui manque                                                                                                                                                                              |
-| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                                                            |
-| Séries, repos, exercices à durée         | partiel  | Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. Le chipper borné a son chrono et sa feuille « Temps écoulé » (C3) ; les répétitions se notent (C4). |
-| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                           |
-| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                           |
-| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                         |
+| Écran                                    | État     | Ce qui manque                                                                                                                                          |
+| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                        |
+| Séries, repos, exercices à durée         | **fait** | Le chipper borné a son chrono et sa feuille « Temps écoulé » (C3) ; les répétitions se notent (C4) ; deux colonnes et le clavier sur grand écran (C6). |
+| Blocs chronométrés                       | **fait** | Grand écran compris (C6).                                                                                                                              |
+| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                       |
+| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                     |
 
 ### Client
 
@@ -277,8 +277,14 @@ banc actuel, inchangé, qui le prouve.
       daté, échappe à la péremption, et part seul au retour du réseau ou à
       l'ouverture, avec « Séance envoyée ». Un serveur qui répond 500 a
       répondu : l'écran le dit et l'on réessaie, comme avant.
-- [ ] **C6** Grand écran : deux colonnes, le plan de la séance, les
-      raccourcis clavier.
+- [x] **C6** Grand écran : deux colonnes, le plan de la séance, les
+      raccourcis clavier. Au-delà de 1 024 × 600, la séance quitte sa boîte
+      de 560 px pour toute la place : la série à gauche, le bloc et le plan
+      à droite ; l'anneau d'un EMOM à gauche, ses doses à droite ; « Bloc
+      suivant » sur deux colonnes. Espace valide, P met en pause, ← et →
+      reculent et avancent — en touchant la commande que la scène a
+      marquée, jamais en refaisant son geste. Le bloc chronométré perd son
+      propre écouteur de flèches, qui faisait avancer de deux tours.
 
 ### D. L'API du coach (avant le front qui s'en sert)
 

@@ -4,7 +4,7 @@ import { LuInfo, LuPencil, LuPlus } from 'react-icons/lu';
 import { SessionBlock } from '@/shared/types';
 import { type GuidedSet } from '@/domain/session/sets';
 import { rankLabel } from '@/features/client/guided/outline';
-import { Bubble, Dots } from '@/kit';
+import { Bubble, Dots, WIDE } from '@/kit';
 import { DurationRing } from '@/features/client/guided/scene/DurationRing';
 import { LoadStepper } from '@/features/client/guided/scene/LoadStepper';
 import { NumberStepper } from '@/features/client/guided/scene/NumberStepper';
@@ -175,6 +175,7 @@ export const SetHero = ({
           letterSpacing="-0.01em"
           flex={1}
           minW={0}
+          css={{ [WIDE]: { fontSize: '56px' } }}
         >
           {set.name}
         </Text>
@@ -241,6 +242,8 @@ export const SetHero = ({
             lineHeight="0.9"
             letterSpacing="-0.02em"
             fontVariantNumeric="tabular-nums"
+            // Lue à trois mètres, la dose est ce qu'on cherche des yeux.
+            css={{ [WIDE]: { fontSize: '150px' } }}
           >
             {amount}
           </Text>

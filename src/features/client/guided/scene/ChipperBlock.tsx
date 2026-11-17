@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuCheck } from 'react-icons/lu';
@@ -47,6 +47,7 @@ interface ChipperBlockProps {
   performed?: Record<string, PerformedValues>;
   onPerformedChange?: (key: string, next: PerformedValues) => void;
   nextBlock?: string;
+  outline?: ReactNode;
 }
 
 /**
@@ -77,6 +78,7 @@ export const ChipperBlock = ({
   performed,
   onPerformedChange,
   nextBlock,
+  outline,
 }: ChipperBlockProps) => {
   const limit = (step.block.durationMinutes ?? 0) * 60;
   const [launching, setLaunching] = useState(false);
@@ -151,6 +153,7 @@ export const ChipperBlock = ({
         performed={performed}
         onPerformedChange={onPerformedChange}
         nextBlock={nextBlock}
+        outline={outline}
         capped={{
           waiting: !clock.running && !ended && !timeUp,
           onLaunch: () => setLaunching(true),

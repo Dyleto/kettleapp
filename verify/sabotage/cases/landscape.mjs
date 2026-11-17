@@ -32,8 +32,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/guided/scene/NextBlock.tsx',
-          from: "            display: 'grid',",
-          to: "            display: 'flex',",
+          from: "          [LANDSCAPE]: {\n            display: 'grid',",
+          to: "          [LANDSCAPE]: {\n            display: 'flex',",
         },
       ],
       // Deux fois : l'iPhone à plat et le petit Android à plat.

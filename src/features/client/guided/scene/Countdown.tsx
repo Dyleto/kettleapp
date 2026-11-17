@@ -44,6 +44,8 @@ export const Countdown = ({ title, detail, onDone }: CountdownProps) => {
   return (
     <Box
       as="button"
+      data-guided-primary
+      data-guided-countdown
       aria-label={`Départ dans ${remaining} — toucher pour commencer tout de suite`}
       position="fixed"
       inset={0}

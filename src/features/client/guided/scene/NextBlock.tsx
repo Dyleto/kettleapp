@@ -1,7 +1,7 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuCheck } from 'react-icons/lu';
 import type { SessionBlock } from '@/shared/types';
-import { Chip, LANDSCAPE, Ring } from '@/kit';
+import { Chip, LANDSCAPE, Ring, WIDE } from '@/kit';
 import { blockMarker, blockTitle } from '@/domain/session/measure';
 import { exerciseDose } from '@/domain/session/dose';
 import { sortByOrder } from '@/domain/session/sets';
@@ -68,8 +68,8 @@ export const NextBlock = ({
       aria-label="Bloc suivant"
       data-next-block
     >
-      {/* Posé à plat, deux colonnes : le bloc à gauche, ses mouvements à
-          droite. En une seule, 367 px de contenu pour 284 px visibles — un
+      {/* Posé à plat, et sur grand écran, deux colonnes : le bloc à
+          gauche, ses mouvements à droite. En une seule, 367 px de contenu pour 284 px visibles — un
           écran de trois secondes qu'il aurait fallu faire défiler. */}
       <Box
         flex={1}
@@ -90,6 +90,14 @@ export const NextBlock = ({
             alignItems: 'center',
             columnGap: '24px',
             paddingTop: '8px',
+          },
+          [WIDE]: {
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.2fr',
+            alignContent: 'safe center',
+            alignItems: 'center',
+            columnGap: '64px',
+            padding: '0 56px',
           },
         }}
       >
@@ -143,6 +151,7 @@ export const NextBlock = ({
 
       <HStack
         as="button"
+        data-guided-primary
         justify="center"
         gap={3}
         px={4}
