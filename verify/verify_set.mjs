@@ -345,5 +345,71 @@ const browser = await launch();
   await ctx.close();
 }
 
+// ── Un autre nombre de répétitions que le prescrit ───────────────────────
+//
+// Retour du terrain : « j'en ai fait 8 au lieu de 10, je le mets où ? ».
+// Nulle part : la dose prescrite était la seule chose à l'écran.
+{
+  console.log('\n── noter un autre nombre de répétitions');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await reachRenfo(p);
+  const field = p.getByLabel(/^Répétitions faites — /);
+  const number = p.getByRole('button', {
+    name: /^Noter un autre nombre de répétitions/,
+  });
+  ok(
+    'le nombre prescrit se touche, et rien ne s’ouvre avant',
+    (await number.count()) === 1 && (await field.count()) === 0
+  );
+  await number.click({ timeout: 2000 }).catch(() => {});
+  await settle(p);
+  ok(
+    '  → il ouvre son sélecteur, au prescrit',
+    (await field.inputValue({ timeout: 1000 }).catch(() => null)) === '10' &&
+      /comme prescrit/.test(await hero(p)),
+    await hero(p)
+  );
+  await press(p, 'Une répétition de moins');
+  await press(p, 'Une répétition de moins');
+  const reps = await p.evaluate(
+    (k) =>
+      JSON.parse(localStorage.getItem('kettle-seance-sess2') || '{}')
+        .performed?.[k]?.sets?.[0]?.reps,
+    GOBLET
+  );
+  ok(
+    '  → deux de moins : 8, et l’écart se lit',
+    reps === 8 && /2 de moins que prescrit/.test(await hero(p)),
+    `${reps} · ${await hero(p)}`
+  );
+
+  await press(p, 'Série faite');
+  await p
+    .getByRole('button', { name: 'Passer', exact: true })
+    .click({ timeout: 1000 })
+    .catch(() => {});
+  await settle(p);
+  const row = clean(
+    await p
+      .getByRole('button', { name: /^Rouvrir Goblet Squat série 1/ })
+      .innerText({ timeout: 1000 })
+      .catch(() => '')
+  );
+  ok(
+    'la série faite dit ce qui a été fait : 8 reps',
+    /8 reps/.test(row),
+    row.replace(/\n+/g, ' | ')
+  );
+  ok(
+    '  → la série suivante repart du prescrit, sélecteur fermé',
+    (await number.count()) === 1 &&
+      (await field.count()) === 0 &&
+      /\| 10 \| reps/.test(await hero(p)),
+    await hero(p)
+  );
+  await ctx.close();
+}
+
 await browser.close();
 process.exit(failureCount() > 0 ? 1 : 0);

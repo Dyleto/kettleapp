@@ -102,7 +102,7 @@ export default {
       note: 'La première assertion lit aussi la légende : elle tombe avec.',
       edits: [
         {
-          file: 'src/features/client/guided/scene/LoadStepper.tsx',
+          file: 'src/features/client/guided/scene/NumberStepper.tsx',
           from: '    timer.current = setTimeout(repeat, HOLD_EVERY);',
           to: '',
         },
@@ -193,6 +193,62 @@ export default {
         },
       ],
       falls: ['aucun nom de mouvement n’est rogné dans la liste'],
+    },
+    {
+      name: 'le nombre de répétitions ne se touche plus',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/SetHero.tsx',
+          from: "    !!onRepsChange && prescribedReps !== undefined && unit === 'reps';",
+          to: '    false;',
+        },
+      ],
+      falls: [
+        'le nombre prescrit se touche, et rien ne s’ouvre avant',
+        '→ il ouvre son sélecteur, au prescrit',
+        '→ deux de moins : 8, et l’écart se lit',
+        'la série faite dit ce qui a été fait : 8 reps',
+        '→ la série suivante repart du prescrit, sélecteur fermé',
+      ],
+    },
+    {
+      name: 'le sélecteur des répétitions est ouvert d’emblée',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/SetHero.tsx',
+          from: '  const [editingReps, setEditingReps] = useState(reps !== undefined);',
+          to: '  const [editingReps, setEditingReps] = useState(true);',
+        },
+      ],
+      falls: [
+        'le nombre prescrit se touche, et rien ne s’ouvre avant',
+        '→ la série suivante repart du prescrit, sélecteur fermé',
+      ],
+    },
+    {
+      name: 'les répétitions notées ne s’écrivent nulle part',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/ListScene.tsx',
+          from: '                  ? (reps) => writeSet(current, { reps })',
+          to: '                  ? () => {}',
+        },
+      ],
+      falls: [
+        '→ deux de moins : 8, et l’écart se lit',
+        'la série faite dit ce qui a été fait : 8 reps',
+      ],
+    },
+    {
+      name: 'la série faite tait ses répétitions',
+      edits: [
+        {
+          file: 'src/features/client/guided/scene/BlockSets.tsx',
+          from: "    value?.reps != null ? `${value.reps} reps` : '',",
+          to: "    '',",
+        },
+      ],
+      falls: ['la série faite dit ce qui a été fait : 8 reps'],
     },
   ],
 };

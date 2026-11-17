@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuInfo, LuPlus } from 'react-icons/lu';
+import { LuInfo, LuPencil, LuPlus } from 'react-icons/lu';
 import { SessionBlock } from '@/shared/types';
 import { type GuidedSet } from '@/domain/session/sets';
 import { rankLabel } from '@/features/client/guided/outline';
 import { Bubble, Dots } from '@/kit';
 import { DurationRing } from '@/features/client/guided/scene/DurationRing';
 import { LoadStepper } from '@/features/client/guided/scene/LoadStepper';
+import { NumberStepper } from '@/features/client/guided/scene/NumberStepper';
+import { repsLegend, stepReps } from '@/features/client/guided/load';
 
 interface SetHeroProps {
   block: SessionBlock;
@@ -40,6 +42,15 @@ interface SetHeroProps {
    * ce que « Mouvement 2 sur 4 » vient de dire.
    */
   aside?: string;
+  /** Les répétitions notées pour cette série, quand elles l'ont été. */
+  reps?: number;
+  /**
+   * Noter un autre nombre de répétitions que le prescrit. Absent, le nombre
+   * n'est qu'affiché — un aperçu, un bloc où rien ne s'enregistre.
+   */
+  onRepsChange?: (next?: number) => void;
+  /** Le nom du champ des répétitions, comme celui de la charge. */
+  repsLabel?: string;
 }
 
 /** « 10 reps » en deux morceaux : le nombre, en très grand, et son unité. */
@@ -106,11 +117,23 @@ export const SetHero = ({
   onOpenDetail,
   onTimedDone,
   aside,
+  reps,
+  onRepsChange,
+  repsLabel = '',
 }: SetHeroProps) => {
   // « Remettre à 2 min » repart d'un anneau neuf : changer sa clé le
   // remonte, échéance comprise.
   const [lap, setLap] = useState(0);
   const { amount, unit } = splitDose(set.dose);
+  // Retour du terrain : « j'en ai fait 8 au lieu de 10, je le mets où ? ».
+  // Nulle part : la dose prescrite était la seule chose à l'écran, et le
+  // bilan ne demandait que des charges. Toucher le nombre ouvre son
+  // sélecteur ; il reste ouvert si un nombre a déjà été noté, pour qu'on
+  // voie qu'il diffère.
+  const prescribedReps = set.exercise.reps;
+  const repsEditable =
+    !!onRepsChange && prescribedReps !== undefined && unit === 'reps';
+  const [editingReps, setEditingReps] = useState(reps !== undefined);
   const note = set.exercise.note?.trim();
   const duration = set.exercise.duration;
   // Un nom long descend d'une taille plutôt que d'être coupé : « Soulevé de
@@ -185,8 +208,31 @@ export const SetHero = ({
           onDone={onTimedDone}
           onReset={() => setLap(lap + 1)}
         />
+      ) : repsEditable && editingReps && prescribedReps !== undefined ? (
+        <NumberStepper
+          value={reps ?? prescribedReps}
+          onChange={onRepsChange}
+          step={(value, delta) => stepReps(value, delta, prescribedReps)}
+          unit="reps"
+          decimals={false}
+          stepLabels={['Une répétition de moins', 'Une répétition de plus']}
+          legend={repsLegend(reps, prescribedReps)}
+          label={repsLabel}
+        />
       ) : amount ? (
-        <HStack align="baseline" gap={3}>
+        <HStack
+          align="baseline"
+          gap={3}
+          {...(repsEditable
+            ? {
+                as: 'button' as const,
+                alignSelf: 'flex-start',
+                textAlign: 'left' as const,
+                'aria-label': `Noter un autre nombre de répétitions — ${prescribedReps} prescrites`,
+                onClick: () => setEditingReps(true),
+              }
+            : {})}
+        >
           <Text
             fontFamily="heading"
             fontSize="96px"
@@ -202,6 +248,13 @@ export const SetHero = ({
             <Text fontSize="28px" fontWeight="bold" color="fg.muted">
               {unit}
             </Text>
+          )}
+          {/* Le crayon dit que le nombre se touche : sans lui, rien ne le
+              distinguait d'un titre. */}
+          {repsEditable && (
+            <Box color="fg.muted" alignSelf="center" aria-hidden>
+              <LuPencil size={18} />
+            </Box>
           )}
         </HStack>
       ) : null}

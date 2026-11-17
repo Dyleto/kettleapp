@@ -63,3 +63,35 @@ export const stepLoad = (
   const next = Math.round(((load ?? 0) + delta) * 2) / 2;
   return next > 0 ? next : undefined;
 };
+
+/**
+ * Les répétitions après une touche de − ou de +.
+ *
+ * Zéro est un nombre et non une absence, à l'inverse de la charge : une
+ * série tentée et manquée est une information pour le coach. Jamais en
+ * dessous, et l'on part du prescrit quand rien n'est noté — c'est lui que
+ * l'écran montrait.
+ */
+export const stepReps = (
+  reps: number | undefined,
+  delta: number,
+  prescribed: number
+): number => Math.max(0, (reps ?? prescribed) + delta);
+
+/**
+ * Ce que les répétitions notées sont par rapport au prescrit : « comme
+ * prescrit », « 2 de plus que prescrit », « 2 de moins que prescrit ».
+ *
+ * Le même mot que la légende de la charge, qui compare à la dernière fois :
+ * on lit l'écart, pas un second nombre à soustraire de tête.
+ */
+export const repsLegend = (
+  reps: number | undefined,
+  prescribed: number
+): string => {
+  const gap = (reps ?? prescribed) - prescribed;
+  if (gap === 0) return 'comme prescrit';
+  return gap > 0
+    ? `${gap} de plus que prescrit`
+    : `${-gap} de moins que prescrit`;
+};

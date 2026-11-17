@@ -68,6 +68,22 @@ const WeightField = ({
   );
 };
 
+/**
+ * Ce qu'une ligne faite dit à droite : ce qui a été noté — « 8 reps ·
+ * 26 kg » — sinon la dose. Les répétitions viennent d'abord, comme partout
+ * où l'on décrit une série : le travail, puis la charge.
+ */
+const doneLabel = (
+  value: { reps?: number; weight?: number } | undefined,
+  dose: string
+): string => {
+  const parts = [
+    value?.reps != null ? `${value.reps} reps` : '',
+    value?.weight != null ? `${value.weight} kg` : '',
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : dose;
+};
+
 export const BlockSets = ({
   block,
   sets,
@@ -353,7 +369,7 @@ export const BlockSets = ({
                   fontVariantNumeric="tabular-nums"
                   flexShrink={0}
                 >
-                  {value?.weight != null ? `${value.weight} kg` : e.dose}
+                  {doneLabel(value, e.dose)}
                 </Text>
               ) : (
                 <>

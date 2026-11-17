@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuCheck, LuPlay } from 'react-icons/lu';
-import type { PerformedValues } from '@/shared/types';
+import type { PerformedSet, PerformedValues } from '@/shared/types';
 import type { GuidedSet } from '@/domain/session/sets';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { formatWeight, heaviest } from '@/domain/history/load';
@@ -101,15 +101,18 @@ export const ListScene = ({
       : (ownNoted ??
         proposedLoad(notedOfCurrent, current.rank, lastTimeOfCurrent));
 
-  /** Écrit la charge d'une série dans ce qui a été noté. */
-  const writeLoad = (set: GuidedSet, weight: number | undefined) => {
+  /** Écrit une valeur d'une série — sa charge, ses répétitions — dans ce
+   * qui a été noté, sans toucher aux autres. */
+  const writeSet = (set: GuidedSet, patch: PerformedSet) => {
     if (!onPerformedChange) return;
     const key = exerciseKeyOf(set);
     const noted = [...(performed?.[key]?.sets ?? [])];
     while (noted.length < set.rank) noted.push({});
-    noted[set.rank - 1] = { ...noted[set.rank - 1], weight };
+    noted[set.rank - 1] = { ...noted[set.rank - 1], ...patch };
     onPerformedChange(key, { sets: noted });
   };
+  const writeLoad = (set: GuidedSet, weight: number | undefined) =>
+    writeSet(set, { weight });
 
   const changeLoad = (next: number | undefined) => {
     if (!current) return;
@@ -271,6 +274,17 @@ export const ListScene = ({
               loadLabel={loadLabel}
               onTimedDone={markDone}
               aside={capped?.limitLabel}
+              reps={notedOfCurrent?.[current.rank - 1]?.reps}
+              onRepsChange={
+                onPerformedChange
+                  ? (reps) => writeSet(current, { reps })
+                  : undefined
+              }
+              repsLabel={`Répétitions faites — ${current.name} ${
+                current.total > 1
+                  ? `série ${current.rank} / ${current.total}`
+                  : ''
+              }`}
               onOpenDetail={
                 current.exercise.note?.trim() ||
                 current.exercise.exercise.description?.trim() ||

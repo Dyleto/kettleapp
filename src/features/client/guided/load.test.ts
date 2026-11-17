@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { loadLegend, proposedLoad, stepLoad } from './load';
+import {
+  loadLegend,
+  proposedLoad,
+  repsLegend,
+  stepLoad,
+  stepReps,
+} from './load';
 import { formatWeight, heaviest } from '@/domain/history/load';
 
 const loads = (...weights: (number | undefined)[]) =>
@@ -90,5 +96,30 @@ describe('formatWeight', () => {
   it('écrit les décimales à la française', () => {
     expect(formatWeight(22.5)).toBe('22,5');
     expect(formatWeight(26)).toBe('26');
+  });
+});
+
+describe('stepReps', () => {
+  it('part du prescrit quand rien n’est noté', () => {
+    expect(stepReps(undefined, -1, 10)).toBe(9);
+    expect(stepReps(undefined, 1, 10)).toBe(11);
+  });
+
+  it('part de ce qui est noté sinon', () => {
+    expect(stepReps(7, -1, 10)).toBe(6);
+  });
+
+  it('zéro est un nombre, et l’on ne descend pas en dessous', () => {
+    expect(stepReps(1, -1, 10)).toBe(0);
+    expect(stepReps(0, -5, 10)).toBe(0);
+  });
+});
+
+describe('repsLegend', () => {
+  it('compare au prescrit', () => {
+    expect(repsLegend(undefined, 10)).toBe('comme prescrit');
+    expect(repsLegend(10, 10)).toBe('comme prescrit');
+    expect(repsLegend(12, 10)).toBe('2 de plus que prescrit');
+    expect(repsLegend(8, 10)).toBe('2 de moins que prescrit');
   });
 });

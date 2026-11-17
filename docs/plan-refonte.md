@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 610 tests unitaires, 32 suites de banc et 605
-assertions, 3 min 11 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 614 tests unitaires, 32 suites de banc et 610
+assertions, 3 min 10 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -51,13 +51,13 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Séance guidée
 
-| Écran                                    | État     | Ce qui manque                                                                                                                                                                                                                  |
-| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                                                                                                |
-| Séries, repos, exercices à durée         | partiel  | On ne peut pas noter un nombre de répétitions différent du prescrit. Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. Le chipper borné a son chrono et sa feuille « Temps écoulé » (C3). |
-| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                                                               |
-| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                                                               |
-| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                                                             |
+| Écran                                    | État     | Ce qui manque                                                                                                                                                                              |
+| ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ouverture, décompte, enchaînement, pause | **fait** | « Bloc suivant » trois secondes entre deux blocs (C2). La reprise se fait sans question, avec son bandeau (C1).                                                                            |
+| Séries, repos, exercices à durée         | partiel  | Grand écran : une boîte centrée, pas les deux colonnes avec le plan et les raccourcis. Le chipper borné a son chrono et sa feuille « Temps écoulé » (C3) ; les répétitions se notent (C4). |
+| Blocs chronométrés                       | **fait** | Sauf la disposition grand écran.                                                                                                                                                           |
+| Échelle                                  | **fait** | Y compris l'API.                                                                                                                                                                           |
+| Fin de séance                            | **fait** | Sauf « Dire comment c'était » sur l'accueil après un ressenti quitté sans envoyer.                                                                                                         |
 
 ### Client
 
@@ -263,7 +263,12 @@ banc actuel, inchangé, qui le prouve.
       dernière série. Mouvements faits et temps partent avec le bilan
       (`chipperDone`, API `01b53b6` — à déployer avant le front). Sans
       limite, rien ne change.
-- [ ] **C4** Noter des répétitions différentes du prescrit.
+- [x] **C4** Noter des répétitions différentes du prescrit. Le grand
+      nombre se touche (un crayon le dit) et ouvre le même sélecteur que la
+      charge, légendé contre le prescrit : « 2 de moins que prescrit ». Les
+      répétitions s'écrivent pour cette série seule, la ligne faite les dit
+      (« 8 reps · 26 kg »), et elles partent avec le bilan comme les
+      charges.
 - [ ] **C5** « Dire comment c'était » : un ressenti quitté sans envoyer se
       retrouve sur l'accueil, et part quand le réseau revient.
 - [ ] **C6** Grand écran : deux colonnes, le plan de la séance, les
