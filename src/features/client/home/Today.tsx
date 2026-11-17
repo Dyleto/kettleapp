@@ -10,7 +10,7 @@ import {
   VisuallyHidden,
   VStack,
 } from '@chakra-ui/react';
-import { LuFlame } from 'react-icons/lu';
+import { LuFlame, LuMessageCircle, LuSend } from 'react-icons/lu';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useAuth } from '@/shared/contexts/useAuth';
 import type { CompletedSession, Session } from '@/shared/types';
@@ -25,6 +25,7 @@ import { dayKey, WEEKDAY_FULL } from '@/domain/week/dates';
 import { doneInWeek, weekStreak, weekTarget } from '@/domain/week/ring';
 import { homeFocus, weekWords } from '@/features/client/home/focus';
 import {
+  finishedAgo,
   startedAgo,
   unfinishedSession,
 } from '@/features/client/home/unfinished';
@@ -82,14 +83,20 @@ const Today = () => {
   useDocumentTitle('Aujourd’hui');
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { sessions, nextSession, history, isLoading, coach } =
+  const { sessions, nextSession, history, isLoading, coach, sendPending } =
     useOutletContext<ClientSessionsData>();
   const [opened, setOpened] = useState<CompletedSession | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [confirmRestart, setConfirmRestart] = useState(false);
-  // L'enregistrement du téléphone, lu une fois par programme chargé : il ne
-  // change pas tant qu'on reste sur l'accueil.
-  const unfinished = useMemo(() => unfinishedSession(sessions), [sessions]);
+  // L'enregistrement du téléphone, relu quand le programme ou l'historique
+  // change : un ressenti parti en arrière-plan efface l'enregistrement, puis
+  // l'historique se recharge — c'est ce qui retire la carte « En attente de
+  // réseau ».
+  const unfinished = useMemo(
+    () => unfinishedSession(sessions),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- relu quand l'historique change
+    [sessions, history]
+  );
 
   const openCompleted = (completed: CompletedSession) => {
     setOpened(completed);
@@ -227,29 +234,67 @@ const Today = () => {
     />
   );
 
-  const resumeCard = unfinished && (
-    <FocusCard
-      eyebrow="En cours"
-      title={sessionName(unfinished.session)}
-      chips={unfinished.where}
-      aside={
-        unfinished.startedAt !== undefined
-          ? startedAgo(unfinished.startedAt, new Date().getTime())
-          : undefined
-      }
-      extra={<Segments parts={unfinished.blocks} />}
-      // Le coach a changé la séance depuis : la position enregistrée ne
-      // désigne plus rien de sûr. Il ne reste que recommencer.
-      cta={unfinished.changed ? 'Recommencer' : 'Reprendre'}
-      onCta={() =>
-        unfinished.changed
-          ? setConfirmRestart(true)
-          : startGuided(unfinished.session)
-      }
-      link={unfinished.changed ? undefined : 'Recommencer depuis le début'}
-      onLink={() => setConfirmRestart(true)}
-    />
-  );
+  // Finie, pas encore envoyée : le ressenti rouvre la fin de la séance, à
+  // l'écran du ressenti — la fête est passée, les charges sont notées.
+  const reviewFeeling = (session: Session) =>
+    navigate(CLIENT_ROUTES.sessionById(session._id), {
+      state: { end: 'review', from: 'today' },
+    });
+
+  const leftCard =
+    unfinished?.state === 'pending' ? (
+      <FocusCard
+        eyebrow="En attente de réseau"
+        title={sessionName(unfinished.session)}
+        chips={[]}
+        aside="ton ressenti partira seul"
+        cta="Envoyer maintenant"
+        icon={<LuSend size={18} aria-hidden />}
+        onCta={() => void sendPending()}
+      />
+    ) : unfinished?.state === 'finished' ? (
+      <FocusCard
+        eyebrow="À valider"
+        title={sessionName(unfinished.session)}
+        chips={[]}
+        aside={
+          unfinished.finishedAt !== undefined
+            ? finishedAgo(unfinished.finishedAt, new Date().getTime())
+            : undefined
+        }
+        cta="Dire comment c’était"
+        icon={<LuMessageCircle size={18} aria-hidden />}
+        onCta={() => reviewFeeling(unfinished.session)}
+        link="Voir la séance"
+        onLink={() => openSheet(unfinished.session)}
+      />
+    ) : undefined;
+
+  const resumeCard =
+    leftCard ??
+    (unfinished && (
+      <FocusCard
+        eyebrow="En cours"
+        title={sessionName(unfinished.session)}
+        chips={unfinished.where}
+        aside={
+          unfinished.startedAt !== undefined
+            ? startedAgo(unfinished.startedAt, new Date().getTime())
+            : undefined
+        }
+        extra={<Segments parts={unfinished.blocks} />}
+        // Le coach a changé la séance depuis : la position enregistrée ne
+        // désigne plus rien de sûr. Il ne reste que recommencer.
+        cta={unfinished.changed ? 'Recommencer' : 'Reprendre'}
+        onCta={() =>
+          unfinished.changed
+            ? setConfirmRestart(true)
+            : startGuided(unfinished.session)
+        }
+        link={unfinished.changed ? undefined : 'Recommencer depuis le début'}
+        onLink={() => setConfirmRestart(true)}
+      />
+    ));
 
   const main = resumeCard ? (
     resumeCard

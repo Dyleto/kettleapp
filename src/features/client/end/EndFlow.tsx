@@ -16,13 +16,7 @@ import { Loads } from './Loads';
 import { Week } from './Week';
 import type { EndFlowAction, EndFlowState } from './flow';
 import { buildRecap } from './recap';
-import {
-  toChipperDone,
-  toLadderDone,
-  toPerformedEntries,
-  toRoundsDone,
-  weekAfter,
-} from './sending';
+import { weekAfter } from './sending';
 
 interface EndFlowProps {
   flow: EndFlowState;
@@ -116,31 +110,26 @@ export const EndFlow = ({
         date={flow.declaredDate}
         isSending={isSubmitting}
         failed={flow.sendFailed}
+        queued={flow.queued}
         onClose={() => dispatch({ type: 'closeFeeling' })}
+        onLeave={() => {
+          dispatch({ type: 'closeFeeling' });
+          onLeave();
+        }}
         onSubmit={(feedback, notes, completedAt) => {
           dispatch({ type: 'sending' });
           // L'écran reste jusqu'à la réponse : réussi, la semaine qui
-          // avance ; manqué, il le dit et l'on réessaie d'une touche.
-          const saved = readProgress(session._id);
-          submit(
-            feedback,
-            notes,
-            completedAt,
-            {
-              performed: toPerformedEntries(performed),
-              roundsDone: toRoundsDone(saved?.rounds),
-              ladderDone: toLadderDone(saved?.ladder),
-              chipperDone: toChipperDone(saved?.chipper),
-            },
-            {
-              onError: () => dispatch({ type: 'sendFailed' }),
-              onSuccess: () =>
-                dispatch({
-                  type: 'sent',
-                  week: weekAfter(history, sessions, completedAt),
-                }),
-            }
-          );
+          // avance ; refusé, il le dit et l'on réessaie d'une touche ; sans
+          // réseau, il dit que le ressenti partira seul.
+          submit({ feedback, clientNotes: notes, completedAt }, performed, {
+            onError: () => dispatch({ type: 'sendFailed' }),
+            onQueued: () => dispatch({ type: 'queued' }),
+            onSuccess: () =>
+              dispatch({
+                type: 'sent',
+                week: weekAfter(history, sessions, completedAt),
+              }),
+          });
         }}
       />
     );

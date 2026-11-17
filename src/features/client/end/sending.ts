@@ -8,6 +8,8 @@ import type {
   Session,
 } from '@/shared/types';
 import { truncateAtFirstEmpty } from '@/domain/history/performedFormat';
+import type { CompleteSessionPayload } from '@/features/client/common/client.service';
+import type { SessionProgress } from '@/features/client/guided/sessionProgress';
 import {
   daysDone,
   doneInWeek,
@@ -78,6 +80,44 @@ export const toChipperDone = (
     blockOrder: Number(blockOrder),
     ...result,
   }));
+
+/**
+ * Tout ce qui part au serveur pour une séance : le ressenti, et ce que
+ * l'appareil a gardé d'elle.
+ *
+ * Écrit une fois pour deux chemins : l'envoi depuis l'écran du ressenti, et
+ * celui qui part seul au retour du réseau, quand l'écran n'existe plus. Deux
+ * constructions auraient divergé — un résultat ajouté à l'une, oublié dans
+ * l'autre, serait parti ou non selon qu'on avait du réseau.
+ *
+ * `performed` se passe à part : l'écran le tient en mémoire, et c'est lui
+ * qui fait foi quand le stockage est refusé (navigation privée).
+ */
+export const completionPayload = (
+  saved: Pick<SessionProgress, 'rounds' | 'ladder' | 'chipper'> | null,
+  feeling: {
+    feedback: CompleteSessionPayload['feedback'];
+    clientNotes: string;
+    completedAt?: string;
+  },
+  performed: Record<string, PerformedValues> = {}
+): CompleteSessionPayload => {
+  const entries = toPerformedEntries(performed);
+  const roundsDone = toRoundsDone(saved?.rounds);
+  const ladderDone = toLadderDone(saved?.ladder);
+  const chipperDone = toChipperDone(saved?.chipper);
+  return {
+    feedback: feeling.feedback,
+    clientNotes: feeling.clientNotes,
+    ...(feeling.completedAt ? { completedAt: feeling.completedAt } : {}),
+    // Ce qui est vide ne part pas : ne rien avoir à dire n'est pas une
+    // valeur, et le serveur distingue l'absence de la liste vide.
+    ...(entries.length > 0 ? { performed: entries } : {}),
+    ...(roundsDone.length > 0 ? { roundsDone } : {}),
+    ...(ladderDone.length > 0 ? { ladderDone } : {}),
+    ...(chipperDone.length > 0 ? { chipperDone } : {}),
+  };
+};
 
 /** La semaine que montre le dernier écran de la fin. */
 export interface WeekSummary {

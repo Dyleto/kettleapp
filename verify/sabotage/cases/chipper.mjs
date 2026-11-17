@@ -121,9 +121,9 @@ export default {
       name: "le bilan n'envoie pas le chipper",
       edits: [
         {
-          file: 'src/features/client/end/EndFlow.tsx',
-          from: '              chipperDone: toChipperDone(saved?.chipper),',
-          to: '              chipperDone: [],',
+          file: 'src/features/client/end/sending.ts',
+          from: '  const chipperDone = toChipperDone(saved?.chipper);',
+          to: '  const chipperDone: ChipperDoneEntry[] = [];',
         },
       ],
       falls: ['le bilan envoie le résultat du chipper'],

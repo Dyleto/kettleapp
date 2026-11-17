@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  completionPayload,
   toChipperDone,
   toLadderDone,
   toPerformedEntries,
@@ -62,6 +63,36 @@ describe('les tours et les échelles', () => {
     expect(toLadderDone({ '1': { rungs: 5, seconds: 582 } })).toEqual([
       { blockOrder: 1, rungs: 5, seconds: 582 },
     ]);
+  });
+});
+
+describe('ce qui part au serveur', () => {
+  const feeling = { feedback: { effort: 4 }, clientNotes: 'Bien' };
+
+  it('le ressenti, et rien de vide', () => {
+    expect(completionPayload(null, feeling)).toEqual(feeling);
+  });
+
+  it('ce que l’appareil a gardé, chacun sous son nom', () => {
+    const payload = completionPayload(
+      {
+        rounds: { '2': 5 },
+        ladder: { '3': { rungs: 4, seconds: 720 } },
+        chipper: { '4': { movements: 2, seconds: 1200 } },
+      },
+      { ...feeling, completedAt: '2026-11-17T09:00:00.000Z' },
+      { '1:1': { sets: [{ weight: 20, reps: 8 }] } }
+    );
+    expect(payload).toEqual({
+      ...feeling,
+      completedAt: '2026-11-17T09:00:00.000Z',
+      performed: [
+        { blockOrder: 1, exerciseOrder: 1, sets: [{ weight: 20, reps: 8 }] },
+      ],
+      roundsDone: [{ blockOrder: 2, rounds: 5 }],
+      ladderDone: [{ blockOrder: 3, rungs: 4, seconds: 720 }],
+      chipperDone: [{ blockOrder: 4, movements: 2, seconds: 1200 }],
+    });
   });
 });
 

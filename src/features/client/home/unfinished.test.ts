@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { startedAgo, unfinishedSession } from './unfinished';
+import { finishedAgo, startedAgo, unfinishedSession } from './unfinished';
 import { buildGuidedSteps } from '@/features/client/guided/steps';
 import { setsOfBlock } from '@/domain/session/sets';
 import type { readProgress } from '@/features/client/guided/sessionProgress';
@@ -124,6 +124,45 @@ describe('unfinishedSession', () => {
     expect(
       unfinishedSession([edited], reader({ s: saved({ step: 1 }) }))?.changed
     ).toBe(true);
+  });
+});
+
+describe('ce qui reste à faire d’une séance laissée', () => {
+  const read = (patch: Partial<Saved>) => () => saved(patch);
+
+  it('en cours tant qu’elle n’est pas finie', () => {
+    expect(unfinishedSession([SESSION], read({ step: stepOf(2) }))?.state).toBe(
+      'running'
+    );
+  });
+
+  it('finie sans ressenti : « à valider », même sans étape franchie', () => {
+    const left = unfinishedSession([SESSION], read({ finishedAt: STARTED }));
+    expect(left).toMatchObject({ state: 'finished', finishedAt: STARTED });
+  });
+
+  it('un ressenti en attente l’emporte, même sans séance guidée', () => {
+    const left = unfinishedSession(
+      [SESSION],
+      // « Je l'ai déjà faite » : ni étape, ni série cochée, ni fin guidée.
+      read({
+        startedAt: undefined,
+        pending: {
+          feedback: { effort: 3 },
+          clientNotes: '',
+          completedAt: '2026-09-01T09:40:00.000Z',
+        },
+      })
+    );
+    expect(left?.state).toBe('pending');
+  });
+});
+
+describe('finishedAgo', () => {
+  it('dit depuis quand la séance est finie', () => {
+    expect(finishedAgo(STARTED, STARTED + 20 * 60000)).toBe(
+      'terminée il y a 20 min'
+    );
   });
 });
 

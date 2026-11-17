@@ -1,4 +1,4 @@
-import { PerformedValues } from '@/shared/types';
+import type { PerformedValues, SessionFeedback } from '@/shared/types';
 
 /**
  * Ce qu'une séance en cours garde d'elle-même entre deux ouvertures.
@@ -76,9 +76,41 @@ export interface SessionProgress {
    * dernier retour dans l'application.
    */
   startedAt?: number;
+  /**
+   * Quand la séance guidée a rendu la main, en millisecondes.
+   *
+   * Une séance finie et pas encore envoyée gardait son enregistrement — c'est
+   * voulu, rien ne s'efface avant le serveur — et l'accueil la prenait pour
+   * une séance en cours : « Reprendre » rouvrait le dernier écran d'une
+   * séance déjà faite. Finie, elle est « à valider », et l'accueil propose
+   * « Dire comment c'était ».
+   */
+  finishedAt?: number;
+  /**
+   * Le ressenti envoyé qui n'a pas pu partir — pas de réseau, ou un serveur
+   * qui n'a pas répondu. Il part seul au retour du réseau.
+   *
+   * Il échappe à la péremption : c'est une réponse que le client a donnée,
+   * pas une position dans une séance, et la perdre parce que le réseau a
+   * manqué toute une nuit serait le défaut même que cet enregistrement
+   * répare.
+   */
+  pending?: PendingFeeling;
   /** Quand, en millisecondes. Sert à savoir si cela concerne encore
    * aujourd'hui. */
   updatedAt: number;
+}
+
+/** Le ressenti tel qu'il partira, une fois le réseau revenu. */
+export interface PendingFeeling {
+  feedback: SessionFeedback;
+  clientNotes: string;
+  /**
+   * Le jour de la séance, figé quand l'envoi a échoué. Laissé vide, le
+   * serveur daterait la séance du jour où le réseau revient — le lendemain,
+   * parfois.
+   */
+  completedAt: string;
 }
 
 const key = (sessionId: string) => `kettle-seance-${sessionId}`;
@@ -153,6 +185,28 @@ const readChipper = (raw: unknown): SessionProgress['chipper'] => {
   return kept;
 };
 
+/**
+ * Un ressenti en attente lisible, sinon rien : un effort entier et une date.
+ * Une entrée abîmée partirait, serait refusée, et reviendrait à chaque
+ * retour du réseau.
+ */
+const readPending = (raw: unknown): PendingFeeling | undefined => {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const { feedback, clientNotes, completedAt } = raw as Record<string, unknown>;
+  const effort = (feedback as { effort?: unknown } | null)?.effort;
+  if (
+    !Number.isInteger(effort) ||
+    typeof completedAt !== 'string' ||
+    Number.isNaN(Date.parse(completedAt))
+  )
+    return undefined;
+  return {
+    feedback: feedback as SessionFeedback,
+    clientNotes: typeof clientNotes === 'string' ? clientNotes : '',
+    completedAt,
+  };
+};
+
 /** Les résultats d'échelle lisibles, et eux seuls. */
 const readLadder = (raw: unknown): SessionProgress['ladder'] => {
   if (!raw || typeof raw !== 'object') return {};
@@ -191,7 +245,7 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
           : 0;
     if (stored.version !== 1 && stored.version !== 2) return null;
 
-    if (Date.now() - updatedAt > LIFETIME) {
+    if (Date.now() - updatedAt > LIFETIME && !readPending(stored.pending)) {
       forgetProgress(sessionId);
       return null;
     }
@@ -213,6 +267,9 @@ export const readProgress = (sessionId: string): SessionProgress | null => {
       ladder: readLadder(stored.ladder),
       chipper: readChipper(stored.chipper),
       startedAt: typeof startedAt === 'number' ? startedAt : undefined,
+      finishedAt:
+        typeof stored.finishedAt === 'number' ? stored.finishedAt : undefined,
+      pending: readPending(stored.pending),
       updatedAt,
     };
   } catch {
@@ -276,6 +333,8 @@ export const restartProgress = (sessionId: string) =>
     ladder: {},
     chipper: {},
     startedAt: undefined,
+    finishedAt: undefined,
+    pending: undefined,
   });
 
 /** Combien d'exercices portent au moins une valeur notée. */

@@ -12,6 +12,8 @@ interface FocusCardProps {
   note?: string;
   cta: string;
   onCta: () => void;
+  /** Ce que le bouton porte devant son mot : la lecture, par défaut. */
+  icon?: ReactNode;
   link?: string;
   onLink?: () => void;
   /** Une dernière pastille, discrète : « commencée il y a 20 min ». */
@@ -39,6 +41,7 @@ export const FocusCard = ({
   note,
   cta,
   onCta,
+  icon = <LuPlay size={18} fill="currentColor" aria-hidden />,
   link,
   onLink,
   aside,
@@ -73,7 +76,7 @@ export const FocusCard = ({
       </CoachBubble>
     )}
     <ActionButton size="lg" w="full" onClick={onCta}>
-      <LuPlay size={18} fill="currentColor" aria-hidden />
+      {icon}
       {cta}
     </ActionButton>
     {link && onLink && <LinkButton onClick={onLink}>{link}</LinkButton>}

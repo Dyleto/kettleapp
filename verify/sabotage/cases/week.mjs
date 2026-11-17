@@ -8,8 +8,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/end/EndFlow.tsx',
-          from: "              onSuccess: () =>\n                dispatch({\n                  type: 'sent',\n                  week: weekAfter(history, sessions, completedAt),\n                }),",
-          to: '              onSuccess: () => onLeave(),',
+          from: "            onSuccess: () =>\n              dispatch({\n                type: 'sent',\n                week: weekAfter(history, sessions, completedAt),\n              }),",
+          to: '            onSuccess: () => onLeave(),',
         },
       ],
       falls: [

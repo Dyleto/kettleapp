@@ -20,8 +20,12 @@ interface FeelingProps {
   isSending: boolean;
   /** Le dernier envoi n'est pas parti. */
   failed: boolean;
+  /** Pas de réseau : le ressenti est gardé, il partira seul. */
+  queued: boolean;
   /** Quitter sans envoyer : la séance reste « à valider ». */
   onClose: () => void;
+  /** Revenir à l'accueil, le ressenti gardé pour plus tard. */
+  onLeave: () => void;
   /**
    * La date déjà choisie dans « Je l'ai déjà faite », en `YYYY-MM-DD`. Un
    * autre jour qu'aujourd'hui ouvre la ligne de date sur lui : on ne le
@@ -55,7 +59,9 @@ export const Feeling = ({
   onSubmit,
   isSending,
   failed,
+  queued,
   onClose,
+  onLeave,
   date,
 }: FeelingProps) => {
   const coach = useCoachVoice();
@@ -225,17 +231,31 @@ export const Feeling = ({
             n’est perdu.
           </Text>
         )}
+        {/* Sans réseau, réessayer d'une touche ne servirait à rien : le
+            ressenti est gardé, il partira seul, et l'écran rend la main. */}
+        {queued && !isSending && (
+          <Text role="status" textAlign="center" fontSize="sm" color="fg.muted">
+            Pas de réseau pour l’instant. Ton ressenti est gardé sur ce
+            téléphone : il partira seul dès que le réseau revient.
+          </Text>
+        )}
         {/* Le seul champ requis, et il l'est réellement : présélectionner
             un visage enregistrerait une valeur que personne n'a choisie. */}
-        <ActionButton
-          size="xl"
-          w="full"
-          onClick={submit}
-          disabled={effort === undefined}
-          loading={isSending}
-        >
-          {failed ? 'Réessayer' : `Envoyer à ${coach.inline}`}
-        </ActionButton>
+        {queued && !isSending ? (
+          <ActionButton size="xl" w="full" onClick={onLeave}>
+            Revenir à l’accueil
+          </ActionButton>
+        ) : (
+          <ActionButton
+            size="xl"
+            w="full"
+            onClick={submit}
+            disabled={effort === undefined}
+            loading={isSending}
+          >
+            {failed ? 'Réessayer' : `Envoyer à ${coach.inline}`}
+          </ActionButton>
+        )}
       </VStack>
     </Box>,
     document.body

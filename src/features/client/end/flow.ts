@@ -14,7 +14,7 @@ import type { WeekSummary } from './sending';
  *   celebrate — « Séance terminée », après une séance guidée ;
  *   loads     — compléter ses charges depuis la fête, qui y revient ;
  *   record    — noter ses charges d'une séance déclarée faite ;
- *   review    — le ressenti, qui part au serveur ;
+ *   review    — le ressenti, qui part au serveur — ou attend le réseau ;
  *   week      — la semaine qui avance, une fois l'envoi parti.
  */
 export type EndStage =
@@ -26,6 +26,11 @@ export interface EndFlowState {
   declaredDate?: string;
   /** Le dernier envoi du ressenti n'est pas parti. */
   sendFailed: boolean;
+  /**
+   * Le ressenti n'a pas pu partir faute de réseau : il est gardé sur
+   * l'appareil et partira seul. L'écran le dit, et rend la main.
+   */
+  queued: boolean;
   /** La semaine telle que l'envoi l'a laissée. */
   week: WeekSummary | null;
 }
@@ -41,6 +46,10 @@ export type EndFlowAction =
   | { type: 'loadsBack' }
   | { type: 'sending' }
   | { type: 'sendFailed' }
+  /** Pas de réseau : le ressenti est gardé pour plus tard. */
+  | { type: 'queued' }
+  /** « Dire comment c'était » : une séance finie, pas encore envoyée. */
+  | { type: 'resumeFeeling' }
   | { type: 'sent'; week: WeekSummary }
   | { type: 'closeFeeling' }
   | { type: 'reset' };
@@ -48,6 +57,7 @@ export type EndFlowAction =
 export const initialEndFlow: EndFlowState = {
   stage: 'idle',
   sendFailed: false,
+  queued: false,
   week: null,
 };
 
@@ -101,18 +111,38 @@ export const endFlowReducer = (
       return state;
 
     case 'sending':
-      return { ...state, sendFailed: false };
+      return { ...state, sendFailed: false, queued: false };
 
     case 'sendFailed':
       // L'écran du ressenti reste : c'est lui qui dit que l'envoi n'est pas
       // parti, et qui le refait d'une touche.
       return { ...state, sendFailed: true };
 
+    case 'queued':
+      return { ...state, sendFailed: false, queued: true };
+
+    case 'resumeFeeling':
+      // On arrive de l'accueil, la séance faite : ni fête, ni charges à
+      // compléter — elles l'ont été, ou ne le seront pas. Le ressenti seul.
+      return {
+        ...state,
+        declaredDate: undefined,
+        sendFailed: false,
+        queued: false,
+        stage: 'review',
+      };
+
     case 'sent':
-      return { ...state, sendFailed: false, week: action.week, stage: 'week' };
+      return {
+        ...state,
+        sendFailed: false,
+        queued: false,
+        week: action.week,
+        stage: 'week',
+      };
 
     case 'closeFeeling':
-      return { ...state, sendFailed: false, stage: 'idle' };
+      return { ...state, sendFailed: false, queued: false, stage: 'idle' };
 
     case 'reset':
       // Une autre séance ouverte depuis le programme : rien de la fin de la

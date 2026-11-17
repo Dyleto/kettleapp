@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router';
 import { Container, Skeleton, VStack } from '@chakra-ui/react';
 import type { PerformedValues } from '@/shared/types';
@@ -33,6 +33,7 @@ const SessionScreen = () => {
     sessions,
     activeSession,
     handleSubmitLog,
+    sendPending,
     isLoading,
     isSubmitting,
     lastPerformance,
@@ -51,7 +52,8 @@ const SessionScreen = () => {
   // la fiche par « Précédent », ou la recharger, ne doit pas relancer la
   // séance.
   useEffect(() => {
-    if ((location.state as { guided?: string } | null)?.guided)
+    const asked = location.state as { guided?: string; end?: string } | null;
+    if (asked?.guided || asked?.end)
       navigate(location.pathname, { replace: true, state: null });
   }, [location.state, location.pathname, navigate]);
   useDocumentTitle(activeSession ? `Séance ${activeSession.order}` : undefined);
@@ -63,6 +65,18 @@ const SessionScreen = () => {
   );
 
   const [flow, dispatch] = useReducer(endFlowReducer, initialEndFlow);
+
+  // « Dire comment c'était » sur l'accueil arrive ici avec `end: 'review'` :
+  // le ressenti s'ouvre d'emblée, une fois. Après la remise à zéro qui suit
+  // l'arrivée de la séance, d'où l'effet plutôt que l'état initial.
+  const reviewAsked = useRef(
+    (location.state as { end?: string } | null)?.end === 'review'
+  );
+  useEffect(() => {
+    if (!reviewAsked.current || !activeSession) return;
+    reviewAsked.current = false;
+    dispatch({ type: 'resumeFeeling' });
+  }, [activeSession]);
 
   // Ce qui a été noté ne vit plus dans la seule mémoire.
   //
@@ -154,6 +168,17 @@ const SessionScreen = () => {
   // l'accueil, qui le demande d'abord.
   const saved = readProgress(activeSession._id);
   const started = !!saved && (saved.step > 0 || saved.done.length > 0);
+  // Finie et pas encore envoyée, la fiche ne propose plus de la reprendre :
+  // elle propose ce qui reste à faire — dire comment c'était, ou laisser
+  // partir le ressenti gardé.
+  const ending = saved?.pending
+    ? { label: 'Envoyer maintenant', onClick: () => void sendPending() }
+    : saved?.finishedAt !== undefined
+      ? {
+          label: 'Dire comment c’était',
+          onClick: () => dispatch({ type: 'resumeFeeling' }),
+        }
+      : undefined;
 
   return (
     <>
@@ -168,6 +193,7 @@ const SessionScreen = () => {
         lastPerformance={lastPerformance}
         history={history}
         started={started}
+        ending={ending}
         onStart={() => setIsGuidedOpen(true)}
         onDeclared={(date) => dispatch({ type: 'declared', date })}
       />
@@ -178,9 +204,13 @@ const SessionScreen = () => {
           onExit={() => setIsGuidedOpen(false)}
           onFinish={() => {
             setIsGuidedOpen(false);
+            const hasProgress = !!readProgress(activeSession._id);
+            // Finie, la séance est « à valider » tant que le ressenti n'est
+            // pas parti : l'accueil ne la propose plus de reprendre.
+            writeProgress(activeSession._id, { finishedAt: Date.now() });
             dispatch({
               type: 'guidedFinished',
-              hasProgress: !!readProgress(activeSession._id),
+              hasProgress,
               recordedCount: countRecorded(performed),
             });
           }}

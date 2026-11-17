@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 614 tests unitaires, 32 suites de banc et 610
-assertions, 3 min 10 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 637 tests unitaires, 33 suites de banc et 623
+assertions, 3 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -84,11 +84,11 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Commun
 
-| Écran                   | État    | Ce qui manque                                                                                                                                                                                                                   |
-| ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Connexion et invitation | partiel | Les trois volets et le tutoiement sont là. Manquent le grand écran en deux volets, « Rejoindre Julie avec ce compte ? » et « Tu es déjà avec Julie ».                                                                           |
-| États du système        | partiel | Panne, page introuvable, erreur, mise à jour : faits. Manquent le bandeau hors connexion, le bilan qui part au retour du réseau, « C'est plus long que d'habitude », la règle d'un seul message à la fois (29 appels à relire). |
-| Administration          | à faire | Inchangé dans son contenu : seulement à remettre aux composants du kit.                                                                                                                                                         |
+| Écran                   | État    | Ce qui manque                                                                                                                                                                                                                    |
+| ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Connexion et invitation | partiel | Les trois volets et le tutoiement sont là. Manquent le grand écran en deux volets, « Rejoindre Julie avec ce compte ? » et « Tu es déjà avec Julie ».                                                                            |
+| États du système        | partiel | Panne, page introuvable, erreur, mise à jour : faits. Le bilan part au retour du réseau (C5). Manquent le bandeau hors connexion, « C'est plus long que d'habitude », la règle d'un seul message à la fois (29 appels à relire). |
+| Administration          | à faire | Inchangé dans son contenu : seulement à remettre aux composants du kit.                                                                                                                                                          |
 
 ### API
 
@@ -269,8 +269,14 @@ banc actuel, inchangé, qui le prouve.
       répétitions s'écrivent pour cette série seule, la ligne faite les dit
       (« 8 reps · 26 kg »), et elles partent avec le bilan comme les
       charges.
-- [ ] **C5** « Dire comment c'était » : un ressenti quitté sans envoyer se
-      retrouve sur l'accueil, et part quand le réseau revient.
+- [x] **C5** « Dire comment c'était » : un ressenti quitté sans envoyer se
+      retrouve sur l'accueil, et part quand le réseau revient. Finie, la
+      séance est « à valider » — l'accueil et la fiche disaient « Reprendre »
+      — et « Dire comment c'était » rouvre le ressenti seul. Sans réseau,
+      l'envoi ne se met plus en pause en mémoire : le ressenti est gardé,
+      daté, échappe à la péremption, et part seul au retour du réseau ou à
+      l'ouverture, avec « Séance envoyée ». Un serveur qui répond 500 a
+      répondu : l'écran le dit et l'on réessaie, comme avant.
 - [ ] **C6** Grand écran : deux colonnes, le plan de la séance, les
       raccourcis clavier.
 
@@ -288,6 +294,11 @@ banc actuel, inchangé, qui le prouve.
       ressentis par client.
 - [ ] **D7** Modèles : compteur d'imports, dupliquer, « Enregistrer comme
       modèle ».
+- [ ] **D8** Un bilan reçu deux fois ne compte qu'une : une clé d'envoi,
+      posée par le front, reconnue par l'API. Depuis C5, un envoi dont la
+      réponse s'est perdue en route est gardé puis renvoyé ; le front
+      empêche deux envois croisés, il ne peut pas savoir qu'un envoi coupé
+      était arrivé.
 
 ### E. Le coach
 

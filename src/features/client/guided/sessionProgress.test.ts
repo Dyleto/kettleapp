@@ -142,6 +142,50 @@ describe('la péremption', () => {
     expect(readProgress('sess1')).toBeNull();
   });
 
+  it('sauf un ressenti en attente : il partira, même le lendemain', () => {
+    const pending = {
+      feedback: { effort: 3 },
+      clientNotes: 'Dur',
+      completedAt: '2026-09-01T09:40:00.000Z',
+    };
+    storage.put(
+      KEY,
+      JSON.stringify({
+        version: 2,
+        step: 4,
+        performed: {},
+        done: [],
+        rounds: {},
+        pending,
+        updatedAt: Date.now() - 30 * 3600_000,
+      })
+    );
+    expect(readProgress('sess1')?.pending).toEqual(pending);
+  });
+
+  it('un ressenti abîmé ne sauve rien, et ne part pas', () => {
+    // Sans effort entier, ou sans date lisible, il serait refusé par le
+    // serveur à chaque retour du réseau. Un défaut à la fois : chacun
+    // suffit.
+    const stale = (pending: object) =>
+      JSON.stringify({
+        version: 2,
+        step: 4,
+        performed: {},
+        done: [],
+        rounds: {},
+        pending,
+        updatedAt: Date.now() - 13 * 3600_000,
+      });
+    storage.put(
+      KEY,
+      stale({ feedback: {}, completedAt: '2026-09-01T09:40:00.000Z' })
+    );
+    expect(readProgress('sess1')).toBeNull();
+    storage.put(KEY, stale({ feedback: { effort: 3 }, completedAt: 'hier' }));
+    expect(readProgress('sess1')).toBeNull();
+  });
+
   it('et efface l’enregistrement périmé plutôt que de le laisser traîner', () => {
     storage.put(
       KEY,

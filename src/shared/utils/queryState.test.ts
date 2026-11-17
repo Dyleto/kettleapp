@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { isNotFound, isRefusal, isUnavailable } from './queryState';
+import {
+  isNetworkCut,
+  isNotFound,
+  isRefusal,
+  isUnavailable,
+} from './queryState';
 
 /** Une erreur telle qu'axios la lève quand le serveur a répondu `status`. */
 const answered = (status: number) =>
@@ -73,5 +78,20 @@ describe('isRefusal', () => {
 
   it('ne vaut pas pour une coupure de réseau, qui doit être retentée', () => {
     expect(isRefusal(networkCut())).toBe(false);
+  });
+});
+
+describe('isNetworkCut', () => {
+  it('une coupure n’a pas de réponse', () => {
+    expect(isNetworkCut(networkCut())).toBe(true);
+  });
+
+  it('un serveur qui répond, même 500, n’est pas une coupure', () => {
+    expect(isNetworkCut(answered(500))).toBe(false);
+    expect(isNetworkCut(answered(404))).toBe(false);
+  });
+
+  it('une erreur qui ne vient pas du réseau non plus', () => {
+    expect(isNetworkCut(new Error('autre'))).toBe(false);
   });
 });

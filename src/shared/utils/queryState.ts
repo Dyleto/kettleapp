@@ -44,3 +44,14 @@ export const isRefusal = (error: unknown): boolean => {
   const status = statusOf(error);
   return status !== undefined && status >= 400 && status < 500;
 };
+
+/**
+ * La requête n'a reçu aucune réponse : une coupure, pas un serveur.
+ *
+ * C'est la seule panne qu'un retour du réseau réparera. Un serveur qui
+ * répond 500 a répondu : dire « pas de réseau » serait faux, et mettre
+ * l'envoi en attente du réseau, l'y laisser — le réseau ne reviendra pas,
+ * il n'est pas parti.
+ */
+export const isNetworkCut = (error: unknown): boolean =>
+  axios.isAxiosError(error) && !error.response;

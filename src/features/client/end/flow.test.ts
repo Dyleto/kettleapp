@@ -140,6 +140,42 @@ describe('le ressenti', () => {
   });
 });
 
+describe('sans réseau', () => {
+  const reviewing = { ...initialEndFlow, stage: 'review' as const };
+
+  it('le ressenti gardé le dit, sans parler d’échec', () => {
+    const state = run(reviewing, { type: 'sending' }, { type: 'queued' });
+    expect(state).toMatchObject({
+      stage: 'review',
+      queued: true,
+      sendFailed: false,
+    });
+  });
+
+  it('fermer l’écran oublie l’attente affichée, pas le ressenti gardé', () => {
+    // Le ressenti vit sur l'appareil : seul l'écran l'oublie.
+    const state = run(reviewing, { type: 'queued' }, { type: 'closeFeeling' });
+    expect(state).toMatchObject({ stage: 'idle', queued: false });
+  });
+});
+
+describe('« Dire comment c’était »', () => {
+  it('ouvre le ressenti seul, sans fête ni charges', () => {
+    const state = run(initialEndFlow, { type: 'resumeFeeling' });
+    expect(state).toMatchObject({ stage: 'review', queued: false });
+  });
+
+  it('sans la date d’une déclaration abandonnée', () => {
+    const state = run(
+      initialEndFlow,
+      { type: 'declared', date: '2026-11-10' },
+      { type: 'loadsBack' },
+      { type: 'resumeFeeling' }
+    );
+    expect(state.declaredDate).toBeUndefined();
+  });
+});
+
 describe('ce qui ne mène nulle part', () => {
   it('un geste d’un autre écran ne change rien', () => {
     expect(run(initialEndFlow, { type: 'continue' })).toBe(initialEndFlow);

@@ -6,18 +6,20 @@ import { queryKeys } from '@/shared/config/queryKeys';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useCompleteSession } from '@/features/client/common/useCompleteSession';
-import {
-  PerformedEntry,
-  ChipperDoneEntry,
-  LadderDoneEntry,
-  RoundsDoneEntry,
-  SessionFeedback,
-} from '@/shared/types';
+import type { PerformedValues, SessionFeedback } from '@/shared/types';
 import { buildLastPerformanceIndex } from '@/domain/history/lastPerformance';
 import { getSessionForToday } from '@/domain/week/plan';
-import { forgetProgress } from '@/features/client/guided/sessionProgress';
+import {
+  forgetProgress,
+  readProgress,
+} from '@/features/client/guided/sessionProgress';
+import { completionPayload } from '@/features/client/end/sending';
+import { queueFeeling, usePendingSends } from '@/features/client/end/pending';
 import { coachVoice } from '@/features/client/common/coach';
-import { isUnavailable as hasNothingToShow } from '@/shared/utils/queryState';
+import {
+  isNetworkCut,
+  isUnavailable as hasNothingToShow,
+} from '@/shared/utils/queryState';
 
 /**
  * Le programme du client, et laquelle de ses séances vient maintenant.
@@ -51,6 +53,7 @@ export const useClientSessions = () => {
     () => coachVoice(programQuery.data?.coaches),
     [programQuery.data]
   );
+  const sendPending = usePendingSends(sessions, coach);
   const history = useMemo(
     () =>
       [...(historyQuery.data ?? [])].sort(
@@ -136,39 +139,38 @@ export const useClientSessions = () => {
 
   const handleSubmitLog = useCallback(
     (
-      feedback: SessionFeedback,
-      clientNotes: string,
-      completedAt?: string,
-      // Ce qui a été fait, en un seul objet : quatre listes positionnelles,
-      // dont trois se ressemblent, s'intervertissaient sans que le typage le
-      // voie le jour où deux d'entre elles auraient la même forme.
-      {
-        performed,
-        roundsDone,
-        ladderDone,
-        chipperDone,
-      }: {
-        performed?: PerformedEntry[];
-        roundsDone?: RoundsDoneEntry[];
-        ladderDone?: LadderDoneEntry[];
-        chipperDone?: ChipperDoneEntry[];
-      } = {},
+      feeling: {
+        feedback: SessionFeedback;
+        clientNotes: string;
+        completedAt?: string;
+      },
+      // Ce qui a été noté, tel que l'écran le tient : il fait foi quand le
+      // stockage est refusé. Le reste — tours, échelles, chipper — vient de
+      // l'appareil, par `completionPayload`, comme pour un envoi différé.
+      performed: Record<string, PerformedValues>,
       // L'écran du ressenti reste ouvert jusqu'à la réponse : c'est lui qui
-      // dit qu'un envoi n'est pas parti, et qui le refait. Réussi, c'est à
-      // lui de dire où aller — la semaine qui avance.
-      callbacks: { onSuccess?: () => void; onError?: () => void } = {}
+      // dit qu'un envoi n'est pas parti, ou qu'il partira au retour du
+      // réseau. Réussi, c'est à lui de dire où aller — la semaine qui
+      // avance.
+      callbacks: {
+        onSuccess?: () => void;
+        onError?: () => void;
+        onQueued?: () => void;
+      } = {}
     ) => {
       if (!activeSession) return;
+      const sessionId = activeSession._id;
+      // Sans réseau, rien ne part : la requête attendrait en mémoire, et
+      // quitter l'écran la perdrait. Le ressenti est gardé, il partira seul.
+      if (!navigator.onLine) {
+        queueFeeling(sessionId, feeling);
+        callbacks.onQueued?.();
+        return;
+      }
       completeSession.mutate(
         {
-          sessionId: activeSession._id,
-          feedback,
-          clientNotes,
-          completedAt,
-          ...(performed && performed.length > 0 ? { performed } : {}),
-          ...(roundsDone && roundsDone.length > 0 ? { roundsDone } : {}),
-          ...(ladderDone && ladderDone.length > 0 ? { ladderDone } : {}),
-          ...(chipperDone && chipperDone.length > 0 ? { chipperDone } : {}),
+          sessionId,
+          ...completionPayload(readProgress(sessionId), feeling, performed),
         },
         {
           onSuccess: () => {
@@ -195,7 +197,17 @@ export const useClientSessions = () => {
             });
             navigate(CLIENT_ROUTES.today);
           },
-          onError: callbacks.onError,
+          // Une coupure en route est une affaire de réseau : le ressenti est
+          // gardé, il repartira seul. Un serveur qui a répondu non, ou mal,
+          // se dit, et l'écran le refait d'une touche.
+          onError: (error) => {
+            if (!isNetworkCut(error)) {
+              callbacks.onError?.();
+              return;
+            }
+            queueFeeling(sessionId, feeling);
+            callbacks.onQueued?.();
+          },
         }
       );
     },
@@ -211,6 +223,7 @@ export const useClientSessions = () => {
     history,
     lastPerformance,
     handleSubmitLog,
+    sendPending,
     isLoading,
     isUnavailable,
     retry,

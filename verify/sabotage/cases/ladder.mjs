@@ -151,9 +151,9 @@ export default {
       name: "le bilan n'envoie pas l'échelle",
       edits: [
         {
-          file: 'src/features/client/end/EndFlow.tsx',
-          from: '              ladderDone: toLadderDone(saved?.ladder),',
-          to: '              ladderDone: [],',
+          file: 'src/features/client/end/sending.ts',
+          from: '  const ladderDone = toLadderDone(saved?.ladder);',
+          to: '  const ladderDone: LadderDoneEntry[] = [];',
         },
       ],
       falls: ['le bilan envoie le résultat de l’échelle'],

@@ -1,5 +1,6 @@
 ﻿import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toaster } from '@/shared/components/ui/toasterInstance';
+import { sendCompletion } from '@/features/client/end/pending';
 import {
   clientService,
   CompleteSessionPayload,
@@ -23,7 +24,15 @@ export const useCompleteSession = () => {
       sessionId,
       ...payload
     }: CompleteSessionPayload & { sessionId: string }) =>
-      clientService.completeSession(sessionId, payload),
+      sendCompletion(sessionId, payload),
+    // Hors connexion, React Query mettait l'envoi en pause : le bouton
+    // tournait sans fin, et la requête repartait plus tard, quand plus
+    // personne n'était là pour effacer l'enregistrement. Elle échoue
+    // maintenant tout de suite, et le ressenti est gardé pour le retour du
+    // réseau. Et pas de seconde tentative : un envoi arrivé dont la réponse
+    // s'est perdue serait compté deux fois.
+    networkMode: 'always',
+    retry: 0,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.client.history.all(),

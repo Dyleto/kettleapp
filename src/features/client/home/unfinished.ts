@@ -3,9 +3,22 @@ import { buildGuidedSteps } from '@/features/client/guided/steps';
 import { positionLabel } from '@/features/client/guided/outline';
 import { readProgress } from '@/features/client/guided/sessionProgress';
 
-/** Une séance guidée quittée avant la fin, sur cet appareil. */
+/**
+ * Où en est une séance laissée sur cet appareil.
+ *
+ *   running  — quittée avant la fin : on la reprend ;
+ *   finished — finie, le ressenti pas encore dit : « à valider » ;
+ *   pending  — le ressenti dit, pas encore parti faute de réseau.
+ */
+export type UnfinishedState = 'running' | 'finished' | 'pending';
+
+/** Une séance guidée laissée sur cet appareil, avant que le serveur ne
+ * l'ait reçue. */
 export interface Unfinished {
   session: Session;
+  state: UnfinishedState;
+  /** Quand elle a fini, en millisecondes : « terminée il y a 20 min ». */
+  finishedAt?: number;
   /** « Bloc 2 sur 2 », puis « Série 3 sur 4 » quand le bloc se compte en séries. */
   where: string[];
   /**
@@ -44,7 +57,18 @@ export const unfinishedSession = (
 ): Unfinished | undefined => {
   const found = sessions
     .map((session) => ({ session, saved: read(session._id) }))
-    .filter(({ saved }) => !!saved && (saved.step > 0 || saved.done.length > 0))
+    // Une séance finie compte même sans étape franchie : « Terminer la
+    // séance maintenant » dès le premier écran, puis rien d'envoyé. Un
+    // ressenti en attente aussi, même d'une séance déclarée faite sans la
+    // séance guidée — il n'a ni étape ni série cochée.
+    .filter(
+      ({ saved }) =>
+        !!saved &&
+        (saved.step > 0 ||
+          saved.done.length > 0 ||
+          saved.finishedAt !== undefined ||
+          saved.pending !== undefined)
+    )
     .sort((a, b) => b.saved!.updatedAt - a.saved!.updatedAt)[0];
   if (!found?.saved) return undefined;
   const { session, saved } = found;
@@ -83,6 +107,12 @@ export const unfinishedSession = (
   const since = saved.startedAt ?? saved.updatedAt;
   return {
     session,
+    state: saved.pending
+      ? 'pending'
+      : saved.finishedAt !== undefined
+        ? 'finished'
+        : 'running',
+    finishedAt: saved.finishedAt,
     where,
     blocks: [...perBlock.values()].map(({ total, done }) =>
       total > 0 ? done / total : 0
@@ -92,9 +122,17 @@ export const unfinishedSession = (
   };
 };
 
-/** « il y a 20 min », « il y a 2 h » : depuis quand la séance est commencée. */
-export const startedAgo = (startedAt: number, now: number): string => {
-  const minutes = Math.max(1, Math.round((now - startedAt) / 60000));
-  if (minutes < 60) return `commencée il y a ${minutes} min`;
-  return `commencée il y a ${Math.floor(minutes / 60)} h`;
+/** « il y a 20 min », « il y a 2 h » : à la minute près, puis à l'heure. */
+const ago = (word: string, at: number, now: number): string => {
+  const minutes = Math.max(1, Math.round((now - at) / 60000));
+  if (minutes < 60) return `${word} il y a ${minutes} min`;
+  return `${word} il y a ${Math.floor(minutes / 60)} h`;
 };
+
+/** Depuis quand la séance est commencée : « commencée il y a 20 min ». */
+export const startedAgo = (startedAt: number, now: number): string =>
+  ago('commencée', startedAt, now);
+
+/** Depuis quand elle est finie : « terminée il y a 20 min ». */
+export const finishedAgo = (finishedAt: number, now: number): string =>
+  ago('terminée', finishedAt, now);

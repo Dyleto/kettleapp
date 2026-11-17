@@ -30,6 +30,12 @@ interface SessionSheetProps {
   /** Commencée sur ce téléphone : le bouton dit « Reprendre ». */
   started: boolean;
   onStart: () => void;
+  /**
+   * Finie sur ce téléphone, pas encore envoyée : le bouton principal dit ce
+   * qui reste à faire — « Dire comment c'était », « Envoyer maintenant » —
+   * et remplace « Démarrer ».
+   */
+  ending?: { label: string; onClick: () => void };
   /** « Je l'ai déjà faite », à cette date. */
   onDeclared: (date?: string) => void;
 }
@@ -51,6 +57,7 @@ export const SessionSheet = ({
   history,
   started,
   onStart,
+  ending,
   onDeclared,
 }: SessionSheetProps) => {
   /** La consigne ouverte en feuille, s'il y en a une. */
@@ -97,15 +104,24 @@ export const SessionSheet = ({
   // ce n'est pas le chemin normal, et il ne se présente plus comme tel.
   const actions = (
     <VStack align="stretch" gap={1}>
-      {hasExercises && (
-        <ActionButton size="lg" w="full" onClick={onStart}>
-          <LuPlay size={18} fill="currentColor" aria-hidden />
-          {started ? 'Reprendre' : 'Démarrer'}
+      {ending ? (
+        // Faite : ni « Démarrer », ni « Je l'ai déjà faite ».
+        <ActionButton size="lg" w="full" onClick={ending.onClick}>
+          {ending.label}
         </ActionButton>
+      ) : (
+        <>
+          {hasExercises && (
+            <ActionButton size="lg" w="full" onClick={onStart}>
+              <LuPlay size={18} fill="currentColor" aria-hidden />
+              {started ? 'Reprendre' : 'Démarrer'}
+            </ActionButton>
+          )}
+          <LinkButton py={2} onClick={() => setDeclaring(true)}>
+            Je l&rsquo;ai déjà faite
+          </LinkButton>
+        </>
       )}
-      <LinkButton py={2} onClick={() => setDeclaring(true)}>
-        Je l&rsquo;ai déjà faite
-      </LinkButton>
     </VStack>
   );
 

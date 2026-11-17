@@ -7,8 +7,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/end/EndFlow.tsx',
-          from: "              onError: () => dispatch({ type: 'sendFailed' }),",
-          to: '              onError: () => {},',
+          from: "            onError: () => dispatch({ type: 'sendFailed' }),",
+          to: '            onError: () => {},',
         },
       ],
       falls: [
