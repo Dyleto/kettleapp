@@ -280,5 +280,51 @@ const browser = await launch();
   await ctx.close();
 }
 
+// ── Un repos mis en pause ───────────────────────────────────────────────
+//
+// Le repos entre deux séries a sa propre horloge, distincte de celle d'un
+// tour. Rien ne vérifiait qu'elle se fige : un sabotage de son dégel ne
+// faisait rien tomber.
+{
+  console.log('\n── un repos mis en pause trente secondes');
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx);
+  await p.clock.install();
+  await start(p, 'sess2');
+  // Le Tabata passé : le bloc « Renfo », une minute de repos entre ses
+  // séries.
+  await press(p, 'Mettre la séance en pause');
+  await settle(p);
+  await p
+    .locator(SHEET)
+    .getByRole('button', { name: 'Passer ce bloc' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  await press(p, 'Série faite', { exact: true });
+  await settle(p);
+  const before = await secondsLeft(p);
+  await press(p, 'Mettre la séance en pause');
+  await settle(p);
+  await p.clock.runFor(30_000);
+  await p
+    .locator(SHEET)
+    .getByRole('button', { name: 'Reprendre', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  // Une seconde de plus : l'horloge du repos ne relit l'heure que toutes les
+  // 250 ms, et lue aussitôt après la reprise, elle montrait encore la valeur
+  // d'avant la pause, qu'elle ait perdu les trente secondes ou non.
+  await p.clock.runFor(1_000);
+  await settle(p);
+  const after = await secondsLeft(p);
+  ok(
+    'un repos mis en pause reprend où il était',
+    before !== null && after !== null && Math.abs(before - after) <= 2,
+    `${before} s → ${after} s`
+  );
+  await ctx.close();
+}
+
 await browser.close();
 process.exit(failureCount() > 0 ? 1 : 0);

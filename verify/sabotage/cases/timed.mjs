@@ -104,6 +104,8 @@ export default {
         '→ et la séance est passée au tour 4 avec elle',
         "→ et l'horloge repart de là",
         'balayer vers la droite revient au tour précédent',
+        'vingt-cinq minutes plus tard, le tour 26',
+        '→ et la séance le sait',
       ],
     },
     {
@@ -118,6 +120,7 @@ export default {
       falls: [
         '→ et la séance est passée au tour 4 avec elle',
         'une consigne ouverte reste ouverte quand le tour change',
+        '→ et la séance le sait',
       ],
     },
     {

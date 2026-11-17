@@ -363,7 +363,10 @@ const browser = await launch();
   const list = await screen(p);
   ok(
     "  → et non qu'il n'y a aucun client",
-    !list.includes('Aucun client'),
+    // Le texte de la liste vide, tel qu'il s'écrit aujourd'hui : l'assertion
+    // cherchait « Aucun client » depuis que la liste vide dit « Invite ton
+    // premier client », et ne pouvait plus tomber.
+    !/Aucun client|Invite ton premier client/.test(list),
     list.slice(0, 120)
   );
   ok(

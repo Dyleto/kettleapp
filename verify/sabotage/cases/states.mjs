@@ -153,10 +153,7 @@ export default {
           to: '',
         },
       ],
-      falls: [
-        '→ avec le personnage endormi',
-        "→ que les lecteurs d'écran n'annoncent pas",
-      ],
+      falls: ['→ avec le personnage endormi'],
     },
     {
       name: "la panne n'est plus annoncée",

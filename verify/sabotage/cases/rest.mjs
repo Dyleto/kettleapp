@@ -22,7 +22,10 @@ export default {
           to: '',
         },
       ],
-      falls: ['« + 15 s » rallonge le repos de quinze secondes'],
+      falls: [
+        '« + 15 s » rallonge le repos de quinze secondes',
+        '« + 15 s » le rallonge aussi',
+      ],
     },
     {
       name: 'la charge suivante ne se règle plus pendant le repos',
@@ -50,6 +53,7 @@ export default {
       falls: [
         'à zéro, la carte de repos s’efface d’elle-même',
         '→ et la série suivante est là',
+        'à zéro, le bloc suivant vient de lui-même',
       ],
     },
     {

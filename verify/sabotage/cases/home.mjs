@@ -106,7 +106,10 @@ export default {
           to: '      state: null,',
         },
       ],
-      falls: ['« Démarrer » ouvre la séance guidée sur son ouverture'],
+      falls: [
+        '« Démarrer » ouvre la séance guidée sur son ouverture',
+        '→ puis repart de l’ouverture, rien de coché',
+      ],
     },
     {
       name: "la demande de démarrer reste dans l'historique",

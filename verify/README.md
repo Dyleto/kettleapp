@@ -114,15 +114,24 @@ npm run sabotage:check            # sans navigateur : chaque motif désigne-t-il
 ```
 
 Un cas s'écrit avec le mécanisme qu'il couvre, dans le même commit. Il ne
-se rejoue pas à chaque changement : les 229 demandent plusieurs heures. Ils
-se rejouent tous en une passe, avant une fusion sur `main`.
+se rejoue pas à chaque changement : les 244 demandent deux heures. Ils se
+rejouent tous en une passe, avant une fusion sur `main`.
 `sabotage:check`, lui, ne coûte qu'une seconde et se lance avant chaque
 commit : un motif qui ne correspond plus se répare tout de suite, tant
 qu'on sait encore ce qu'il visait — ou se marque `stale`, avec sa raison,
 quand le code a été réécrit et que la réparation demande de repenser le
 cas. La passe complète le reprendra.
 
-Un cas marqué `stale` est une dette connue : son motif ne correspondait
-déjà plus quand les cas sont entrés dans le dépôt — ils vivaient dans un
-dossier temporaire, où personne ne les relisait. Il y en a 23. On retire la
-marque en réparant le cas.
+Un cas marqué `stale` est une dette connue : son motif ne correspond plus,
+et on le sait. Les 23 marqués à l'entrée des cas dans le dépôt ont été
+réparés lors de la première passe complète (B12) ; il n'en reste aucun.
+
+Cette passe a dit ce qu'une passe dit : sur 245 cas, 231 tombaient comme
+prévu. Neuf listes attendues étaient incomplètes — un sabotage cassait
+aussi une autre assertion qui lit le même texte, à raison. Trois
+assertions étaient creuses : l'une cherchait « Aucun client » quand la
+liste vide dit « Invite ton premier client », l'autre lisait un repos
+avant que son horloge ait relu l'heure, et aucune ne couvrait la pause
+d'un repos. Un cas s'écrivait avec une variable disparue, un autre
+importait le son de son ancienne adresse ; un dernier visait un état
+que Chromium ne produit pas, et s'éprouve sous Vitest.

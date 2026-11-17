@@ -27,7 +27,7 @@ export default {
           to: '      endAtRef.current = endAtRef.current + 0;',
         },
       ],
-      falls: ['puis le tour repart d’où il était, sans rien perdre ni gagner'],
+      falls: ['un repos mis en pause reprend où il était'],
     },
     {
       name: 'la reprise saute le décompte',
@@ -91,12 +91,13 @@ export default {
         {
           file: 'src/features/client/guided/GuidedSession.tsx',
           from: '      : positionLabel(\n          session,',
-          to: '      : `Étape ${index + 1} sur ${steps.length}` || positionLabel(\n          session,',
+          to: '      : `Étape ${state.index + 1} sur ${steps.length}` || positionLabel(\n          session,',
         },
       ],
       falls: [
         'la pause dit où l’on en est, en blocs et en tours',
         '→ et non en étapes',
+        '→ et la scène est restée sur le même tour',
       ],
     },
     {

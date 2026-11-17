@@ -1,6 +1,11 @@
 /** Les sabotages de `verify_sound.mjs`. Voir `../run.mjs`. */
 export default {
   suite: 'verify_sound.mjs',
+  // « Le premier bip est perdu pendant que la sortie s'ouvre » vivait ici.
+  // Chromium sous Playwright ouvre la sortie audio sur-le-champ : la sortie
+  // « en train de s'ouvrir » n'existe pas au banc, et le cas ne pouvait rien
+  // faire tomber. Vitest l'éprouve (`sound.test.ts`, « le lecteur, pendant
+  // que la sortie s'ouvre »), et ce sabotage y fait tomber son test.
   cases: [
     {
       name: 'les chiffres du décompte ne sonnent plus',
@@ -27,21 +32,6 @@ export default {
         },
       ],
       falls: ['le départ donne un bip long, plus aigu'],
-    },
-    {
-      name: "le premier bip est perdu pendant que la sortie s'ouvre",
-      edits: [
-        {
-          file: 'src/shared/feedback/sound.ts',
-          from: '        if (Date.now() - askedAt <= STALE_AFTER) schedule(output, cue);',
-          to: '',
-        },
-      ],
-      falls: [
-        '→ avec un premier bip court',
-        'chaque chiffre donne le sien',
-        'le départ donne un bip long, plus aigu',
-      ],
     },
     {
       name: 'les dernières secondes ne sonnent plus',
@@ -113,7 +103,7 @@ export default {
         {
           file: 'src/features/client/guided/scene/ListScene.tsx',
           from: "import { BlockSets } from './BlockSets';\n",
-          to: "import { BlockSets } from './BlockSets';\nimport { playCue } from '@/features/client/sound/sound';\n",
+          to: "import { BlockSets } from './BlockSets';\nimport { playCue } from '@/shared/feedback/sound';\n",
         },
         {
           file: 'src/features/client/guided/scene/ListScene.tsx',
@@ -124,9 +114,6 @@ export default {
       falls: [
         "valider les séries de l'échauffement n'a rien fait sonner",
         'quitter le bloc joue deux notes montantes',
-        'valider sept paliers ne fait rien sonner',
-        'terminer joue trois notes montantes',
-        '→ dont la dernière est le bip du départ, entendu toute la séance',
       ],
     },
     {
@@ -162,6 +149,9 @@ export default {
         '→ et plus long que les trois qui le précèdent',
         'terminer joue trois notes montantes',
         '→ dont la dernière est le bip du départ, entendu toute la séance',
+        '→ avec un premier bip court',
+        'chaque chiffre donne le sien',
+        'le départ donne un bip long, plus aigu',
       ],
     },
     {
@@ -173,7 +163,10 @@ export default {
           to: 'go: [{ frequency: 1320, at: 0, duration: 90 }],',
         },
       ],
-      falls: ['→ et plus long que les trois qui le précèdent'],
+      falls: [
+        '→ et plus long que les trois qui le précèdent',
+        'le départ donne un bip long, plus aigu',
+      ],
     },
     {
       name: 'le réglage de « Mon compte » ne répond plus',

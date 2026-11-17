@@ -27,8 +27,8 @@
  * pas et `--check` le compte à part, jusqu'à ce qu'on le répare — on retire
  * alors la marque.
  *
- * Les cas ne se rejouent plus à chaque changement : rejouer les 226 prend
- * plusieurs heures. Ils s'écrivent avec le mécanisme qu'ils couvrent, et se
+ * Les cas ne se rejouent plus à chaque changement : rejouer les 244 prend
+ * deux heures. Ils s'écrivent avec le mécanisme qu'ils couvrent, et se
  * rejouent tous en une passe avant une fusion sur `main`.
  */
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';

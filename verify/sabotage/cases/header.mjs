@@ -95,7 +95,10 @@ export default {
           to: '        valuetext={`Étape ${state.index + 1} sur ${steps.length} — ${step.blockLabel}`}',
         },
       ],
-      falls: ['la barre se lit en blocs et en tours'],
+      falls: [
+        'la barre se lit en blocs et en tours',
+        'le repos entre deux blocs garde le nom du bloc qu’il termine',
+      ],
     },
   ],
 };

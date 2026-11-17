@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 585 tests unitaires, 31 suites de banc et 576
-assertions, 2 min 50 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 17 novembre : 585 tests unitaires, 31 suites de banc et 577
+assertions, 2 min 51 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -124,10 +124,9 @@ Constaté, avec sa mesure.
 5. **Deux façons de nommer une séance** : « Séance 2 — Haut du corps » et
    « Haut du corps », selon l'écran — réglé en B4 : le nom seul, comme la
    maquette.
-6. **Les sabotages étaient hors du dépôt** — réglé : 229 cas et leur lanceur
+6. **Les sabotages étaient hors du dépôt** — réglé : les cas et leur lanceur
    sont dans `verify/sabotage/`. Vingt-trois ne correspondaient déjà plus au
-   code qu'ils devaient casser ; ils sont marqués, à réparer dans la passe
-   complète.
+   code qu'ils devaient casser ; réparés, et les 244 rejoués en B12.
 7. **Le banc attend à l'aveugle** : 258 attentes à durée fixe, et son décor
    (821 lignes) n'est pas tenu par le contrat de l'API. Sa lenteur est
    réglée : les suites tournent sur quatre files.
@@ -237,8 +236,10 @@ banc actuel, inchangé, qui le prouve.
       contrat.
 - [x] **B11** `features/program` devient `features/workshop`, sans rien
       changer d'autre : le lot D le réécrit.
-- [ ] **B12** Passe complète des sabotages : réparer les cas marqués, les
-      rejouer tous, corriger les assertions creuses qu'ils montrent.
+- [x] **B12** Passe complète des sabotages : réparer les cas marqués, les
+      rejouer tous, corriger les assertions creuses qu'ils montrent. 23 cas
+      réparés, 244 rejoués, chacun fait tomber ce qu'il vise et cela seul.
+      Trois assertions creuses corrigées, une ajoutée (la pause d'un repos).
 
 ### C. Finir la séance guidée
 
