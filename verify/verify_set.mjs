@@ -28,6 +28,9 @@ import {
 } from './common.mjs';
 
 const HERO = '[data-set-hero]';
+/** Le champ de la charge, par son nom : le sélecteur des répétitions, ouvert,
+ * est lui aussi un champ de la série, et il vient avant. */
+const LOAD = `${HERO} input[aria-label^="Poids utilisé"]`;
 const GOBLET = '2:1';
 
 /** Le texte de la série en grand, une ligne par morceau. */
@@ -41,7 +44,7 @@ const hero = (p) =>
 /** La charge affichée dans le sélecteur, telle qu'on la lit. */
 const shownLoad = (p) =>
   p
-    .locator(`${HERO} input`)
+    .locator(LOAD)
     .inputValue({ timeout: 1000 })
     .catch(() => null);
 
@@ -134,7 +137,7 @@ const browser = await launch();
   );
   // 28 et non 26 : une valeur égale à celle de la dernière fois ne dirait
   // pas d'où vient ce que l'écran propose ensuite.
-  await p.locator(`${HERO} input`).fill('28');
+  await p.locator(LOAD).fill('28');
   await settle(p);
 
   await press(p, 'Série faite');
@@ -171,7 +174,7 @@ const browser = await launch();
 
   // Effacer la charge : une série au poids du corps doit pouvoir se noter.
   await press(p, 'Passer');
-  await p.locator(`${HERO} input`).fill('');
+  await p.locator(LOAD).fill('');
   await settle(p);
   ok(
     'une charge effacée reste effacée',
@@ -223,7 +226,7 @@ const browser = await launch();
   ok(
     'la corde à sauter n’a ni charge ni proposition d’en noter',
     rope.includes('Corde à sauter') &&
-      (await p.locator(`${HERO} input`).count()) === 0 &&
+      (await p.locator(LOAD).count()) === 0 &&
       !rope.includes('Noter une charge'),
     rope
   );
@@ -235,7 +238,7 @@ const browser = await launch();
     'un mouvement sans charge connue propose d’en noter une',
     climbers.includes('Mountain Climbers') &&
       climbers.includes('Noter une charge') &&
-      (await p.locator(`${HERO} input`).count()) === 0,
+      (await p.locator(LOAD).count()) === 0,
     climbers
   );
   await press(p, 'Noter une charge');

@@ -220,7 +220,10 @@ export default {
           to: '  const [editingReps, setEditingReps] = useState(true);',
         },
       ],
+      // Ouvert d'emblée, le sélecteur prend la place de la dose en grand :
+      // c'est aussi ce que garde la première assertion de la suite.
       falls: [
+        'la série en cours se lit en grand : rang, nom, dose',
         'le nombre prescrit se touche, et rien ne s’ouvre avant',
         '→ la série suivante repart du prescrit, sélecteur fermé',
       ],
