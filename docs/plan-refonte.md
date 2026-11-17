@@ -288,8 +288,9 @@ banc actuel, inchangé, qui le prouve.
 
 ### D. L'API du coach (avant le front qui s'en sert)
 
-- [ ] **D1** Les cinq `verify:*` sous Vitest ; les agrégations de
-      `roster.controller` dans un service ; `CLAUDE.md` à jour.
+- [x] **D1** Les cinq `verify:*` sous Vitest ; les agrégations de
+      `roster.controller` dans un service ; `CLAUDE.md` à jour (`ac4df0b`).
+      En chemin : un ressenti absent faisait répondre 500 à toute la liste.
 - [ ] **D2** Réponse du coach : réaction, texte, date, « lue par le client ».
       Une route pour écrire, une pour marquer lue.
 - [ ] **D3** Fil « À lire » : les séances non lues de tous les clients, avec
