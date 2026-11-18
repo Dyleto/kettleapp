@@ -2,7 +2,7 @@ export * from './hooks/useProgramEditor';
 
 export { ExerciseSelectorPanel } from './components/ExerciseSelectorPanel';
 export { BlockCard } from './components/BlockCard';
-export { BlockTypeSelector } from './components/BlockTypeSelector';
+export { FormatPalette } from './components/FormatPalette';
 export { WorkshopBlock } from './components/WorkshopBlock';
 export { InlineExercisePicker } from './components/InlineExercisePicker';
 export { SuggestedDaysPicker } from './components/SuggestedDaysPicker';

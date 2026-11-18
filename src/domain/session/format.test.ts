@@ -4,7 +4,13 @@
  */
 import { describe, expect, it } from 'vitest';
 import { makeBlock, makeBlockExercise } from '@/domain/fixtures';
-import { blockDefaults, withFormat } from './format';
+import {
+  blockDefaults,
+  FORMAT_LINE,
+  formatSketch,
+  PALETTE,
+  withFormat,
+} from './format';
 
 describe('changer de format', () => {
   it('les réglages que le nouveau format lit aussi sont gardés', () => {
@@ -75,5 +81,54 @@ describe('changer de format', () => {
       classic.restBetweenRounds,
       classic.durationMinutes,
     ]).toEqual([undefined, undefined, undefined]);
+  });
+});
+
+describe('la palette', () => {
+  // Deux noms pour un format égaraient le coach qui cherchait un E2MOM.
+  it('propose neuf formats, sans « Every »', () => {
+    expect(PALETTE).toHaveLength(9);
+    expect(PALETTE).not.toContain('every');
+  });
+
+  it('chaque format proposé a sa phrase et son dessin', () => {
+    PALETTE.forEach((type) => {
+      expect(FORMAT_LINE[type].length).toBeGreaterThan(0);
+      expect(formatSketch(type).length).toBeGreaterThan(0);
+    });
+  });
+
+  it('le Tabata alterne l’effort et le repos', () => {
+    expect(formatSketch('tabata').map((s) => s.kind)).toEqual([
+      'work',
+      'rest',
+      'work',
+      'rest',
+      'work',
+      'rest',
+      'work',
+      'rest',
+    ]);
+  });
+
+  // Une pyramide doit se reconnaître sous ce nom.
+  it('l’échelle monte puis redescend', () => {
+    const heights = formatSketch('ladder').map((s) => s.height);
+    const top = heights.indexOf(Math.max(...heights));
+    expect(top).toBeGreaterThan(0);
+    expect(top).toBeLessThan(heights.length - 1);
+    expect(heights.slice(0, top + 1)).toEqual(
+      [...heights.slice(0, top + 1)].sort((a, b) => a - b)
+    );
+  });
+
+  it('l’AMRAP s’essouffle avant la fin du temps', () => {
+    const work = formatSketch('amrap').filter((s) => s.kind === 'work');
+    expect(work.at(-1)!.height).toBeLessThan(work[0].height);
+    expect(formatSketch('amrap').at(-1)!.kind).toBe('idle');
+  });
+
+  it('un échauffement ne compte aucun effort', () => {
+    expect(formatSketch('warmup').every((s) => s.kind === 'idle')).toBe(true);
   });
 });

@@ -16,7 +16,7 @@ import { BlockFrame } from './BlockFrame';
 import { BlockPill, StaticPill } from './BlockPill';
 import { BlockSettings } from './BlockSettings';
 import { BlockSheet } from './BlockSheet';
-import { BlockTypeSelector } from './BlockTypeSelector';
+import { FormatPalette } from './FormatPalette';
 import { InlineText } from './InlineValue';
 import { InlineExercisePicker } from './InlineExercisePicker';
 import { ExerciseRow } from './ExerciseRow';
@@ -47,6 +47,8 @@ interface WorkshopBlockProps {
   /** La ligne à faire défiler jusqu'à l'écran en arrivant, s'il y en a
    * une dans ce bloc. */
   revealIndex?: number | null;
+  /** Le bloc vient d'être créé : son « + exercice » s'ouvre d'emblée. */
+  startPicking?: boolean;
   /** Fourni en dessous de 768 px : choisir un exercice passe alors par le
    *  tiroir plein écran plutôt que par le menu déroulant, trop à l'étroit. */
   onRequestExercisePicker?: () => void;
@@ -80,10 +82,11 @@ export const WorkshopBlock = ({
   onOpenRow,
   settingsInSheet,
   revealIndex = null,
+  startPicking = false,
   onRequestExercisePicker,
   onOpenExerciseSheet,
 }: WorkshopBlockProps) => {
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(startPicking);
   const [pickingFormat, setPickingFormat] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const label = formatName(block.type);
@@ -179,21 +182,10 @@ export const WorkshopBlock = ({
 
   const formatPicker = pickingFormat && (
     <Box pb={2}>
-      <HStack justify="space-between" mb={2}>
-        <Text fontSize="sm" fontWeight="bold" color="fg.muted">
-          Changer de format
-        </Text>
-        <chakra.button
-          type="button"
-          fontSize="sm"
-          color="fg.muted"
-          minH="32px"
-          onClick={() => setPickingFormat(false)}
-        >
-          Annuler
-        </chakra.button>
-      </HStack>
-      <BlockTypeSelector
+      <FormatPalette
+        layout="card"
+        title="Changer de format"
+        onCancel={() => setPickingFormat(false)}
         onSelect={(type) => {
           setPickingFormat(false);
           if (type !== block.type) onChangeFormat(type);

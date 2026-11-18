@@ -2,6 +2,7 @@ import { Box, Input, Text } from '@chakra-ui/react';
 import { AutoResizeTextarea, touchHitArea } from '@/kit';
 import { useEffect, useRef, useState } from 'react';
 import { parseNumberInput } from '@/shared/utils/numberInput';
+import { parseRungs, rungsLine } from '@/domain/session/rungs';
 
 /**
  * Rend le focus au nombre quand sa saisie se termine au clavier.
@@ -232,15 +233,6 @@ interface InlineSequenceProps {
   startOpen?: boolean;
 }
 
-// Lecture indulgente : tiret, virgule, espace ou point médian, comme on
-// veut. Le coach tape « 21-15-9 » ou « 21 15 9 » selon l'humeur, et lui
-// refuser l'un des deux ne protège de rien.
-const parseSequence = (raw: string): number[] =>
-  raw
-    .split(/[^0-9]+/)
-    .map((part) => Number(part))
-    .filter((n) => Number.isFinite(n) && n > 0);
-
 /**
  * Une pyramide de sept paliers demandait sept compteurs et six clics sur
  * « ajouter ». Ici c'est un champ, avec le résultat analysé rappelé juste en
@@ -259,17 +251,17 @@ export const InlineSequence = ({
   );
   const { buttonRef, returnFocus, forget } = useKeyboardReturn(isEditing);
 
-  const parsed = isEditing ? parseSequence(draft) : (value ?? []);
+  const parsed = isEditing ? parseRungs(draft) : (value ?? []);
 
   // Même raison que plus haut : une suite tapée mais non validée
   // n'existait nulle part, et quitter la page l'emportait.
   const onInput = (raw: string) => {
     setDraft(raw);
-    onChange(parseSequence(raw));
+    onChange(parseRungs(raw));
   };
 
   const commit = () => {
-    onChange(parseSequence(draft));
+    onChange(parseRungs(draft));
     setIsEditing(false);
   };
 
@@ -289,6 +281,9 @@ export const InlineSequence = ({
           aria-label={ariaLabel}
           value={draft}
           onChange={(e) => onInput(e.target.value)}
+          // Sélectionnés à l'ouverture, comme un nombre : taper remplace
+          // les paliers au lieu de s'ajouter au bout.
+          onFocus={(e) => e.target.select()}
           onBlur={commit}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -309,9 +304,12 @@ export const InlineSequence = ({
           fontSize="sm"
         />
         <Text fontSize="xs" color="fg.muted" mt={1} textAlign="right">
-          {parsed.length > 0
-            ? `${parsed.join(' · ')} — ${parsed.length} palier${parsed.length > 1 ? 's' : ''}`
-            : 'aucun palier'}
+          {rungsLine(parsed)}
+        </Text>
+        {/* La saisie est libre : le dire évite au coach de chercher la
+            bonne écriture, il n'y en a pas. */}
+        <Text fontSize="xs" color="fg.muted" textAlign="right">
+          Tirets, espaces ou virgules, au choix.
         </Text>
       </Box>
     );

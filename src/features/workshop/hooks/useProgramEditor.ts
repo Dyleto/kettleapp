@@ -202,7 +202,13 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
 
   // ─── Blocks ────────────────────────────────────────────────────────────────
 
+  /**
+   * Un bloc neuf en fin de séance. Rend son identifiant, tiré avant la mise à
+   * jour : choisir un format ouvre aussitôt le « + exercice » du bloc créé,
+   * et l'écran doit savoir lequel avant que le programme ait changé.
+   */
   const addBlock = useCallback((sessionId: string, type: BlockType) => {
+    const id = newObjectId();
     setProgram((prev) => {
       if (!prev) return null;
       return {
@@ -210,7 +216,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         sessions: prev.sessions.map((s) => {
           if (s._id !== sessionId) return s;
           const newBlock: SessionBlock = {
-            _id: newObjectId(),
+            _id: id,
             type,
             order: s.blocks.length + 1,
             exercises: [],
@@ -220,6 +226,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
         }),
       };
     });
+    return id;
   }, []);
 
   const removeBlock = useCallback((sessionId: string, blockId: string) => {

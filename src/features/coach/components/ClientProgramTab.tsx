@@ -26,7 +26,7 @@ import {
 } from '@/shared/types';
 import {
   WorkshopBlock,
-  BlockTypeSelector,
+  FormatPalette,
   ExerciseSelectorPanel,
   InlineText,
   SuggestedDaysPicker,
@@ -38,7 +38,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { TOUCH, touchGap, touchHitArea } from '@/kit';
+import { ActionButton, Sheet, TOUCH, touchGap, touchHitArea } from '@/kit';
 import {
   closestCenter,
   DndContext,
@@ -78,7 +78,8 @@ interface Props {
   onDuplicateSession: () => void;
   onUpdateSessionNotes: (notes: string) => void;
   onUpdateSessionDays: (days: number[]) => void;
-  onAddBlock: (type: BlockType) => void;
+  /** Rend l'identifiant du bloc créé. */
+  onAddBlock: (type: BlockType) => string;
   onRemoveBlock: (blockId: string) => void;
   onChangeBlockFormat: (blockId: string, type: BlockType) => void;
   onDuplicateBlock: (blockId: string) => void;
@@ -195,6 +196,17 @@ export const ClientProgramTab = ({
   useOutsideDismiss(blockSelectorRef, showBlockSelector, closeBlockSelector);
 
   const isMobile = useBreakpointValue({ base: true, md: false });
+
+  // Le bloc qu'on vient de créer : son « + exercice » s'ouvre aussitôt.
+  // Un format choisi n'est qu'une coquille, et la suite du geste est
+  // toujours d'y mettre un exercice.
+  const [pickingBlockId, setPickingBlockId] = useState<string | null>(null);
+  const addBlockOf = (type: BlockType) => {
+    const id = onAddBlock(type);
+    setShowBlockSelector(false);
+    if (isMobile) setSelectorBlockId(id);
+    else setPickingBlockId(id);
+  };
 
   // Le bouton retour du téléphone ferme ce qui est ouvert par-dessus
   // l'éditeur, au lieu de quitter la séance. Quatre couches, quatre repères —
@@ -313,6 +325,7 @@ export const ClientProgramTab = ({
                         )
                       }
                       settingsInSheet={!!isMobile}
+                      startPicking={pickingBlockId === block._id}
                       revealIndex={
                         focused?.blockId === block._id ? focused.index : null
                       }
@@ -330,53 +343,33 @@ export const ClientProgramTab = ({
           </SortableContext>
         </DndContext>
 
-        {showBlockSelector ? (
-          <Box
-            ref={blockSelectorRef}
-            p={3}
-            borderRadius="lg"
-            borderWidth="1px"
-            borderColor="whiteAlpha.200"
-            bg="whiteAlpha.50"
-          >
-            <HStack justify="space-between" mb={3}>
-              <Text fontSize="sm" fontWeight="bold" color="fg.muted">
-                Choisir un type de bloc
-              </Text>
-              <Button
-                size="xs"
-                variant="ghost"
-                color="fg.muted"
-                onClick={closeBlockSelector}
-              >
-                Annuler
-              </Button>
-            </HStack>
-            <BlockTypeSelector
-              onSelect={(type) => {
-                onAddBlock(type);
-                setShowBlockSelector(false);
-              }}
+        {/* La palette se déplie à l'endroit du bloc à venir ; sur
+            téléphone, elle monte en feuille. */}
+        {showBlockSelector && !isMobile ? (
+          <Box ref={blockSelectorRef}>
+            <FormatPalette
+              layout="card"
+              onSelect={addBlockOf}
+              onCancel={closeBlockSelector}
             />
           </Box>
         ) : (
-          <Box
-            as="button"
+          <ActionButton
+            tone="ghost"
+            size="md"
+            w="full"
             onClick={() => setShowBlockSelector(true)}
-            alignSelf="flex-start"
-            minH="44px"
-            display="flex"
-            alignItems="center"
-            fontSize="sm"
-            color="fg.muted"
-            _hover={{ color: 'app.primary' }}
-            transition="color 0.15s"
           >
-            <HStack gap={1.5}>
-              <LuPlus size={14} />
-              <Text as="span">Ajouter un bloc</Text>
-            </HStack>
-          </Box>
+            <LuPlus size={18} />
+            Ajouter un bloc
+          </ActionButton>
+        )}
+        {showBlockSelector && isMobile && (
+          <Portal>
+            <Sheet label="Quel format ?" onDismiss={closeBlockSelector}>
+              <FormatPalette layout="sheet" onSelect={addBlockOf} />
+            </Sheet>
+          </Portal>
         )}
 
         {session.blocks.length === 0 && !showBlockSelector && (

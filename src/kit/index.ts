@@ -30,3 +30,4 @@ export { LANDSCAPE, WIDE } from './media';
 export { Ring } from './Ring';
 export { Segments } from './Segments';
 export { Sheet } from './Sheet';
+export { Strokes, type StrokeShape } from './Strokes';

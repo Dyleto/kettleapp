@@ -5,7 +5,7 @@ import { formatName } from '@/domain/session/dose';
 import { ActionButton, Sheet } from '@/kit';
 import { useSheetDismiss } from '@/features/workshop/hooks/useSheetDismiss';
 import { BlockSettings } from './BlockSettings';
-import { BlockTypeSelector } from './BlockTypeSelector';
+import { FormatPalette } from './FormatPalette';
 import { InlineText } from './InlineValue';
 
 interface BlockSheetProps {
@@ -67,7 +67,9 @@ export const BlockSheet = ({
         </HStack>
 
         {picking ? (
-          <BlockTypeSelector
+          <FormatPalette
+            layout="sheet"
+            title=""
             onSelect={(type) => {
               setPicking(false);
               if (type !== block.type) onChangeFormat(type);
