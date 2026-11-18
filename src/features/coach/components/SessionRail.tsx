@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import {
   Box,
   HStack,
@@ -8,7 +9,7 @@ import {
 import { LuGripVertical, LuPlus } from 'react-icons/lu';
 import { CompletedSession, Session } from '@/shared/types';
 import { BLOCK_ACCENT_COLOR, getBlockAccent } from '@/domain/session/blocks';
-import { pulseOf, railLine } from '@/domain/session/rail';
+import { cardLine, pulseOf, railLine } from '@/domain/session/rail';
 import {
   DndContext,
   DragEndEvent,
@@ -21,6 +22,7 @@ import {
 import {
   SortableContext,
   arrayMove,
+  horizontalListSortingStrategy,
   useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
@@ -178,6 +180,98 @@ const RailRow = ({
 };
 
 /**
+ * Une séance de la bande, sur téléphone : la même lecture que le rail, en
+ * carte de 176 px — le nom, la durée, la composition, les cinq ressentis.
+ *
+ * Elle remplace des pastilles « S1 … S6 » qui ne disaient que le rang : il
+ * fallait ouvrir chaque séance pour savoir laquelle était « Full body A ».
+ * Un appui long la soulève pour la déplacer ; un glissement bref fait
+ * défiler la bande — d'où `manipulation`, et non `none` comme sur le rail
+ * d'un écran large, qui ne défile pas de côté.
+ */
+const BandCard = ({
+  session,
+  isActive,
+  tracked,
+  history,
+  onSelect,
+  sortable,
+}: Omit<RowProps, 'actions'>) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: session._id, disabled: !sortable });
+  const cardRef = useRef<HTMLElement | null>(null);
+
+  // La séance ouverte se montre dans la bande : ouverte par son adresse —
+  // la sixième, au retour d'un lien —, elle était hors de l'écran, et rien
+  // ne disait laquelle on lisait.
+  useEffect(() => {
+    if (isActive)
+      cardRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [isActive]);
+
+  const rank = sessionRank(session.order);
+  const name = sessionName(session);
+  const freeName = name === rank ? undefined : name;
+  const done = history.some((c) => c.originalSessionId === session._id);
+
+  return (
+    <Box
+      ref={(node: HTMLElement | null) => {
+        setNodeRef(node);
+        cardRef.current = node;
+      }}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+      }}
+      {...attributes}
+      {...listeners}
+      as="button"
+      onClick={onSelect}
+      // Le même nom que la ligne du rail : un lecteur d'écran entend la
+      // séance de la même façon sur les deux écrans.
+      aria-label={`${rank}${freeName ? ` — ${freeName}` : ''}, ${railLine(session, { tracked, done })}`}
+      aria-current={isActive ? 'true' : undefined}
+      flexShrink={0}
+      w="176px"
+      display="flex"
+      flexDirection="column"
+      gap="7px"
+      px="14px"
+      py="12px"
+      textAlign="left"
+      borderRadius="18px"
+      bg="bg.surface"
+      boxShadow={isActive ? 'inset 0 0 0 2px {colors.app.primary}' : undefined}
+      touchAction="manipulation"
+      data-session-card
+    >
+      <Text fontWeight="700" fontSize="15px" lineClamp={1}>
+        {session.order} · {name}
+      </Text>
+      <Text fontSize="12px" color="fg.muted" lineClamp={1}>
+        {cardLine(session, { tracked, done })}
+      </Text>
+      <Composition session={session} />
+      {/* La place des points reste prise sans eux : les cartes d'une bande
+          ont toutes la même hauteur. */}
+      {tracked && done ? (
+        <EffortDots zones={pulseOf(history, session._id)} />
+      ) : (
+        <Box h="10px" />
+      )}
+    </Box>
+  );
+};
+
+/**
  * Le rail des séances : la navigation du programme, et son bilan.
  *
  * Colonne à partir de `lg`, bande horizontale en dessous — le seuil est
@@ -209,8 +303,8 @@ export const SessionRail = ({
    * v3 (et non 992 comme en v2), est le premier seuil qui passe : il laisse
    * 516 px à l'éditeur, contre 991 px juste en dessous.
    *
-   * En dessous, la bande horizontale S1…S5 fait le même travail sans prendre
-   * un pixel de largeur.
+   * En dessous, une bande de cartes qui défile de côté fait le même travail
+   * sans prendre un pixel de largeur.
    */
   const isDesktop = useBreakpointValue({ base: false, lg: true });
 
@@ -259,7 +353,7 @@ export const SessionRail = ({
 
         <Box
           as="button"
-          onClick={onAddSession}
+          onClick={() => onAddSession()}
           px={3}
           py={2.5}
           minH="44px"
@@ -285,49 +379,47 @@ export const SessionRail = ({
     // du conteneur qui défile, épinglé à droite — visible en permanence, et
     // sans coûter une seconde ligne.
     <HStack gap={2} w="100%" align="center">
-      <HStack
-        gap={2}
-        overflowX="auto"
-        pb={2}
-        flex={1}
-        minW={0}
-        css={{ scrollbarWidth: 'none' }}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        // La bande défile d'elle-même quand le doigt approche d'un bord :
+        // par défaut, dans le dernier cinquième — 63 px sur 318, là même où
+        // se pose le doigt pour échanger une carte avec sa voisine. La
+        // bande filait sous lui, et la carte tombait une place trop loin.
+        autoScroll={{ threshold: { x: 0.1, y: 0 } }}
       >
-        {sessions.map((session, index) => {
-          const isActive = index === activeIndex;
-          return (
-            <Box
-              key={session._id}
-              as="button"
-              onClick={() => onSelect(index)}
-              flexShrink={0}
-              minW="44px"
-              minH="44px"
-              px={3}
-              py={1.5}
-              borderRadius="full"
-              bg={isActive ? 'app.primary' : 'whiteAlpha.100'}
-              color={isActive ? 'bg.canvas' : 'fg.muted'}
-              fontSize="sm"
-              fontWeight="bold"
-              // Estompée quand le client ne l'a jamais faite — et seulement
-              // s'il y a un client : dans un modèle, elles l'étaient toutes.
-              opacity={
-                history &&
-                !history.some((c) => c.originalSessionId === session._id) &&
-                !isActive
-                  ? 0.6
-                  : 1
-              }
-            >
-              S{session.order}
-            </Box>
-          );
-        })}
-      </HStack>
+        <SortableContext
+          items={sessions.map((s) => s._id)}
+          strategy={horizontalListSortingStrategy}
+        >
+          <HStack
+            gap="10px"
+            overflowX="auto"
+            pb={2}
+            flex={1}
+            minW={0}
+            align="stretch"
+            css={{ scrollbarWidth: 'none' }}
+            data-session-band
+          >
+            {sessions.map((session, index) => (
+              <BandCard
+                key={session._id}
+                session={session}
+                isActive={index === activeIndex}
+                tracked={history !== undefined}
+                history={history ?? []}
+                onSelect={() => onSelect(index)}
+                sortable={!!onReorder}
+              />
+            ))}
+          </HStack>
+        </SortableContext>
+      </DndContext>
       <Box
         as="button"
-        onClick={onAddSession}
+        onClick={() => onAddSession()}
         flexShrink={0}
         mb={2}
         minW="44px"

@@ -10,7 +10,14 @@ import {
   makeCompleted,
   makeSession,
 } from '@/domain/fixtures';
-import { daysChip, daysLine, durationLabel, pulseOf, railLine } from './rail';
+import {
+  cardLine,
+  daysChip,
+  daysLine,
+  durationLabel,
+  pulseOf,
+  railLine,
+} from './rail';
 
 const session = makeSession({
   _id: 'seance-1',
@@ -52,6 +59,23 @@ describe('la ligne du rail', () => {
 
   it('une séance sans bloc se dit vide', () => {
     expect(durationLabel(empty)).toBe('vide');
+  });
+});
+
+describe('la ligne d’une carte de la bande', () => {
+  // 176 px de large : les jours n'y tiennent pas avec le reste.
+  it('la durée seule, sans les jours', () => {
+    expect(cardLine(session, { tracked: true, done: true })).toBe('≈ 5 min');
+  });
+
+  it('« jamais faite » reste, faute d’être dit ailleurs sur téléphone', () => {
+    expect(cardLine(session, { tracked: true, done: false })).toBe(
+      '≈ 5 min · jamais faite'
+    );
+  });
+
+  it('dans un modèle, la durée seule', () => {
+    expect(cardLine(session, { tracked: false, done: false })).toBe('≈ 5 min');
   });
 });
 

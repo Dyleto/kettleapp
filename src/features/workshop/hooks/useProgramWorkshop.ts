@@ -91,14 +91,22 @@ export const useProgramWorkshop = ({
    * Une séance vide en fin de programme, ouverte, son nom prêt à l'écriture
    * (`renamingId`) : « Séance 7 » n'est pas un nom, et le premier geste
    * après l'avoir créée est presque toujours de lui en donner un.
+   *
+   * `rename: false` quand la page donne le nom ailleurs : sur téléphone,
+   * la page d'un client l'ouvre dans la feuille de la séance, et le titre
+   * caché, ouvert à l'écriture sans pouvoir prendre le focus, gardait la
+   * demande pour la rejouer plus tard.
    */
   const [renamingId, setRenamingId] = useState<string | null>(null);
-  const addSession = useCallback(() => {
-    const id = actions.addSession();
-    setRenamingId(id);
-    goToSession((program?.sessions.length ?? 0) + 1);
-    return id;
-  }, [actions, goToSession, program?.sessions.length]);
+  const addSession = useCallback(
+    ({ rename = true }: { rename?: boolean } = {}) => {
+      const id = actions.addSession();
+      if (rename) setRenamingId(id);
+      goToSession((program?.sessions.length ?? 0) + 1);
+      return id;
+    },
+    [actions, goToSession, program?.sessions.length]
+  );
 
   /**
    * Supprimer une séance, avec de quoi la remettre.

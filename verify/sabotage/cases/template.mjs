@@ -40,8 +40,8 @@ export default {
       edits: [
         {
           file: 'src/features/coach/components/SessionRail.tsx',
-          from: 'tracked={history !== undefined}',
-          to: 'tracked',
+          from: 'tracked={history !== undefined}\n                history={history ?? []}\n                onSelect={() => onSelect(index)}\n                sortable={!!onReorder}\n                actions=',
+          to: 'tracked\n                history={history ?? []}\n                onSelect={() => onSelect(index)}\n                sortable={!!onReorder}\n                actions=',
         },
       ],
       falls: ["le rail d'un modèle ne dit rien de ce qu'un client aurait fait"],

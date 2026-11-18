@@ -60,6 +60,13 @@ interface Props {
   startRenaming?: boolean;
   onRenamed?: () => void;
   /**
+   * Sur téléphone, la page offre la feuille de la séance (`SessionSheet`)
+   * depuis sa barre du haut : l'en-tête et le mot d'avant séance s'effacent
+   * alors sous `md`. La page d'un modèle n'a pas de barre du haut, et garde
+   * son en-tête.
+   */
+  sessionSheetOnPhone?: boolean;
+  /**
    * Un exercice à mettre en vue en arrivant : sa première ligne dans la
    * séance s'ouvre, et la page défile jusqu'à elle. « Ajuster » depuis « À
    * lire » le désigne ; absent, rien ne s'ouvre.
@@ -154,6 +161,7 @@ export const ClientProgramTab = ({
   onUpdateSessionName,
   startRenaming = false,
   onRenamed,
+  sessionSheetOnPhone = false,
   focusExerciseId,
   onOpenExerciseSheet,
   inProgram,
@@ -247,36 +255,52 @@ export const ClientProgramTab = ({
   return (
     <>
       <VStack align="stretch" gap={4}>
-        <SessionHeader
-          session={session}
-          onRename={onUpdateSessionName}
-          onDays={onUpdateSessionDays}
-          onRenamed={onRenamed}
-          renameRequest={renameRequest}
-          actions={[
-            {
-              value: 'rename',
-              label: 'Renommer',
-              icon: <LuPencil size={14} />,
-              onSelect: () => setRenameRequest((n) => n + 1),
-            },
-            // Le mot que le client lit avant de commencer : une invitation
-            // permanente sous chaque titre était la septième de l'écran, et
-            // la plupart des séances s'en passent. Il s'écrit d'ici.
-            {
-              value: 'note',
-              label: hasNote
-                ? 'Modifier le mot d’avant séance'
-                : 'Ajouter un mot d’avant séance',
-              icon: <LuMessageSquarePlus size={14} />,
-              onSelect: () => setNoteRequested(true),
-            },
-            ...menuActions,
-          ]}
-        />
+        <Box
+          display={{
+            base: sessionSheetOnPhone ? 'none' : 'block',
+            md: 'block',
+          }}
+        >
+          <SessionHeader
+            session={session}
+            onRename={onUpdateSessionName}
+            onDays={onUpdateSessionDays}
+            onRenamed={onRenamed}
+            renameRequest={renameRequest}
+            actions={[
+              {
+                value: 'rename',
+                label: 'Renommer',
+                icon: <LuPencil size={14} />,
+                onSelect: () => setRenameRequest((n) => n + 1),
+              },
+              // Le mot que le client lit avant de commencer : une invitation
+              // permanente sous chaque titre était la septième de l'écran, et
+              // la plupart des séances s'en passent. Il s'écrit d'ici.
+              {
+                value: 'note',
+                label: hasNote
+                  ? 'Modifier le mot d’avant séance'
+                  : 'Ajouter un mot d’avant séance',
+                icon: <LuMessageSquarePlus size={14} />,
+                onSelect: () => setNoteRequested(true),
+              },
+              ...menuActions,
+            ]}
+          />
+        </Box>
 
         {showsNote && (
-          <Box className="group" w="fit-content" maxW="full" mt={-2}>
+          <Box
+            className="group"
+            w="fit-content"
+            maxW="full"
+            mt={-2}
+            display={{
+              base: sessionSheetOnPhone ? 'none' : 'block',
+              md: 'block',
+            }}
+          >
             <InlineText
               value={session.notes}
               onChange={(notes) => onUpdateSessionNotes(notes ?? '')}

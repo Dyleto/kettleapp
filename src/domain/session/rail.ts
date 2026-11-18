@@ -57,6 +57,24 @@ export const railLine = (
     .join(' · ');
 
 /**
+ * La ligne d'une carte de la bande, sur téléphone : « ≈ 45 min », ou
+ * « ≈ 25 min · jamais faite ».
+ *
+ * Sans les jours : la carte fait 176 px, et « ≈ 45 min · lun, jeu ·
+ * jamais faite » s'y coupait au milieu. Les jours se lisent dans la feuille
+ * de la séance. « jamais faite » reste, parce que la maquette ne le dit
+ * nulle part ailleurs sur téléphone : sans lui, la bande perdait ce que les
+ * pastilles estompées disaient.
+ */
+export const cardLine = (
+  session: Session,
+  { tracked, done }: { tracked: boolean; done: boolean }
+): string =>
+  [durationLabel(session), tracked && !done ? 'jamais faite' : '']
+    .filter(Boolean)
+    .join(' · ');
+
+/**
  * Les cinq derniers ressentis d'une séance, du plus ancien au plus récent :
  * la zone de chacun, `null` pour un bilan sans ressenti ou une place vide.
  *

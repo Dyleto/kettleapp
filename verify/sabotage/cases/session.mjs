@@ -221,7 +221,13 @@ export default {
     },
     {
       name: '« + Séance » n’ouvre plus le nom',
-      edits: [{ file: WORKSHOP, from: '    setRenamingId(id);\n', to: '' }],
+      edits: [
+        {
+          file: WORKSHOP,
+          from: '      if (rename) setRenamingId(id);\n',
+          to: '',
+        },
+      ],
       falls: [
         '« + Séance » ouvre la séance neuve sur son nom, prêt à la frappe',
         '→ le nom tapé part au serveur',

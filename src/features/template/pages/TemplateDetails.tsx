@@ -273,7 +273,7 @@ const TemplateDetails = () => {
                   color="bg.canvas"
                   fontWeight="bold"
                   minH="44px"
-                  onClick={addSession}
+                  onClick={() => addSession()}
                   _hover={{ bg: 'app.primary.hover' }}
                 >
                   Ajouter une séance

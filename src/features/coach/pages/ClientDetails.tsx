@@ -12,7 +12,7 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { LuArrowLeft, LuBookOpen } from 'react-icons/lu';
+import { LuArrowLeft, LuBookOpen, LuEllipsis } from 'react-icons/lu';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -25,6 +25,7 @@ import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { useSessionMenu } from '@/features/coach/hooks/useSessionMenu';
 import { useSessionSheets } from '@/features/coach/hooks/useSessionSheets';
 import { SessionRail } from '@/features/coach/components/SessionRail';
+import { SessionSheet } from '@/features/coach/components/SessionSheet';
 import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
 import {
   ActionButton,
@@ -115,6 +116,13 @@ const ClientDetails = () => {
   // 1 280 px, la colonne de droite la porte, et l'atelier reste lisible à
   // côté. En dessous, un tiroir la pose par-dessus, comme avant.
   const [asideExercise, setAsideExercise] = useState<Exercise | null>(null);
+  // Sur téléphone, la séance ouverte se règle dans une feuille, ouverte par
+  // le « ⋯ » de la barre du haut ; `focusName` quand elle vient d'être
+  // créée, pour lui donner un nom tout de suite.
+  const isPhone = useBreakpointValue({ base: true, md: false });
+  const [sessionSheet, setSessionSheet] = useState<{
+    focusName: boolean;
+  } | null>(null);
 
   const sessions = program?.sessions ?? [];
 
@@ -248,6 +256,23 @@ const ClientDetails = () => {
               />
             )}
           </Box>
+          {/* Le « ⋯ » de la séance ouverte : sur téléphone, son en-tête
+              s'efface, et ce qu'il réglait passe dans une feuille. */}
+          {activeSession && (
+            <Box
+              as="button"
+              aria-label={`Menu de la séance ${activeSession.order}`}
+              onClick={() => setSessionSheet({ focusName: false })}
+              color="fg.muted"
+              flexShrink={0}
+              boxSize="44px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <LuEllipsis size={20} />
+            </Box>
+          )}
           <Header />
         </HStack>
       </Box>
@@ -316,7 +341,14 @@ const ClientDetails = () => {
             sessions={program.sessions}
             activeIndex={currentIndex}
             onSelect={(index) => goToSession(index + 1)}
-            onAddSession={addSession}
+            onAddSession={() => {
+              // Sur téléphone, le nom d'une séance neuve s'écrit dans sa
+              // feuille : son titre y est caché.
+              if (isPhone) {
+                addSession({ rename: false });
+                setSessionSheet({ focusName: true });
+              } else addSession();
+            }}
             onReorder={actions.reorderSessions}
             history={history}
             menuFor={(session) => actionsFor(session)}
@@ -335,6 +367,7 @@ const ClientDetails = () => {
                   key={activeSession._id}
                   {...workshopProps}
                   menuActions={actionsFor(activeSession, { rename: false })}
+                  sessionSheetOnPhone
                   focusExerciseId={focusExerciseId}
                   onOpenExerciseSheet={isWide ? setAsideExercise : undefined}
                 />
@@ -349,7 +382,7 @@ const ClientDetails = () => {
                     color="bg.canvas"
                     fontWeight="bold"
                     minH="44px"
-                    onClick={addSession}
+                    onClick={() => addSession()}
                     _hover={{ bg: 'app.primary.hover' }}
                   >
                     Ajouter une séance
@@ -419,6 +452,22 @@ const ClientDetails = () => {
         </Stack>
 
         {sheets}
+
+        {sessionSheet && activeSession && workshopProps && (
+          <SessionSheet
+            // Une autre séance ouverte sous la feuille — une copie, une
+            // séance neuve — en remet le nom à jour.
+            key={activeSession._id}
+            session={activeSession}
+            onRename={workshopProps.onUpdateSessionName}
+            onDays={workshopProps.onUpdateSessionDays}
+            onNotes={workshopProps.onUpdateSessionNotes}
+            actions={actionsFor(activeSession, { rename: false })}
+            clientFirstName={client.firstName}
+            focusName={sessionSheet.focusName}
+            onClose={() => setSessionSheet(null)}
+          />
+        )}
 
         <ProgramSaveStatus
           state={saveState}
