@@ -114,6 +114,57 @@ export const exerciseDose = (
 };
 
 /**
+ * La dose d'un exercice dans l'atelier : ce que le coach relit avant de
+ * toucher quoi que ce soit — « 4 × 10 · repos 1 min », « 15 reps »,
+ * « 1 min », « 500 m ».
+ *
+ * Plus bavarde que celle du client (`exerciseDose`) : « reps » s'écrit,
+ * parce que le coach compare une ligne en répétitions à sa voisine en
+ * durée, et le repos se lit sur la ligne qu'il règle. `null` quand rien
+ * n'est prescrit — l'écran écrit alors « à régler » : un nombre manquant
+ * se voit, au lieu de partir chez le client comme une ligne vide.
+ *
+ * Une échelle porte sa propre mesure : sa ligne dit « au palier », le
+ * nombre que la marche du moment demande. Un Tabata ou un On/Off se dose au
+ * temps de travail du bloc : sans nombre, sa ligne rend une chaîne vide et
+ * non `null` — il n'y a rien à y régler.
+ */
+export const coachDose = (
+  block: SessionBlock,
+  exercise: BlockExercise
+): string | null => {
+  if (blockDefinesOwnMetrics(block.type)) return 'au palier';
+  const sets =
+    block.type === 'classic' || block.type === 'warmup'
+      ? (exercise.sets ?? 1)
+      : 1;
+  const work = exercise.reps
+    ? sets > 1
+      ? String(exercise.reps)
+      : `${exercise.reps}${NBSP}reps`
+    : exercise.duration
+      ? formatDuration(exercise.duration)
+      : exercise.customMetric
+        ? `${exercise.customMetric.value}${NBSP}${exercise.customMetric.unit}`
+        : '';
+  // Tabata et On/Off se dosent au temps de travail du bloc : sans
+  // répétitions, la ligne est complète, pas à régler.
+  if (!work)
+    return sets > 1
+      ? `${sets} séries`
+      : blockSupportsRepsOnly(block.type)
+        ? ''
+        : null;
+  const rest = sets > 1 ? restBetweenSetsOf(block, exercise) : undefined;
+  return [
+    sets > 1 ? `${sets} × ${work}` : work,
+    rest ? `repos ${formatDuration(rest)}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ');
+};
+
+/**
  * La ligne sous le nom : le repos entre séries, puis la dernière charge.
  *
  * « la dernière fois 26 kg » est la série la plus lourde du dernier bilan

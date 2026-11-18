@@ -174,6 +174,22 @@ export const useProgramWorkshop = ({
   };
 
   /**
+   * Une copie de l'exercice, juste sous lui : même mouvement, même dose,
+   * même consigne. Le geste du coach qui veut « le même, à une autre
+   * charge » — il le cherchait dans la bibliothèque et refaisait la dose.
+   *
+   * Sans bannière : rien n'est perdu, et « Retirer » sur la copie la défait.
+   */
+  const duplicateExercise = (blockId: string, index: number) => {
+    const block = activeSession?.blocks.find((b) => b._id === blockId);
+    const original = block?.exercises[index];
+    if (!activeSession || !original) return;
+    actions.insertExercise(activeSession._id, blockId, index + 1, {
+      ...original,
+    });
+  };
+
+  /**
    * Ce que l'atelier attend en propriétés, prêt à être étalé.
    *
    * Rendu d'un bloc plutôt que champ par champ : les deux écrans passent
@@ -198,6 +214,7 @@ export const useProgramWorkshop = ({
     onAddExercise: (blockId: string, exercise: Exercise) =>
       actions.addExercise(activeSession._id, blockId, exercise),
     onRemoveExercise: removeExercise,
+    onDuplicateExercise: duplicateExercise,
     onUpdateExercise: (
       blockId: string,
       index: number,

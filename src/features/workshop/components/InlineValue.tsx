@@ -38,6 +38,16 @@ interface InlineValueProps {
    * lirait comme « ça n'enregistre pas ».
    */
   decimals?: boolean;
+  /**
+   * S'ouvre en champ dès qu'il paraît.
+   *
+   * « Autre unité » demande une valeur : le champ se présente prêt à la
+   * frappe, au lieu d'afficher « 100 m » qu'il faudrait d'abord viser.
+   */
+  startOpen?: boolean;
+  /** La taille du nombre, au repos comme en saisie : celui d'un pas de la
+   * feuille se lit à bout de bras, celui d'une ligne dans le flux. */
+  fontSize?: string;
 }
 
 /**
@@ -56,11 +66,17 @@ export const InlineValue = ({
   clearable = false,
   format,
   decimals = false,
+  startOpen = false,
+  fontSize = 'sm',
 }: InlineValueProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState('');
+  const [isEditing, setIsEditing] = useState(startOpen);
+  const [draft, setDraft] = useState(
+    startOpen && value !== undefined ? String(value) : ''
+  );
   /** Ce qu'il y avait avant l'ouverture — ce qu'Échap doit rendre. */
-  const [initial, setInitial] = useState<number | undefined>(undefined);
+  const [initial, setInitial] = useState<number | undefined>(
+    startOpen ? value : undefined
+  );
 
   const open = () => {
     setInitial(value);
@@ -112,7 +128,7 @@ export const InlineValue = ({
         autoFocus
         size="xs"
         w={width}
-        h="22px"
+        h={fontSize === 'sm' ? '22px' : '1.4em'}
         px={1}
         textAlign="center"
         // `numeric` affiche sur iPhone un pavé sans séparateur décimal : on
@@ -136,7 +152,8 @@ export const InlineValue = ({
         borderColor="app.primary.border"
         borderRadius="sm"
         fontVariantNumeric="tabular-nums"
-        fontSize="sm"
+        fontSize={fontSize}
+        fontWeight={fontSize === 'sm' ? undefined : 'bold'}
       />
     );
   }
@@ -163,8 +180,10 @@ export const InlineValue = ({
       <Text
         as="span"
         fontVariantNumeric="tabular-nums"
-        fontSize="sm"
-        fontWeight={isEmpty ? 'normal' : 'semibold'}
+        fontSize={fontSize}
+        fontWeight={
+          isEmpty ? 'normal' : fontSize === 'sm' ? 'semibold' : 'bold'
+        }
         color={isEmpty ? 'fg.muted' : 'fg'}
       >
         {isEmpty

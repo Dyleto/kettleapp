@@ -169,10 +169,11 @@ const main = async () => {
 
   // L'écart avant/après ouverture, et non un compte absolu.
   //
-  // Deux raisons. D'abord les lignes du programme portent elles aussi un
-  // « Ouvrir la fiche de… » depuis ce commit : un compte pris sur toute la
-  // page additionnait les deux — 19 là où le sélecteur en porte 11 — et
-  // serait resté vert même si le sélecteur n'en portait plus aucun. Ensuite
+  // Deux raisons. D'abord une ligne ouverte du programme porte elle aussi un
+  // « Ouvrir la fiche de… » : un compte pris sur toute la page additionnait
+  // les deux — 19 là où le sélecteur en porte 11, quand chaque ligne avait
+  // le sien — et serait resté vert même si le sélecteur n'en portait plus
+  // aucun. Ensuite
   // le sélecteur n'a pas la même forme selon la largeur : un tiroir sur
   // desktop, une liste posée dans le bloc sur mobile. Cadrer sur `dialog`
   // ne voyait donc que la première, et comptait zéro sur la seconde.
@@ -229,6 +230,14 @@ const main = async () => {
   await p.goto(WORKSHOP, { waitUntil: 'domcontentloaded' });
   await settle(p);
 
+  // La fiche est un réglage de la ligne : elle s'offre une fois la ligne
+  // ouverte, avec les autres (E5).
+  await p
+    .locator('main [data-exercise-row] > button')
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
   const inProgram = p
     .locator('main')
     .getByRole('button', { name: /^Ouvrir la fiche de / });
@@ -277,13 +286,15 @@ const main = async () => {
         await done.click();
         await gone(p.getByRole('dialog'));
 
+        // La ligne d'où elle est partie est toujours ouverte : travailler
+        // dans la fiche n'est pas cliquer à côté de la ligne.
         ok(
-          '  → elle referme la fiche et rend le programme',
+          '  → elle referme la fiche et rend le programme, la ligne ouverte',
           (await p.getByRole('dialog').count()) === 0 &&
             (await p
               .locator('main')
               .getByRole('button', { name: /^Ouvrir la fiche de / })
-              .count()) > 0
+              .count()) === 1
         );
 
         const kept = (await library()).find((e) => e.name === name);
@@ -352,8 +363,8 @@ const main = async () => {
   ok(
     '  → le mouvement créé est bien dans le bloc',
     (await m
-      .locator('main')
-      .getByRole('button', { name: `Ouvrir la fiche de ${MOBILE_NAME}` })
+      .locator('main [data-exercise-row]')
+      .filter({ hasText: MOBILE_NAME })
       .count()) === 1
   );
 

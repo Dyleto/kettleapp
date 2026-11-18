@@ -24,6 +24,7 @@ export { hitArea, touchGap, touchHitArea, touchRow, TOUCH } from './hitArea';
 export { LinkButton } from './LinkButton';
 export { LoadFailure } from './LoadFailure';
 export { Mascot, type MascotMood } from './Mascot';
+export { PillButton, type PillButtonProps } from './PillButton';
 export { NavRail, TabBar, type NavEntry } from './Navigation';
 export { LANDSCAPE, WIDE } from './media';
 export { Ring } from './Ring';

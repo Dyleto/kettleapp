@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  coachDose,
   blockChips,
   exerciseDose,
   exerciseSub,
@@ -164,5 +165,100 @@ describe('hasInstructions', () => {
         })
       )
     ).toBe(true);
+  });
+});
+
+describe('coachDose — la dose que le coach relit', () => {
+  const classic = makeBlock({ type: 'classic' });
+  it('« 15 reps » : l’unité s’écrit', () => {
+    expect(n(coachDose(classic, makeBlockExercise({ reps: 15 })) ?? '')).toBe(
+      '15 reps'
+    );
+  });
+
+  it('« 4 × 10 · repos 1 min » : les séries, puis le repos', () => {
+    expect(
+      n(
+        coachDose(
+          classic,
+          makeBlockExercise({ sets: 4, reps: 10, restBetweenSets: 60 })
+        ) ?? ''
+      )
+    ).toBe('4 × 10 · repos 1 min');
+  });
+
+  // Une série unique n'a pas de repos entre séries : il ne s'écrit pas.
+  it('sans série, pas de repos', () => {
+    expect(
+      n(
+        coachDose(
+          classic,
+          makeBlockExercise({ reps: 10, restBetweenSets: 60 })
+        ) ?? ''
+      )
+    ).toBe('10 reps');
+  });
+
+  it('une durée, une mesure libre', () => {
+    expect(
+      n(coachDose(classic, makeBlockExercise({ duration: 60 })) ?? '')
+    ).toBe('1 min');
+    expect(
+      n(
+        coachDose(
+          classic,
+          makeBlockExercise({ customMetric: { value: 500, unit: 'm' } })
+        ) ?? ''
+      )
+    ).toBe('500 m');
+  });
+
+  // Un nombre manquant se voit : l'écran écrit « à régler ».
+  it('rien de prescrit : `null`', () => {
+    expect(coachDose(classic, makeBlockExercise({}))).toBeNull();
+  });
+
+  it('des séries sans répétitions : « 3 séries »', () => {
+    expect(n(coachDose(classic, makeBlockExercise({ sets: 3 })) ?? '')).toBe(
+      '3 séries'
+    );
+  });
+
+  // Le bloc porte la mesure : rien à régler sur la ligne.
+  it('un Tabata sans nombre : chaîne vide, pas « à régler »', () => {
+    expect(
+      coachDose(makeBlock({ type: 'tabata' }), makeBlockExercise({}))
+    ).toBe('');
+  });
+
+  // Les répétitions viennent des paliers, pas de la ligne.
+  it('une échelle : « au palier », quoi que porte la ligne', () => {
+    expect(
+      coachDose(makeBlock({ type: 'ladder' }), makeBlockExercise({ reps: 5 }))
+    ).toBe('au palier');
+  });
+
+  it('un Tabata avec des répétitions les dit', () => {
+    expect(
+      n(
+        coachDose(
+          makeBlock({ type: 'tabata' }),
+          makeBlockExercise({ reps: 8 })
+        ) ?? ''
+      )
+    ).toBe('8 reps');
+  });
+
+  // Hors bloc classique, les séries ne comptent pas : un AMRAP se fait en
+  // tours.
+  it('un AMRAP ignore les séries', () => {
+    expect(
+      n(
+        coachDose(
+          makeBlock({ type: 'amrap' }),
+          makeBlockExercise({ sets: 4, reps: 12 })
+        ) ?? ''
+      )
+    ).toBe('12 reps');
   });
 });

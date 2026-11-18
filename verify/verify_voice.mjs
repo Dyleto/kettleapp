@@ -271,6 +271,13 @@ const browser = await launch();
     .click();
   await appears(p, 'Dernières séances');
   const card = p.getByRole('button').filter({ hasText: 'Dur sur la fin' });
+  // Le titre paraît avant l'historique, qui arrive par sa propre requête :
+  // compté dès le titre, sous la charge des quatre files, il n'y avait
+  // encore aucune carte. On attend la carte, pas le titre.
+  await card
+    .first()
+    .waitFor({ timeout: 6000 })
+    .catch(() => {});
   ok("l'aperçu montre la séance commentée", (await card.count()) >= 1);
   if (await card.count()) await card.first().click();
   await settle(p);

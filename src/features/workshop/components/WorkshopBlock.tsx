@@ -1,381 +1,15 @@
-import {
-  Box,
-  HStack,
-  IconButton,
-  Input,
-  Menu,
-  Portal,
-  Text,
-} from '@chakra-ui/react';
+import { Box, HStack, IconButton, Menu, Portal, Text } from '@chakra-ui/react';
 import { useState } from 'react';
-import {
-  LuEllipsis,
-  LuGripVertical,
-  LuMessageSquare,
-  LuPlus,
-  LuTrash2,
-  LuX,
-} from 'react-icons/lu';
-import { BlockExercise, Exercise, SessionBlock } from '@/shared/types';
-import {
-  blockDefinesOwnMetrics,
-  blockIndexPrefix,
-  blockSupportsSets,
-  getBlockLabel,
-} from '@/domain/session/blocks';
+import { LuEllipsis, LuGripVertical, LuPlus, LuTrash2 } from 'react-icons/lu';
+import { Exercise, SessionBlock } from '@/shared/types';
+import { getBlockLabel } from '@/domain/session/blocks';
 import { BlockFrame } from './BlockFrame';
-import { touchGap, touchHitArea, touchRow } from '@/kit';
-import { formatDuration } from '@/shared/utils/formatters';
-import { InlineText, InlineValue } from './InlineValue';
+import { touchGap, touchHitArea } from '@/kit';
+import { InlineText } from './InlineValue';
 import { BlockConfigInline } from './BlockConfigInline';
 import { InlineExercisePicker } from './InlineExercisePicker';
-
-type MetricKind = 'reps' | 'duration' | 'custom';
-
-const kindOf = (ex: BlockExercise): MetricKind =>
-  ex.duration !== undefined
-    ? 'duration'
-    : ex.customMetric !== undefined
-      ? 'custom'
-      : 'reps';
-
-const NEXT_KIND: Record<MetricKind, MetricKind> = {
-  reps: 'duration',
-  duration: 'custom',
-  custom: 'reps',
-};
-
-const KIND_LABEL: Record<MetricKind, string> = {
-  reps: 'répétitions',
-  duration: 'durée',
-  custom: 'mesure libre',
-};
-
-/** Le même, assez court pour tenir dans la gouttière d'une ligne. */
-const KIND_SHORT: Record<MetricKind, string> = {
-  reps: 'reps',
-  duration: 'durée',
-  custom: 'libre',
-};
-
-type ExerciseUpdate = Partial<Omit<BlockExercise, 'exercise'>>;
-
-interface ExerciseRowProps {
-  exercise: BlockExercise;
-  block: SessionBlock;
-  index: number;
-  onUpdate: (updates: ExerciseUpdate) => void;
-  onRemove: () => void;
-  /** Absent quand la ligne se lit sans pouvoir ouvrir la fiche du
-   * mouvement. */
-  onOpenSheet?: () => void;
-}
-
-const ExerciseRow = ({
-  exercise,
-  block,
-  index,
-  onUpdate,
-  onRemove,
-  onOpenSheet,
-}: ExerciseRowProps) => {
-  // La consigne d'un exercice n'a pas d'invitation permanente sous chaque
-  // ligne : cinq exercices, ce seraient cinq « + consigne » à lire avant de
-  // lire le programme. Elle s'ouvre depuis la gouttière, où vivent déjà les
-  // commandes de la ligne, et ne s'affiche ensuite que si elle existe.
-  const [noteOpen, setNoteOpen] = useState(false);
-  const hasNote = !!exercise.note?.trim();
-
-  const kind = kindOf(exercise);
-  const supportsSets = blockSupportsSets(block.type);
-  const ownMetrics = blockDefinesOwnMetrics(block.type);
-  const showPrefix = blockIndexPrefix(block.type);
-
-  const switchKind = () => {
-    const next = NEXT_KIND[kind];
-    if (next === 'reps')
-      onUpdate({ reps: 10, duration: undefined, customMetric: undefined });
-    if (next === 'duration')
-      onUpdate({ duration: 30, reps: undefined, customMetric: undefined });
-    if (next === 'custom')
-      onUpdate({
-        customMetric: { value: 100, unit: 'm' },
-        reps: undefined,
-        duration: undefined,
-      });
-  };
-
-  const row = (
-    // La ligne se répartit d'elle-même sur deux niveaux quand le nom n'a plus
-    // la place. Aucun point de rupture deviné : c'est la largeur réellement
-    // disponible qui décide, et elle ne dépend pas du seul écran — à 768 px
-    // le rail des séances apparaît et ne laisse au nom que 116 px, moins qu'à
-    // 390 px. La mesure garde son `ml="auto"` : alignée à droite qu'elle soit
-    // sur la même ligne ou sur la suivante.
-    //
-    // Tout repose sur le `flex-basis` du nom, laissé à `auto` : la base est
-    // alors la largeur du nom écrit d'un trait. Un nom court tient à côté de
-    // la mesure et la ligne ne casse pas ; un nom long ne tient pas, et c'est
-    // ce qui déclenche le repli. `flex={1}` — une base nulle — ne cassait
-    // jamais, et un `min-width` en pourcentage est circulaire ici : la
-    // largeur du conteneur dépend des lignes, les lignes du minimum, le
-    // minimum du conteneur. Chromium le traite alors comme nul au moment du
-    // repli.
-    <HStack
-      // Un point d'ancrage stable pour les mesures de mise en page : sans lui,
-      // une sonde doit remonter le DOM en comptant les niveaux, et le moindre
-      // regroupement la casse sans rien casser dans l'application.
-      data-exercise-row
-      py={1.5}
-      gap={3}
-      rowGap={1}
-      flexWrap="wrap"
-      align="center"
-      css={{
-        ...touchRow,
-        // Visibles en permanence, en retrait : à opacité nulle, un coach qui
-        // découvrait l'éditeur ne pouvait pas deviner qu'un bloc se déplace
-        // ou se supprime — la commande n'existait qu'une fois survolée.
-        '&:hover [data-row-gutter], &:focus-within [data-row-gutter]': {
-          opacity: 1,
-        },
-      }}
-    >
-      <HStack gap={1} flex="1 1 auto" minW={0}>
-        {showPrefix && (
-          <Text fontSize="sm" color="fg.muted" flexShrink={0}>
-            {index + 1} ·
-          </Text>
-        )}
-        {/* Deux lignes plutôt qu'une : « Soulevé de terre jambes tendues
-            à la barre » en demande deux même sur toute la largeur d'un
-            téléphone. */}
-        {/* Le nom est la porte vers la fiche du mouvement — description,
-            vidéo, consigne générale. Elle n'était atteignable que depuis le
-            sélecteur, donc un coach qui voulait corriger la vidéo d'un
-            exercice déjà posé devait le rechercher comme s'il voulait
-            l'ajouter, ou quitter le programme pour la bibliothèque.
-            Souligné au survol et au focus : sans cela rien ne distingue un
-            nom cliquable d'un nom écrit, comme pour les valeurs. */}
-        {onOpenSheet ? (
-          <Box
-            as="button"
-            aria-label={`Ouvrir la fiche de ${exercise.exercise.name}`}
-            onClick={onOpenSheet}
-            textAlign="left"
-            minW={0}
-            fontSize="sm"
-            color="fg.muted"
-            lineClamp={2}
-            _hover={{ color: 'fg', textDecoration: 'underline' }}
-            _focusVisible={{ color: 'fg', textDecoration: 'underline' }}
-          >
-            {exercise.exercise.name}
-          </Box>
-        ) : (
-          <Text fontSize="sm" color="fg.muted" lineClamp={2}>
-            {exercise.exercise.name}
-          </Text>
-        )}
-      </HStack>
-
-      {/* La prescription, alignée à droite en chiffres tabulaires : c'est
-          ce qu'on balaye verticalement en relisant une séance. */}
-      {/* La prescription et les commandes ne font qu'un : sans ce
-          groupe, elles se repliaient indépendamment et les commandes se
-          retrouvaient seules sur la ligne du dessous, à gauche,
-          orphelines. */}
-      <HStack gap={3} flexShrink={0} ml="auto" align="center">
-        {!ownMetrics && (
-          <HStack gap={1} flexShrink={0}>
-            {supportsSets && (
-              <>
-                {/* Sans nombre écrit, l'exercice se fait une fois : « 1 » est
-                  la lecture juste, et c'est aussi la cible à cliquer pour en
-                  demander plusieurs. */}
-                <InlineValue
-                  value={exercise.sets}
-                  onChange={(v) => onUpdate({ sets: v })}
-                  ariaLabel={`Séries — ${exercise.exercise.name}`}
-                  emptyLabel="1"
-                  min={1}
-                  width="44px"
-                  clearable
-                />
-                <Text as="span" fontSize="sm" color="fg.muted">
-                  ×
-                </Text>
-              </>
-            )}
-
-            {kind === 'reps' && (
-              <InlineValue
-                value={exercise.reps}
-                onChange={(v) => onUpdate({ reps: v })}
-                suffix="reps"
-                ariaLabel={`Répétitions — ${exercise.exercise.name}`}
-                width="56px"
-              />
-            )}
-            {kind === 'duration' && (
-              <InlineValue
-                value={exercise.duration}
-                onChange={(v) => onUpdate({ duration: v })}
-                suffix="s"
-                format={formatDuration}
-                ariaLabel={`Durée — ${exercise.exercise.name}`}
-                width="56px"
-              />
-            )}
-            {kind === 'custom' && (
-              <HStack gap={1}>
-                <InlineValue
-                  value={exercise.customMetric?.value}
-                  onChange={(v) =>
-                    onUpdate({
-                      customMetric: {
-                        value: v ?? 0,
-                        unit: exercise.customMetric?.unit || 'm',
-                      },
-                    })
-                  }
-                  ariaLabel={`Mesure — ${exercise.exercise.name}`}
-                  width="56px"
-                  // La seule mesure du programme que l'API déclare en nombre
-                  // et non en entier : « 22,5 kg », « 1,5 km ». Les
-                  // répétitions, les séries et les tours restent entiers.
-                  decimals
-                />
-                <Input
-                  size="xs"
-                  w="44px"
-                  h="22px"
-                  px={1}
-                  textAlign="center"
-                  aria-label={`Unité — ${exercise.exercise.name}`}
-                  value={exercise.customMetric?.unit ?? ''}
-                  onChange={(e) =>
-                    onUpdate({
-                      customMetric: {
-                        value: exercise.customMetric?.value ?? 0,
-                        unit: e.target.value,
-                      },
-                    })
-                  }
-                  bg="whiteAlpha.50"
-                  borderColor="whiteAlpha.100"
-                  borderRadius="sm"
-                  fontSize="xs"
-                />
-              </HStack>
-            )}
-
-            {supportsSets && (exercise.sets ?? 1) > 1 && (
-              <HStack gap={1} pl={2}>
-                <Text as="span" fontSize="xs" color="fg.muted">
-                  repos
-                </Text>
-                <InlineValue
-                  value={exercise.restBetweenSets}
-                  onChange={(v) => onUpdate({ restBetweenSets: v })}
-                  suffix="s"
-                  format={formatDuration}
-                  emptyLabel="aucun"
-                  ariaLabel={`Repos entre séries — ${exercise.exercise.name}`}
-                  width="52px"
-                  clearable
-                />
-              </HStack>
-            )}
-          </HStack>
-        )}
-
-        {/* La gouttière : révélée au survol ou au focus clavier, visible
-          en permanence au tactile, où le survol n'existe pas. */}
-        <HStack
-          data-row-gutter
-          gap={2}
-          css={touchGap}
-          flexShrink={0}
-          opacity={{ base: 1, md: 0.35 }}
-          transition="opacity 0.15s"
-        >
-          <IconButton
-            aria-label={
-              hasNote
-                ? `Modifier la consigne — ${exercise.exercise.name}`
-                : `Ajouter une consigne — ${exercise.exercise.name}`
-            }
-            title={hasNote ? 'Modifier la consigne' : 'Ajouter une consigne'}
-            css={touchHitArea()}
-            size="2xs"
-            variant="ghost"
-            color={hasNote ? 'app.primary' : 'fg.muted'}
-            onClick={() => setNoteOpen(true)}
-          >
-            <LuMessageSquare size={11} />
-          </IconButton>
-          {!ownMetrics && (
-            /* « ⇄ » ne disait ni qu'il remplace, ni qu'il échange, ni
-                           qu'il inverse — un pictogramme que son auteur doit expliquer
-                           n'en est pas un. Le mot porte deux informations dont la flèche
-                           ne portait aucune : ce que cette ligne mesure aujourd'hui, et
-                           qu'on peut en changer. */
-            <Box
-              as="button"
-              aria-label={`Changer l'unité (actuellement : ${KIND_LABEL[kind]}) — ${exercise.exercise.name}`}
-              title={`Mesure en ${KIND_LABEL[kind]} — changer`}
-              onClick={switchKind}
-              css={touchHitArea()}
-              fontSize="10px"
-              fontWeight="bold"
-              letterSpacing="wide"
-              textTransform="uppercase"
-              color="fg.muted"
-              _hover={{ color: 'app.primary' }}
-              transition="color 0.15s"
-            >
-              {KIND_SHORT[kind]}
-            </Box>
-          )}
-          <IconButton
-            aria-label={`Retirer ${exercise.exercise.name}`}
-            title="Retirer cet exercice"
-            css={touchHitArea()}
-            size="2xs"
-            variant="ghost"
-            color="fg.muted"
-            _hover={{ color: 'app.error' }}
-            onClick={onRemove}
-          >
-            <LuX size={12} />
-          </IconButton>
-        </HStack>
-      </HStack>
-    </HStack>
-  );
-
-  return (
-    <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
-      {row}
-      {/* La consigne se place sous sa ligne, hors du calcul de repli de
-          cette ligne, et n'apparaît que lorsqu'elle existe ou vient d'être
-          demandée. */}
-      {(hasNote || noteOpen) && (
-        <Box pb={1.5} pl={1}>
-          <InlineText
-            value={exercise.note}
-            onChange={(note) => onUpdate({ note })}
-            addLabel="+ consigne"
-            ariaLabel={`Consigne — ${exercise.exercise.name}`}
-            startOpen={noteOpen && !hasNote}
-            multiline
-          />
-        </Box>
-      )}
-    </Box>
-  );
-};
+import { ExerciseRow } from './ExerciseRow';
+import type { ExerciseUpdate } from './ExerciseSettings';
 
 interface WorkshopBlockProps {
   block: SessionBlock;
@@ -387,6 +21,15 @@ interface WorkshopBlockProps {
   onAddExercise: (exercise: Exercise) => void;
   onRemoveExercise: (index: number) => void;
   onUpdateExercise: (index: number, updates: ExerciseUpdate) => void;
+  /** Place une copie juste sous l'exercice. */
+  onDuplicateExercise: (index: number) => void;
+  /** La ligne ouverte dans ce bloc, s'il y en a une. Tenue au-dessus des
+   * blocs : une seule ligne est ouverte dans toute la séance. */
+  openIndex: number | null;
+  onOpenRow: (index: number | null) => void;
+  /** En dessous de 768 px : les réglages d'une ligne passent par une
+   * feuille basse. */
+  rowsInSheet: boolean;
   /** Fourni en dessous de 768 px : choisir un exercice passe alors par le
    *  tiroir plein écran plutôt que par le menu déroulant, trop à l'étroit. */
   onRequestExercisePicker?: () => void;
@@ -412,6 +55,10 @@ export const WorkshopBlock = ({
   onAddExercise,
   onRemoveExercise,
   onUpdateExercise,
+  onDuplicateExercise,
+  openIndex,
+  onOpenRow,
+  rowsInSheet,
   onRequestExercisePicker,
   onOpenExerciseSheet,
 }: WorkshopBlockProps) => {
@@ -603,8 +250,22 @@ export const WorkshopBlock = ({
           exercise={exercise}
           block={block}
           index={index}
+          open={openIndex === index}
+          onOpenChange={(open) => onOpenRow(open ? index : null)}
+          inSheet={rowsInSheet}
           onUpdate={(updates) => onUpdateExercise(index, updates)}
-          onRemove={() => onRemoveExercise(index)}
+          // Ce qui est retiré ne reste pas ouvert : la ligne suivante
+          // prendrait sa place sous les réglages sans qu'on l'ait touchée.
+          onRemove={() => {
+            onOpenRow(null);
+            onRemoveExercise(index);
+          }}
+          // La copie s'ouvre : c'est elle qu'on vient de créer pour la
+          // régler autrement.
+          onDuplicate={() => {
+            onDuplicateExercise(index);
+            onOpenRow(index + 1);
+          }}
           onOpenSheet={
             onOpenExerciseSheet
               ? () => onOpenExerciseSheet(exercise.exercise)

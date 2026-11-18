@@ -78,6 +78,7 @@ interface Props {
   onReorderBlocks: (orderedBlockIds: string[]) => void;
   onAddExercise: (blockId: string, exercise: Exercise) => void;
   onRemoveExercise: (blockId: string, index: number) => void;
+  onDuplicateExercise: (blockId: string, index: number) => void;
   onUpdateExercise: (
     blockId: string,
     index: number,
@@ -138,12 +139,21 @@ export const ClientProgramTab = ({
   onReorderBlocks,
   onAddExercise,
   onRemoveExercise,
+  onDuplicateExercise,
   onUpdateExercise,
 }: Props) => {
   const [showBlockSelector, setShowBlockSelector] = useState(false);
   const [selectorBlockId, setSelectorBlockId] = useState<string | null>(null);
 
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
+  // La ligne ouverte, pour toute la séance : en ouvrir une referme l'autre,
+  // même dans un autre bloc. L'écran est remonté à chaque séance — sa clé
+  // est celle de la séance —, rien ne reste donc ouvert d'une séance à
+  // l'autre.
+  const [openRow, setOpenRow] = useState<{
+    blockId: string;
+    index: number;
+  } | null>(null);
   const [isCopyOpen, setIsCopyOpen] = useState(false);
   const [noteRequested, setNoteRequested] = useState(false);
   const hasNote = !!session.notes?.trim();
@@ -253,9 +263,21 @@ export const ClientProgramTab = ({
                         onAddExercise(block._id, exercise)
                       }
                       onRemoveExercise={(i) => onRemoveExercise(block._id, i)}
+                      onDuplicateExercise={(i) =>
+                        onDuplicateExercise(block._id, i)
+                      }
                       onUpdateExercise={(i, updates) =>
                         onUpdateExercise(block._id, i, updates)
                       }
+                      openIndex={
+                        openRow?.blockId === block._id ? openRow.index : null
+                      }
+                      onOpenRow={(index) =>
+                        setOpenRow(
+                          index === null ? null : { blockId: block._id, index }
+                        )
+                      }
+                      rowsInSheet={!!isMobile}
                       onRequestExercisePicker={
                         isMobile
                           ? () => setSelectorBlockId(block._id)
