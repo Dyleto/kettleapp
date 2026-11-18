@@ -14,6 +14,8 @@ import { AutoResizeTextarea } from '@/kit';
 import { Exercise } from '@/shared/types';
 import { parseYouTubeUrl } from '@/shared/utils/videoUtils';
 import { useUpdateExercise } from '@/features/exercise/hooks/useExerciseMutations';
+import { useExercises } from '@/features/exercise/hooks/useExercises';
+import { reachLine } from '@/domain/exercise/choices';
 import VideoPlayer from '@/shared/components/VideoPlayer';
 
 type Editable = 'name' | 'description' | 'videoUrl';
@@ -179,14 +181,20 @@ const validateVideoUrl = (value: string): string | null => {
   return 'Lien non reconnu — seul YouTube est lu : watch, youtu.be ou Shorts.';
 };
 
-/** `blocksDeletion` : un bouton de suppression est proposé, et cet usage
- * le bloque. */
-const usageSentence = (usage: number, blocksDeletion: boolean): string => {
-  const base = `Utilisé dans ${usage} séance${usage > 1 ? 's' : ''}`;
-  // On dit pourquoi le bouton ne répond pas, au lieu de le laisser muet.
+/**
+ * Ce que la fiche dit de l'usage, à son pied.
+ *
+ * Dans la bibliothèque, où l'on peut supprimer, c'est ce qui explique
+ * pourquoi le bouton ne répond pas. Ouverte depuis un programme, c'est un
+ * avertissement : « Utilisé dans 9 séances, chez 4 clients. Ce que tu
+ * changes ici change partout. » — corriger la vidéo pour Sarah la corrige
+ * chez les trois autres.
+ */
+const usageSentence = (exercise: Exercise, blocksDeletion: boolean): string => {
+  const usage = exercise.usageCount ?? 0;
   return blocksDeletion
-    ? `${base} — retire-le de ces séances avant de pouvoir le supprimer.`
-    : base;
+    ? `Utilisé dans ${usage} séance${usage > 1 ? 's' : ''} — retire-le de ces séances avant de pouvoir le supprimer.`
+    : reachLine(exercise);
 };
 
 /**
@@ -205,7 +213,11 @@ export const ExerciseSheet = ({
 }: ExerciseSheetProps) => {
   const updateMutation = useUpdateExercise();
   const video = exercise.videoUrl ? parseYouTubeUrl(exercise.videoUrl) : null;
-  const usage = exercise.usageCount ?? 0;
+  // Ouverte depuis un programme, la fiche reçoit l'exercice tel que le
+  // programme le porte, sans ses compteurs : la bibliothèque les a.
+  const { data: library } = useExercises();
+  const counted = library?.find((e) => e._id === exercise._id) ?? exercise;
+  const usage = counted.usageCount ?? 0;
 
   const patch = (field: Editable) => (value: string) =>
     updateMutation.mutate({
@@ -231,7 +243,7 @@ export const ExerciseSheet = ({
           {onDelete && (
             <IconButton
               aria-label={`Supprimer ${exercise.name}`}
-              title={usage > 0 ? usageSentence(usage, true) : undefined}
+              title={usage > 0 ? usageSentence(counted, true) : undefined}
               size="xs"
               variant="ghost"
               color="fg.muted"
@@ -327,7 +339,7 @@ export const ExerciseSheet = ({
           borderTopWidth="1px"
           borderColor="whiteAlpha.100"
         >
-          {usageSentence(usage, !!onDelete)}
+          {usageSentence(counted, !!onDelete)}
         </Text>
       )}
 
@@ -342,7 +354,17 @@ export const ExerciseSheet = ({
       {doneLabel && onClose && (
         <Box
           as="button"
-          onClick={onClose}
+          // Le champ ouvert garde le focus jusqu'au clic, puis on le valide
+          // et on referme. Laissé à lui-même, il se repliait dès que la
+          // souris s'enfonçait : une consigne de trois lignes redevenait une
+          // ligne, le bouton remontait sous le pointeur, et le relâchement
+          // tombait à côté — la fiche restait ouverte. Le banc l'a vu dans
+          // la colonne de 300 px où la fiche se pose désormais (E6b).
+          onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
+          onClick={() => {
+            (document.activeElement as HTMLElement | null)?.blur();
+            onClose();
+          }}
           mt={2}
           py={2.5}
           borderRadius="md"

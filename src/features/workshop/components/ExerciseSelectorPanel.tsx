@@ -16,12 +16,7 @@ import {
   ExerciseRow,
 } from '@/features/exercise';
 import { Exercise } from '@/shared/types';
-import { normalize } from '@/shared/utils/formatters';
-
-const GROUP_IN_PROGRAM = 'Déjà dans ce programme';
-const GROUP_MOST_USED = 'Tes plus utilisés';
-const GROUP_ALL = 'Tous tes exercices';
-const GROUP_RESULTS = 'Résultats';
+import { exerciseChoices } from '@/domain/exercise/choices';
 
 interface ExerciseSelectorPanelProps {
   isOpen: boolean;
@@ -52,45 +47,13 @@ export const ExerciseSelectorPanel = ({
   const createMutation = useCreateExercise();
   const [query, setQuery] = useState('');
 
-  const groups = useMemo<{ label: string; exercises: Exercise[] }[]>(() => {
-    const q = normalize(query);
-
-    if (q.length > 0) {
-      const matches = exercises.filter((e) => normalize(e.name).includes(q));
-      matches.sort((a, b) => {
-        const aStarts = normalize(a.name).startsWith(q);
-        const bStarts = normalize(b.name).startsWith(q);
-        if (aStarts !== bStarts) return aStarts ? -1 : 1;
-        const byUsage = (b.usageCount ?? 0) - (a.usageCount ?? 0);
-        if (byUsage !== 0) return byUsage;
-        return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
-      });
-      return [{ label: GROUP_RESULTS, exercises: matches }];
-    }
-
-    const inProgramIds = new Set(inProgram.map((e) => e._id));
-    const mostUsed = exercises
-      .filter((e) => !inProgramIds.has(e._id) && (e.usageCount ?? 0) > 0)
-      .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0))
-      .slice(0, 5);
-    const mostUsedIds = new Set(mostUsed.map((e) => e._id));
-    const rest = exercises
-      .filter((e) => !inProgramIds.has(e._id) && !mostUsedIds.has(e._id))
-      .sort((a, b) =>
-        a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
-      );
-
-    return [
-      { label: GROUP_IN_PROGRAM, exercises: inProgram },
-      { label: GROUP_MOST_USED, exercises: mostUsed },
-      { label: GROUP_ALL, exercises: rest },
-    ].filter((g) => g.exercises.length > 0);
-  }, [exercises, inProgram, query]);
-
-  const trimmed = query.trim();
-  const canCreate =
-    trimmed.length > 0 &&
-    !exercises.some((e) => normalize(e.name) === normalize(trimmed));
+  const choices = useMemo(
+    () => exerciseChoices(query, exercises, inProgram),
+    [exercises, inProgram, query]
+  );
+  const groups = choices.groups;
+  const trimmed = choices.create ?? '';
+  const canCreate = choices.create !== undefined;
 
   const create = () => {
     createMutation.mutate(
@@ -226,7 +189,9 @@ export const ExerciseSelectorPanel = ({
                   >
                     <HStack gap={1.5}>
                       <LuPlus size={13} />
-                      <Text as="span">Créer «&nbsp;{trimmed}&nbsp;»</Text>
+                      <Text as="span">
+                        Créer «&nbsp;{trimmed}&nbsp;» et ouvrir sa fiche
+                      </Text>
                     </HStack>
                   </Box>
                 )}

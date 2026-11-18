@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 744 tests unitaires, 41 suites de banc et 730
-assertions, 3 min 53 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 18 novembre : 755 tests unitaires, 42 suites de banc et 738
+assertions, 3 min 52 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -342,14 +342,16 @@ banc actuel, inchangé, qui le prouve.
       l'exercice que le client cite, sinon celui dont la charge a baissé
       (`domain/inbox/concerned`). La durée d'un échauffement, qui ne sert
       qu'à l'estimation, attend la durée estimée (E7).
-- [ ] **E6** Atelier, ajouter : palette de formats dessinée, « + exercice »
+- [x] **E6** Atelier, ajouter : palette de formats dessinée, « + exercice »
       qui cherche puis crée, fiche d'exercice à la place de l'aperçu, saisie
-      libre des paliers. La palette est faite (E6a) : neuf formats, chacun
-      dessiné (`formatSketch`), en carte sur grand écran, en feuille sur
-      téléphone ; choisir un format ouvre le « + exercice » du bloc créé.
-      Les paliers se lisent par le domaine (`parseRungs`) et le champ le
-      dit. Restent le « + exercice » rangé comme la maquette et la fiche à
-      la place de l'aperçu (E6b).
+      libre des paliers. La palette (E6a) : neuf formats, chacun dessiné
+      (`formatSketch`), en carte sur grand écran, en feuille sur téléphone ;
+      choisir un format ouvre le « + exercice » du bloc créé ; les paliers
+      se lisent par `parseRungs`. Le sélecteur (E6b) range ce programme,
+      puis la bibliothèque, puis « Créer « … » et ouvrir sa fiche »
+      (`domain/exercise/choices`), chaque ligne avec son usage et sa vidéo.
+      La fiche prend la colonne de droite à partir de 1 280 px, et dit
+      « chez 4 clients » (API `7c29fa3`).
 - [ ] **E7** Atelier, les séances : rail (durée, jours, composition, cinq
       ressentis), glisser, menu, bande sur téléphone.
 - [ ] **E8** Atelier, ce que le client en a fait : pouls, ressenti sous

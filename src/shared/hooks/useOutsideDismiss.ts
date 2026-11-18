@@ -2,9 +2,11 @@ import { RefObject, useEffect, useRef } from 'react';
 
 /**
  * Ce qui est posé par-dessus la page : une boîte de dialogue, une
- * bannière « Annuler ».
+ * bannière « Annuler » — ou ce qui se déclare tel (`data-layer`) : la fiche
+ * d'un exercice qui prend la place de l'aperçu, dans la page mais pour la
+ * ligne ouverte.
  */
-const LAYER = '[role="dialog"], [data-scope="toast"]';
+const LAYER = '[role="dialog"], [data-scope="toast"], [data-layer]';
 
 /**
  * Le geste vient-il d'une couche posée par-dessus le panneau ?

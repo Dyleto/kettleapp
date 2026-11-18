@@ -34,7 +34,14 @@ const CLIENT_ID = '507f1f77bcf86cd799439012';
 const PROGRAM_ID = '507f1f77bcf86cd799439013';
 
 /** @returns {ExercisePayload} */
-const ex = (id, name, videoUrl, usageCount = 0, description = '') => ({
+const ex = (
+  id,
+  name,
+  videoUrl,
+  usageCount = 0,
+  description = '',
+  clientCount = usageCount > 0 ? 1 : 0
+) => ({
   _id: id,
   name,
   description,
@@ -43,6 +50,7 @@ const ex = (id, name, videoUrl, usageCount = 0, description = '') => ({
   createdAt: '2026-06-01T10:00:00.000Z',
   updatedAt: '2026-06-01T10:00:00.000Z',
   usageCount,
+  clientCount,
 });
 
 /** @type {ExercisePayload[]} */
@@ -55,14 +63,16 @@ const EXERCISES = [
     'Kettlebell Swing',
     'https://www.youtube.com/watch?v=sswzD1Q7dTk',
     12,
-    'Dos plat, la poussée vient des hanches et non des bras.'
+    'Dos plat, la poussée vient des hanches et non des bras.',
+    4
   ),
   ex(
     'ex2',
     'Goblet Squat',
     '',
     9,
-    'Kettlebell contre la poitrine, descendre entre les talons.'
+    'Kettlebell contre la poitrine, descendre entre les talons.',
+    4
   ),
   ex('ex3', 'Burpee', '', 7),
   ex('ex4', 'Row (rameur)', '', 3),
@@ -76,13 +86,32 @@ const EXERCISES = [
 ];
 
 /**
+ * Un exercice tel qu'un programme le porte : sans ses compteurs.
+ *
+ * L'API ne calcule `usageCount` et `clientCount` que pour la bibliothèque
+ * (`GET /coach/exercises`) ; un programme repeuple ses exercices sans eux.
+ * Les laisser ici faisait lire à la fiche d'un exercice des compteurs que
+ * la vraie API ne lui donne pas — et un sabotage qui l'en privait passait
+ * inaperçu.
+ *
+ * @param {ExercisePayload} exercise
+ */
+const asPlaced = (exercise) => {
+  if (!exercise) return exercise;
+  const placed = { ...exercise };
+  delete placed.usageCount;
+  delete placed.clientCount;
+  return placed;
+};
+
+/**
  * @param {ExercisePayload} exercise
  * @param {number} order
  * @param {Partial<BlockExercisePayload>} [extra]
  * @returns {BlockExercisePayload}
  */
 const blockExercise = (exercise, order, extra = {}) => ({
-  exercise,
+  exercise: asPlaced(exercise),
   order,
   ...extra,
 });
@@ -317,7 +346,7 @@ const shaped = (sessions, idPrefix) =>
         // Le front envoie `exerciseId` et relit `exercise` : c'est l'API
         // qui repeuple le mouvement. Sans cela l'atelier perdrait ses
         // exercices au premier aller-retour.
-        exercise: EXERCISES.find((e) => e._id === ex.exerciseId) ?? {
+        exercise: asPlaced(EXERCISES.find((e) => e._id === ex.exerciseId)) ?? {
           _id: ex.exerciseId,
           name: 'Mouvement',
           category: 'other',
@@ -828,6 +857,7 @@ const server = http.createServer(async (req, res) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       usageCount: 0,
+      clientCount: 0,
     };
     CREATED_EXERCISES.push(created);
     EXERCISES.push(created);

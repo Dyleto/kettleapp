@@ -1,9 +1,9 @@
 import { Box, HStack, Input, Spinner, Text, VStack } from '@chakra-ui/react';
 import { useMemo, useRef, useState } from 'react';
-import { LuArrowUpRight, LuPlus, LuSearch } from 'react-icons/lu';
+import { LuArrowUpRight, LuPlus, LuSearch, LuVideo } from 'react-icons/lu';
 import { Exercise } from '@/shared/types';
 import { useExercises, useCreateExercise } from '@/features/exercise';
-import { normalize } from '@/shared/utils/formatters';
+import { exerciseChoices, usageLine } from '@/domain/exercise/choices';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 
 interface Option {
@@ -21,11 +21,6 @@ interface InlineExercisePickerProps {
    *  quitter la page perdrait les modifications non enregistrées. */
   onOpenSheet?: (exercise: Exercise) => void;
 }
-
-const GROUP_IN_PROGRAM = 'Déjà dans ce programme';
-const GROUP_MOST_USED = 'Tes plus utilisés';
-const GROUP_ALL = 'Tous tes exercices';
-const GROUP_RESULTS = 'Résultats';
 
 /**
  * Choisir un exercice sans quitter l'atelier.
@@ -52,45 +47,17 @@ export const InlineExercisePicker = ({
   const rootRef = useRef<HTMLDivElement>(null);
   useOutsideDismiss(rootRef, true, onClose);
 
-  const options = useMemo<Option[]>(() => {
-    const q = normalize(query);
-
-    if (q.length > 0) {
-      // Les correspondances en début de nom d'abord, puis le compteur d'usage
-      // départage. Le compteur ordonne, il n'est jamais affiché.
-      const matches = exercises.filter((e) => normalize(e.name).includes(q));
-      matches.sort((a, b) => {
-        const aStarts = normalize(a.name).startsWith(q);
-        const bStarts = normalize(b.name).startsWith(q);
-        if (aStarts !== bStarts) return aStarts ? -1 : 1;
-        const byUsage = (b.usageCount ?? 0) - (a.usageCount ?? 0);
-        if (byUsage !== 0) return byUsage;
-        return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
-      });
-      return matches.map((exercise) => ({ exercise, group: GROUP_RESULTS }));
-    }
-
-    const inProgramIds = new Set(inProgram.map((e) => e._id));
-    const mostUsed = exercises
-      .filter((e) => !inProgramIds.has(e._id) && (e.usageCount ?? 0) > 0)
-      .sort((a, b) => (b.usageCount ?? 0) - (a.usageCount ?? 0))
-      .slice(0, 5);
-    const mostUsedIds = new Set(mostUsed.map((e) => e._id));
-    const rest = exercises
-      .filter((e) => !inProgramIds.has(e._id) && !mostUsedIds.has(e._id))
-      .sort((a, b) =>
-        a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
-      );
-
-    return [
-      ...inProgram.map((exercise) => ({
-        exercise,
-        group: GROUP_IN_PROGRAM,
-      })),
-      ...mostUsed.map((exercise) => ({ exercise, group: GROUP_MOST_USED })),
-      ...rest.map((exercise) => ({ exercise, group: GROUP_ALL })),
-    ];
-  }, [exercises, inProgram, query]);
+  const choices = useMemo(
+    () => exerciseChoices(query, exercises, inProgram),
+    [exercises, inProgram, query]
+  );
+  const options = useMemo<Option[]>(
+    () =>
+      choices.groups.flatMap((group) =>
+        group.exercises.map((exercise) => ({ exercise, group: group.label }))
+      ),
+    [choices]
+  );
 
   // La liste change à chaque frappe : l'index actif doit rester dans les
   // bornes sans passer par un effet.
@@ -100,11 +67,8 @@ export const InlineExercisePicker = ({
     setActiveIndex(0);
   }
 
-  const trimmed = query.trim();
-  const hasExactMatch = exercises.some(
-    (e) => normalize(e.name) === normalize(trimmed)
-  );
-  const canCreate = trimmed.length > 0 && !hasExactMatch;
+  const trimmed = choices.create ?? '';
+  const canCreate = choices.create !== undefined;
   const createIndex = canCreate ? options.length : -1;
 
   const pick = (index: number) => {
@@ -163,6 +127,9 @@ export const InlineExercisePicker = ({
   return (
     <Box
       ref={rootRef}
+      // Un point d'ancrage stable pour le banc, comme `data-exercise-row`
+      // sur une ligne : sans lui, une sonde remonte le DOM depuis le champ.
+      data-exercise-picker
       borderWidth="1px"
       borderColor="app.primary.border"
       borderRadius="md"
@@ -199,7 +166,7 @@ export const InlineExercisePicker = ({
           px={1}
           onClick={onClose}
         >
-          Échap
+          Échap pour fermer
         </Box>
       </HStack>
 
@@ -246,8 +213,33 @@ export const InlineExercisePicker = ({
                     fontSize="sm"
                     color={isActive ? 'fg' : 'fg.muted'}
                     onClick={() => pick(index)}
+                    display="flex"
+                    alignItems="center"
+                    gap={2}
                   >
-                    {option.exercise.name}
+                    <Text as="span" flex={1} minW={0} truncate>
+                      {option.exercise.name}
+                    </Text>
+                    {/* Une vidéo posée se voit avant de choisir : c'est ce
+                        que le client regardera pendant la séance. */}
+                    {option.exercise.videoUrl && (
+                      <Box
+                        as="span"
+                        role="img"
+                        color="fg.muted"
+                        aria-label="avec vidéo"
+                      >
+                        <LuVideo size={13} />
+                      </Box>
+                    )}
+                    <Text
+                      as="span"
+                      fontSize="xs"
+                      color="fg.muted"
+                      flexShrink={0}
+                    >
+                      {usageLine(option.exercise)}
+                    </Text>
                   </Box>
                   {/* La fiche s'ouvre par-dessus l'atelier : on corrige une
                       consigne ou on colle une vidéo sans perdre le programme
@@ -298,7 +290,9 @@ export const InlineExercisePicker = ({
           >
             <HStack gap={1.5}>
               <LuPlus size={13} />
-              <Text as="span">Créer «&nbsp;{trimmed}&nbsp;»</Text>
+              <Text as="span">
+                Créer «&nbsp;{trimmed}&nbsp;» et ouvrir sa fiche
+              </Text>
             </HStack>
           </Box>
         )}

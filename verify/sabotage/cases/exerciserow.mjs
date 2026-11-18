@@ -167,8 +167,8 @@ export default {
       edits: [
         {
           file: DISMISS,
-          from: `const LAYER = '[role="dialog"], [data-scope="toast"]';`,
-          to: `const LAYER = '[role="dialog"]';`,
+          from: `const LAYER = '[role="dialog"], [data-scope="toast"], [data-layer]';`,
+          to: `const LAYER = '[role="dialog"], [data-layer]';`,
         },
       ],
       falls: ['→ « Annuler » remet les 12 reps, la ligne toujours ouverte'],

@@ -71,6 +71,12 @@ interface Props {
    * lire » le désigne ; absent, rien ne s'ouvre.
    */
   focusExerciseId?: string;
+  /**
+   * Où ouvrir la fiche d'un exercice, quand la page a mieux qu'un tiroir :
+   * à partir de 1 280 px, la page du client la pose à la place de
+   * l'aperçu. Absent, la fiche s'ouvre en tiroir par-dessus l'atelier.
+   */
+  onOpenExerciseSheet?: (exercise: Exercise) => void;
   /** Les exercices déjà placés ailleurs dans le programme, pour le
    * sélecteur. */
   inProgram: Exercise[];
@@ -154,6 +160,7 @@ export const ClientProgramTab = ({
   session,
   clientId,
   focusExerciseId,
+  onOpenExerciseSheet,
   inProgram,
   onRemoveSession,
   onDuplicateSession,
@@ -174,6 +181,7 @@ export const ClientProgramTab = ({
   const [selectorBlockId, setSelectorBlockId] = useState<string | null>(null);
 
   const [sheetExercise, setSheetExercise] = useState<Exercise | null>(null);
+  const openSheet = onOpenExerciseSheet ?? setSheetExercise;
   // La ligne ouverte, pour toute la séance : en ouvrir une referme l'autre,
   // même dans un autre bloc. L'écran est remonté à chaque séance — sa clé
   // est celle de la séance —, rien ne reste donc ouvert d'une séance à
@@ -334,7 +342,7 @@ export const ClientProgramTab = ({
                           ? () => setSelectorBlockId(block._id)
                           : undefined
                       }
-                      onOpenExerciseSheet={setSheetExercise}
+                      onOpenExerciseSheet={openSheet}
                     />
                   )}
                 </SortableBlock>
@@ -455,7 +463,7 @@ export const ClientProgramTab = ({
         <ExerciseSelectorPanel
           isOpen={!!selectorBlockId}
           inProgram={inProgram}
-          onOpenSheet={setSheetExercise}
+          onOpenSheet={openSheet}
           onClose={() => setSelectorBlockId(null)}
           onSelect={(exercise) => {
             onAddExercise(selectorBlockId, exercise);

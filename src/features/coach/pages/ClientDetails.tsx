@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import {
   Avatar,
@@ -36,7 +36,8 @@ import {
 import { Header } from '@/shared/components/Header';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { isUnavailable } from '@/shared/utils/queryState';
-import { Session } from '@/shared/types';
+import { Exercise, Session } from '@/shared/types';
+import { ExerciseSheet } from '@/features/exercise';
 
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
@@ -107,6 +108,10 @@ const ClientDetails = () => {
    * 660 qu'il occupait avant ce changement.
    */
   const isWide = useBreakpointValue({ base: false, xl: true });
+  // La fiche d'un exercice, à la place de l'aperçu (maquette) : à partir de
+  // 1 280 px, la colonne de droite la porte, et l'atelier reste lisible à
+  // côté. En dessous, un tiroir la pose par-dessus, comme avant.
+  const [asideExercise, setAsideExercise] = useState<Exercise | null>(null);
 
   const sessions = program?.sessions ?? [];
 
@@ -361,6 +366,7 @@ const ClientDetails = () => {
                   {...workshopProps}
                   clientId={clientId!}
                   focusExerciseId={focusExerciseId}
+                  onOpenExerciseSheet={isWide ? setAsideExercise : undefined}
                 />
               </>
             ) : sessions.length === 0 ? (
@@ -413,7 +419,31 @@ const ClientDetails = () => {
 
           {isWide && activeSession && (
             <Box w={{ xl: '300px', '2xl': '320px' }} flexShrink={0}>
-              <SessionFeedbackStrip history={sessionHistory} variant="panel" />
+              {asideExercise ? (
+                <Box
+                  as="aside"
+                  aria-label={`Fiche de ${asideExercise.name}`}
+                  // Une couche pour la ligne ouverte : travailler dans la
+                  // fiche n'est pas cliquer à côté de la ligne.
+                  data-layer
+                  bg="bg.surface"
+                  borderRadius="20px"
+                  p="20px"
+                  position="sticky"
+                  top={6}
+                >
+                  <ExerciseSheet
+                    exercise={asideExercise}
+                    onClose={() => setAsideExercise(null)}
+                    doneLabel="Retour au programme"
+                  />
+                </Box>
+              ) : (
+                <SessionFeedbackStrip
+                  history={sessionHistory}
+                  variant="panel"
+                />
+              )}
             </Box>
           )}
         </Stack>

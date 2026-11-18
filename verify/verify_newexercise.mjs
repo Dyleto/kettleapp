@@ -44,6 +44,14 @@ const library = async () => {
   return r.json();
 };
 
+/**
+ * La fiche d'un exercice, là où elle s'ouvre : à partir de 1 280 px, dans
+ * la colonne de droite, à la place de l'aperçu (E6b) ; en dessous, dans un
+ * tiroir. Le contexte par défaut de cette suite fait 1 280 px de large.
+ */
+const exerciseSheet = (p) =>
+  p.locator('[role="dialog"], aside[aria-label^="Fiche de "]');
+
 const main = async () => {
   await fetch(`${API}/api/mock/reset`, { method: 'POST' });
 
@@ -91,7 +99,7 @@ const main = async () => {
   // par défaut une sous-chaîne : « Consigne — X » attrapait aussi « Ajouter
   // une consigne — X », le bouton de l'atelier *derrière* le tiroir, et le
   // clic partait sur lui — intercepté, donc, puisqu'il est recouvert.
-  const sheet = p.getByRole('dialog');
+  const sheet = exerciseSheet(p);
   const note = sheet.getByLabel(`Consigne — ${NAME}`, { exact: true });
   const video = sheet.getByLabel(`Lien vidéo — ${NAME}`, { exact: true });
 
@@ -193,7 +201,7 @@ const main = async () => {
     await openers.first().click();
     await settle(p);
 
-    const openSheet = p.getByRole('dialog');
+    const openSheet = exerciseSheet(p);
     const existingNote = openSheet.getByLabel(`Consigne — ${existing}`, {
       exact: true,
     });
@@ -254,7 +262,7 @@ const main = async () => {
     await inProgram.first().click();
     await settle(p);
 
-    const placedSheet = p.getByRole('dialog');
+    const placedSheet = exerciseSheet(p);
     const field = placedSheet.getByLabel(`Consigne — ${name}`, {
       exact: true,
     });
@@ -284,17 +292,23 @@ const main = async () => {
 
       if (await done.count()) {
         await done.click();
-        await gone(p.getByRole('dialog'));
+        await gone(exerciseSheet(p));
 
         // La ligne d'où elle est partie est toujours ouverte : travailler
         // dans la fiche n'est pas cliquer à côté de la ligne.
         ok(
           '  → elle referme la fiche et rend le programme, la ligne ouverte',
-          (await p.getByRole('dialog').count()) === 0 &&
+          (await exerciseSheet(p).count()) === 0 &&
             (await p
               .locator('main')
               .getByRole('button', { name: /^Ouvrir la fiche de / })
-              .count()) === 1
+              .count()) === 1,
+          `${await exerciseSheet(p).count()} fiche(s) · ${await p
+            .locator('main')
+            .getByRole('button', { name: /^Ouvrir la fiche de / })
+            .count()} bouton(s) de fiche · ${await p
+            .locator('main [data-exercise-row][data-open]')
+            .count()} ligne(s) ouverte(s)`
         );
 
         const kept = (await library()).find((e) => e.name === name);
