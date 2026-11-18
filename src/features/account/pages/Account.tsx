@@ -152,11 +152,10 @@ const Account = ({ space }: Props) => {
       <VStack align="stretch" gap={7}>
         <VStack align="stretch" gap={1.5}>
           <BackLink
-            label={inClientSpace ? "Aujourd'hui" : 'Clients'}
+            // L'accueil de l'espace, sous le nom de son onglet.
+            label={inClientSpace ? "Aujourd'hui" : 'À lire'}
             onClick={() =>
-              navigate(
-                inClientSpace ? CLIENT_ROUTES.today : COACH_ROUTES.clients
-              )
+              navigate(inClientSpace ? CLIENT_ROUTES.today : COACH_ROUTES.inbox)
             }
           />
           <Heading as="h1" size="lg" fontWeight="bold">

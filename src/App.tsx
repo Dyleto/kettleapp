@@ -26,6 +26,7 @@ const CoachLayout = React.lazy(
   () => import('@/features/coach/pages/CoachLayout')
 );
 const Clients = React.lazy(() => import('@/features/coach/pages/Clients'));
+const Inbox = React.lazy(() => import('@/features/coach/pages/Inbox'));
 const ClientDetails = React.lazy(
   () => import('@/features/coach/pages/ClientDetails')
 );
@@ -110,7 +111,10 @@ const router = createBrowserRouter(
 
       {/* Routes Coach */}
       <Route path="coach" element={<CoachLayout />}>
-        <Route index element={<Clients />} />
+        {/* L'espace s'ouvre sur « À lire » ; la liste des clients a son
+            propre onglet. */}
+        <Route index element={<Inbox />} />
+        <Route path="clients" element={<Clients />} />
         <Route path="account" element={<Account space="coach" />} />
         <Route path="clients/:clientId" element={<ClientDetailsRedirect />} />
         {/* L'atelier écrit sa propre barre du haut sur mobile — nom du
@@ -118,7 +122,7 @@ const router = createBrowserRouter(
         <Route
           path="clients/:clientId/s/:sessionIndex"
           element={<ClientDetails />}
-          handle={{ ownsMobileTopBar: true }}
+          handle={{ ownsMobileTopBar: true, collapsesRail: true }}
         />
         <Route path="clients/:clientId/journal" element={<ClientJournal />} />
         {/* La fiche d'un exercice s'ouvre dans la bibliothèque, et non
@@ -135,6 +139,7 @@ const router = createBrowserRouter(
         <Route
           path="templates/:templateId/s/:sessionIndex"
           element={<TemplateDetails />}
+          handle={{ collapsesRail: true }}
         />
 
         <Route path="exercises" element={<Exercises />} />

@@ -216,7 +216,7 @@ const browser = await launch();
   });
   const p = await signIn(ctx);
 
-  await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
   await settle(p);
   await noCodeFont(p, 'les clients');
 

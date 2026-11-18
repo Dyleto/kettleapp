@@ -258,7 +258,8 @@ const main = async () => {
     );
     ok(
       '  → avec le personnage',
-      (await empty.locator('[data-mascot="hello"]').count()) === 1
+      // Dans la page : le rail porte le même personnage en logo.
+      (await empty.locator('main [data-mascot="hello"]').count()) === 1
     );
     await ctx.close();
   }

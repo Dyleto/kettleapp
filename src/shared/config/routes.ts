@@ -55,7 +55,10 @@ export const CLIENT_ROUTES = {
 
 /** Les adresses de l'espace coach, pour la même raison. */
 export const COACH_ROUTES = {
-  clients: '/coach',
+  // L'espace s'ouvre sur ce qui demande l'attention du coach, et non plus
+  // sur la liste de ses clients, qui passe au deuxième onglet.
+  inbox: '/coach',
+  clients: '/coach/clients',
   clientDetails: (clientId: string) => `/coach/clients/${clientId}`,
   clientSession: (clientId: string, sessionIndex: number) =>
     `/coach/clients/${clientId}/s/${sessionIndex}`,

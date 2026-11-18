@@ -23,6 +23,10 @@ export const queryKeys = {
 
     invitation: () => [...queryKeys.coach.all, 'invitation'] as const,
 
+    /** « À lire » ou « Déjà lues » : deux listes, deux entrées en cache. */
+    inbox: (state: 'unread' | 'read') =>
+      [...queryKeys.coach.all, 'inbox', state] as const,
+
     clients: {
       all: () => [...queryKeys.coach.all, 'clients'] as const,
       lists: () => [...queryKeys.coach.clients.all(), 'list'] as const,

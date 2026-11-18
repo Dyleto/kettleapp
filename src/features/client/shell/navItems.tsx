@@ -1,10 +1,11 @@
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 import { LuHouse, LuListChecks, LuTrendingUp } from 'react-icons/lu';
+import type { NavEntry } from '@/kit';
 
 /**
  * Les destinations de l'espace client, à une seule adresse.
  *
- * Le rail de bureau et la barre d'onglets mobile les lisent tous deux ici :
+ * Le rail et la barre d'onglets les lisent tous deux ici :
  * une entrée ajoutée à l'un et oubliée à l'autre donnait un écran atteignable
  * au clavier mais introuvable au doigt.
  *
@@ -14,7 +15,7 @@ import { LuHouse, LuListChecks, LuTrendingUp } from 'react-icons/lu';
  * « Progrès » et non « Historique » : l'écran montre des charges qui montent
  * et un rythme tenu, pas une liste d'archives. Le mot dit pourquoi y aller.
  */
-export const CLIENT_NAV_ITEMS = [
+export const CLIENT_NAV_ITEMS: NavEntry[] = [
   { to: CLIENT_ROUTES.today, label: "Aujourd'hui", icon: LuHouse, end: true },
   { to: CLIENT_ROUTES.program, label: 'Programme', icon: LuListChecks },
   { to: CLIENT_ROUTES.history, label: 'Progrès', icon: LuTrendingUp },

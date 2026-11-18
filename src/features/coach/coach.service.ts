@@ -3,6 +3,7 @@ import {
   Client,
   ClientWithDetails,
   CompletedSession,
+  Inbox,
   Session,
 } from '@/shared/types';
 
@@ -15,6 +16,14 @@ import {
  * et c'était confondre l'adresse de l'API avec l'organisation du code.
  */
 export const coachService = {
+  /** Le fil « À lire », ou « Déjà lues » sur trente jours. */
+  getInbox: async (state: 'unread' | 'read') => {
+    const { data } = await api.get<Inbox>('/api/coach/inbox', {
+      params: { state },
+    });
+    return data;
+  },
+
   getClients: async () => {
     const { data } = await api.get<Client[]>('/api/coach/clients');
     return data;

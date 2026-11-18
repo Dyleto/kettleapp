@@ -128,8 +128,9 @@ const browser = await launch();
   );
   ok(
     "  → que les lecteurs d'écran n'annoncent pas",
+    // Celui de la page : le rail porte aussi le personnage, en logo.
     (await p
-      .locator('[data-mascot]')
+      .locator('main [data-mascot]')
       .first()
       .getAttribute('aria-hidden', { timeout: 1000 })
       .catch(() => null)) === 'true'
@@ -358,7 +359,7 @@ const browser = await launch();
   await ctx.route(COACH_CLIENTS, cut);
   await ctx.route(COACH_CLIENT, cut);
 
-  await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
   ok('la liste des clients dit la panne', await appears(p, DOWN));
   const list = await screen(p);
   ok(

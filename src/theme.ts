@@ -99,6 +99,9 @@ const customConfig = defineConfig({
           // « Annuler ». Il fallait un troisième palier, sans quoi un menu
           // ouvert sur une feuille se fondait dans elle.
           raised: { value: '#31343A' },
+          // Le rail de navigation, un cran sous le fond : il se lit comme un
+          // bord de l'écran, pas comme une carte posée dessus.
+          rail: { value: '#131417' },
         },
         surface: {
           wall: { value: '#17181B' },

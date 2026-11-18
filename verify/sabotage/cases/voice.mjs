@@ -36,7 +36,7 @@ export default {
           to: "label: 'Mes clients'",
         },
       ],
-      falls: ['le rail est Clients, Modèles, Exercices'],
+      falls: ['le rail est À lire, Clients, Modèles, Exercices'],
     },
     {
       name: "l'écran des exercices garde son ancien titre",

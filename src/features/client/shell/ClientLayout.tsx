@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router';
-import { ClientTabBar } from '@/features/client/shell/ClientTabBar';
-import { ClientNavRail } from '@/features/client/shell/ClientNavRail';
+import { NavRail, TabBar } from '@/kit';
+import { CLIENT_NAV_ITEMS } from '@/features/client/shell/navItems';
+import { Header } from '@/shared/components/Header';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
 import { HealthConsentGate } from '@/features/account';
 import { useAuth } from '@/shared/contexts/useAuth';
@@ -17,13 +18,15 @@ const ClientLayout = () => {
 
   return (
     <Flex minH="100vh">
-      <ClientNavRail />
-      <Box flex={1} minW={0} pb={{ base: '70px', md: 0 }}>
+      {/* Le même rail que le coach : un compte qui porte les deux rôles
+          change d'espace sans changer de repères. */}
+      <NavRail items={CLIENT_NAV_ITEMS} footer={<Header variant="rail" />} />
+      <Box flex={1} minW={0} pb={{ base: '76px', md: 0 }}>
         <MobileTopBar />
         <Box as="main" id="contenu" minW={0}>
           <Outlet />
         </Box>
-        <ClientTabBar />
+        <TabBar items={CLIENT_NAV_ITEMS} />
       </Box>
     </Flex>
   );

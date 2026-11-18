@@ -14,12 +14,12 @@ le rangement (B12) et avant `main` (H1).
 
 | Chapitre de la maquette   | Écrans | Fait | Partiel | À faire |
 | ------------------------- | ------ | ---- | ------- | ------- |
-| Fondations                | 5      | 2    | 3       | 0       |
+| Fondations                | 5      | 3    | 2       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
 | Client (hors séance)      | 6      | 2    | 2       | 2       |
 | Coach                     | 7      | 0    | 2       | 5       |
 | Commun                    | 3      | 0    | 2       | 1       |
-| Ce que ça demande à l'API | 6      | 1    | 0       | 5       |
+| Ce que ça demande à l'API | 6      | 6    | 0       | 0       |
 
 - **Le cœur est là** : la séance guidée (ouverture, décompte, séries, repos,
   EMOM, Tabata, AMRAP, échelle, pause), toute la fin de séance (fête, charges,
@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 17 novembre : 654 tests unitaires, 34 suites de banc et 640
-assertions, 3 min 5 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 18 novembre : 658 tests unitaires, 35 suites de banc et 652
+assertions, 3 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -47,7 +47,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Couleurs, typographie, formes | **fait** | —                                                                                                                                                                                                                                                                 |
 | Composants                    | partiel  | Les pièces existent mais sont dispersées : trois `Chip` différents, la bulle du coach écrite cinq fois, `HomeCard` et `Eyebrow` rangés dans l'accueil, l'ancien `Card` encore lu par quatre écrans. Pas de menu ni de bannière « Annuler » au kit.                |
 | Mouvement, son, vibration     | partiel  | Son : fait. Mouvement : l'appui, la feuille, les dernières secondes, les confettis et les chiffres de fin sont là ; manquent le saut d'une valeur qui change, l'entrée d'une scène, la coche qui se dessine. Vibration : quatre motifs nommés et un réglage (B8). |
-| Navigation, largeurs, voix    | partiel  | Onglets du client : faits. Coach : trois entrées, pas de « À lire ». Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                                                                             |
+| Navigation, largeurs, voix    | **fait** | Quatre onglets pour le coach, « À lire » d'abord avec son compteur ; rail de 76 puis 232 px, replié dans l'atelier. Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                              |
 
 ### Séance guidée
 
@@ -316,8 +316,10 @@ banc actuel, inchangé, qui le prouve.
 
 ### E. Le coach
 
-- [ ] **E1** Navigation : quatre onglets, « À lire » en premier avec son
-      compteur, rail de 76 puis 232 px, replié dans l'atelier.
+- [x] **E1** Navigation : quatre onglets, « À lire » en premier avec son
+      compteur, rail de 76 puis 232 px, replié dans l'atelier. Un seul rail
+      dans le kit, pour le client comme pour le coach ; la liste des clients
+      passe sur `/coach/clients`.
 - [ ] **E2** « À lire » : le fil et son ordre, les cartes repliées, « Tout
       est lu », « Déjà lues ».
 - [ ] **E3** « À lire » : réagir, répondre, marquer lue en glissant avec

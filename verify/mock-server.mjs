@@ -595,7 +595,8 @@ const readBody = (req) =>
   });
 
 const server = http.createServer(async (req, res) => {
-  const { pathname } = new URL(req.url, 'http://localhost:3001');
+  const url = new URL(req.url, 'http://localhost:3001');
+  const { pathname } = url;
   const method = req.method;
 
   if (method === 'OPTIONS') return sendJson(res, 204, {});
@@ -640,6 +641,36 @@ const server = http.createServer(async (req, res) => {
       email: 'sarah@example.com',
       program: { ...program(), sessions: COACH_SESSIONS },
       unseenCount: 0,
+    });
+  }
+
+  // Le fil « À lire », tel que l'API le compose : les séances non lues de
+  // Sarah — la seule cliente du banc —, les plus récentes d'abord, chacune
+  // avec la même séance juste avant. « Déjà lues » remonte trente jours.
+  if (pathname === '/api/coach/inbox' && method === 'GET') {
+    const read = url.searchParams.get('state') === 'read';
+    const since = Date.now() - 30 * 86_400_000;
+    const byDate = [...HISTORY].sort(
+      (a, b) => Date.parse(b.completedAt) - Date.parse(a.completedAt)
+    );
+    const items = byDate
+      .filter((c) =>
+        read
+          ? c.viewedByCoach && Date.parse(c.completedAt) >= since
+          : !c.viewedByCoach
+      )
+      .map((completed) => ({
+        client: { _id: CLIENT_ID, firstName: 'Sarah', lastName: 'Martin' },
+        completed,
+        previous: byDate.find(
+          (c) =>
+            c.originalSessionId === completed.originalSessionId &&
+            Date.parse(c.completedAt) < Date.parse(completed.completedAt)
+        ),
+      }));
+    return sendJson(res, 200, {
+      total: items.length,
+      items: items.slice(0, 100),
     });
   }
 

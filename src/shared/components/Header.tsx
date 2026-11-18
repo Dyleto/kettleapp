@@ -23,6 +23,8 @@ import { getAccountRoute } from '@/shared/config/routes';
 
 interface HeaderProps {
   variant?: 'rail' | 'compact';
+  /** Le rail replié en icônes : l'avatar seul, sans le prénom. */
+  collapsed?: boolean;
 }
 
 /**
@@ -36,7 +38,13 @@ interface HeaderProps {
  * rôles : proposer « Vue coach » à quelqu'un qui n'est que client mène à un
  * écran vide.
  */
-export const Header = ({ variant = 'compact' }: HeaderProps) => {
+export const Header = ({
+  variant = 'compact',
+  collapsed = false,
+}: HeaderProps) => {
+  // Le prénom n'a la place qu'au rail large, et jamais replié — la règle du
+  // rail lui-même (`NavRail`).
+  const named = { base: 'none', xl: collapsed ? 'none' : 'flex' } as const;
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -76,9 +84,13 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
         <Menu.Trigger asChild>
           {variant === 'rail' ? (
             <Button
+              aria-label={`Menu du compte de ${user?.firstName ?? 'mon compte'}`}
               cursor="pointer"
               w="100%"
-              justifyContent="flex-start"
+              justifyContent={{
+                base: 'center',
+                xl: collapsed ? 'center' : 'flex-start',
+              }}
               gap={2.5}
               px={2}
               py={7}
@@ -104,6 +116,7 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
             >
               {avatar}
               <Text
+                display={named}
                 fontSize="sm"
                 fontWeight="medium"
                 lineClamp={1}
@@ -112,7 +125,9 @@ export const Header = ({ variant = 'compact' }: HeaderProps) => {
               >
                 {user?.firstName}
               </Text>
-              <LuChevronUp />
+              <Box as="span" display={named}>
+                <LuChevronUp />
+              </Box>
             </Button>
           ) : (
             // `role="group"` posé ici écrasait le rôle du déclencheur de menu :

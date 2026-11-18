@@ -28,6 +28,8 @@ import type {
   ExercisePayload,
   FeedbackPayload,
   HealthConsentPayload,
+  InboxItemPayload,
+  InboxPayload,
   InviteCheckPayload,
   LegacyMetricsPayload,
   PerformedPayload,
@@ -58,6 +60,15 @@ export type AccountSummary = AccountSummaryPayload;
  * Le front en déclarait une — qu'aucun écran ne lisait.
  */
 export type Client = ClientRowPayload;
+
+/**
+ * Le fil « À lire » : les séances non lues de tous les clients, et combien
+ * il en reste au-delà de ce qui est rendu.
+ */
+export type Inbox = InboxPayload;
+
+/** Une carte du fil : le client, la séance, et la même séance juste avant. */
+export type InboxItem = InboxItemPayload;
 
 /**
  * Le coach qu'un lien d'invitation révèle.

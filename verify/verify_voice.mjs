@@ -62,7 +62,12 @@ const navLabels = (p) =>
   p.evaluate(() =>
     [...document.querySelectorAll('nav a')]
       .filter((a) => a.getClientRects().length > 0)
-      .map((a) => a.innerText.trim())
+      // Le compteur de « À lire » n'est pas son nom : il se retire.
+      .map((a) =>
+        a.innerText
+          .replace(a.querySelector('[data-count]')?.textContent ?? '', '')
+          .trim()
+      )
   );
 
 /** Presse un bouton s'il est là : son absence est jugée par l'assertion qui
@@ -111,10 +116,19 @@ const browser = await launch();
 
   const labels = await navLabels(p);
   ok(
-    'le rail est Clients, Modèles, Exercices',
-    labels.join(' · ') === 'Clients · Modèles · Exercices',
+    'le rail est À lire, Clients, Modèles, Exercices',
+    labels.join(' · ') === 'À lire · Clients · Modèles · Exercices',
     labels.join(' · ')
   );
+  const inboxTitle = await pageTitle(p);
+  ok(
+    "l'espace s'ouvre sur « À lire », et l'écran porte ce nom",
+    inboxTitle === 'À lire',
+    inboxTitle
+  );
+
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
   const clientsTitle = await pageTitle(p);
   ok(
     "l'entrée « Clients » ouvre l'écran « Clients »",
@@ -247,7 +261,7 @@ const browser = await launch();
     r.fulfill({ json: history })
   );
   const p = await signIn(ctx);
-  await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
   await appears(p, 'Sarah Martin');
 
   // L'aperçu, puis une séance qui porte un mot du client.
