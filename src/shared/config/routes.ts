@@ -60,8 +60,16 @@ export const COACH_ROUTES = {
   inbox: '/coach',
   clients: '/coach/clients',
   clientDetails: (clientId: string) => `/coach/clients/${clientId}`,
-  clientSession: (clientId: string, sessionIndex: number) =>
-    `/coach/clients/${clientId}/s/${sessionIndex}`,
+  // `exerciseId` met une ligne en vue, ouverte : « Ajuster » depuis « À
+  // lire » mène à l'exercice dont la séance parle, pas en haut de la séance.
+  clientSession: (
+    clientId: string,
+    sessionIndex: number,
+    exerciseId?: string
+  ) =>
+    `/coach/clients/${clientId}/s/${sessionIndex}${
+      exerciseId ? `?exercise=${encodeURIComponent(exerciseId)}` : ''
+    }`,
   clientJournal: (clientId: string) => `/coach/clients/${clientId}/journal`,
   templates: '/coach/templates',
   templateSession: (templateId: string, sessionIndex: number) =>

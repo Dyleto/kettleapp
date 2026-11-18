@@ -65,6 +65,12 @@ interface Props {
    * et c'est ce qui rend l'atelier réutilisable tel quel.
    */
   clientId?: string;
+  /**
+   * Un exercice à mettre en vue en arrivant : sa première ligne dans la
+   * séance s'ouvre, et la page défile jusqu'à elle. « Ajuster » depuis « À
+   * lire » le désigne ; absent, rien ne s'ouvre.
+   */
+  focusExerciseId?: string;
   /** Les exercices déjà placés ailleurs dans le programme, pour le
    * sélecteur. */
   inProgram: Exercise[];
@@ -87,6 +93,22 @@ interface Props {
     updates: Partial<Omit<BlockExercise, 'exercise'>>
   ) => void;
 }
+
+/** La première ligne d'une séance où figure ce mouvement, s'il y est : le
+ * programme a pu bouger depuis la séance que le client a faite. */
+const rowOfExercise = (
+  session: Session,
+  exerciseId: string | undefined
+): { blockId: string; index: number } | null => {
+  if (!exerciseId) return null;
+  for (const block of session.blocks) {
+    const index = block.exercises.findIndex(
+      (ex) => ex.exercise._id === exerciseId
+    );
+    if (index >= 0) return { blockId: block._id, index };
+  }
+  return null;
+};
 
 const SortableBlock = ({
   id,
@@ -130,6 +152,7 @@ const SortableBlock = ({
 export const ClientProgramTab = ({
   session,
   clientId,
+  focusExerciseId,
   inProgram,
   onRemoveSession,
   onDuplicateSession,
@@ -154,10 +177,14 @@ export const ClientProgramTab = ({
   // même dans un autre bloc. L'écran est remonté à chaque séance — sa clé
   // est celle de la séance —, rien ne reste donc ouvert d'une séance à
   // l'autre.
+  // L'exercice désigné en arrivant ouvre sa ligne. Décidé une fois, au
+  // montage : l'écran est remonté à chaque séance, et l'adresse qui le
+  // désigne ne doit pas rouvrir la ligne après qu'on l'a refermée.
+  const [focused] = useState(() => rowOfExercise(session, focusExerciseId));
   const [openRow, setOpenRow] = useState<{
     blockId: string;
     index: number;
-  } | null>(null);
+  } | null>(focused);
   const [isCopyOpen, setIsCopyOpen] = useState(false);
   const [noteRequested, setNoteRequested] = useState(false);
   const hasNote = !!session.notes?.trim();
@@ -286,6 +313,9 @@ export const ClientProgramTab = ({
                         )
                       }
                       settingsInSheet={!!isMobile}
+                      revealIndex={
+                        focused?.blockId === block._id ? focused.index : null
+                      }
                       onRequestExercisePicker={
                         isMobile
                           ? () => setSelectorBlockId(block._id)

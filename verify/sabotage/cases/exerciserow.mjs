@@ -57,7 +57,7 @@ export default {
       edits: [
         {
           file: TAB,
-          from: '  const [openRow, setOpenRow] = useState<{\n    blockId: string;\n    index: number;\n  } | null>(null);',
+          from: '  const [openRow, setOpenRow] = useState<{\n    blockId: string;\n    index: number;\n  } | null>(focused);',
           to: '  const [openByBlock, setOpenByBlock] = useState<\n    Record<string, number | null>\n  >({});',
         },
         {
@@ -82,7 +82,7 @@ export default {
       edits: [
         {
           file: TAB,
-          from: '  const [openRow, setOpenRow] = useState<{\n    blockId: string;\n    index: number;\n  } | null>(null);',
+          from: '  const [openRow, setOpenRow] = useState<{\n    blockId: string;\n    index: number;\n  } | null>(focused);',
           to: '  const [openByBlock, setOpenByBlock] = useState<\n    Record<string, number | null>\n  >({});',
         },
         {

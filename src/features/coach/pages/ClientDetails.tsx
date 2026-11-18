@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import {
   Avatar,
   Box,
@@ -41,6 +41,8 @@ import { Session } from '@/shared/types';
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
   const navigate = useNavigate();
+  // L'exercice à mettre en vue en arrivant, quand « Ajuster » en désigne un.
+  const focusExerciseId = useSearchParams()[0].get('exercise') ?? undefined;
 
   const clientQuery = useClientDetails(clientId!);
   const { data: client, isLoading } = clientQuery;
@@ -358,6 +360,7 @@ const ClientDetails = () => {
                   key={activeSession._id}
                   {...workshopProps}
                   clientId={clientId!}
+                  focusExerciseId={focusExerciseId}
                 />
               </>
             ) : sessions.length === 0 ? (

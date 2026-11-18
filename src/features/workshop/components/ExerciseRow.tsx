@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Box, chakra, HStack, Portal, Text } from '@chakra-ui/react';
 import { LuMessageSquare } from 'react-icons/lu';
 import type { BlockExercise, SessionBlock } from '@/shared/types';
@@ -18,6 +18,9 @@ interface ExerciseRowProps {
   /** En dessous de 768 px : les réglages montent dans une feuille basse
    * au lieu de se déplier sous la ligne. */
   inSheet: boolean;
+  /** Défiler jusqu'à elle en paraissant : c'est la ligne qu'« Ajuster »
+   * vient désigner. */
+  reveal?: boolean;
   onUpdate: (updates: ExerciseUpdate) => void;
   onRemove: () => void;
   onDuplicate: () => void;
@@ -42,6 +45,7 @@ export const ExerciseRow = ({
   open,
   onOpenChange,
   inSheet,
+  reveal = false,
   onUpdate,
   onRemove,
   onDuplicate,
@@ -62,6 +66,12 @@ export const ExerciseRow = ({
     onOpenChange(false);
     if (inside) toggleRef.current?.focus();
   }, [onOpenChange]);
+
+  // Au centre de l'écran : en haut, la ligne passerait sous l'en-tête de la
+  // page ; en bas, sous sa propre feuille sur téléphone.
+  useEffect(() => {
+    if (reveal) rootRef.current?.scrollIntoView({ block: 'center' });
+  }, [reveal]);
 
   useOutsideDismiss(rootRef, open && !inSheet, close);
   useSheetDismiss(open && inSheet, close);

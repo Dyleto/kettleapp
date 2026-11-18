@@ -131,7 +131,7 @@ export interface DoneChip {
 
 /** La charge la plus lourde d'un mouvement dans une séance, par identifiant
  * d'exercice : c'est le mouvement qu'on compare, pas sa place. */
-const loadsOf = (completed: CompletedSession | undefined) => {
+export const loadsOf = (completed: CompletedSession | undefined) => {
   const loads = new Map<string, number>();
   completed?.blocks.forEach((block) =>
     block.exercises.forEach((entry) => {

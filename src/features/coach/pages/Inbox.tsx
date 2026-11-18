@@ -17,6 +17,7 @@ import { useAuth } from '@/shared/contexts/useAuth';
 import { undoable } from '@/shared/components/undoable';
 import { ActionButton, Chip, EmptyState, LoadFailure, Sheet } from '@/kit';
 import { clientLabel, feedOf } from '@/domain/inbox/feed';
+import { concernedExercise } from '@/domain/inbox/concerned';
 import { useInbox } from '@/features/coach/hooks/useInbox';
 import { useMarkViewed } from '@/features/coach/hooks/useInboxActions';
 import { COACH_CONTENT_MAX_W } from '@/features/coach/constants';
@@ -124,10 +125,15 @@ const Inbox = () => {
   // Sur grand écran, le panneau porte déjà le champ de réponse.
   const replyTo = (item: InboxItem) => (wide ? open(item) : setReplyItem(item));
   // L'atelier sur la séance au rang qu'elle avait ce jour-là — le
-  // programme a pu bouger depuis, et la séance n'y est peut-être plus.
+  // programme a pu bouger depuis, et la séance n'y est peut-être plus —,
+  // l'exercice dont elle parle ouvert et en vue (`concernedExercise`).
   const adjust = (item: InboxItem) =>
     navigate(
-      COACH_ROUTES.clientSession(item.client._id, item.completed.sessionOrder)
+      COACH_ROUTES.clientSession(
+        item.client._id,
+        item.completed.sessionOrder,
+        concernedExercise(item)
+      )
     );
 
   const readBySwipe = (items: InboxItem[]) => {

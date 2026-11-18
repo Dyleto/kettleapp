@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 725 tests unitaires, 40 suites de banc et 720
-assertions, 3 min 47 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 18 novembre : 734 tests unitaires, 40 suites de banc et 723
+assertions, 3 min 43 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -330,18 +330,18 @@ banc actuel, inchangé, qui le prouve.
 - [x] **E4** La réponse chez le client : bulle sur l'accueil et dans Progrès,
       « Nouveau », « Julie ne l'a pas encore lue », « Envoyer à Julie ». La
       voir, c'est l'avoir lue ; « Nouveau » tient le temps de la visite.
-- [ ] **E5** Atelier, lire : une ligne se lit puis s'ouvre, réglages dessous
-      ou en feuille, en-tête de bloc en pastilles, menu d'un bloc.
-      La ligne est faite (E5a) : nom et dose, « à régler » en gris ; −/+
+- [x] **E5** Atelier, lire : une ligne se lit puis s'ouvre, réglages dessous
+      ou en feuille, en-tête de bloc en pastilles, menu d'un bloc. En
+      trois temps. La ligne (E5a) : nom et dose, « à régler » en gris ; −/+
       dont le pas grandit avec la valeur (`domain/session/doseEdit`) ;
-      changer d'unité prévient après coup, avec « Annuler » ; « Dupliquer »
-      ouvre la copie. Le bloc aussi (E5b) : une carte, ses réglages en
-      pastilles qui s'ouvrent sur place, le nom en pastille, la consigne en
-      bulle, un « ⋯ » qui nomme, change de format (`domain/session/format`,
-      avec « Annuler »), duplique et supprime ; sur téléphone, l'en-tête
-      ouvre une feuille. Reste « Ajuster » qui ouvre l'exercice concerné
-      (E5c). La durée d'un échauffement, qui ne sert qu'à l'estimation,
-      attend la durée estimée (E7).
+      changer d'unité prévient après coup, avec « Annuler ». Le bloc (E5b) :
+      une carte, ses réglages en pastilles qui s'ouvrent sur place, le nom
+      en pastille, la consigne en bulle, un « ⋯ » qui nomme, change de
+      format (`domain/session/format`), duplique et supprime ; sur
+      téléphone, l'en-tête ouvre une feuille. « Ajuster » (E5c) ouvre
+      l'exercice que le client cite, sinon celui dont la charge a baissé
+      (`domain/inbox/concerned`). La durée d'un échauffement, qui ne sert
+      qu'à l'estimation, attend la durée estimée (E7).
 - [ ] **E6** Atelier, ajouter : palette de formats dessinée, « + exercice »
       qui cherche puis crée, fiche d'exercice à la place de l'aperçu, saisie
       libre des paliers.
@@ -404,11 +404,12 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 
 - **Le jour fait s'ouvre sur place**, dans un tiroir — tant que Progrès n'a
   pas son détail (F3).
-- **« Ajuster » ouvre la séance**, pas encore le premier exercice concerné :
-  une ligne sait s'ouvrir depuis E5a, l'adresse ne sait pas encore la
-  désigner (E5c).
 - **« À lire » ne se recharge pas en tirant vers le bas** : le geste est
   à faire pour tout l'espace, avec les autres états (G).
+- **Changer d'unité prévient après coup**, par la bannière « Annuler », et
+  non avant comme le dit la maquette (« après avoir prévenu si elle était
+  remplie ») : c'est la règle du reste de l'atelier, jamais de question
+  avant (E5a). Celui-ci est un choix, à confirmer.
 
 Tranché le 16 novembre : la série en cours garde le bloc entier sous elle.
 Ce n'est plus un écart, c'est la maquette qui a changé — son chapitre

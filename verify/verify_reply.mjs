@@ -281,12 +281,83 @@ const browser = await launch();
   await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
   await settle(p);
   await press(p, 'Ajuster');
+  // « Dur sur la fin » ne cite aucun exercice, et aucune charge n'a baissé :
+  // rien n'est désigné, l'atelier s'ouvre sur la séance.
   ok(
     '« Ajuster » ouvre l’atelier du client sur cette séance',
     new URL(p.url()).pathname === `/coach/clients/${CLIENT}/s/1`,
     p.url()
   );
+  ok(
+    '  → sans exercice désigné, aucune ligne ne s’ouvre',
+    !new URL(p.url()).searchParams.has('exercise') &&
+      (await p.locator('main [data-exercise-row][data-open]').count()) === 0 &&
+      (await p.getByRole('dialog').count()) === 0,
+    p.url()
+  );
   await ctx.close();
+}
+
+{
+  console.log('\n── « Ajuster » met en vue l’exercice dont la séance parle');
+  // La séance de Sarah, servie avec un mot qui cite le dernier exercice :
+  // « fente » au singulier, pour « Fentes marchées ». Placé tout en bas de
+  // la séance, il n'est à l'écran que si l'atelier y défile.
+  const CITED = 'Genou qui tire sur la dernière fente.';
+  const citing = (ctx) =>
+    ctx.route(/\/api\/coach\/inbox/, async (route) => {
+      const url = new URL(route.request().url());
+      const response = await route.fetch({
+        url: API + url.pathname + url.search,
+      });
+      const json = await response.json();
+      json.items?.forEach((item) => {
+        if (item.completed._id === SESSION) item.completed.clientNotes = CITED;
+      });
+      await route.fulfill({ response, json });
+    });
+
+  await unread();
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 640 },
+  });
+  await citing(ctx);
+  const p = await signIn(ctx);
+  await p.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  await press(p, 'Ajuster');
+  const open = p.locator('main [data-exercise-row][data-open]');
+  const seen = await open
+    .evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return r.top >= 0 && r.bottom <= window.innerHeight;
+    })
+    .catch(() => false);
+  ok(
+    'l’exercice que le client cite s’ouvre, à l’écran',
+    new URL(p.url()).searchParams.get('exercise') === 'ex5' &&
+      (await open.count()) === 1 &&
+      /Fentes marchées/.test(clean(await open.innerText().catch(() => ''))) &&
+      seen,
+    `${p.url()} · ${await open.count()} ligne(s) ouverte(s) · à l’écran : ${seen}`
+  );
+  await ctx.close();
+
+  await unread();
+  const phone = await browser.newContext(MOBILE);
+  await citing(phone);
+  const m = await signIn(phone);
+  await m.goto(`${BASE}/coach`, { waitUntil: 'domcontentloaded' });
+  await settle(m);
+  await press(m, 'Ajuster');
+  ok(
+    '  → sur téléphone, ses réglages en feuille, prêts à changer',
+    (await m
+      .getByRole('dialog', { name: 'Régler Fentes marchées' })
+      .count()) === 1,
+    m.url()
+  );
+  await phone.close();
 }
 
 await browser.close();

@@ -84,8 +84,11 @@ export default {
           to: '  const [reaction, setReaction] = useState<Reaction | undefined>(undefined);',
         },
       ],
+      // La réponse partie n'a plus son 🔥 : la bulle relue dans la séance
+      // ouverte, que l'assertion cherche avec son émoji, tombe avec elle.
       falls: [
         '→ « Envoyer à Sarah » envoie le texte, la réaction déjà posée avec',
+        '→ la réponse se relit dans la séance ouverte, « pas encore lue »',
       ],
     },
     {
@@ -188,11 +191,85 @@ export default {
       edits: [
         {
           file: 'src/features/coach/pages/Inbox.tsx',
-          from: '      COACH_ROUTES.clientSession(item.client._id, item.completed.sessionOrder)',
+          from: '      COACH_ROUTES.clientSession(\n        item.client._id,\n        item.completed.sessionOrder,\n        concernedExercise(item)\n      )',
           to: '      COACH_ROUTES.clients',
         },
       ],
-      falls: ['« Ajuster » ouvre l’atelier du client sur cette séance'],
+      falls: [
+        '« Ajuster » ouvre l’atelier du client sur cette séance',
+        'l’exercice que le client cite s’ouvre, à l’écran',
+        '→ sur téléphone, ses réglages en feuille, prêts à changer',
+      ],
+    },
+    {
+      // « Ajuster » retombe sur la séance, en haut, comme avant E5c.
+      name: '« Ajuster » ne désigne plus d’exercice',
+      edits: [
+        {
+          file: 'src/features/coach/pages/Inbox.tsx',
+          from: '        concernedExercise(item)\n',
+          to: '',
+        },
+      ],
+      falls: [
+        'l’exercice que le client cite s’ouvre, à l’écran',
+        '→ sur téléphone, ses réglages en feuille, prêts à changer',
+      ],
+    },
+    {
+      // « fente » ne se lit plus dans « Fentes marchées ».
+      name: 'le mot du client se lit sans ramener le pluriel au singulier',
+      edits: [
+        {
+          file: 'src/domain/inbox/concerned.ts',
+          from: "    .map((word) => word.replace(/[sx]$/, ''));",
+          to: '    .map((word) => word);',
+        },
+      ],
+      falls: [
+        'l’exercice que le client cite s’ouvre, à l’écran',
+        '→ sur téléphone, ses réglages en feuille, prêts à changer',
+      ],
+    },
+    {
+      name: 'l’atelier lit un autre nom dans l’adresse',
+      edits: [
+        {
+          file: 'src/features/coach/pages/ClientDetails.tsx',
+          from: "  const focusExerciseId = useSearchParams()[0].get('exercise') ?? undefined;",
+          to: "  const focusExerciseId = useSearchParams()[0].get('exercice') ?? undefined;",
+        },
+      ],
+      falls: [
+        'l’exercice que le client cite s’ouvre, à l’écran',
+        '→ sur téléphone, ses réglages en feuille, prêts à changer',
+      ],
+    },
+    {
+      name: 'l’exercice désigné ne s’ouvre pas',
+      edits: [
+        {
+          file: 'src/features/coach/components/ClientProgramTab.tsx',
+          from: '  } | null>(focused);',
+          to: '  } | null>(null);',
+        },
+      ],
+      falls: [
+        'l’exercice que le client cite s’ouvre, à l’écran',
+        '→ sur téléphone, ses réglages en feuille, prêts à changer',
+      ],
+    },
+    {
+      // Ouvert, mais sous la ligne de flottaison : le coach ne le voit pas.
+      name: 'l’exercice désigné s’ouvre hors de l’écran',
+      edits: [
+        {
+          file: 'src/features/workshop/components/ExerciseRow.tsx',
+          from: "    if (reveal) rootRef.current?.scrollIntoView({ block: 'center' });",
+          to: '    if (reveal) void rootRef;',
+        },
+      ],
+      falls: ['l’exercice que le client cite s’ouvre, à l’écran'],
     },
   ],
 };

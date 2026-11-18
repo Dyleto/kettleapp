@@ -44,6 +44,9 @@ interface WorkshopBlockProps {
   /** En dessous de 768 px : les réglages d'une ligne et ceux du bloc
    * passent par une feuille basse. */
   settingsInSheet: boolean;
+  /** La ligne à faire défiler jusqu'à l'écran en arrivant, s'il y en a
+   * une dans ce bloc. */
+  revealIndex?: number | null;
   /** Fourni en dessous de 768 px : choisir un exercice passe alors par le
    *  tiroir plein écran plutôt que par le menu déroulant, trop à l'étroit. */
   onRequestExercisePicker?: () => void;
@@ -76,6 +79,7 @@ export const WorkshopBlock = ({
   openIndex,
   onOpenRow,
   settingsInSheet,
+  revealIndex = null,
   onRequestExercisePicker,
   onOpenExerciseSheet,
 }: WorkshopBlockProps) => {
@@ -339,6 +343,7 @@ export const WorkshopBlock = ({
             open={openIndex === index}
             onOpenChange={(open) => onOpenRow(open ? index : null)}
             inSheet={settingsInSheet}
+            reveal={revealIndex === index}
             onUpdate={(updates) => onUpdateExercise(index, updates)}
             // Ce qui est retiré ne reste pas ouvert : la ligne suivante
             // prendrait sa place sous les réglages sans qu'on l'ait touchée.
