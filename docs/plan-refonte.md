@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 691 tests unitaires, 37 suites de banc et 676
-assertions, 3 min 20 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 18 novembre : 694 tests unitaires, 38 suites de banc et 684
+assertions, 3 min 25 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -63,7 +63,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 | Écran           | État     | Ce qui manque                                                                                                                                                                  |
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Accueil         | **fait** | Tous les cadres sauf « Réponse du coach non lue », qui attend l'API. Restent aussi « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                     |
+| Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                                    |
 | Programme       | à faire  | L'ancien écran : pas de durée, pas de barre de composition, pas d'état « En cours » ni « Modifiée depuis ta dernière fois » en pastille.                                       |
 | Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                                      |
 | Progrès         | à faire  | L'ancien historique sous un nouveau nom : pas de records, des suites « 20 → 24 → 26 kg » au lieu de courbes, pas de feuille par mouvement, calendrier sans pastilles d'effort. |
@@ -327,8 +327,9 @@ banc actuel, inchangé, qui le prouve.
 - [x] **E3** « À lire » : réagir, répondre, marquer lue en glissant avec
       « Annuler », « Ajuster », panneau de droite. Le compte du coach porte
       son identifiant (API `9ace797`) : c'est ce qui reconnaît ses réponses.
-- [ ] **E4** La réponse chez le client : bulle sur l'accueil et dans Progrès,
-      « Nouveau », « Julie ne l'a pas encore lue », « Envoyer à Julie ».
+- [x] **E4** La réponse chez le client : bulle sur l'accueil et dans Progrès,
+      « Nouveau », « Julie ne l'a pas encore lue », « Envoyer à Julie ». La
+      voir, c'est l'avoir lue ; « Nouveau » tient le temps de la visite.
 - [ ] **E5** Atelier, lire : une ligne se lit puis s'ouvre, réglages dessous
       ou en feuille, en-tête de bloc en pastilles, menu d'un bloc.
 - [ ] **E6** Atelier, ajouter : palette de formats dessinée, « + exercice »

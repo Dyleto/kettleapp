@@ -1,11 +1,15 @@
 /**
- * La réponse du coach vue de son côté : la sienne, celle qu'il peut encore
- * modifier, et ce qu'il en lit une fois partie.
+ * La réponse du coach, des deux côtés : pour lui, la sienne, celle qu'il
+ * peut encore modifier, ce qu'il en lit une fois partie ; pour le client,
+ * celle qu'il voit et si elle est nouvelle.
  */
 import { describe, expect, it } from 'vitest';
 import {
   activeReaction,
+  hasUnread,
+  latestReply,
   myLastReply,
+  replyLine,
   sentLabel,
   toggledReaction,
   type Reply,
@@ -99,5 +103,33 @@ describe('ce qui se lit sous la réponse', () => {
         now
       )
     ).toBe('Envoyée il y a 3 jours · lue');
+  });
+});
+
+describe('ce que le client lit', () => {
+  it('la réaction, puis le texte', () => {
+    expect(
+      replyLine(reply(JULIE, { reaction: 'strong', text: 'Bien joué.' }))
+    ).toBe('💪 Bien joué.');
+    expect(replyLine(reply(JULIE, { text: 'Bien joué.' }))).toBe('Bien joué.');
+    expect(replyLine(reply(JULIE, { reaction: 'fire' }))).toBe('🔥');
+  });
+
+  // Une réponse modifiée garde sa place et prend une date neuve.
+  it('la plus récente par date d’envoi, pas par position', () => {
+    // Au milieu : ni la première ni la dernière de la liste.
+    const first = reply(MARC, { sentAt: '2026-11-16T09:00:00.000Z' });
+    const edited = reply(JULIE, { sentAt: '2026-11-18T09:00:00.000Z' });
+    const last = reply(MARC, { sentAt: '2026-11-17T09:00:00.000Z' });
+    expect(latestReply([first, edited, last])).toBe(edited);
+    expect(latestReply([])).toBeUndefined();
+  });
+
+  it('« Nouveau » tant qu’une réponse n’est pas ouverte', () => {
+    expect(hasUnread([reply(JULIE)])).toBe(true);
+    expect(
+      hasUnread([reply(JULIE, { readAt: '2026-11-17T10:00:00.000Z' })])
+    ).toBe(false);
+    expect(hasUnread([])).toBe(false);
   });
 });

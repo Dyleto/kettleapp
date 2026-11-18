@@ -923,6 +923,25 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 201, { completed });
   }
 
+  // Le client a lu les réponses de son coach : toutes datées maintenant,
+  // celles déjà lues gardant leur date.
+  const readMatch = pathname.match(
+    /^\/api\/client\/sessions\/completed\/([^/]+)\/replies\/read$/
+  );
+  if (readMatch && method === 'PATCH') {
+    const i = HISTORY.findIndex((c) => c._id === readMatch[1]);
+    if (i < 0) return sendJson(res, 404, { message: 'Séance introuvable' });
+    const now = new Date().toISOString();
+    const completed = {
+      ...HISTORY[i],
+      replies: (HISTORY[i].replies ?? []).map((r) =>
+        r.readAt ? r : { ...r, readAt: now }
+      ),
+    };
+    HISTORY = HISTORY.map((c, k) => (k === i ? completed : c));
+    return sendJson(res, 200, { completed });
+  }
+
   const patchMatch = pathname.match(
     /^\/api\/client\/sessions\/completed\/([^/]+)$/
   );

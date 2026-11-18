@@ -14,6 +14,48 @@ export type Reply = CoachReplyPayload;
 export type Reaction = NonNullable<Reply['reaction']>;
 
 /**
+ * Les trois réactions de la maquette : la clé que l'API retient, l'émoji
+ * qui l'affiche, et le mot qui la nomme à qui ne la voit pas.
+ *
+ * Ici et non dans l'écran du coach : le client lit les mêmes émojis dans
+ * la bulle de son accueil, et deux listes auraient fini par en montrer deux
+ * différents pour la même réaction.
+ */
+export const REACTIONS: { key: Reaction; emoji: string; name: string }[] = [
+  { key: 'clap', emoji: '👏', name: 'bravo' },
+  { key: 'strong', emoji: '💪', name: 'costaud' },
+  { key: 'fire', emoji: '🔥', name: 'en feu' },
+];
+
+/** Une réponse telle qu'elle se lit en bulle : sa réaction, puis son
+ * texte. */
+export const replyLine = (reply: Reply): string =>
+  [REACTIONS.find((r) => r.key === reply.reaction)?.emoji, reply.text]
+    .filter(Boolean)
+    .join(' ');
+
+/**
+ * La réponse que le client voit sur son accueil : la plus récente.
+ *
+ * Par date d'envoi et non par position : une réponse modifiée garde sa
+ * place dans la liste et prend une date neuve, et c'est elle que le client
+ * n'a pas encore lue.
+ */
+export const latestReply = (replies: readonly Reply[]): Reply | undefined =>
+  replies.reduce<Reply | undefined>(
+    (latest, reply) =>
+      !latest || Date.parse(reply.sentAt) > Date.parse(latest.sentAt)
+        ? reply
+        : latest,
+    undefined
+  );
+
+/** Une réponse que le client n'a pas encore ouverte : la pastille
+ * « Nouveau », et chez le coach, « pas encore lue ». */
+export const hasUnread = (replies: readonly Reply[]): boolean =>
+  replies.some((reply) => !reply.readAt);
+
+/**
  * La dernière réponse de ce coach, s'il en a écrit une.
  *
  * Par identifiant de coach et non par prénom : un client suivi à deux peut

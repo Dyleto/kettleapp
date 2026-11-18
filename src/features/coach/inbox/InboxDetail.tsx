@@ -5,12 +5,9 @@ import { FEEDBACK_TAG_LABELS } from '@/domain/history/tags';
 import { formatPerformed } from '@/domain/history/performedFormat';
 import { sessionName } from '@/domain/session/name';
 import { clientLabel, tagsInOrder, whenLabel } from '@/domain/inbox/feed';
-import { sentLabel } from '@/domain/inbox/reply';
+import { replyLine, sentLabel } from '@/domain/inbox/reply';
 import { ClientAvatar, EffortPill } from './InboxCard';
-import { REACTIONS } from './reactionList';
 import { ReplyComposer } from './ReplyComposer';
-
-const EMOJI = Object.fromEntries(REACTIONS.map((r) => [r.key, r.emoji]));
 
 /**
  * Une séance ouverte : son détail et la réponse, au même endroit.
@@ -76,11 +73,7 @@ export const InboxDetail = ({
         <Eyebrow>Ta réponse</Eyebrow>
         {mine.map((reply) => (
           <Box key={reply.sentAt}>
-            <Bubble tone="raised">
-              {[reply.reaction && EMOJI[reply.reaction], reply.text]
-                .filter(Boolean)
-                .join(' ')}
-            </Bubble>
+            <Bubble tone="raised">{replyLine(reply)}</Bubble>
             <Text fontSize="xs" color="fg.muted" mt="4px">
               {sentLabel(reply, client.firstName)}
             </Text>

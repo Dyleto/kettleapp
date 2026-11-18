@@ -26,9 +26,11 @@ import {
 } from '@/domain/history/tags';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/domain/history/effort';
 import { BlockCard } from '@/features/workshop';
-import { AutoResizeTextarea } from '@/kit';
+import { AutoResizeTextarea, Bubble } from '@/kit';
+import { hasUnread, replyLine } from '@/domain/inbox/reply';
+import { useReadReplies } from '@/features/client/common/useReadReplies';
 import { LuPencil, LuX } from 'react-icons/lu';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EffortScale } from '@/features/client/end/EffortScale';
 import { FeedbackTags } from '@/features/client/end/FeedbackTags';
 import { PerformedFields } from '@/features/client/progress/PerformedFields';
@@ -169,6 +171,14 @@ export const CompletedSessionDrawer = ({
   const [notes, setNotes] = useState(completed.clientNotes ?? '');
   const [performed, setPerformed] = useState(() => collectPerformed(completed));
   const update = useUpdateCompletedSession();
+
+  // Ouvrir la séance, c'est lire ce que le coach y a répondu — pour le
+  // client seulement : le coach qui relit le journal ne lit pas à sa place.
+  const { mutate: markRead } = useReadReplies();
+  useEffect(() => {
+    if (isOpen && editable && hasUnread(completed.replies))
+      markRead(completed._id);
+  }, [isOpen, editable, completed, markRead]);
 
   const original = collectPerformed(completed);
   const level = getEffortLevel(completed.feedback?.effort);
@@ -340,6 +350,7 @@ export const CompletedSessionDrawer = ({
                   {/* ── Commentaires ── */}
                   {((isEditing && sharesHealth) ||
                     completed.clientNotes ||
+                    completed.replies.length > 0 ||
                     completed.coachNotes) && (
                     <>
                       <Separator borderColor="whiteAlpha.100" />
@@ -374,6 +385,18 @@ export const CompletedSessionDrawer = ({
                             </Box>
                           )
                         )}
+                        {/* La réponse du coach, en bulle sous le mot du
+                            client : la maquette, dans Progrès comme sur
+                            l'accueil. */}
+                        {completed.replies.map((reply) => (
+                          <Bubble
+                            key={`${reply.coachId}:${reply.sentAt}`}
+                            from={reply.firstName}
+                            data-reply
+                          >
+                            {replyLine(reply)}
+                          </Bubble>
+                        ))}
                         {completed.coachNotes && (
                           <Box
                             p={3}

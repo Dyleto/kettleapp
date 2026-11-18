@@ -87,6 +87,14 @@ export const clientService = {
 
   // Corriger un bilan déjà envoyé. Toujours ouvert : un chiffre tapé de
   // travers en plein effort doit pouvoir se réparer depuis l'historique.
+  /** Le client a lu les réponses de son coach à cette séance. */
+  readReplies: async (completedId: string): Promise<CompletedSession> => {
+    const { data } = await api.patch<{ completed: CompletedSession }>(
+      `/api/client/sessions/completed/${completedId}/replies/read`
+    );
+    return data.completed;
+  },
+
   updateCompletedSession: async (
     completedId: string,
     payload: UpdateCompletedSessionPayload

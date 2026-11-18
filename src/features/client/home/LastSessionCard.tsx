@@ -1,10 +1,13 @@
+import { useEffect, useRef, useState } from 'react';
 import { Box, HStack, Text } from '@chakra-ui/react';
 import type { CompletedSession } from '@/shared/types';
 import { EFFORT_ZONE_COLOR } from '@/domain/history/effort';
 import { getEffortSummary } from '@/domain/history/effort';
 import { pastDayLabel } from '@/features/client/home/focus';
 import { useCoachVoice } from '@/features/client/common/coach';
-import { Card } from '@/kit';
+import { Bubble, Card, Chip } from '@/kit';
+import { hasUnread, latestReply, replyLine } from '@/domain/inbox/reply';
+import { useReadReplies } from '@/features/client/common/useReadReplies';
 import { sessionName } from '@/domain/session/name';
 
 /**
@@ -17,6 +20,16 @@ import { sessionName } from '@/domain/session/name';
  *
  * Un bilan d'avant l'échelle d'effort n'a pas de pastille : on n'invente
  * pas un ressenti qu'on n'a jamais demandé.
+ *
+ * Quand le coach a répondu, sa réponse remplace la question : la bulle,
+ * avec « Nouveau » tant que le client ne l'a pas vue. La montrer, c'est
+ * l'avoir lue — c'est ce qui fait lire au coach « lue par Sarah ». La
+ * pastille, elle, se décide à l'arrivée et tient le temps de la visite :
+ * l'éteindre à la seconde où la lecture part la ferait disparaître sous
+ * les yeux de celui qu'elle prévient.
+ *
+ * La bulle est sous le bouton et non dedans : le bouton porte son propre
+ * nom, et un lecteur d'écran n'aurait jamais lu la réponse.
  */
 export const LastSessionCard = ({
   completed,
@@ -34,6 +47,16 @@ export const LastSessionCard = ({
   });
   const day = pastDayLabel(new Date(completed.completedAt));
   const note = completed.clientNotes?.trim();
+  const reply = latestReply(completed.replies);
+  const [fresh] = useState(() => hasUnread(completed.replies));
+  const { mutate: markRead } = useReadReplies();
+  const asked = useRef<string | null>(null);
+  useEffect(() => {
+    if (!hasUnread(completed.replies) || asked.current === completed._id)
+      return;
+    asked.current = completed._id;
+    markRead(completed._id);
+  }, [completed, markRead]);
   return (
     <Card label="Ta dernière séance" gap="10px" p={0}>
       <Box
@@ -49,6 +72,7 @@ export const LastSessionCard = ({
           <Text fontWeight="bold" lineClamp={1}>
             {day} · {title}
           </Text>
+          {reply && fresh && <Chip tone="amber">Nouveau</Chip>}
           {effort && (
             <Box
               as="span"
@@ -67,7 +91,7 @@ export const LastSessionCard = ({
             </Box>
           )}
         </HStack>
-        {(note || !completed.viewedByCoach) && (
+        {!reply && (note || !completed.viewedByCoach) && (
           <Text fontSize="sm" color="fg.muted" mt="10px">
             {note && <>«&nbsp;{note}&nbsp;»</>}
             {note && !completed.viewedByCoach && ' · '}
@@ -76,6 +100,13 @@ export const LastSessionCard = ({
           </Text>
         )}
       </Box>
+      {reply && (
+        <Box px="18px" pb="18px" mt="-8px">
+          <Bubble from={reply.firstName || coach.opening} data-reply>
+            {replyLine(reply)}
+          </Bubble>
+        </Box>
+      )}
     </Card>
   );
 };

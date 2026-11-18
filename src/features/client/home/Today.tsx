@@ -363,6 +363,9 @@ const Today = () => {
           {last && (
             <Box gridArea="last">
               <LastSessionCard
+                // Une autre séance, une autre pastille « Nouveau » : l'état
+                // de la carte repart avec elle.
+                key={last._id}
                 completed={last}
                 onOpen={() => openCompleted(last)}
               />

@@ -1,6 +1,5 @@
 import { chakra, HStack } from '@chakra-ui/react';
-import type { Reaction } from '@/domain/inbox/reply';
-import { REACTIONS } from './reactionList';
+import { REACTIONS, type Reaction } from '@/domain/inbox/reply';
 
 /**
  * Réagir d'une touche.
