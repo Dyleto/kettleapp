@@ -7,7 +7,7 @@ export default {
       edits: [
         {
           file: 'src/features/coach/pages/Inbox.tsx',
-          from: '              feedOf(unread.data.items).map((entry) =>',
+          from: '            feedOf(unread.data.items).map((entry) =>',
           to: "              unread.data.items.map((item) => ({ kind: 'card' as const, item })).map((entry) =>",
         },
       ],

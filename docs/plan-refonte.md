@@ -17,7 +17,7 @@ le rangement (B12) et avant `main` (H1).
 | Fondations                | 5      | 3    | 2       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
 | Client (hors séance)      | 6      | 2    | 2       | 2       |
-| Coach                     | 7      | 0    | 2       | 5       |
+| Coach                     | 7      | 1    | 2       | 4       |
 | Commun                    | 3      | 0    | 2       | 1       |
 | Ce que ça demande à l'API | 6      | 6    | 0       | 0       |
 
@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 682 tests unitaires, 36 suites de banc et 662
-assertions, 3 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 18 novembre : 691 tests unitaires, 37 suites de banc et 676
+assertions, 3 min 20 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -72,15 +72,15 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Coach
 
-| Écran                 | État    | Ce qui manque                                                                                                                                                                                                                    |
-| --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| À lire                | partiel | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues » : faits. Restent les réactions, la réponse, « Ajuster », glisser pour lire (E3).                                                                         |
-| Clients               | à faire | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                           |
-| Atelier d'un client   | à faire | La ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette de formats dessinée, le pouls, le ressenti sous chaque exercice, l'aperçu « vu par le client », l'import d'un modèle, la bande de séances sur téléphone. |
-| Les formats de bloc   | partiel | Les dix formats et la limite de l'échelle existent. Manquent les dessins dans la palette et la saisie libre des paliers.                                                                                                         |
-| Ressentis d'un client | à faire | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                       |
-| Modèles               | à faire | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                             |
-| Exercices             | partiel | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                    |
+| Écran                 | État     | Ce qui manque                                                                                                                                                                                                                    |
+| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                 |
+| Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                           |
+| Atelier d'un client   | à faire  | La ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette de formats dessinée, le pouls, le ressenti sous chaque exercice, l'aperçu « vu par le client », l'import d'un modèle, la bande de séances sur téléphone. |
+| Les formats de bloc   | partiel  | Les dix formats et la limite de l'échelle existent. Manquent les dessins dans la palette et la saisie libre des paliers.                                                                                                         |
+| Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                       |
+| Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                             |
+| Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                    |
 
 ### Commun
 
@@ -324,8 +324,9 @@ banc actuel, inchangé, qui le prouve.
       est lu », « Déjà lues ». L'ordre et ce que dit une carte sont des
       fonctions pures (`domain/inbox`) ; réagir, répondre et lire en
       glissant sont E3.
-- [ ] **E3** « À lire » : réagir, répondre, marquer lue en glissant avec
-      « Annuler », « Ajuster », panneau de droite.
+- [x] **E3** « À lire » : réagir, répondre, marquer lue en glissant avec
+      « Annuler », « Ajuster », panneau de droite. Le compte du coach porte
+      son identifiant (API `9ace797`) : c'est ce qui reconnaît ses réponses.
 - [ ] **E4** La réponse chez le client : bulle sur l'accueil et dans Progrès,
       « Nouveau », « Julie ne l'a pas encore lue », « Envoyer à Julie ».
 - [ ] **E5** Atelier, lire : une ligne se lit puis s'ouvre, réglages dessous
@@ -392,6 +393,10 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 
 - **Le jour fait s'ouvre sur place**, dans un tiroir — tant que Progrès n'a
   pas son détail (F3).
+- **« Ajuster » ouvre la séance**, pas encore le premier exercice concerné :
+  l'atelier ne sait pas se placer sur un exercice (E5).
+- **« À lire » ne se recharge pas en tirant vers le bas** : le geste est
+  à faire pour tout l'espace, avec les autres états (G).
 
 Tranché le 16 novembre : la série en cours garde le bloc entier sous elle.
 Ce n'est plus un écart, c'est la maquette qui a changé — son chapitre

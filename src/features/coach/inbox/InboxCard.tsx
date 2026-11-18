@@ -1,4 +1,10 @@
-import { Avatar, Box, HStack, Text } from '@chakra-ui/react';
+import { Avatar, Box, chakra, HStack, Text } from '@chakra-ui/react';
+import { LuMessageCircle, LuSlidersHorizontal } from 'react-icons/lu';
+import { activeReaction, toggledReaction } from '@/domain/inbox/reply';
+import { useReply } from '@/features/coach/hooks/useInboxActions';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import { Reactions } from './Reactions';
+import type { ReactNode } from 'react';
 import { Card, Chip, type ChipTone } from '@/kit';
 import type { InboxItem } from '@/shared/types';
 import { EFFORT_ZONE_COLOR, getEffortSummary } from '@/domain/history/effort';
@@ -40,7 +46,7 @@ export const ClientAvatar = ({ client }: { client: InboxItem['client'] }) => {
  * quand la séance date d'avant l'échelle d'effort : on n'invente pas de
  * réponse à une question qui n'a pas été posée.
  */
-const EffortPill = ({ item }: { item: InboxItem }) => {
+export const EffortPill = ({ item }: { item: InboxItem }) => {
   const effort = getEffortSummary(item.completed);
   return (
     <Box
@@ -60,14 +66,63 @@ const EffortPill = ({ item }: { item: InboxItem }) => {
   );
 };
 
+/** Une action secondaire de la carte : « Répondre », « Ajuster ». */
+const CardAction = ({
+  onClick,
+  icon,
+  children,
+  tone = 'neutral',
+}: {
+  onClick: () => void;
+  icon: ReactNode;
+  children: string;
+  tone?: 'neutral' | 'amber';
+}) => (
+  <chakra.button
+    type="button"
+    onClick={onClick}
+    display="inline-flex"
+    alignItems="center"
+    gap="6px"
+    minH="40px"
+    px="12px"
+    borderRadius="full"
+    fontSize="14px"
+    fontWeight="600"
+    bg={tone === 'amber' ? 'app.primary.bg' : 'bg.surface'}
+    color={tone === 'amber' ? 'app.primary.fg' : 'fg'}
+  >
+    {icon}
+    {children}
+  </chakra.button>
+);
+
 /**
  * Une séance à lire, lisible sans l'ouvrir : qui, quoi, quand, comment
  * c'était, ce qu'il en a dit, et ce qui a bougé.
  *
  * Avant ce fil, le coach lisait « 3 séances à lire » dans la liste de ses
  * clients et ouvrait chaque journal pour savoir de quoi il s'agissait.
+ *
+ * Trois gestes en pied de carte. Une réaction part d'une touche, et la
+ * séance est lue du même coup ; la toucher de nouveau la retire. « Répondre »
+ * ouvre le champ, « Ajuster » l'atelier du client sur cette séance. Toucher
+ * la carte elle-même l'ouvre — et la marque lue : c'est aussi le chemin de
+ * qui ne peut pas glisser.
  */
-export const InboxCard = ({ item }: { item: InboxItem }) => {
+export const InboxCard = ({
+  item,
+  coachId,
+  onOpen,
+  onReply,
+  onAdjust,
+}: {
+  item: InboxItem;
+  coachId?: string;
+  onOpen?: () => void;
+  onReply?: () => void;
+  onAdjust?: () => void;
+}) => {
   const { completed } = item;
   const note = noteOf(item);
   const { chips, more } = doneChips(item);
@@ -75,38 +130,94 @@ export const InboxCard = ({ item }: { item: InboxItem }) => {
   const title =
     completed.sessionName ||
     sessionName({ order: completed.sessionOrder, name: completed.sessionName });
+  const reply = useReply();
+  const reacted = activeReaction(completed.replies, coachId);
+
+  const react = (key: Parameters<typeof toggledReaction>[1]) =>
+    reply.mutate(
+      {
+        completedId: completed._id,
+        body: { reaction: toggledReaction(reacted, key) },
+      },
+      {
+        onError: () =>
+          toaster.create({
+            type: 'error',
+            title: 'Ta réaction n’est pas partie',
+            description:
+              'La séance reste à lire : retouche-la quand le réseau revient.',
+          }),
+      }
+    );
 
   return (
     <Card gap="10px" data-inbox-card={completed._id}>
-      <HStack gap="10px" align="center">
-        <ClientAvatar client={item.client} />
-        <Box flex={1} minW={0}>
-          <Text fontWeight="700" fontSize="16px" truncate>
-            {clientLabel(item.client)}
-          </Text>
-          <Text color="fg.muted" fontSize="sm" truncate>
-            {title} · {whenLabel(completed.completedAt)}
-          </Text>
-        </Box>
-        <EffortPill item={item} />
-      </HStack>
-      {note?.kind === 'quote' && (
-        <Text fontSize="16px">«&nbsp;{note.text}&nbsp;»</Text>
-      )}
-      {note?.kind === 'hint' && <Text color="fg.muted">{note.text}</Text>}
-      {(tags.length > 0 || chips.length > 0) && (
-        <HStack gap="6px" wrap="wrap">
-          {tags.map((tag) => (
-            <Chip key={tag} tone={tag === 'pain' ? 'coral' : 'neutral'}>
-              {FEEDBACK_TAG_LABELS[tag]}
-            </Chip>
-          ))}
-          {chips.map((chip) => (
-            <Chip key={chip.text} tone={DONE_TONE[chip.tone]}>
-              {chip.text}
-            </Chip>
-          ))}
-          {more > 0 && <Chip tone="outline">+ {more}</Chip>}
+      <chakra.button
+        type="button"
+        onClick={onOpen}
+        disabled={!onOpen}
+        aria-label={`Ouvrir la séance de ${clientLabel(item.client)} — ${title}`}
+        textAlign="left"
+        display="flex"
+        flexDirection="column"
+        gap="10px"
+        cursor={onOpen ? 'pointer' : 'default'}
+      >
+        <HStack gap="10px" align="center" w="full">
+          <ClientAvatar client={item.client} />
+          <Box flex={1} minW={0}>
+            <Text fontWeight="700" fontSize="16px" truncate>
+              {clientLabel(item.client)}
+            </Text>
+            <Text color="fg.muted" fontSize="sm" truncate>
+              {title} · {whenLabel(completed.completedAt)}
+            </Text>
+          </Box>
+          <EffortPill item={item} />
+        </HStack>
+        {note?.kind === 'quote' && (
+          <Text fontSize="16px">«&nbsp;{note.text}&nbsp;»</Text>
+        )}
+        {note?.kind === 'hint' && <Text color="fg.muted">{note.text}</Text>}
+        {(tags.length > 0 || chips.length > 0) && (
+          <HStack gap="6px" wrap="wrap">
+            {tags.map((tag) => (
+              <Chip key={tag} tone={tag === 'pain' ? 'coral' : 'neutral'}>
+                {FEEDBACK_TAG_LABELS[tag]}
+              </Chip>
+            ))}
+            {chips.map((chip) => (
+              <Chip key={chip.text} tone={DONE_TONE[chip.tone]}>
+                {chip.text}
+              </Chip>
+            ))}
+            {more > 0 && <Chip tone="outline">+ {more}</Chip>}
+          </HStack>
+        )}
+      </chakra.button>
+      {(onReply || onAdjust) && (
+        <HStack gap="8px" wrap="wrap">
+          <Reactions
+            active={reacted}
+            onPick={react}
+            disabled={reply.isPending}
+          />
+          {onReply && (
+            <CardAction onClick={onReply} icon={<LuMessageCircle size={14} />}>
+              Répondre
+            </CardAction>
+          )}
+          {onAdjust && (
+            <Box ml="auto">
+              <CardAction
+                onClick={onAdjust}
+                tone="amber"
+                icon={<LuSlidersHorizontal size={14} />}
+              >
+                Ajuster
+              </CardAction>
+            </Box>
+          )}
         </HStack>
       )}
     </Card>

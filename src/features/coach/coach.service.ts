@@ -1,4 +1,5 @@
 import api from '@/shared/config/api';
+import type { Reaction } from '@/domain/inbox/reply';
 import {
   Client,
   ClientWithDetails,
@@ -21,6 +22,31 @@ export const coachService = {
     const { data } = await api.get<Inbox>('/api/coach/inbox', {
       params: { state },
     });
+    return data;
+  },
+
+  /**
+   * Répondre à une séance : une réaction, un texte, ou les deux. Une clé
+   * absente laisse en place, `null` efface — la touche d'une réaction ne
+   * connaît pas le texte déjà écrit.
+   */
+  replyTo: async (
+    completedId: string,
+    body: { reaction?: Reaction | null; text?: string | null }
+  ) => {
+    const { data } = await api.patch<{ completed: CompletedSession }>(
+      `/api/coach/sessions/completed/${completedId}/reply`,
+      body
+    );
+    return data.completed;
+  },
+
+  /** Lues — ou non lues, pour « Annuler » —, une ou plusieurs à la fois. */
+  markViewed: async (ids: string[], viewed: boolean) => {
+    const { data } = await api.patch<{ count: number }>(
+      '/api/coach/sessions/completed/viewed',
+      { ids, viewed }
+    );
     return data;
   },
 

@@ -561,6 +561,7 @@ const USER = {
   lastName: 'Le Moullec',
   isAdmin: false,
   isCoach: true,
+  coachId: '69345f880326b1ba42100dc1',
   isClient: true,
   healthConsent: {
     granted: true,
@@ -672,6 +673,57 @@ const server = http.createServer(async (req, res) => {
       total: items.length,
       items: items.slice(0, 100),
     });
+  }
+
+  // Lues ou non lues, plusieurs à la fois — la route de « Annuler ».
+  if (
+    pathname === '/api/coach/sessions/completed/viewed' &&
+    method === 'PATCH'
+  ) {
+    const ids = body.ids ?? [];
+    HISTORY = HISTORY.map((c) =>
+      ids.includes(c._id) ? { ...c, viewedByCoach: body.viewed } : c
+    );
+    return sendJson(res, 200, { count: ids.length });
+  }
+
+  // Répondre, avec la règle de l'API : la dernière réponse de ce coach se
+  // modifie tant qu'elle n'est pas lue ; une clé absente laisse en place,
+  // `null` efface ; vidée, elle disparaît. Répondre, c'est avoir lu.
+  const replyMatch = pathname.match(
+    /^\/api\/coach\/sessions\/completed\/([^/]+)\/reply$/
+  );
+  if (replyMatch && method === 'PATCH') {
+    const i = HISTORY.findIndex((c) => c._id === replyMatch[1]);
+    if (i < 0) return sendJson(res, 404, { message: 'Séance introuvable' });
+    const replies = [...(HISTORY[i].replies ?? [])];
+    const mine = replies.map((r) => r.coachId).lastIndexOf(USER.coachId);
+    const editable = mine !== -1 && !replies[mine].readAt;
+    const base = editable ? replies[mine] : {};
+    const reaction =
+      body.reaction === undefined
+        ? base.reaction
+        : (body.reaction ?? undefined);
+    const text =
+      body.text === undefined ? base.text : body.text?.trim() || undefined;
+    const written = {
+      coachId: USER.coachId,
+      firstName: USER.firstName,
+      ...(reaction ? { reaction } : {}),
+      ...(text ? { text } : {}),
+      sentAt: new Date().toISOString(),
+    };
+    const next =
+      !reaction && !text
+        ? editable
+          ? replies.filter((_, k) => k !== mine)
+          : replies
+        : editable
+          ? replies.map((r, k) => (k === mine ? written : r))
+          : [...replies, written];
+    const completed = { ...HISTORY[i], replies: next, viewedByCoach: true };
+    HISTORY = HISTORY.map((c, k) => (k === i ? completed : c));
+    return sendJson(res, 200, { completed });
   }
 
   if (pathname === '/api/coach/clients' && method === 'GET')
