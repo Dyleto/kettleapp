@@ -143,9 +143,16 @@ const main = async () => {
     `${withOne?.sessions.length} séance(s)`
   );
 
-  await p.getByRole('button', { name: /^Nom de la séance 1$/ }).click();
+  // Une séance ajoutée s'ouvre sur son nom, prêt à la frappe (E7a) ; le
+  // titre ne se touche que s'il ne l'est pas — `verify_session` éprouve
+  // l'ouverture elle-même.
   const sessionName = p.getByRole('textbox', { name: /^Nom de la séance 1$/ });
-  await sessionName.fill('Poussée');
+  if (!(await sessionName.count()))
+    await p
+      .getByRole('button', { name: /^Nom de la séance 1$/ })
+      .click({ timeout: 2000 })
+      .catch(() => {});
+  await sessionName.fill('Poussée').catch(() => {});
   await sessionName.press('Enter');
   await autosaved(p);
 
@@ -180,22 +187,42 @@ const main = async () => {
   );
 
   // ── 5. Ce que l'atelier d'un modèle n'a pas ──────────────────────────────
+  //
+  // « Copier vers un client… » est une entrée du menu de la séance : on
+  // l'ouvre, on lit ses entrées, on le referme.
+  const menuEntries = async () => {
+    await p
+      .getByRole('button', { name: 'Menu de la séance 1' })
+      .click({ timeout: 2000 })
+      .catch(() => {});
+    await settle(p);
+    const entries = await p
+      .getByRole('menuitem')
+      .allInnerTexts()
+      .catch(() => []);
+    await p.keyboard.press('Escape');
+    await settle(p);
+    return entries.map(clean);
+  };
+  const templateMenu = await menuEntries();
   ok(
-    "l'atelier d'un modèle ne propose pas « copier vers un client »",
-    (await p.getByRole('button', { name: /Copier vers un client/ }).count()) ===
-      0
+    "le menu d'une séance de modèle ne propose pas « copier vers un client »",
+    templateMenu.includes('Dupliquer') &&
+      !templateMenu.some((e) => /Copier vers un client/.test(e)),
+    templateMenu.join(' | ')
   );
 
-  // Le même bouton existe bien chez un client : sans ce contrôle, l'assertion
-  // ci-dessus resterait verte si le bouton disparaissait des deux écrans.
+  // La même entrée existe bien chez un client : sans ce contrôle, l'assertion
+  // ci-dessus resterait verte si l'entrée disparaissait des deux écrans.
   await p.goto(`${BASE}/coach/clients/${CLIENT}/s/1`, {
     waitUntil: 'domcontentloaded',
   });
   await settle(p);
+  const clientMenu = await menuEntries();
   ok(
-    '  → alors que celui d’un client le propose',
-    (await p.getByRole('button', { name: /Copier vers un client/ }).count()) >=
-      1
+    '  → alors que celui d’un client la propose',
+    clientMenu.some((e) => /Copier vers un client/.test(e)),
+    clientMenu.join(' | ')
   );
   // La même contre-épreuve pour le rail : « jamais faite » doit rester là où
   // il y a quelqu'un pour faire la séance.

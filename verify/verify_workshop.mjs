@@ -160,6 +160,12 @@ const main = async () => {
   // champ que le nom : réécrire le nom le remettrait juste par accident, et
   // l'assertion ne verrait rien. Le PUT remplace le programme entier, donc
   // enregistrer un écran périmé renvoie le nom à sa valeur d'avant.
+  // Les jours se cochent dans leur pastille, qu'on ouvre d'abord.
+  await p
+    .getByRole('button', { name: /^Jours conseillés/ })
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
   await p
     .getByRole('button', { name: /^mercredi$/ })
     .first()

@@ -16,7 +16,11 @@ import {
   InlineText,
   ProgramSaveStatus,
 } from '@/features/workshop';
-import { ClientProgramTab, SessionRail } from '@/features/coach';
+import {
+  ClientProgramTab,
+  SessionRail,
+  useSessionMenu,
+} from '@/features/coach';
 import { ActionButton, BackLink, EmptyState, LoadFailure } from '@/kit';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { isUnavailable } from '@/shared/utils/queryState';
@@ -144,6 +148,8 @@ const TemplateDetails = () => {
     workshopProps,
     addSession,
     removeSession,
+    duplicateSession,
+    renameSession,
     saveState,
     savedAt,
     flush,
@@ -152,6 +158,19 @@ const TemplateDetails = () => {
     save,
     sessionIndex,
     goToSession,
+  });
+
+  // Le menu d'une séance de modèle : sans client, ni copie vers un client
+  // ni modèle d'un modèle.
+  const templateSessions = program?.sessions ?? [];
+  const { actionsFor } = useSessionMenu({
+    onRename: (sessionId) => {
+      renameSession(sessionId);
+      const index = templateSessions.findIndex((s) => s._id === sessionId);
+      if (index >= 0) goToSession(index + 1);
+    },
+    onDuplicate: duplicateSession,
+    onRemove: removeSession,
   });
 
   if (isLoading) {
@@ -230,7 +249,7 @@ const TemplateDetails = () => {
           onSelect={(index) => goToSession(index + 1)}
           onAddSession={addSession}
           onReorder={actions.reorderSessions}
-          onRequestDelete={removeSession}
+          menuFor={(session) => actionsFor(session)}
         />
 
         <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
@@ -238,31 +257,11 @@ const TemplateDetails = () => {
               deux valeurs rendues par le même hook. */}
           {activeSession && workshopProps ? (
             <>
-              <HStack
-                justify="flex-start"
-                align="baseline"
-                gap={2}
-                rowGap={1}
-                wrap="wrap"
-                mb={3}
-                className="group"
-              >
-                <Heading as="h2" size="md" flexShrink={0}>
-                  Séance {activeSession.order}
-                </Heading>
-                <InlineText
-                  value={activeSession.name}
-                  onChange={(name) =>
-                    actions.updateSessionName(activeSession._id, name)
-                  }
-                  addLabel="+ nom"
-                  ariaLabel={`Nom de la séance ${activeSession.order}`}
-                  fontSize="sm"
-                  width="220px"
-                />
-              </HStack>
-
-              <ClientProgramTab key={activeSession._id} {...workshopProps} />
+              <ClientProgramTab
+                key={activeSession._id}
+                {...workshopProps}
+                menuActions={actionsFor(activeSession, { rename: false })}
+              />
             </>
           ) : sessions.length === 0 ? (
             <EmptyState

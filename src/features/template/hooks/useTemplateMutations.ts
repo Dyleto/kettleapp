@@ -145,3 +145,38 @@ export const useImportTemplate = (clientId: string) => {
     },
   });
 };
+
+/**
+ * Enregistrer des séances d'un client comme modèle.
+ *
+ * Le toast dit le nom du modèle créé et mène à lui : enregistrer depuis le
+ * programme d'un client, c'est souvent pour aller le retoucher aussitôt
+ * avant de le donner à un autre.
+ */
+export const useSaveAsTemplate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      clientId,
+      name,
+      sessionIds,
+    }: {
+      clientId: string;
+      name: string;
+      sessionIds?: string[];
+    }) => templateService.fromProgram(clientId, name, sessionIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.templates.all(),
+      });
+    },
+    onError: () => {
+      toaster.create({
+        title: 'Le modèle n’a pas été enregistré',
+        description: 'Le programme du client n’a pas bougé. Réessaie.',
+        type: 'error',
+      });
+    },
+  });
+};

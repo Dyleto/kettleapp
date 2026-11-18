@@ -40,7 +40,7 @@ export default {
       edits: [
         {
           file: 'src/features/coach/components/SessionRail.tsx',
-          from: 'tracked={tracking !== undefined}',
+          from: 'tracked={history !== undefined}',
           to: 'tracked',
         },
       ],
@@ -51,11 +51,36 @@ export default {
       edits: [
         {
           file: 'src/features/coach/components/SessionRail.tsx',
-          from: '{tracked && (',
-          to: '{tracked && false && (',
+          from: '  const line = railLine(session, { tracked, done });',
+          to: '  const line = railLine(session, { tracked: false, done });',
         },
       ],
       falls: ['→ et que son rail dit bien ce qui n’a jamais été fait'],
+    },
+    {
+      // Le menu ne demande plus à la page si elle a de quoi copier.
+      name: '« Copier vers un client… » s’offre aussi dans un modèle',
+      edits: [
+        {
+          file: 'src/features/coach/hooks/useSessionMenu.tsx',
+          from: "      onCopy && {\n        value: 'copy',",
+          to: "      {\n        value: 'copy',",
+        },
+      ],
+      falls: [
+        "le menu d'une séance de modèle ne propose pas « copier vers un client »",
+      ],
+    },
+    {
+      name: '« Copier vers un client… » disparaît partout',
+      edits: [
+        {
+          file: 'src/features/coach/hooks/useSessionMenu.tsx',
+          from: "      onCopy && {\n        value: 'copy',",
+          to: "      false && {\n        value: 'copy',",
+        },
+      ],
+      falls: ['→ alors que celui d’un client la propose'],
     },
     {
       name: 'la liste vide perd son personnage',

@@ -1,16 +1,14 @@
 import {
   Box,
   HStack,
-  Menu,
-  Portal,
   Text,
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import { LuPlus, LuTrash2 } from 'react-icons/lu';
-import { Session } from '@/shared/types';
+import { LuGripVertical, LuPlus } from 'react-icons/lu';
+import { CompletedSession, Session } from '@/shared/types';
 import { BLOCK_ACCENT_COLOR, getBlockAccent } from '@/domain/session/blocks';
-import { WEEKDAY_SHORT } from '@/domain/week/dates';
+import { pulseOf, railLine } from '@/domain/session/rail';
 import {
   DndContext,
   DragEndEvent,
@@ -28,6 +26,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { sessionName, sessionRank } from '@/domain/session/name';
+import { EffortDots } from './EffortDots';
+import { SessionContextMenu, type SessionMenuAction } from './SessionMenu';
 
 interface SessionRailProps {
   sessions: Session[];
@@ -36,18 +36,16 @@ interface SessionRailProps {
   onAddSession: () => void;
   onReorder?: (orderedSessionIds: string[]) => void;
   /**
-   * Ce que le client a réellement fait de chaque séance : combien de fois, et
-   * quand fut la dernière. C'est ce qui dit si le programme est suivi, et
-   * cela se lit ici sur toutes les séances plutôt que sur la seule ouverte.
+   * Ce que le client a fait de ses séances : d'où le rail tire, pour
+   * chacune, « jamais faite » ou ses cinq derniers ressentis. Absent pour un
+   * modèle, que personne ne fait.
    */
-  tracking?: Map<string, { count: number; lastAt?: string }>;
+  history?: CompletedSession[];
   /**
-   * Supprimer la séance visée, sans l'ouvrir d'abord.
-   *
-   * Absent quand le rail se lit sans pouvoir supprimer. Le filet d'annulation
-   * vit chez l'appelant : c'est lui qui sait où remettre la séance.
+   * Le menu d'une séance, au clic droit — sans l'ouvrir d'abord. Absent
+   * quand le rail se lit sans pouvoir rien y faire.
    */
-  onRequestDelete?: (sessionId: string) => void;
+  menuFor?: (session: Session) => SessionMenuAction[];
 }
 
 /**
@@ -56,18 +54,17 @@ interface SessionRailProps {
  */
 const Composition = ({ session }: { session: Session }) => {
   if (session.blocks.length === 0) {
-    return <Box h="3px" borderRadius="full" bg="whiteAlpha.100" mt={1.5} />;
+    return <Box h="6px" borderRadius="3px" bg="line" />;
   }
   return (
-    <HStack gap="2px" mt={1.5} h="3px">
+    <HStack gap="3px" h="6px" data-composition>
       {session.blocks.map((block) => (
         <Box
           key={block._id}
           flex={1}
           h="full"
-          borderRadius="full"
+          borderRadius="3px"
           bg={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
-          opacity={0.8}
         />
       ))}
     </HStack>
@@ -76,9 +73,7 @@ const Composition = ({ session }: { session: Session }) => {
 
 interface RowProps {
   session: Session;
-  index: number;
   isActive: boolean;
-  tracking?: { count: number; lastAt?: string };
   /**
    * Le programme appartient à quelqu'un qui fait des séances.
    *
@@ -88,18 +83,27 @@ interface RowProps {
    * un écran où il n'y a pas de client.
    */
   tracked: boolean;
+  history: readonly CompletedSession[];
   onSelect: () => void;
   sortable: boolean;
-  /** Absent quand le rail se lit sans pouvoir supprimer. */
-  onRequestDelete?: () => void;
+  /** Le menu de la séance, au clic droit. */
+  actions?: SessionMenuAction[];
 }
 
+/**
+ * Une séance du rail : « 1 · Full body A », la durée et les jours, la
+ * barre de composition, et les cinq derniers ressentis.
+ *
+ * La ligne disait « 2 blocs » et « faite 4 fois » : un compte, pas une
+ * lecture. Les cinq points disent ce que le compte taisait — une séance faite
+ * quatre fois dont les deux dernières ont été trop dures.
+ */
 const RailRow = ({
   session,
   isActive,
-  tracking,
   tracked,
-  onRequestDelete,
+  history,
+  actions,
   onSelect,
   sortable,
 }: RowProps) => {
@@ -115,6 +119,8 @@ const RailRow = ({
   const rank = sessionRank(session.order);
   const name = sessionName(session);
   const freeName = name === rank ? undefined : name;
+  const done = history.some((c) => c.originalSessionId === session._id);
+  const line = railLine(session, { tracked, done });
 
   const row = (
     <Box
@@ -128,112 +134,47 @@ const RailRow = ({
       {...listeners}
       as="button"
       onClick={onSelect}
+      // Le rang d'abord, pour un lecteur d'écran comme pour le banc :
+      // « Séance 3 — Full body A, ≈ 45 min · lun, jeu ».
+      aria-label={`${rank}${freeName ? ` — ${freeName}` : ''}, ${line}`}
+      aria-current={isActive ? 'true' : undefined}
       textAlign="left"
       w="full"
-      px={3}
-      py={2}
-      borderRadius="md"
-      borderLeftWidth="2px"
-      borderLeftColor={isActive ? 'app.primary' : 'transparent'}
-      bg={isActive ? 'whiteAlpha.100' : 'transparent'}
-      _hover={{ bg: 'whiteAlpha.50' }}
+      px="14px"
+      py="12px"
+      display="flex"
+      flexDirection="column"
+      gap="6px"
+      borderRadius="18px"
+      bg={isActive ? 'bg.raised' : 'transparent'}
+      boxShadow={isActive ? 'inset 3px 0 0 {colors.app.primary}' : undefined}
+      _hover={{ bg: isActive ? 'bg.raised' : 'whiteAlpha.50' }}
       transition="background 0.15s"
       touchAction="none"
+      data-session-row
     >
-      <HStack justify="space-between" align="baseline" gap={2}>
-        {/* Le rang et le nom sur deux lignes, pas une : « Séance 1 — Full
-            body A » ne tient pas dans 220 px, et se cassait au milieu du nom.
-            Empilés, le rang garde sa place et le nom la sienne. */}
-        <VStack align="start" gap={0} minW={0} flex={1}>
-          <Text
-            fontSize="sm"
-            fontWeight="bold"
-            color={isActive ? 'fg' : 'fg.muted'}
-          >
-            {rank}
-          </Text>
-          {freeName && (
-            <Text fontSize="xs" color="fg.muted" lineClamp={1} maxW="full">
-              {freeName}
-            </Text>
-          )}
-        </VStack>
-        {/* Un repère discret, pas une alerte : « jamais faite » est un
-            fait, et « faite 4 fois » aussi. Ce qui compte est de pouvoir
-            comparer les séances entre elles — donc de toutes les lire. */}
-        {tracked && (
-          <Text
-            fontSize="xs"
-            color="fg.muted"
-            flexShrink={0}
-            title={
-              tracking
-                ? `Réalisée ${tracking.count} fois par ce client`
-                : 'Jamais réalisée par ce client'
-            }
-          >
-            {tracking ? `${tracking.count}×` : 'jamais faite'}
-          </Text>
-        )}
-      </HStack>
-      <HStack gap={1.5} align="baseline">
-        <Text fontSize="xs" color="fg.muted">
-          {session.blocks.length} bloc{session.blocks.length > 1 ? 's' : ''}
+      <HStack gap={2} w="full">
+        {/* Le rang et le nom sur une ligne, comme la maquette : « 1 · Full
+            body A ». Un nom trop long se coupe ; le titre de la séance
+            ouverte le donne en entier. */}
+        <Text fontWeight="700" fontSize="15px" lineClamp={1} flex={1} minW={0}>
+          {session.order} · {name}
         </Text>
-        {/* Le coach doit pouvoir relire ce qu'il a posé sans rouvrir
-            chaque séance : c'est ici qu'il voit qu'il a mis trois séances le
-            mardi. */}
-        {(session.suggestedDays?.length ?? 0) > 0 && (
-          <Text fontSize="xs" color="app.primary">
-            {session.suggestedDays!.map((d) => WEEKDAY_SHORT[d]).join(' · ')}
-          </Text>
-        )}
-        {/* La date de la dernière fois : « faite 4 fois » ne dit pas si
-            c'était la semaine dernière ou en juin. */}
-        {tracking?.lastAt && (
-          <Text fontSize="xs" color="fg.muted" flexShrink={0} ml="auto">
-            {new Intl.DateTimeFormat('fr-FR', {
-              day: 'numeric',
-              month: 'short',
-            }).format(new Date(tracking.lastAt))}
-          </Text>
-        )}
+        <Box color="fg.muted" flexShrink={0} aria-hidden>
+          <LuGripVertical size={16} />
+        </Box>
       </HStack>
+      <Text fontSize="12.5px" color="fg.muted" lineClamp={1}>
+        {line}
+      </Text>
       <Composition session={session} />
+      {/* Les points seulement pour une séance faite : « jamais faite » le
+          dit déjà, et cinq ronds vides le rediraient. */}
+      {tracked && done && <EffortDots zones={pulseOf(history, session._id)} />}
     </Box>
   );
-
-  if (!onRequestDelete) return row;
-
-  return (
-    <Menu.Root>
-      <Menu.ContextTrigger asChild>{row}</Menu.ContextTrigger>
-      <Portal>
-        <Menu.Positioner>
-          <Menu.Content
-            bg="bg.surface"
-            borderWidth="1px"
-            borderRadius="xl"
-            padding={1}
-          >
-            <Menu.Item
-              value="delete"
-              cursor="pointer"
-              onClick={onRequestDelete}
-              color="app.error"
-              _hover={{ bg: 'app.error/12' }}
-              borderRadius="md"
-            >
-              <HStack gap={2}>
-                <LuTrash2 size={13} />
-                <Text>Supprimer la séance {session.order}</Text>
-              </HStack>
-            </Menu.Item>
-          </Menu.Content>
-        </Menu.Positioner>
-      </Portal>
-    </Menu.Root>
-  );
+  if (!actions) return row;
+  return <SessionContextMenu actions={actions}>{row}</SessionContextMenu>;
 };
 
 /**
@@ -241,8 +182,8 @@ const RailRow = ({
  *
  * Colonne à partir de `lg`, bande horizontale en dessous — le seuil est
  * mesuré, voir plus bas. Il porte aussi ce que chaque séance est devenue :
- * combien de fois faite, et quand — ce qui ne se lit utilement que sur
- * l'ensemble, pas sur la séance ouverte.
+ * « jamais faite », ou ses cinq derniers ressentis — ce qui ne se lit
+ * utilement que sur l'ensemble, pas sur la séance ouverte.
  */
 export const SessionRail = ({
   sessions,
@@ -250,8 +191,8 @@ export const SessionRail = ({
   onSelect,
   onAddSession,
   onReorder,
-  tracking,
-  onRequestDelete,
+  history,
+  menuFor,
 }: SessionRailProps) => {
   /**
    * À partir de quand le rail devient une colonne.
@@ -291,7 +232,7 @@ export const SessionRail = ({
 
   if (isDesktop) {
     return (
-      <VStack align="stretch" gap={1} w="220px" flexShrink={0}>
+      <VStack align="stretch" gap={1} w="240px" flexShrink={0}>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -305,17 +246,12 @@ export const SessionRail = ({
               <RailRow
                 key={session._id}
                 session={session}
-                index={index}
                 isActive={index === activeIndex}
-                tracking={tracking?.get(session._id)}
-                tracked={tracking !== undefined}
+                tracked={history !== undefined}
+                history={history ?? []}
                 onSelect={() => onSelect(index)}
                 sortable={!!onReorder}
-                onRequestDelete={
-                  onRequestDelete
-                    ? () => onRequestDelete(session._id)
-                    : undefined
-                }
+                actions={menuFor?.(session)}
               />
             ))}
           </SortableContext>
@@ -377,7 +313,11 @@ export const SessionRail = ({
               // Estompée quand le client ne l'a jamais faite — et seulement
               // s'il y a un client : dans un modèle, elles l'étaient toutes.
               opacity={
-                tracking && !tracking.get(session._id) && !isActive ? 0.6 : 1
+                history &&
+                !history.some((c) => c.originalSessionId === session._id) &&
+                !isActive
+                  ? 0.6
+                  : 1
               }
             >
               S{session.order}

@@ -33,9 +33,10 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 755 tests unitaires, 42 suites de banc et 738
-assertions, 3 min 52 s pour le banc complet (14 min 23 s avant qu'il tourne
-sur quatre files, 4 min 23 s avant qu'il attende des états).
+Mesures au 18 novembre : 765 tests unitaires, 43 suites de banc et 765
+assertions, de 3 min 36 s à 4 min 4 s pour le banc complet (14 min 23 s
+avant qu'il tourne sur quatre files, 4 min 23 s avant qu'il attende des
+états).
 
 ## 2. Le relevé, écran par écran
 
@@ -72,15 +73,15 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Coach
 
-| Écran                 | État     | Ce qui manque                                                                                                                                                                                                                    |
-| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                 |
-| Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                           |
-| Atelier d'un client   | à faire  | La ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette de formats dessinée, le pouls, le ressenti sous chaque exercice, l'aperçu « vu par le client », l'import d'un modèle, la bande de séances sur téléphone. |
-| Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                 |
-| Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                       |
-| Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                             |
-| Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                    |
+| Écran                 | État     | Ce qui manque                                                                                                                                                                                                                                                                      |
+| --------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                   |
+| Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                             |
+| Atelier d'un client   | partiel  | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail et l'en-tête de séance avec leur menu. Manquent la bande de séances sur téléphone, le pouls, le ressenti sous chaque exercice, l'aperçu « vu par le client », l'import d'un modèle. |
+| Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                   |
+| Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                                                                         |
+| Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                                                                               |
+| Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                                                                      |
 
 ### Commun
 
@@ -353,7 +354,15 @@ banc actuel, inchangé, qui le prouve.
       La fiche prend la colonne de droite à partir de 1 280 px, et dit
       « chez 4 clients » (API `7c29fa3`).
 - [ ] **E7** Atelier, les séances : rail (durée, jours, composition, cinq
-      ressentis), glisser, menu, bande sur téléphone.
+      ressentis), glisser, menu, bande sur téléphone. En deux temps. Le
+      rail et l'en-tête (E7a) : chaque séance dit « ≈ 30 min · lun, jeu »
+      ou « jamais faite », sa composition en segments et ses cinq derniers
+      ressentis (`domain/session/rail`) ; l'en-tête porte le nom, la durée,
+      une pastille des jours et un « ⋯ » — renommer, le mot d'avant séance,
+      dupliquer, copier vers un client, enregistrer comme modèle,
+      supprimer —, le même menu qu'au clic droit sur le rail. « + Séance »
+      ouvre la séance neuve sur son nom. La bande sur téléphone (E7b) :
+      cartes qu'on glisse à l'appui long, le « ⋯ » en feuille.
 - [ ] **E8** Atelier, ce que le client en a fait : pouls, ressenti sous
       chaque exercice, score sous un bloc (« palier 5 sur 7 en 12:00 »).
 - [ ] **E9** Atelier, l'aperçu « vu par le client » : les scènes de la

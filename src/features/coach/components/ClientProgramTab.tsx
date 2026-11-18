@@ -1,22 +1,13 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   Box,
-  Button,
   Drawer,
-  HStack,
-  IconButton,
   Portal,
   Text,
   VStack,
   useBreakpointValue,
 } from '@chakra-ui/react';
-import {
-  LuCopy,
-  LuUsers,
-  LuMessageSquarePlus,
-  LuPlus,
-  LuTrash2,
-} from 'react-icons/lu';
+import { LuMessageSquarePlus, LuPencil, LuPlus } from 'react-icons/lu';
 import {
   BlockExercise,
   BlockType,
@@ -29,7 +20,6 @@ import {
   FormatPalette,
   ExerciseSelectorPanel,
   InlineText,
-  SuggestedDaysPicker,
 } from '@/features/workshop';
 import {
   SortableContext,
@@ -38,7 +28,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ActionButton, Sheet, TOUCH, touchGap, touchHitArea } from '@/kit';
+import { ActionButton, Sheet } from '@/kit';
 import {
   closestCenter,
   DndContext,
@@ -50,21 +40,25 @@ import {
 } from '@dnd-kit/core';
 import { ExerciseSheet } from '@/features/exercise';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
-import { CopySessionToClient } from './CopySessionToClient';
+import { SessionHeader } from './SessionHeader';
+import type { SessionMenuAction } from './SessionMenu';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 
 interface Props {
   session: Session;
   /**
-   * Le client dont on édite le programme — la source d'une copie.
-   *
-   * Absent quand l'atelier édite un modèle de programme : « copier vers un
-   * client » n'a alors pas de source, et c'est la seule chose de cet écran
-   * qui soit propre à un client. Tout le reste — les blocs, les exercices, la
-   * fiche d'un mouvement — ne sait pas de qui est le programme qu'il édite,
-   * et c'est ce qui rend l'atelier réutilisable tel quel.
+   * Le menu de la séance ouverte, sans « Renommer » que l'en-tête tient
+   * lui-même : dupliquer, copier vers un client, enregistrer comme modèle,
+   * supprimer. C'est la page qui le construit — le clic droit sur le rail
+   * ouvre le même —, et l'atelier ne sait toujours pas de qui est le
+   * programme qu'il édite.
    */
-  clientId?: string;
+  menuActions: SessionMenuAction[];
+  onUpdateSessionName: (name?: string) => void;
+  /** Le nom s'ouvre à l'écriture en arrivant : la séance vient d'être
+   * créée, ou « Renommer » a été choisi sur le rail. */
+  startRenaming?: boolean;
+  onRenamed?: () => void;
   /**
    * Un exercice à mettre en vue en arrivant : sa première ligne dans la
    * séance s'ouvre, et la page défile jusqu'à elle. « Ajuster » depuis « À
@@ -80,8 +74,6 @@ interface Props {
   /** Les exercices déjà placés ailleurs dans le programme, pour le
    * sélecteur. */
   inProgram: Exercise[];
-  onRemoveSession: () => void;
-  onDuplicateSession: () => void;
   onUpdateSessionNotes: (notes: string) => void;
   onUpdateSessionDays: (days: number[]) => void;
   /** Rend l'identifiant du bloc créé. */
@@ -158,12 +150,13 @@ const SortableBlock = ({
  */
 export const ClientProgramTab = ({
   session,
-  clientId,
+  menuActions,
+  onUpdateSessionName,
+  startRenaming = false,
+  onRenamed,
   focusExerciseId,
   onOpenExerciseSheet,
   inProgram,
-  onRemoveSession,
-  onDuplicateSession,
   onUpdateSessionNotes,
   onUpdateSessionDays,
   onAddBlock,
@@ -194,7 +187,18 @@ export const ClientProgramTab = ({
     blockId: string;
     index: number;
   } | null>(focused);
-  const [isCopyOpen, setIsCopyOpen] = useState(false);
+  // « Renommer » : chaque demande remonte le titre, ouvert à l'écriture.
+  // Elles viennent de deux côtés — le « ⋯ » de l'en-tête, et la page (une
+  // séance neuve, le clic droit sur le rail). Celles de la page arrivent en
+  // `startRenaming`, qu'on recompte ici au passage à vrai : la séance
+  // ouverte ne se remonte pas, et un titre déjà monté ignorait l'ordre — le
+  // clic droit « Renommer » sur la séance qu'on lisait ne faisait rien.
+  const [renameRequest, setRenameRequest] = useState(startRenaming ? 1 : 0);
+  const [pageAsked, setPageAsked] = useState(startRenaming);
+  if (startRenaming !== pageAsked) {
+    setPageAsked(startRenaming);
+    if (startRenaming) setRenameRequest((n) => n + 1);
+  }
   const [noteRequested, setNoteRequested] = useState(false);
   const hasNote = !!session.notes?.trim();
   const showsNote = hasNote || noteRequested;
@@ -223,7 +227,6 @@ export const ClientProgramTab = ({
   useBackDismiss(showBlockSelector, closeBlockSelector);
   useBackDismiss(!!selectorBlockId, () => setSelectorBlockId(null));
   useBackDismiss(!!sheetExercise, () => setSheetExercise(null));
-  useBackDismiss(isCopyOpen, () => setIsCopyOpen(false));
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -244,52 +247,47 @@ export const ClientProgramTab = ({
   return (
     <>
       <VStack align="stretch" gap={4}>
-        <VStack align="stretch" gap={1}>
-          {/* La note ne s'affiche que lorsqu'elle existe, ou qu'elle vient
-              d'être demandée. Un « + note de séance » posé en permanence était
-              la septième invitation de l'écran, et la seule dont la plupart
-              des séances se passent. */}
-          {showsNote && (
-            <Box className="group" w="fit-content" maxW="full">
-              <InlineText
-                value={session.notes}
-                onChange={(notes) => onUpdateSessionNotes(notes ?? '')}
-                addLabel="+ note de séance"
-                ariaLabel="Note de la séance"
-                fontSize="sm"
-                startOpen={noteRequested && !hasNote}
-                multiline
-              />
-            </Box>
-          )}
-          {/* Les pastilles de jour font 44 px sous un doigt, le bouton de
-              note en porte 44 invisibles autour de ses 24 : sans cet écart,
-              sa zone mordrait sur la pastille de dimanche. */}
-          <HStack gap={2} css={touchGap} align="center">
-            {/* Le jour conseillé est un attribut de la séance, du même rang
-                que sa note : le coach le pose, une fois, ici. La semaine du
-                client s'en déduit à l'affichage — il n'y a pas d'agenda
-                séparé à tenir cohérent. */}
-            <SuggestedDaysPicker
-              value={session.suggestedDays}
-              onChange={onUpdateSessionDays}
+        <SessionHeader
+          session={session}
+          onRename={onUpdateSessionName}
+          onDays={onUpdateSessionDays}
+          onRenamed={onRenamed}
+          renameRequest={renameRequest}
+          actions={[
+            {
+              value: 'rename',
+              label: 'Renommer',
+              icon: <LuPencil size={14} />,
+              onSelect: () => setRenameRequest((n) => n + 1),
+            },
+            // Le mot que le client lit avant de commencer : une invitation
+            // permanente sous chaque titre était la septième de l'écran, et
+            // la plupart des séances s'en passent. Il s'écrit d'ici.
+            {
+              value: 'note',
+              label: hasNote
+                ? 'Modifier le mot d’avant séance'
+                : 'Ajouter un mot d’avant séance',
+              icon: <LuMessageSquarePlus size={14} />,
+              onSelect: () => setNoteRequested(true),
+            },
+            ...menuActions,
+          ]}
+        />
+
+        {showsNote && (
+          <Box className="group" w="fit-content" maxW="full" mt={-2}>
+            <InlineText
+              value={session.notes}
+              onChange={(notes) => onUpdateSessionNotes(notes ?? '')}
+              addLabel="+ mot d’avant séance"
+              ariaLabel="Note de la séance"
+              fontSize="sm"
+              startOpen={noteRequested && !hasNote}
+              multiline
             />
-            {!showsNote && (
-              <IconButton
-                aria-label="Ajouter une note de séance"
-                title="Ajouter une note de séance"
-                onClick={() => setNoteRequested(true)}
-                css={touchHitArea()}
-                size="2xs"
-                variant="ghost"
-                color="fg.muted"
-                flexShrink={0}
-              >
-                <LuMessageSquarePlus size={14} />
-              </IconButton>
-            )}
-          </HStack>
-        </VStack>
+          </Box>
+        )}
 
         <DndContext
           sensors={sensors}
@@ -385,79 +383,7 @@ export const ClientProgramTab = ({
             Cette séance ne contient aucun bloc.
           </Text>
         )}
-
-        {/* La barre de la séance.
-
-            Les deux commandes se tenaient côte à côte, même taille, même
-            gris, même style d'icône, à quatre pixels l'une de l'autre. L'une
-            est sans conséquence — on peut dupliquer dix fois sans dégât —
-            l'autre détruit le travail d'une séance entière. La confirmation
-            existe déjà ; c'est le geste *avant* la confirmation qu'il faut
-            rendre moins facile, et deux boutons jumeaux le rendent facile par
-            erreur.
-
-            « Supprimer » part donc seul à droite, en rouge, avec toute la
-            largeur de la colonne entre lui et son voisin. */}
-        <HStack justify="flex-start" gap={4} rowGap={2} wrap="wrap" pt={2}>
-          <Button
-            size="xs"
-            variant="ghost"
-            color="fg.muted"
-            /* Assez larges, trop courts : 32 px de haut sous un doigt. Ils
-                           sont seuls sur leur ligne, la hauteur peut donc croître sans
-                           rien recouvrir. */
-            css={{ [TOUCH]: { minHeight: '44px' } }}
-            onClick={onDuplicateSession}
-          >
-            <LuCopy size={13} />
-            Dupliquer la séance
-          </Button>
-          {/* Dupliquer et copier se ressemblent assez pour voisiner, et
-              assez peu pour ne pas se confondre : l'un reste chez ce client,
-              l'autre part chez un autre — et son libellé le dit avant le
-              clic, par les points de suspension qui annoncent un choix.
-              Absent sur un modèle, qui n'a pas de client source. */}
-          {clientId && (
-            <Button
-              size="xs"
-              variant="ghost"
-              color="fg.muted"
-              css={{ [TOUCH]: { minHeight: '44px' } }}
-              onClick={() => setIsCopyOpen(true)}
-            >
-              <LuUsers size={13} />
-              Copier vers un client…
-            </Button>
-          )}
-          <Button
-            size="xs"
-            variant="ghost"
-            /* `ml="auto"` plutôt que `space-between` : l'écart maximal quand
-                           les deux tiennent sur une ligne, et « Supprimer » qui reste à
-                           droite quand elles passent à la ligne. `space-between` sur une
-                           rangée qui ne se replie pas poussait la page 51 px trop large à
-                           768. */
-            ml="auto"
-            color="app.error"
-            _hover={{ bg: 'app.error/12' }}
-            css={{ [TOUCH]: { minHeight: '44px' } }}
-            onClick={onRemoveSession}
-          >
-            <LuTrash2 size={13} />
-            Supprimer la séance
-          </Button>
-        </HStack>
       </VStack>
-
-      {clientId && (
-        <CopySessionToClient
-          sourceClientId={clientId}
-          sourceSessionId={session._id}
-          sessionOrder={session.order}
-          isOpen={isCopyOpen}
-          onClose={() => setIsCopyOpen(false)}
-        />
-      )}
 
       {selectorBlockId && (
         <ExerciseSelectorPanel

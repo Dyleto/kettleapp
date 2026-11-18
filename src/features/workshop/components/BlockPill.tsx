@@ -122,7 +122,9 @@ export const BlockPill = ({
     <chakra.button
       ref={pillRef}
       type="button"
-      aria-label={`${label} : ${display}`}
+      // « Jours conseillés : Jours conseillés » quand rien n'est choisi :
+      // la pastille vide se lit par son seul nom.
+      aria-label={display === label ? label : `${label} : ${display}`}
       aria-expanded={false}
       onClick={() => {
         setRefocus(false);

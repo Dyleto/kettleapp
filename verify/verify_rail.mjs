@@ -10,8 +10,8 @@
  * Le clic droit est un geste de bureau, et c'est délibérément là qu'il
  * s'arrête : sur un écran tactile, l'appui long sert déjà à réordonner le
  * rail par glissement. Lui donner un second sens aurait retiré le
- * réordonnancement pour ajouter un raccourci dont le bouton du bas tient
- * déjà lieu.
+ * réordonnancement pour ajouter un raccourci dont le « ⋯ » de l'en-tête
+ * tient déjà lieu. Depuis E7a, le clic droit ouvre ce même menu, entier.
  */
 import {
   BASE,
@@ -22,6 +22,7 @@ import {
   clean,
   API,
   settle,
+  gone,
 } from './common.mjs';
 
 const CLIENT = '507f1f77bcf86cd799439012';
@@ -87,7 +88,9 @@ const main = async () => {
     process.exit(1);
   }
 
+  // Le menu ne lance l'entrée qu'une fois refermé : on attend qu'il parte.
   await entry.click();
+  await gone(p.getByRole('menu'));
   await settle(p);
 
   ok(

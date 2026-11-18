@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import {
   Avatar,
@@ -18,11 +18,12 @@ import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   useProgramWorkshop,
-  InlineText,
   useUpdateProgramSessions,
   ProgramSaveStatus,
 } from '@/features/workshop';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
+import { useSessionMenu } from '@/features/coach/hooks/useSessionMenu';
+import { useSessionSheets } from '@/features/coach/hooks/useSessionSheets';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
 import {
@@ -85,6 +86,8 @@ const ClientDetails = () => {
     workshopProps,
     addSession,
     removeSession,
+    duplicateSession,
+    renameSession,
     saveState,
     savedAt,
     flush,
@@ -115,27 +118,25 @@ const ClientDetails = () => {
 
   const sessions = program?.sessions ?? [];
 
-  /**
-   * Combien de fois chaque séance a été faite, et quand fut la dernière.
-   *
-   * « Faite 4 fois » vivait en petit gris à droite du titre de la séance
-   * ouverte — donc une séance à la fois. C'est pourtant l'information qui dit
-   * si le programme est suivi : le coach a besoin de la lire sur toutes les
-   * séances d'un coup, pour voir celles que son client évite.
-   */
-  const tracking = useMemo(() => {
-    const perSession = new Map<string, { count: number; lastAt?: string }>();
-    for (const h of history) {
-      const current = perSession.get(h.originalSessionId) ?? { count: 0 };
-      const when = String(h.completedAt);
-      perSession.set(h.originalSessionId, {
-        count: current.count + 1,
-        lastAt:
-          !current.lastAt || when > current.lastAt ? when : current.lastAt,
-      });
-    }
-    return perSession;
-  }, [history]);
+  // Le menu d'une séance, pour le « ⋯ » de l'en-tête comme pour le clic
+  // droit sur le rail. Renommer une autre séance que celle qu'on lit l'ouvre
+  // d'abord : le nom s'écrit là où il se lit.
+  const { openCopy, openSaveAsTemplate, sheets } = useSessionSheets({
+    sessions,
+    clientId: clientId!,
+    clientFirstName: client?.firstName,
+  });
+  const { actionsFor } = useSessionMenu({
+    onCopy: openCopy,
+    onSaveAsTemplate: openSaveAsTemplate,
+    onRename: (sessionId) => {
+      renameSession(sessionId);
+      const index = sessions.findIndex((s) => s._id === sessionId);
+      if (index >= 0) goToSession(index + 1);
+    },
+    onDuplicate: duplicateSession,
+    onRemove: removeSession,
+  });
 
   if (isLoading) {
     return (
@@ -317,8 +318,8 @@ const ClientDetails = () => {
             onSelect={(index) => goToSession(index + 1)}
             onAddSession={addSession}
             onReorder={actions.reorderSessions}
-            onRequestDelete={removeSession}
-            tracking={tracking}
+            history={history}
+            menuFor={(session) => actionsFor(session)}
           />
 
           <Box flex="1 1 auto" minW={0} maxW={{ base: 'none', md: '980px' }}>
@@ -328,43 +329,12 @@ const ClientDetails = () => {
                 diffusion des propriétés serait refusée. */}
             {activeSession && workshopProps ? (
               <>
-                {/* Le rang reste le titre, le nom s'y ajoute — et s'édite là
-                    où il se lit, exactement comme le nom libre d'un bloc :
-                    « + nom » quand il n'y en a pas, le nom lui-même
-                    sinon. */}
-                <HStack
-                  justify="flex-start"
-                  align="baseline"
-                  gap={2}
-                  rowGap={1}
-                  wrap="wrap"
-                  mb={3}
-                  className="group"
-                >
-                  <Heading as="h2" size="md" flexShrink={0}>
-                    Séance {activeSession.order}
-                  </Heading>
-                  <InlineText
-                    value={activeSession.name}
-                    onChange={(name) =>
-                      actions.updateSessionName(activeSession._id, name)
-                    }
-                    addLabel="+ nom"
-                    ariaLabel={`Nom de la séance ${activeSession.order}`}
-                    fontSize="sm"
-                    width="220px"
-                  />
-                  {/* Le compteur est parti dans le rail, où il se lit sur
-                      toutes les séances d'un coup. Le répéter ici ne dirait
-                      rien de plus sur celle qui est ouverte. */}
-                </HStack>
-
                 {!isWide && <SessionFeedbackStrip history={sessionHistory} />}
 
                 <ClientProgramTab
                   key={activeSession._id}
                   {...workshopProps}
-                  clientId={clientId!}
+                  menuActions={actionsFor(activeSession, { rename: false })}
                   focusExerciseId={focusExerciseId}
                   onOpenExerciseSheet={isWide ? setAsideExercise : undefined}
                 />
@@ -447,6 +417,8 @@ const ClientDetails = () => {
             </Box>
           )}
         </Stack>
+
+        {sheets}
 
         <ProgramSaveStatus
           state={saveState}

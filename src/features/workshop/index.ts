@@ -14,3 +14,5 @@ export {
 export { useProgramWorkshop } from './hooks/useProgramWorkshop';
 export { useUpdateProgramSessions } from './hooks/useProgramMutations';
 export { ProgramSaveStatus } from './components/ProgramSaveStatus';
+export { BlockPill } from './components/BlockPill';
+export { useSheetDismiss } from './hooks/useSheetDismiss';

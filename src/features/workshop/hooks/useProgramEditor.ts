@@ -50,11 +50,14 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
 
   // ─── Sessions ──────────────────────────────────────────────────────────────
 
+  /** Une séance vide en fin de programme. Rend son identifiant, tiré avant
+   * la mise à jour : l'écran ouvre aussitôt son nom à l'écriture. */
   const addSession = useCallback(() => {
+    const id = newObjectId();
     setProgram((prev) => {
       if (!prev) return null;
       const newSession: Session = {
-        _id: newObjectId(),
+        _id: id,
         order: prev.sessions.length + 1,
         blocks: [],
         // Des chaînes ISO, comme celles que l'API renvoie : une séance
@@ -65,6 +68,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       };
       return { ...prev, sessions: [...prev.sessions, newSession] };
     });
+    return id;
   }, []);
 
   const removeSession = useCallback((sessionId: string) => {

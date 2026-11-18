@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useProgramEditor } from '@/features/workshop/hooks/useProgramEditor';
 import {
   useProgramAutoSave,
@@ -87,9 +87,17 @@ export const useProgramWorkshop = ({
     );
   }, [program]);
 
+  /**
+   * Une séance vide en fin de programme, ouverte, son nom prêt à l'écriture
+   * (`renamingId`) : « Séance 7 » n'est pas un nom, et le premier geste
+   * après l'avoir créée est presque toujours de lui en donner un.
+   */
+  const [renamingId, setRenamingId] = useState<string | null>(null);
   const addSession = useCallback(() => {
-    actions.addSession();
+    const id = actions.addSession();
+    setRenamingId(id);
     goToSession((program?.sessions.length ?? 0) + 1);
+    return id;
   }, [actions, goToSession, program?.sessions.length]);
 
   /**
@@ -123,12 +131,15 @@ export const useProgramWorkshop = ({
     });
   };
 
-  const duplicateSession = () => {
-    if (!activeSession) return;
-    actions.duplicateSession(activeSession._id);
+  /** N'importe quelle séance, et non la seule ouverte : le menu d'une
+   * séance s'ouvre aussi au clic droit sur le rail. */
+  const duplicateSession = (sessionId = activeSession?._id) => {
+    const index = program?.sessions.findIndex((s) => s._id === sessionId) ?? -1;
+    if (!sessionId || index < 0) return;
+    actions.duplicateSession(sessionId);
     // La copie s'insère juste après l'original : on l'ouvre aussitôt, c'est
     // ce qui vient d'être créé pour être ajusté.
-    goToSession(currentIndex + 2);
+    goToSession(index + 2);
   };
 
   /**
@@ -219,8 +230,12 @@ export const useProgramWorkshop = ({
   const workshopProps = activeSession && {
     session: activeSession,
     inProgram,
-    onRemoveSession: () => removeSession(activeSession._id),
-    onDuplicateSession: duplicateSession,
+    onUpdateSessionName: (name?: string) =>
+      actions.updateSessionName(activeSession._id, name),
+    // Le nom s'ouvre à l'écriture une fois : refermé, il ne se rouvre pas
+    // en revenant sur la séance.
+    startRenaming: renamingId === activeSession._id,
+    onRenamed: () => setRenamingId(null),
     onUpdateSessionNotes: (notes: string) =>
       actions.updateSessionNotes(activeSession._id, notes),
     onUpdateSessionDays: (days: number[]) =>
@@ -254,6 +269,10 @@ export const useProgramWorkshop = ({
     workshopProps,
     addSession,
     removeSession,
+    duplicateSession,
+    /** Ouvre le nom d'une séance à l'écriture : « Renommer », depuis le menu
+     * d'une séance du rail qui n'est pas celle qu'on lit. */
+    renameSession: (sessionId: string) => setRenamingId(sessionId),
     saveState: saveState as SaveState,
     savedAt,
     flush,

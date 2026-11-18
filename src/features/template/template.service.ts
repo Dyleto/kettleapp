@@ -32,6 +32,23 @@ export const templateService = {
     return data.template;
   },
 
+  /**
+   * « Enregistrer comme modèle » : des séances du programme d'un client,
+   * copiées dans un modèle neuf. L'API les relit chez elle ; rien de ce qui
+   * est à l'écran ne voyage, et c'est ce qui est enregistré qui est copié.
+   */
+  fromProgram: async (
+    clientId: string,
+    name: string,
+    sessionIds?: string[]
+  ) => {
+    const { data } = await api.post<{ template: Template }>(
+      '/api/coach/templates/from-program',
+      { clientId, name, sessionIds }
+    );
+    return data.template;
+  },
+
   rename: async (templateId: string, name: string) => {
     const { data } = await api.patch<{ template: Template }>(
       `/api/coach/templates/${templateId}`,

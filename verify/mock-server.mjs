@@ -796,6 +796,30 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/coach/templates' && method === 'GET')
     return sendJson(res, 200, { templates: TEMPLATES.map(templateRow) });
 
+  // « Enregistrer comme modèle » : les séances du client, relues chez le
+  // serveur — toutes, ou celles qu'on nomme. Rien à copier répond 404,
+  // comme l'API.
+  if (pathname === '/api/coach/templates/from-program' && method === 'POST') {
+    const picked = body.sessionIds
+      ? COACH_SESSIONS.filter((s) => body.sessionIds.includes(s._id))
+      : COACH_SESSIONS;
+    if (picked.length === 0)
+      return sendJson(res, 404, { message: 'Aucune séance à enregistrer' });
+    const created = {
+      _id: `tpl-new-${TEMPLATES.length + 1}`,
+      name: body.name ?? 'Sans nom',
+      sessions: JSON.parse(JSON.stringify(picked)).map((session, i) => ({
+        ...session,
+        _id: `tpl-sess-${TEMPLATES.length + 1}-${i + 1}`,
+        order: i + 1,
+      })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    TEMPLATES.push(created);
+    return sendJson(res, 201, { template: created });
+  }
+
   if (pathname === '/api/coach/templates' && method === 'POST') {
     const created = {
       _id: `tpl-new-${TEMPLATES.length + 1}`,
