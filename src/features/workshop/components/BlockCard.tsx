@@ -86,7 +86,7 @@ export const BlockCard = ({ block, renderExerciseExtra }: BlockCardProps) => {
           />
         ))
       ) : (
-        <Box py={2}>
+        <Box py={2} pl="20px" pr="18px">
           <Text fontSize="sm" color="fg.muted">
             Aucun exercice
           </Text>

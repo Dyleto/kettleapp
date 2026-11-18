@@ -12,24 +12,9 @@ import {
   blockDefinesOwnMetrics,
   blockSupportsSets,
 } from '@/domain/session/blocks';
+import { blockDefaults } from '@/domain/session/format';
 
 type ExerciseUpdate = Partial<Omit<BlockExercise, 'exercise'>>;
-
-const BLOCK_DEFAULTS: Record<BlockType, Partial<SessionBlock>> = {
-  warmup: {},
-  classic: {},
-  chipper: {},
-  // Un EMOM se règle en tours et en intervalle — jamais en durée totale, que
-  // ni ses réglages ni son résumé ne lisent. Un bloc neuf affichait donc
-  // « sans limite » alors qu'un défaut venait d'être posé dessus.
-  emom: { rounds: 10, intervalMinutes: 1 },
-  amrap: { durationMinutes: 8 },
-  timecap: { durationMinutes: 15 },
-  every: { intervalMinutes: 3, rounds: 5 },
-  tabata: { rounds: 8, workDuration: 20, restDuration: 10 },
-  onoff: { rounds: 10, workDuration: 30, restDuration: 30 },
-  ladder: { repsScheme: [5, 10, 15, 20], restBetweenRounds: 60 },
-};
 
 const getExerciseDefaults = (blockType: BlockType): Partial<BlockExercise> => {
   // L'échauffement accepte des séries mais n'en pose aucune : le cas courant
@@ -229,7 +214,7 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
             type,
             order: s.blocks.length + 1,
             exercises: [],
-            ...BLOCK_DEFAULTS[type],
+            ...blockDefaults(type),
           };
           return { ...s, blocks: [...s.blocks, newBlock] };
         }),
@@ -282,6 +267,60 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
     },
     []
   );
+
+  /**
+   * Un bloc remplacé entier, à sa place : changer de format, et revenir sur
+   * ce changement. Une fusion de champs (`updateBlock`) ne sait pas
+   * effacer : un AMRAP redevenu EMOM garderait sa durée.
+   */
+  const replaceBlock = useCallback(
+    (sessionId: string, blockId: string, block: SessionBlock) => {
+      setProgram((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          sessions: prev.sessions.map((s) =>
+            s._id !== sessionId
+              ? s
+              : {
+                  ...s,
+                  blocks: s.blocks.map((b) => (b._id === blockId ? block : b)),
+                }
+          ),
+        };
+      });
+    },
+    []
+  );
+
+  /**
+   * Une copie du bloc juste sous lui, sous un identifiant neuf : deux blocs
+   * ne peuvent pas partager une clé, le glisser-déposer s'y perdrait.
+   */
+  const duplicateBlock = useCallback((sessionId: string, blockId: string) => {
+    setProgram((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        sessions: prev.sessions.map((s) => {
+          if (s._id !== sessionId) return s;
+          const index = s.blocks.findIndex((b) => b._id === blockId);
+          if (index === -1) return s;
+          const source = s.blocks[index];
+          const blocks = [...s.blocks];
+          blocks.splice(index + 1, 0, {
+            ...source,
+            _id: newObjectId(),
+            exercises: source.exercises.map((ex) => ({ ...ex })),
+          });
+          return {
+            ...s,
+            blocks: blocks.map((b, i) => ({ ...b, order: i + 1 })),
+          };
+        }),
+      };
+    });
+  }, []);
 
   const updateBlock = useCallback(
     (sessionId: string, blockId: string, updates: Partial<SessionBlock>) => {
@@ -446,6 +485,8 @@ export const useProgramEditor = (initialProgram: ClientProgram | null) => {
       addBlock,
       removeBlock,
       insertBlock,
+      replaceBlock,
+      duplicateBlock,
       updateBlock,
       addExercise,
       removeExercise,

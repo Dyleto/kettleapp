@@ -225,10 +225,10 @@ describe('coachDose — la dose que le coach relit', () => {
   });
 
   // Le bloc porte la mesure : rien à régler sur la ligne.
-  it('un Tabata sans nombre : chaîne vide, pas « à régler »', () => {
+  it('un Tabata sans nombre : « — », pas « à régler »', () => {
     expect(
       coachDose(makeBlock({ type: 'tabata' }), makeBlockExercise({}))
-    ).toBe('');
+    ).toBe('—');
   });
 
   // Les répétitions viennent des paliers, pas de la ligne.

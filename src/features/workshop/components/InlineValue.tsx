@@ -1,7 +1,29 @@
 import { Box, Input, Text } from '@chakra-ui/react';
 import { AutoResizeTextarea, touchHitArea } from '@/kit';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { parseNumberInput } from '@/shared/utils/numberInput';
+
+/**
+ * Rend le focus au nombre quand sa saisie se termine au clavier.
+ *
+ * Entrée ou Échap démontent le champ, et le focus tombait sur la page :
+ * au clavier, on repartait du haut de l'écran, et la pastille ou la ligne
+ * qui contenait le champ ne savait plus qu'on était chez elle — son Échap
+ * suivant ne pouvait pas y rendre le focus. Un clic ailleurs, lui, garde le
+ * focus là où il a cliqué.
+ */
+const useKeyboardReturn = (isEditing: boolean) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [pending, setPending] = useState(false);
+  useEffect(() => {
+    if (!isEditing && pending) buttonRef.current?.focus();
+  }, [isEditing, pending]);
+  return {
+    buttonRef,
+    returnFocus: () => setPending(true),
+    forget: () => setPending(false),
+  };
+};
 
 interface InlineValueProps {
   value?: number;
@@ -77,8 +99,10 @@ export const InlineValue = ({
   const [initial, setInitial] = useState<number | undefined>(
     startOpen ? value : undefined
   );
+  const { buttonRef, returnFocus, forget } = useKeyboardReturn(isEditing);
 
   const open = () => {
+    forget();
     setInitial(value);
     setDraft(value === undefined ? '' : String(value));
     setIsEditing(true);
@@ -142,9 +166,11 @@ export const InlineValue = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
+            returnFocus();
             commit();
           } else if (e.key === 'Escape') {
             e.preventDefault();
+            returnFocus();
             cancel();
           }
         }}
@@ -163,6 +189,7 @@ export const InlineValue = ({
   return (
     <Box
       as="button"
+      ref={buttonRef}
       aria-label={ariaLabel}
       onClick={open}
       px={1}
@@ -200,6 +227,9 @@ interface InlineSequenceProps {
   value?: number[];
   onChange: (value: number[]) => void;
   ariaLabel: string;
+  /** S'ouvre en champ dès qu'il paraît : la pastille des paliers qu'on
+   * vient de toucher demande la saisie, pas un second clic. */
+  startOpen?: boolean;
 }
 
 // Lecture indulgente : tiret, virgule, espace ou point médian, comme on
@@ -220,10 +250,14 @@ export const InlineSequence = ({
   value,
   onChange,
   ariaLabel,
+  startOpen = false,
 }: InlineSequenceProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [initial, setInitial] = useState<number[] | undefined>(undefined);
+  const [isEditing, setIsEditing] = useState(startOpen);
+  const [draft, setDraft] = useState(startOpen ? (value ?? []).join('-') : '');
+  const [initial, setInitial] = useState<number[] | undefined>(
+    startOpen ? value : undefined
+  );
+  const { buttonRef, returnFocus, forget } = useKeyboardReturn(isEditing);
 
   const parsed = isEditing ? parseSequence(draft) : (value ?? []);
 
@@ -259,9 +293,11 @@ export const InlineSequence = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
+              returnFocus();
               commit();
             } else if (e.key === 'Escape') {
               e.preventDefault();
+              returnFocus();
               cancel();
             }
           }}
@@ -286,8 +322,10 @@ export const InlineSequence = ({
   return (
     <Box
       as="button"
+      ref={buttonRef}
       aria-label={ariaLabel}
       onClick={() => {
+        forget();
         setInitial(value);
         setDraft((value ?? []).join('-'));
         setIsEditing(true);
@@ -338,6 +376,9 @@ interface InlineTextProps {
    * absurde.
    */
   startOpen?: boolean;
+  /** Prévenu quand la saisie se termine — perte du focus, Entrée, Échap :
+   * la pastille qui l'a ouvert se referme avec elle. */
+  onDone?: () => void;
 }
 
 /**
@@ -357,9 +398,14 @@ export const InlineText = ({
   width = '100%',
   multiline = false,
   startOpen = false,
+  onDone,
 }: InlineTextProps) => {
   const [isEditing, setIsEditing] = useState(startOpen);
   const hasValue = !!value?.trim();
+  const stopEditing = () => {
+    setIsEditing(false);
+    onDone?.();
+  };
 
   /**
    * Échap ferme, il n'annule pas — et c'est voulu.
@@ -404,7 +450,7 @@ export const InlineText = ({
       autoFocus: true,
       'aria-label': ariaLabel,
       value: value ?? '',
-      onBlur: () => setIsEditing(false),
+      onBlur: stopEditing,
       bg: 'whiteAlpha.100',
       borderColor: 'app.primary.border',
       borderRadius: 'sm',
@@ -429,7 +475,7 @@ export const InlineText = ({
               (e.key === 'Enter' && (e.metaKey || e.ctrlKey))
             ) {
               e.preventDefault();
-              setIsEditing(false);
+              stopEditing();
             }
           }}
         />
@@ -445,7 +491,7 @@ export const InlineText = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === 'Escape') {
             e.preventDefault();
-            setIsEditing(false);
+            stopEditing();
           }
         }}
       />

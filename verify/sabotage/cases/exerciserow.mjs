@@ -263,8 +263,8 @@ export default {
       edits: [
         {
           file: TAB,
-          from: '                      rowsInSheet={!!isMobile}',
-          to: '                      rowsInSheet={false}',
+          from: '                      settingsInSheet={!!isMobile}',
+          to: '                      settingsInSheet={false}',
         },
       ],
       falls: [
@@ -278,8 +278,8 @@ export default {
       edits: [
         {
           file: ROW,
-          from: '  useBackDismiss(open && inSheet, close);',
-          to: '  useBackDismiss(false, close);',
+          from: '  useSheetDismiss(open && inSheet, close);',
+          to: '  useSheetDismiss(false, close);',
         },
       ],
       falls: ['→ le retour du téléphone la referme, sans quitter la séance'],

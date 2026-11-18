@@ -61,6 +61,17 @@ describe('les pas de « − » et « + »', () => {
     expect(stepped('custom', 3, 1)).toBe(4);
   });
 
+  it('les tours et les minutes d’un bloc, un à un, jamais sous un', () => {
+    expect(stepped('rounds', 10, 1)).toBe(11);
+    expect(stepped('minutes', 1, -1)).toBe(1);
+  });
+
+  // Une limite posée sur un bloc « sans limite » part de dix, pas d'un.
+  it('une limite qu’on pose part de dix', () => {
+    expect(stepped('rounds', undefined, 1)).toBe(10);
+    expect(stepped('minutes', undefined, 1)).toBe(10);
+  });
+
   it('une valeur absente part du premier pas qui a un sens', () => {
     expect(stepped('reps', undefined, 1)).toBe(1);
     expect(stepped('duration', undefined, 1)).toBe(30);

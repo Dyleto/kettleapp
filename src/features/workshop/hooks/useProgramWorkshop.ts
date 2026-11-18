@@ -5,6 +5,8 @@ import {
   type SaveState,
 } from '@/features/workshop/hooks/useProgramAutoSave';
 import { getBlockLabel } from '@/domain/session/blocks';
+import { formatName } from '@/domain/session/dose';
+import { withFormat } from '@/domain/session/format';
 import { undoable } from '@/shared/components/undoable';
 import type {
   BlockExercise,
@@ -153,6 +155,24 @@ export const useProgramWorkshop = ({
   };
 
   /**
+   * Changer le format d'un bloc, avec de quoi revenir.
+   *
+   * Le changement perd les réglages que le nouveau format ne lit pas — les
+   * tours d'un EMOM devenu AMRAP. La bannière le dit, et « Annuler » remet le
+   * bloc entier, réglages compris.
+   */
+  const changeBlockFormat = (blockId: string, type: BlockType) => {
+    const before = activeSession?.blocks.find((b) => b._id === blockId);
+    if (!activeSession || !before || before.type === type) return;
+    actions.replaceBlock(activeSession._id, blockId, withFormat(before, type));
+    undoable({
+      title: `Bloc ${formatName(before.type)} devenu ${formatName(type)}`,
+      description: 'Ses exercices restent ; ses réglages suivent le format.',
+      undo: () => actions.replaceBlock(activeSession._id, blockId, before),
+    });
+  };
+
+  /**
    * Retirer un exercice, avec de quoi le remettre.
    *
    * C'est le geste le plus fréquent de l'éditeur, et le seul qui ne demandait
@@ -207,6 +227,9 @@ export const useProgramWorkshop = ({
       actions.updateSessionDays(activeSession._id, days),
     onAddBlock: (type: BlockType) => actions.addBlock(activeSession._id, type),
     onRemoveBlock: removeBlock,
+    onChangeBlockFormat: changeBlockFormat,
+    onDuplicateBlock: (blockId: string) =>
+      actions.duplicateBlock(activeSession._id, blockId),
     onUpdateBlock: (blockId: string, updates: Partial<SessionBlock>) =>
       actions.updateBlock(activeSession._id, blockId, updates),
     onReorderBlocks: (orderedIds: string[]) =>

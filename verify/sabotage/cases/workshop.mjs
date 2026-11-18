@@ -1,4 +1,6 @@
 /** Les sabotages de `verify_workshop.mjs`. Voir `../run.mjs`. */
+const SETTINGS = 'src/features/workshop/components/BlockSettings.tsx';
+
 export default {
   suite: 'verify_workshop.mjs',
   cases: [
@@ -6,9 +8,9 @@ export default {
       name: "l'échelle n'a pas de limite à régler",
       edits: [
         {
-          file: 'src/features/workshop/components/BlockConfigInline.tsx',
-          from: '              ariaLabel="Limite de temps en minutes"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
-          to: '              ariaLabel="Limite de temps"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
+          file: SETTINGS,
+          from: '        limitSetting(block, onUpdate),\n        {',
+          to: '        {',
         },
       ],
       falls: [
@@ -20,9 +22,9 @@ export default {
       name: "la limite saisie n'est pas enregistrée",
       edits: [
         {
-          file: 'src/features/workshop/components/BlockConfigInline.tsx',
-          from: '              value={block.durationMinutes}\n              onChange={(v) => onUpdate({ durationMinutes: v })}\n              suffix="min"\n              format={inMinutes}\n              emptyLabel="sans limite"\n              ariaLabel="Limite de temps en minutes"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
-          to: '              value={block.durationMinutes}\n              onChange={() => {}}\n              suffix="min"\n              format={inMinutes}\n              emptyLabel="sans limite"\n              ariaLabel="Limite de temps en minutes"\n              min={1}\n              clearable\n            />\n            {block.durationMinutes !== undefined && <Sep>max</Sep>}\n          </HStack>\n        </Flex>',
+          file: SETTINGS,
+          from: '      onChange={(v) => onUpdate({ durationMinutes: v })}\n      ariaLabel="Limite de temps en minutes"',
+          to: '      onChange={() => undefined}\n      ariaLabel="Limite de temps en minutes"',
         },
       ],
       falls: ['→ douze minutes, enregistrées sur le bloc'],

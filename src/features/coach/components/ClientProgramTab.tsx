@@ -74,6 +74,8 @@ interface Props {
   onUpdateSessionDays: (days: number[]) => void;
   onAddBlock: (type: BlockType) => void;
   onRemoveBlock: (blockId: string) => void;
+  onChangeBlockFormat: (blockId: string, type: BlockType) => void;
+  onDuplicateBlock: (blockId: string) => void;
   onUpdateBlock: (blockId: string, updates: Partial<SessionBlock>) => void;
   onReorderBlocks: (orderedBlockIds: string[]) => void;
   onAddExercise: (blockId: string, exercise: Exercise) => void;
@@ -135,6 +137,8 @@ export const ClientProgramTab = ({
   onUpdateSessionDays,
   onAddBlock,
   onRemoveBlock,
+  onChangeBlockFormat,
+  onDuplicateBlock,
   onUpdateBlock,
   onReorderBlocks,
   onAddExercise,
@@ -259,6 +263,10 @@ export const ClientProgramTab = ({
                       dragHandleProps={dragHandleProps}
                       onUpdate={(updates) => onUpdateBlock(block._id, updates)}
                       onRemove={() => onRemoveBlock(block._id)}
+                      onDuplicate={() => onDuplicateBlock(block._id)}
+                      onChangeFormat={(type) =>
+                        onChangeBlockFormat(block._id, type)
+                      }
                       onAddExercise={(exercise) =>
                         onAddExercise(block._id, exercise)
                       }
@@ -277,7 +285,7 @@ export const ClientProgramTab = ({
                           index === null ? null : { blockId: block._id, index }
                         )
                       }
-                      rowsInSheet={!!isMobile}
+                      settingsInSheet={!!isMobile}
                       onRequestExercisePicker={
                         isMobile
                           ? () => setSelectorBlockId(block._id)

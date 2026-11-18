@@ -1,127 +1,152 @@
-import { Box, Flex, HStack, VStack } from '@chakra-ui/react';
+import { Box, chakra, Flex, HStack, Text, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
+import { LuEllipsis } from 'react-icons/lu';
 import { TOUCH } from '@/kit';
-import { Text } from '@chakra-ui/react';
 import { SessionBlock } from '@/shared/types';
-import {
-  BLOCK_ACCENT_COLOR,
-  getBlockAccent,
-  getBlockLabel,
-} from '@/domain/session/blocks';
+import { BLOCK_ACCENT_COLOR, getBlockAccent } from '@/domain/session/blocks';
+import { formatName } from '@/domain/session/dose';
 
 interface BlockFrameProps {
   block: SessionBlock;
-  /** Nom libre : du texte en lecture, un champ en édition. */
+  /** La poignée pour glisser le bloc, devant son nom. Absente en lecture. */
+  handle?: ReactNode;
+  /** Nom libre : une pastille à contour. */
   name?: ReactNode;
-  /** Réglages : un résumé en lecture, des commandes en édition. */
+  /** Réglages : des pastilles ambre. */
   config?: ReactNode;
   /** Les commandes du bloc, à droite de l'en-tête. Absentes en lecture. */
   gutter?: ReactNode;
+  /**
+   * Sur téléphone, l'en-tête entier ouvre les réglages du bloc : des
+   * pastilles de 26 px sous un pouce, c'était viser. Le nom donné ici est
+   * celui du bouton.
+   */
+  headerAction?: { label: string; onPress: () => void };
   /** Les lignes d'exercice. */
   children: ReactNode;
-  /** La consigne du bloc : du texte en lecture, un champ en édition. */
+  /** La consigne du bloc, en bulle sous l'en-tête. */
   notes?: ReactNode;
   /** Sous les exercices — « + exercice » en édition. */
   footer?: ReactNode;
 }
 
 /**
- * Le cadre d'un bloc, identique que le coach l'écrive ou que le client le
- * lise.
+ * Le cadre d'un bloc, que le coach l'écrive ou le relise dans un bilan.
  *
- * Le même objet portait deux habillages : une carte arrondie avec fond et
- * bordures côté client, un filet et de la typographie dans l'éditeur. Le
- * coach ne pouvait pas se fier à ce qu'il voyait pour savoir ce que son
- * client verrait, et chaque nouveau type de bloc se dessinait deux fois.
- *
- * La loi retenue est celle de l'éditeur : un filet dans l'accent du bloc, de
- * la typographie, et rien qui ressemble à une boîte. Ce qui change entre les
- * deux modes, c'est le contenu glissé dans les emplacements — jamais la
- * géométrie.
+ * Une carte, et non plus un filet : la maquette pose chaque bloc sur son
+ * fond, l'accent de sa famille en bordure gauche, l'en-tête en capitales
+ * suivi de ses pastilles, la consigne en bulle avant les exercices — c'est
+ * ce qu'on lit avant de les faire. Les deux usages glissent leur contenu
+ * dans les mêmes emplacements ; la géométrie, elle, ne change pas.
  */
 export const BlockFrame = ({
   block,
+  handle,
   name,
   config,
   gutter,
+  headerAction,
   children,
   notes,
   footer,
-}: BlockFrameProps) => (
-  <Box
-    className="group"
-    /* Un point d'ancrage stable pour les mesures, comme
-           `data-exercise-row` sur les lignes : sans lui, une sonde doit deviner
-           le cadre d'un bloc en remontant le DOM depuis son titre. */
-    data-block-type={block.type}
-    borderLeftWidth="2px"
-    borderLeftColor={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
-    pl={3}
-    py={1}
-  >
-    {/* ── L'en-tête : type · nom libre · réglages ── */}
-    {/* Sa gouttière porte des zones de 44 px, comme celle de la
-        première ligne juste en dessous : sans cet espacement, les deux se
-        recouvraient de 5 px. */}
-    <HStack
-      justify="space-between"
-      align="flex-start"
-      gap={3}
-      pb={1}
-      /* L'espacement de 44 px vaut aussi entre la dernière ligne de
-               l'en-tête et la première ligne d'exercice : 4 px les séparaient, et
-               leurs zones se recouvraient de 5. */
-      css={{ [TOUCH]: { minHeight: '44px', paddingBottom: '12px' } }}
+}: BlockFrameProps) => {
+  const title = (
+    <Text
+      as="span"
+      fontSize="12.5px"
+      fontWeight="800"
+      color="fg"
+      textTransform="uppercase"
+      letterSpacing="0.1em"
+      flexShrink={0}
     >
-      {/* Le titre et les réglages partagent une colonne flexible : les
-          réglages se replient quand ils ne tiennent plus, plutôt que de
-          pousser la gouttière hors de l'écran. */}
-      {/* Quand le titre, le nom et les réglages se replient, deux rangées
-          de commandes se suivent à 4 px — et leurs zones de 44 px se
-          recouvrent. Même règle que pour la gouttière : 20 px d'écart mettent
-          44 px entre deux centres. */}
-      <Flex
-        flex={1}
-        minW={0}
-        wrap="wrap"
-        align="baseline"
-        gap={2}
-        rowGap={1}
-        css={{ [TOUCH]: { rowGap: '20px' } }}
-      >
-        <Text
-          fontSize="xs"
-          fontWeight="bold"
-          color="fg"
-          textTransform="uppercase"
-          letterSpacing="wider"
-          flexShrink={0}
-        >
-          {getBlockLabel(block.type)}
-        </Text>
-        {name}
-        {config && <Box minW={0}>{config}</Box>}
-      </Flex>
+      {formatName(block.type)}
+    </Text>
+  );
 
-      {gutter && (
-        <HStack gap={1} flexShrink={0} align="flex-start">
-          {gutter}
-        </HStack>
+  // Le titre et les pastilles partagent une colonne flexible : elles se
+  // replient quand elles ne tiennent plus, plutôt que de pousser la
+  // gouttière hors de l'écran. Repliées, deux rangées de pastilles se
+  // suivent à 20 px au tactile : leurs zones de 44 px ne se recouvrent pas.
+  const heading = (
+    <Flex
+      flex={1}
+      minW={0}
+      wrap="wrap"
+      align="center"
+      gap="8px"
+      rowGap="6px"
+      css={{ [TOUCH]: { rowGap: '20px' } }}
+    >
+      {title}
+      {name}
+      {config}
+    </Flex>
+  );
+
+  return (
+    <Box
+      className="group"
+      // Un point d'ancrage stable pour les mesures : sans lui, une sonde
+      // doit deviner le cadre d'un bloc en remontant le DOM depuis son titre.
+      data-block-type={block.type}
+      bg="bg.surface"
+      borderRadius="20px"
+      boxShadow={`inset 5px 0 0 {colors.${BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}}`}
+    >
+      <HStack gap="8px" pl="20px" pr="12px" pt="12px" pb="8px" align="center">
+        {handle}
+        {headerAction ? (
+          <chakra.button
+            type="button"
+            aria-label={headerAction.label}
+            onClick={headerAction.onPress}
+            display="flex"
+            alignItems="center"
+            gap="8px"
+            flex={1}
+            minW={0}
+            minH="44px"
+            textAlign="left"
+          >
+            {heading}
+            <Box color="fg.muted" flexShrink={0} aria-hidden>
+              <LuEllipsis size={18} />
+            </Box>
+          </chakra.button>
+        ) : (
+          <Box flex={1} minW={0} minH="32px" display="flex" alignItems="center">
+            {heading}
+          </Box>
+        )}
+        {gutter && (
+          <HStack gap={1} flexShrink={0}>
+            {gutter}
+          </HStack>
+        )}
+      </HStack>
+
+      {notes && (
+        <Box px="18px" pl="20px" pb="10px">
+          {notes}
+        </Box>
       )}
-    </HStack>
 
-    <VStack align="stretch" gap={0}>
-      {children}
-    </VStack>
+      <VStack align="stretch" gap={0}>
+        {children}
+      </VStack>
 
-    {footer && <Box pt={1.5}>{footer}</Box>}
-    {/* 4 px suffisent à l'œil, pas à un doigt : la consigne porte une
-        zone de 44 px au tactile, qui mordait de 6 px sur « + exercice » juste
-        au-dessus — et la dernière du DOM l'aurait emporté. */}
-    {notes && (
-      <Box mt={1} css={{ [TOUCH]: { marginTop: '10px' } }}>
-        {notes}
-      </Box>
-    )}
-  </Box>
-);
+      {footer && (
+        <Box
+          borderTopWidth="1px"
+          borderColor="line"
+          pl="20px"
+          pr="18px"
+          py="2px"
+        >
+          {footer}
+        </Box>
+      )}
+    </Box>
+  );
+};

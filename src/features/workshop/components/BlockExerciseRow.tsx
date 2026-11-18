@@ -60,7 +60,7 @@ export const BlockExerciseRow = ({
   // dans les trois cas.
 
   return (
-    <Box borderTopWidth="1px" borderColor="whiteAlpha.100">
+    <Box borderTopWidth="1px" borderColor="whiteAlpha.100" pl="20px" pr="18px">
       <HStack
         as="button"
         data-exercise-row

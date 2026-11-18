@@ -126,8 +126,8 @@ export const exerciseDose = (
  *
  * Une échelle porte sa propre mesure : sa ligne dit « au palier », le
  * nombre que la marche du moment demande. Un Tabata ou un On/Off se dose au
- * temps de travail du bloc : sans nombre, sa ligne rend une chaîne vide et
- * non `null` — il n'y a rien à y régler.
+ * temps de travail du bloc : sans nombre, sa ligne dit « — » et non « à
+ * régler » — il n'y a rien à y régler, c'est le bloc qui donne le temps.
  */
 export const coachDose = (
   block: SessionBlock,
@@ -153,7 +153,7 @@ export const coachDose = (
     return sets > 1
       ? `${sets} séries`
       : blockSupportsRepsOnly(block.type)
-        ? ''
+        ? '—'
         : null;
   const rest = sets > 1 ? restBetweenSetsOf(block, exercise) : undefined;
   return [

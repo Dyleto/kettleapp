@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { Box, chakra, HStack, Portal, Text } from '@chakra-ui/react';
 import { LuMessageSquare } from 'react-icons/lu';
 import type { BlockExercise, SessionBlock } from '@/shared/types';
@@ -6,7 +6,7 @@ import { blockIndexPrefix } from '@/domain/session/blocks';
 import { coachDose } from '@/domain/session/dose';
 import { Sheet } from '@/kit';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
-import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
+import { useSheetDismiss } from '@/features/workshop/hooks/useSheetDismiss';
 import { ExerciseSettings, type ExerciseUpdate } from './ExerciseSettings';
 
 interface ExerciseRowProps {
@@ -64,17 +64,7 @@ export const ExerciseRow = ({
   }, [onOpenChange]);
 
   useOutsideDismiss(rootRef, open && !inSheet, close);
-  // La feuille se ferme au bouton retour du téléphone, comme les autres
-  // couches de l'atelier ; et à Échap, qu'elle ne connaît pas d'elle-même.
-  useBackDismiss(open && inSheet, close);
-  useEffect(() => {
-    if (!open || !inSheet) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !event.defaultPrevented) close();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, inSheet, close]);
+  useSheetDismiss(open && inSheet, close);
 
   const lit = open && !inSheet;
 
@@ -90,8 +80,13 @@ export const ExerciseRow = ({
       bg={lit ? 'bg.raised' : undefined}
       borderRadius={lit ? '16px' : undefined}
       boxShadow={lit ? 'inset 0 0 0 2px {colors.app.primary}' : undefined}
+      // Dans la carte du bloc : la ligne fermée court d'un bord à l'autre,
+      // son filet aussi ; ouverte, elle se détache en carte dans la carte,
+      // comme sur la maquette.
       my={lit ? '6px' : 0}
-      px={lit ? '14px' : 0}
+      mx={lit ? '10px' : 0}
+      pl={lit ? '14px' : '20px'}
+      pr={lit ? '14px' : '18px'}
       py={lit ? '12px' : 0}
     >
       <chakra.button

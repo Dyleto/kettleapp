@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 717 tests unitaires, 39 suites de banc et 705
-assertions, 3 min 37 s pour le banc complet (14 min 23 s avant qu'il tourne
+Mesures au 18 novembre : 725 tests unitaires, 40 suites de banc et 720
+assertions, 3 min 47 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -335,8 +335,13 @@ banc actuel, inchangé, qui le prouve.
       La ligne est faite (E5a) : nom et dose, « à régler » en gris ; −/+
       dont le pas grandit avec la valeur (`domain/session/doseEdit`) ;
       changer d'unité prévient après coup, avec « Annuler » ; « Dupliquer »
-      ouvre la copie. Restent l'en-tête et le menu du bloc, et « Ajuster »
-      qui ouvre l'exercice concerné (E5b).
+      ouvre la copie. Le bloc aussi (E5b) : une carte, ses réglages en
+      pastilles qui s'ouvrent sur place, le nom en pastille, la consigne en
+      bulle, un « ⋯ » qui nomme, change de format (`domain/session/format`,
+      avec « Annuler »), duplique et supprime ; sur téléphone, l'en-tête
+      ouvre une feuille. Reste « Ajuster » qui ouvre l'exercice concerné
+      (E5c). La durée d'un échauffement, qui ne sert qu'à l'estimation,
+      attend la durée estimée (E7).
 - [ ] **E6** Atelier, ajouter : palette de formats dessinée, « + exercice »
       qui cherche puis crée, fiche d'exercice à la place de l'aperçu, saisie
       libre des paliers.
@@ -401,7 +406,7 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
   pas son détail (F3).
 - **« Ajuster » ouvre la séance**, pas encore le premier exercice concerné :
   une ligne sait s'ouvrir depuis E5a, l'adresse ne sait pas encore la
-  désigner (E5b).
+  désigner (E5c).
 - **« À lire » ne se recharge pas en tirant vers le bas** : le geste est
   à faire pour tout l'espace, avec les autres états (G).
 

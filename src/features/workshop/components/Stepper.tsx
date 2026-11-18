@@ -11,10 +11,15 @@ const NOUN: Record<StepKind, string> = {
   duration: 'la durée',
   rest: 'le repos',
   custom: 'la mesure',
+  rounds: 'les tours',
+  minutes: 'la durée',
 };
 
 interface StepperProps {
   kind: StepKind;
+  /** Ce que « − » et « + » règlent, quand le pas ne suffit pas à le dire :
+   * « l'intervalle », « la limite », « le travail ». */
+  noun?: string;
   value?: number;
   onChange: (value?: number) => void;
   /** Le nom du champ, pour la saisie au clavier : « Répétitions — Goblet
@@ -96,6 +101,7 @@ const StepButton = ({
  */
 export const Stepper = ({
   kind,
+  noun = NOUN[kind],
   value,
   onChange,
   ariaLabel,
@@ -112,7 +118,7 @@ export const Stepper = ({
 }: StepperProps) => {
   const minus = (
     <StepButton
-      label={`Diminuer ${NOUN[kind]}`}
+      label={`Diminuer ${noun}`}
       onClick={() => onChange(stepped(kind, value, -1))}
       size={size}
     >
@@ -121,7 +127,7 @@ export const Stepper = ({
   );
   const plus = (
     <StepButton
-      label={`Augmenter ${NOUN[kind]}`}
+      label={`Augmenter ${noun}`}
       onClick={() => onChange(stepped(kind, value, 1))}
       size={size}
     >

@@ -15,8 +15,12 @@ const NBSP = ' ';
 /** L'unité de la dose : une seule à la fois, l'API n'en garde qu'une. */
 export type DoseUnit = 'reps' | 'duration' | 'custom';
 
-/** Ce que les − et + d'une ligne règlent. */
-export type StepKind = 'sets' | 'reps' | 'duration' | 'rest' | 'custom';
+/** Ce que les − et + règlent : sur une ligne, puis dans l'en-tête d'un
+ * bloc — ses tours, ses minutes. Les secondes de travail et de repos d'un
+ * Tabata avancent comme une durée d'exercice ; le repos entre paliers, comme
+ * un repos entre séries. */
+export type StepKind =
+  'sets' | 'reps' | 'duration' | 'rest' | 'custom' | 'rounds' | 'minutes';
 
 /** Une dose sans durée ni mesure libre se compte en répétitions — même vide :
  * c'est l'unité que propose une ligne qu'on vient d'ajouter. */
@@ -39,6 +43,8 @@ const stepSize = (kind: StepKind, value: number): number => {
   switch (kind) {
     case 'sets':
     case 'reps':
+    case 'rounds':
+    case 'minutes':
       return 1;
     case 'duration':
       return value < 60 ? 5 : value < 300 ? 15 : 30;
@@ -56,6 +62,8 @@ const FLOOR: Record<StepKind, number> = {
   duration: 5,
   rest: 0,
   custom: 0,
+  rounds: 1,
+  minutes: 1,
 };
 
 /** Ce que vaut une valeur absente quand on touche « + » : le premier pas
@@ -66,6 +74,10 @@ const START: Record<StepKind, number> = {
   duration: 30,
   rest: 30,
   custom: 1,
+  // Une limite qu'on pose sur un bloc qui n'en avait pas : dix tours, dix
+  // minutes, plutôt qu'un seul — personne ne règle un AMRAP d'une minute.
+  rounds: 10,
+  minutes: 10,
 };
 
 /**
