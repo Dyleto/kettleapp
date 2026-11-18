@@ -9,8 +9,9 @@ import { queryKeys } from '@/shared/config/queryKeys';
  * entrée en cache : le compteur ne coûte pas une requête de plus, et il dit
  * le même nombre que l'écran qu'il ouvre.
  */
-export const useInbox = (state: 'unread' | 'read' = 'unread') =>
+export const useInbox = (state: 'unread' | 'read' = 'unread', enabled = true) =>
   useQuery({
     queryKey: queryKeys.coach.inbox(state),
     queryFn: () => coachService.getInbox(state),
+    enabled,
   });

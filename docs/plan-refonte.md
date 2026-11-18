@@ -33,7 +33,7 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 18 novembre : 658 tests unitaires, 35 suites de banc et 652
+Mesures au 18 novembre : 682 tests unitaires, 36 suites de banc et 662
 assertions, 3 min 12 s pour le banc complet (14 min 23 s avant qu'il tourne
 sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -74,7 +74,7 @@ sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 | Écran                 | État    | Ce qui manque                                                                                                                                                                                                                    |
 | --------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| À lire                | à faire | Tout : le fil, les réactions, la réponse, « Ajuster », « Déjà lues ».                                                                                                                                                            |
+| À lire                | partiel | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues » : faits. Restent les réactions, la réponse, « Ajuster », glisser pour lire (E3).                                                                         |
 | Clients               | à faire | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                           |
 | Atelier d'un client   | à faire | La ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette de formats dessinée, le pouls, le ressenti sous chaque exercice, l'aperçu « vu par le client », l'import d'un modèle, la bande de séances sur téléphone. |
 | Les formats de bloc   | partiel | Les dix formats et la limite de l'échelle existent. Manquent les dessins dans la palette et la saisie libre des paliers.                                                                                                         |
@@ -320,8 +320,10 @@ banc actuel, inchangé, qui le prouve.
       compteur, rail de 76 puis 232 px, replié dans l'atelier. Un seul rail
       dans le kit, pour le client comme pour le coach ; la liste des clients
       passe sur `/coach/clients`.
-- [ ] **E2** « À lire » : le fil et son ordre, les cartes repliées, « Tout
-      est lu », « Déjà lues ».
+- [x] **E2** « À lire » : le fil et son ordre, les cartes repliées, « Tout
+      est lu », « Déjà lues ». L'ordre et ce que dit une carte sont des
+      fonctions pures (`domain/inbox`) ; réagir, répondre et lire en
+      glissant sont E3.
 - [ ] **E3** « À lire » : réagir, répondre, marquer lue en glissant avec
       « Annuler », « Ajuster », panneau de droite.
 - [ ] **E4** La réponse chez le client : bulle sur l'accueil et dans Progrès,
