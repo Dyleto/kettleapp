@@ -67,8 +67,8 @@ export default {
         },
         {
           file: TAB,
-          from: '                        setOpenRow(\n                          index === null ? null : { blockId: block._id, index }\n                        )',
-          to: '                        setOpenByBlock((m) => ({ ...m, [block._id]: index }))',
+          from: '                          setOpenRow(\n                            index === null\n                              ? null\n                              : { blockId: block._id, index }\n                          )',
+          to: '                          setOpenByBlock((m) => ({ ...m, [block._id]: index }))',
         },
       ],
       falls: ['une seule ligne ouverte à la fois, d’un bloc à l’autre'],
@@ -92,8 +92,8 @@ export default {
         },
         {
           file: TAB,
-          from: '                        setOpenRow(\n                          index === null ? null : { blockId: block._id, index }\n                        )',
-          to: '                        setOpenByBlock((m) => ({ ...m, [block._id]: index }))',
+          from: '                          setOpenRow(\n                            index === null\n                              ? null\n                              : { blockId: block._id, index }\n                          )',
+          to: '                          setOpenByBlock((m) => ({ ...m, [block._id]: index }))',
         },
         {
           file: DISMISS,

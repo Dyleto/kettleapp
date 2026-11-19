@@ -91,8 +91,16 @@ const open = async (options, n = 1, shape = (history) => history) => {
     said.replace(/\n+/g, ' | ')
   );
 
-  // La colonne de droite tient les passages : le pouls n'a rien à ouvrir.
-  const aside = p.locator('main').getByText('Retour du client').locator('..');
+  // La colonne de droite tient les passages, sous « Ressentis » : le pouls
+  // n'a rien à ouvrir. Le bouton du haut du même nom ouvre le journal — la
+  // bascule est celle qui se presse.
+  await p
+    .locator('button[aria-pressed]')
+    .filter({ hasText: /^Ressentis$/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const aside = p.locator('main [data-feedback-panel]');
   ok(
     'sur grand écran, il ne s’ouvre pas : la colonne de droite tient les passages',
     (await pulse.evaluate((el) => el.tagName).catch(() => '')) === 'DIV' &&

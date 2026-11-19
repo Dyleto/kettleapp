@@ -8,6 +8,7 @@ import {
   Spinner,
   Stack,
   Text,
+  useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -18,6 +19,7 @@ import {
 } from '@/features/workshop';
 import {
   ClientProgramTab,
+  SessionPreview,
   SessionRail,
   useSessionMenu,
 } from '@/features/coach';
@@ -140,6 +142,11 @@ const TemplateDetails = () => {
     [navigate, templateId]
   );
 
+  // L'aperçu « vu par le client », à partir de 1 280 px comme chez un
+  // client : il suit le bloc que le coach touche, le premier sinon.
+  const isWide = useBreakpointValue({ base: false, xl: true });
+  const [previewBlockId, setPreviewBlockId] = useState<string | null>(null);
+
   const {
     program,
     actions,
@@ -261,6 +268,7 @@ const TemplateDetails = () => {
                 key={activeSession._id}
                 {...workshopProps}
                 menuActions={actionsFor(activeSession, { rename: false })}
+                onFocusBlock={setPreviewBlockId}
               />
             </>
           ) : sessions.length === 0 ? (
@@ -299,6 +307,21 @@ const TemplateDetails = () => {
             />
           )}
         </Box>
+
+        {isWide && activeSession && (
+          <Box
+            w={{ xl: '300px', '2xl': '320px' }}
+            flexShrink={0}
+            position="sticky"
+            top={6}
+          >
+            <SessionPreview
+              session={activeSession}
+              blockId={previewBlockId}
+              viewer="le client"
+            />
+          </Box>
+        )}
       </Stack>
 
       <ProgramSaveStatus state={saveState} savedAt={savedAt} onRetry={flush} />

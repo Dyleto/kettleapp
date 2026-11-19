@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 19 novembre : 809 tests unitaires, 45 suites de banc et 796
-assertions, 3 min 57 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 19 novembre : 809 tests unitaires, 46 suites de banc et 804
+assertions, 4 min 13 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -72,15 +72,15 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Coach
 
-| Écran                 | État     | Ce qui manque                                                                                                                                                                                                                                                                                                                   |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                                                                |
-| Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                                                                          |
-| Atelier d'un client   | partiel  | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc. Manquent l'aperçu « vu par le client », l'import d'un modèle. |
-| Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                |
-| Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                                                                                                                      |
-| Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                                                                                                                            |
-| Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                                                                                                                   |
+| Écran                 | État     | Ce qui manque                                                                                                                                                                                                                                                                                                                 |
+| --------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                                                              |
+| Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                                                                        |
+| Atelier d'un client   | partiel  | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc, l'aperçu « vu par le client ». Manque l'import d'un modèle. |
+| Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                              |
+| Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                                                                                                                    |
+| Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                                                                                                                          |
+| Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                                                                                                                 |
 
 ### Commun
 
@@ -389,7 +389,7 @@ banc actuel, inchangé, qui le prouve.
       baisse (`domain/history/blockScore`). Un bloc se retrouve par son
       format et son rang parmi ceux de ce format ; la pastille de « À
       lire » lit la même source.
-- [ ] **E9** Atelier, l'aperçu « vu par le client » : les scènes de la
+- [x] **E9** Atelier, l'aperçu « vu par le client » : les scènes de la
       séance guidée, à l'échelle. En deux temps. La scène (E9a) : le choix
       de la scène quitte `GuidedSession` pour `GuidedScene`, que l'atelier
       montera aussi — deux copies de ce choix finiraient par montrer au
@@ -397,7 +397,12 @@ banc actuel, inchangé, qui le prouve.
       la séance au début d'un bloc, horloge à l'arrêt. L'aperçu (E9b) : une
       iframe de 390 × 844 à l'échelle, parce que les scènes lisent la
       taille de la fenêtre (59 fois) et qu'un cadre réduit de l'écran du
-      coach les rendrait en mise en page large.
+      coach les rendrait en mise en page large. L'atelier lui envoie la
+      séance à chaque frappe ; elle ne charge rien, n'écoute que sa propre
+      origine, et reste inerte. Elle suit le bloc que le coach touche. À
+      partir de 1 280 px, chez un client, la colonne bascule entre
+      « Aperçu » et « Ressentis » — deux vues qui portent le nom de leur
+      bascule ; dans un modèle, l'aperçu seul, « vu par le client ».
 - [ ] **E10** Atelier, les bords : importer un modèle et son avertissement,
       programme vide, séance introuvable, états d'enregistrement,
       suppression et « Annuler » partout.

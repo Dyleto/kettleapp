@@ -77,6 +77,9 @@ export const COACH_ROUTES = {
   exercises: '/coach/exercises',
   exerciseDetails: (exerciseId: string) => `/coach/exercises/${exerciseId}`,
   account: '/coach/account',
+  // Hors de `/coach` : la page vit dans une iframe de l'atelier, sans la
+  // navigation du coach autour. Voir `SessionPreviewFrame`.
+  preview: '/preview',
 };
 
 /**

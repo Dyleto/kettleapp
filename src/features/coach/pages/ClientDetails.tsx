@@ -31,6 +31,7 @@ import {
   SessionFeedbackPanel,
 } from '@/features/coach/components/SessionPassages';
 import { SessionPulse } from '@/features/coach/components/SessionPulse';
+import { SessionPreview } from '@/features/coach/preview/SessionPreview';
 import { sessionPulse } from '@/domain/history/pulse';
 import { exerciseTraces } from '@/domain/history/exerciseTrace';
 import { blockScores } from '@/domain/history/blockScore';
@@ -41,6 +42,7 @@ import {
   EmptyState,
   hitArea,
   LoadFailure,
+  PillButton,
   TOUCH,
 } from '@/kit';
 import { Header } from '@/shared/components/Header';
@@ -130,6 +132,11 @@ const ClientDetails = () => {
   const isPhone = useBreakpointValue({ base: true, md: false });
   // Les passages de la séance, en feuille, là où aucune colonne ne les tient.
   const [passagesOpen, setPassagesOpen] = useState(false);
+  // La colonne de droite montre l'aperçu « vu par le client » ou les
+  // ressentis ; l'aperçu d'abord, comme la maquette. Il suit le bloc que le
+  // coach touche — le premier tant qu'il n'en a touché aucun.
+  const [asideView, setAsideView] = useState<'preview' | 'feedback'>('preview');
+  const [previewBlockId, setPreviewBlockId] = useState<string | null>(null);
   const [sessionSheet, setSessionSheet] = useState<{
     focusName: boolean;
   } | null>(null);
@@ -378,6 +385,7 @@ const ClientDetails = () => {
                   sessionSheetOnPhone
                   traces={exerciseTraces(activeSession, history)}
                   scores={blockScores(activeSession, history)}
+                  onFocusBlock={setPreviewBlockId}
                   pulse={
                     <SessionPulse
                       pulse={sessionPulse(history, activeSession._id)}
@@ -460,7 +468,34 @@ const ClientDetails = () => {
                   />
                 </Box>
               ) : (
-                <SessionFeedbackPanel history={sessionHistory} />
+                <VStack align="stretch" gap="14px" position="sticky" top={6}>
+                  {/* En haut, pour ne pas sauter d'une vue à l'autre : sous
+                      l'aperçu, la bascule changeait de place en changeant
+                      de vue. */}
+                  <HStack justify="center" gap="6px">
+                    <PillButton
+                      pressed={asideView === 'preview'}
+                      onClick={() => setAsideView('preview')}
+                    >
+                      Aperçu
+                    </PillButton>
+                    <PillButton
+                      pressed={asideView === 'feedback'}
+                      onClick={() => setAsideView('feedback')}
+                    >
+                      Ressentis
+                    </PillButton>
+                  </HStack>
+                  {asideView === 'preview' ? (
+                    <SessionPreview
+                      session={activeSession}
+                      blockId={previewBlockId}
+                      viewer={client.firstName ?? 'le client'}
+                    />
+                  ) : (
+                    <SessionFeedbackPanel history={sessionHistory} />
+                  )}
+                </VStack>
               )}
             </Box>
           )}

@@ -123,7 +123,8 @@ const browser = await launch();
     'à partir de 1 280 px, elle prend la colonne de droite, sans recouvrir',
     (await aside.count()) === 1 &&
       (await p.getByRole('dialog').count()) === 0 &&
-      !/Retour du client/i.test(await text(p.locator('main'))),
+      // L'aperçu « vu par le client » tient la colonne d'habitude.
+      !/Vu par Sarah/i.test(await text(p.locator('main'))),
     said.replace(/\n+/g, ' | ').slice(0, 120)
   );
   ok(
@@ -151,9 +152,9 @@ const browser = await launch();
   await press(p, 'Retour au programme', aside);
   await gone(aside);
   ok(
-    '  → « Retour au programme » rend la colonne à son retour du client',
+    '  → « Retour au programme » rend la colonne à son aperçu',
     (await aside.count()) === 0 &&
-      /Retour du client/i.test(await text(p.locator('main'))),
+      /Vu par Sarah/i.test(await text(p.locator('main'))),
     (await text(p.locator('main'))).slice(-80)
   );
   await ctx.close();

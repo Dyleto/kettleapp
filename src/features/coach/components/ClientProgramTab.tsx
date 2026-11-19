@@ -76,6 +76,11 @@ interface Props {
   /** Le score de chaque bloc qui se compte, par identifiant de bloc. */
   scores?: ReadonlyMap<string, BlockScore>;
   /**
+   * Prévenu du bloc que le coach touche : c'est lui que l'aperçu « vu par
+   * le client » montre, et il change sans qu'on ait à le choisir.
+   */
+  onFocusBlock?: (blockId: string) => void;
+  /**
    * Ce que le client a fait de la séance, posé entre l'en-tête et les
    * blocs : le pouls. La page d'un client le construit ; un modèle n'en a
    * pas, puisque personne ne le fait.
@@ -180,6 +185,7 @@ export const ClientProgramTab = ({
   pulse,
   traces,
   scores,
+  onFocusBlock,
   focusExerciseId,
   onOpenExerciseSheet,
   inProgram,
@@ -241,6 +247,7 @@ export const ClientProgramTab = ({
   const [pickingBlockId, setPickingBlockId] = useState<string | null>(null);
   const addBlockOf = (type: BlockType) => {
     const id = onAddBlock(type);
+    onFocusBlock?.(id);
     setShowBlockSelector(false);
     if (isMobile) setSelectorBlockId(id);
     else setPickingBlockId(id);
@@ -346,51 +353,62 @@ export const ClientProgramTab = ({
               {session.blocks.map((block) => (
                 <SortableBlock key={block._id} id={block._id}>
                   {(dragHandleProps) => (
-                    <WorkshopBlock
-                      block={block}
-                      inProgram={inProgram}
-                      dragHandleProps={dragHandleProps}
-                      onUpdate={(updates) => onUpdateBlock(block._id, updates)}
-                      onRemove={() => onRemoveBlock(block._id)}
-                      onDuplicate={() => onDuplicateBlock(block._id)}
-                      onChangeFormat={(type) =>
-                        onChangeBlockFormat(block._id, type)
-                      }
-                      onAddExercise={(exercise) =>
-                        onAddExercise(block._id, exercise)
-                      }
-                      onRemoveExercise={(i) => onRemoveExercise(block._id, i)}
-                      onDuplicateExercise={(i) =>
-                        onDuplicateExercise(block._id, i)
-                      }
-                      onUpdateExercise={(i, updates) =>
-                        onUpdateExercise(block._id, i, updates)
-                      }
-                      openIndex={
-                        openRow?.blockId === block._id ? openRow.index : null
-                      }
-                      onOpenRow={(index) =>
-                        setOpenRow(
-                          index === null ? null : { blockId: block._id, index }
-                        )
-                      }
-                      settingsInSheet={!!isMobile}
-                      startPicking={pickingBlockId === block._id}
-                      revealIndex={
-                        focused?.blockId === block._id ? focused.index : null
-                      }
-                      onRequestExercisePicker={
-                        isMobile
-                          ? () => setSelectorBlockId(block._id)
-                          : undefined
-                      }
-                      onOpenExerciseSheet={openSheet}
-                      traceOf={
-                        traces &&
-                        ((index) => traces.get(traceKey(block._id, index)))
-                      }
-                      score={scores?.get(block._id)}
-                    />
+                    // Le bloc qu'on touche — un clic, un focus, où que ce
+                    // soit dedans — est celui que l'aperçu montre.
+                    <Box
+                      onPointerDownCapture={() => onFocusBlock?.(block._id)}
+                      onFocusCapture={() => onFocusBlock?.(block._id)}
+                    >
+                      <WorkshopBlock
+                        block={block}
+                        inProgram={inProgram}
+                        dragHandleProps={dragHandleProps}
+                        onUpdate={(updates) =>
+                          onUpdateBlock(block._id, updates)
+                        }
+                        onRemove={() => onRemoveBlock(block._id)}
+                        onDuplicate={() => onDuplicateBlock(block._id)}
+                        onChangeFormat={(type) =>
+                          onChangeBlockFormat(block._id, type)
+                        }
+                        onAddExercise={(exercise) =>
+                          onAddExercise(block._id, exercise)
+                        }
+                        onRemoveExercise={(i) => onRemoveExercise(block._id, i)}
+                        onDuplicateExercise={(i) =>
+                          onDuplicateExercise(block._id, i)
+                        }
+                        onUpdateExercise={(i, updates) =>
+                          onUpdateExercise(block._id, i, updates)
+                        }
+                        openIndex={
+                          openRow?.blockId === block._id ? openRow.index : null
+                        }
+                        onOpenRow={(index) =>
+                          setOpenRow(
+                            index === null
+                              ? null
+                              : { blockId: block._id, index }
+                          )
+                        }
+                        settingsInSheet={!!isMobile}
+                        startPicking={pickingBlockId === block._id}
+                        revealIndex={
+                          focused?.blockId === block._id ? focused.index : null
+                        }
+                        onRequestExercisePicker={
+                          isMobile
+                            ? () => setSelectorBlockId(block._id)
+                            : undefined
+                        }
+                        onOpenExerciseSheet={openSheet}
+                        traceOf={
+                          traces &&
+                          ((index) => traces.get(traceKey(block._id, index)))
+                        }
+                        score={scores?.get(block._id)}
+                      />
+                    </Box>
                   )}
                 </SortableBlock>
               ))}

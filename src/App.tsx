@@ -27,6 +27,9 @@ const CoachLayout = React.lazy(
 );
 const Clients = React.lazy(() => import('@/features/coach/pages/Clients'));
 const Inbox = React.lazy(() => import('@/features/coach/pages/Inbox'));
+const SessionPreviewFrame = React.lazy(
+  () => import('@/features/coach/preview/SessionPreviewFrame')
+);
 const ClientDetails = React.lazy(
   () => import('@/features/coach/pages/ClientDetails')
 );
@@ -108,6 +111,10 @@ const router = createBrowserRouter(
       {/* Servis par l'application, et lisibles sans compte. */}
       <Route path="confidentialite" element={<Privacy />} />
       <Route path="mentions-legales" element={<LegalNotice />} />
+
+      {/* L'aperçu « vu par le client » de l'atelier, chargé dans une
+          iframe : hors de la mise en page du coach, rien autour. */}
+      <Route path="preview" element={<SessionPreviewFrame />} />
 
       {/* Routes Coach */}
       <Route path="coach" element={<CoachLayout />}>

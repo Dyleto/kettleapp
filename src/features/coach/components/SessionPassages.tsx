@@ -145,8 +145,8 @@ export const SessionPassages = ({
 };
 
 /**
- * La colonne de droite, à partir de 1 280 px : les passages, à côté du
- * programme qu'ils commentent.
+ * La colonne de droite, à partir de 1 280 px, quand on bascule sur
+ * « Ressentis » : les passages, à côté du programme qu'ils commentent.
  *
  * Elle portait aussi l'axe du ressenti et sa flèche de dérive ; le pouls,
  * sous l'en-tête de la séance, les dit maintenant pour tous les écrans, et
@@ -157,7 +157,13 @@ export const SessionFeedbackPanel = ({
 }: {
   history: CompletedSession[];
 }) => (
-  <Box borderWidth="1px" borderColor="whiteAlpha.100" borderRadius="lg" p={4}>
+  <Box
+    borderWidth="1px"
+    borderColor="whiteAlpha.100"
+    borderRadius="lg"
+    p={4}
+    data-feedback-panel
+  >
     <Text
       fontSize="xs"
       fontWeight="bold"
@@ -166,7 +172,8 @@ export const SessionFeedbackPanel = ({
       letterSpacing="wider"
       mb={3}
     >
-      Retour du client
+      {/* Le nom de la bascule qui l'ouvre, à côté de « Aperçu ». */}
+      Ressentis
     </Text>
     {history.length === 0 ? (
       <Text fontSize="xs" color="fg.muted">
