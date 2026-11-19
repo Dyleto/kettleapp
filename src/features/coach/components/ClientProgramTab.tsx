@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import {
   Box,
   Drawer,
@@ -66,6 +66,12 @@ interface Props {
    * son en-tête.
    */
   sessionSheetOnPhone?: boolean;
+  /**
+   * Ce que le client a fait de la séance, posé entre l'en-tête et les
+   * blocs : le pouls. La page d'un client le construit ; un modèle n'en a
+   * pas, puisque personne ne le fait.
+   */
+  pulse?: ReactNode;
   /**
    * Un exercice à mettre en vue en arrivant : sa première ligne dans la
    * séance s'ouvre, et la page défile jusqu'à elle. « Ajuster » depuis « À
@@ -162,6 +168,7 @@ export const ClientProgramTab = ({
   startRenaming = false,
   onRenamed,
   sessionSheetOnPhone = false,
+  pulse,
   focusExerciseId,
   onOpenExerciseSheet,
   inProgram,
@@ -312,6 +319,8 @@ export const ClientProgramTab = ({
             />
           </Box>
         )}
+
+        {pulse}
 
         <DndContext
           sensors={sensors}

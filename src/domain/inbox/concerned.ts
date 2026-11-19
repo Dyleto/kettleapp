@@ -13,8 +13,9 @@ import { stripAccents } from '@/shared/utils/formatters';
  */
 
 /** Les mots d'un texte, sans accents ni capitales, au singulier grossier :
- * « swings » se lit « swing », « fentes » se lit « fente ». */
-const words = (text: string): string[] =>
+ * « swings » se lit « swing », « fentes » se lit « fente ». Le pouls d'une
+ * séance s'en sert aussi, pour trouver où le client a mal. */
+export const noteWords = (text: string): string[] =>
   stripAccents(text.toLowerCase())
     .split(/[^a-z0-9]+/)
     .filter(Boolean)
@@ -28,8 +29,10 @@ const words = (text: string): string[] =>
  * — « row », « de », « à » se liraient dans n'importe quelle phrase.
  */
 export const citesExercise = (note: string, exerciseName: string): boolean => {
-  const said = new Set(words(note));
-  return words(exerciseName).some((word) => word.length >= 4 && said.has(word));
+  const said = new Set(noteWords(note));
+  return noteWords(exerciseName).some(
+    (word) => word.length >= 4 && said.has(word)
+  );
 };
 
 /**

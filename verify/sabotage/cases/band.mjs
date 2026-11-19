@@ -125,8 +125,8 @@ export default {
       edits: [
         {
           file: PAGE,
-          from: '            clientFirstName={client.firstName}\n',
-          to: '',
+          from: '            actions={actionsFor(activeSession, { rename: false })}\n            clientFirstName={client.firstName}\n',
+          to: '            actions={actionsFor(activeSession, { rename: false })}\n',
         },
       ],
       falls: [

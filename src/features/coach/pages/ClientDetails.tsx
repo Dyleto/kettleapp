@@ -26,7 +26,13 @@ import { useSessionMenu } from '@/features/coach/hooks/useSessionMenu';
 import { useSessionSheets } from '@/features/coach/hooks/useSessionSheets';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionSheet } from '@/features/coach/components/SessionSheet';
-import { SessionFeedbackStrip } from '@/features/coach/components/SessionFeedbackStrip';
+import {
+  PassagesSheet,
+  SessionFeedbackPanel,
+} from '@/features/coach/components/SessionPassages';
+import { SessionPulse } from '@/features/coach/components/SessionPulse';
+import { sessionPulse } from '@/domain/history/pulse';
+import { sessionName } from '@/domain/session/name';
 import {
   ActionButton,
   BackLink,
@@ -120,6 +126,8 @@ const ClientDetails = () => {
   // le « ⋯ » de la barre du haut ; `focusName` quand elle vient d'être
   // créée, pour lui donner un nom tout de suite.
   const isPhone = useBreakpointValue({ base: true, md: false });
+  // Les passages de la séance, en feuille, là où aucune colonne ne les tient.
+  const [passagesOpen, setPassagesOpen] = useState(false);
   const [sessionSheet, setSessionSheet] = useState<{
     focusName: boolean;
   } | null>(null);
@@ -361,13 +369,19 @@ const ClientDetails = () => {
                 diffusion des propriétés serait refusée. */}
             {activeSession && workshopProps ? (
               <>
-                {!isWide && <SessionFeedbackStrip history={sessionHistory} />}
-
                 <ClientProgramTab
                   key={activeSession._id}
                   {...workshopProps}
                   menuActions={actionsFor(activeSession, { rename: false })}
                   sessionSheetOnPhone
+                  pulse={
+                    <SessionPulse
+                      pulse={sessionPulse(history, activeSession._id)}
+                      compact={!!isPhone}
+                      onOpen={isWide ? undefined : () => setPassagesOpen(true)}
+                      openLabel={`Ressentis de la séance ${activeSession.order}`}
+                    />
+                  }
                   focusExerciseId={focusExerciseId}
                   onOpenExerciseSheet={isWide ? setAsideExercise : undefined}
                 />
@@ -442,16 +456,24 @@ const ClientDetails = () => {
                   />
                 </Box>
               ) : (
-                <SessionFeedbackStrip
-                  history={sessionHistory}
-                  variant="panel"
-                />
+                <SessionFeedbackPanel history={sessionHistory} />
               )}
             </Box>
           )}
         </Stack>
 
         {sheets}
+
+        {passagesOpen && activeSession && !isWide && (
+          <PassagesSheet
+            title={`Ressentis · ${sessionName(activeSession)}`}
+            pulse={sessionPulse(history, activeSession._id)}
+            history={sessionHistory}
+            clientFirstName={client.firstName}
+            onJournal={() => navigate(COACH_ROUTES.clientJournal(clientId!))}
+            onClose={() => setPassagesOpen(false)}
+          />
+        )}
 
         {sessionSheet && activeSession && workshopProps && (
           <SessionSheet
