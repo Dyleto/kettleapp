@@ -36,6 +36,9 @@ interface SessionRailProps {
   activeIndex: number;
   onSelect: (index: number) => void;
   onAddSession: () => void;
+  /** « Importer un modèle… », au pied du rail : absent d'un modèle, qu'on
+   * n'importe pas dans un autre. */
+  onImport?: () => void;
   onReorder?: (orderedSessionIds: string[]) => void;
   /**
    * Ce que le client a fait de ses séances : d'où le rail tire, pour
@@ -284,6 +287,7 @@ export const SessionRail = ({
   activeIndex,
   onSelect,
   onAddSession,
+  onImport,
   onReorder,
   history,
   menuFor,
@@ -369,6 +373,19 @@ export const SessionRail = ({
         >
           + Séance
         </Box>
+        {onImport && (
+          <Box
+            as="button"
+            onClick={onImport}
+            minH="44px"
+            fontSize="sm"
+            color="fg.muted"
+            textAlign="center"
+            _hover={{ color: 'fg' }}
+          >
+            Importer un modèle…
+          </Box>
+        )}
       </VStack>
     );
   }

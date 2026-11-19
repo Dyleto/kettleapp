@@ -68,6 +68,7 @@ export const useProgramWorkshop = ({
     state: saveState,
     savedAt,
     flush,
+    replaceWith,
   } = useProgramAutoSave({ program, serverProgram, initialize, save });
 
   const currentIndex = Math.max(0, (Number(sessionIndex) || 1) - 1);
@@ -284,5 +285,7 @@ export const useProgramWorkshop = ({
     saveState: saveState as SaveState,
     savedAt,
     flush,
+    /** Tout le programme remplacé par une autre porte — un import. */
+    replaceProgram: replaceWith,
   };
 };

@@ -345,9 +345,14 @@ const shaped = (sessions, idPrefix) =>
         order: ei + 1,
         // Le front envoie `exerciseId` et relit `exercise` : c'est l'API
         // qui repeuple le mouvement. Sans cela l'atelier perdrait ses
-        // exercices au premier aller-retour.
-        exercise: asPlaced(EXERCISES.find((e) => e._id === ex.exerciseId)) ?? {
-          _id: ex.exerciseId,
+        // exercices au premier aller-retour. Les séances d'un modèle, à
+        // l'import, portent le mouvement entier et pas d'`exerciseId` : on
+        // le relit de là, comme l'API — sans quoi tout s'appelait
+        // « Mouvement ».
+        exercise: asPlaced(
+          EXERCISES.find((e) => e._id === (ex.exerciseId ?? ex.exercise?._id))
+        ) ?? {
+          _id: ex.exerciseId ?? ex.exercise?._id,
           name: 'Mouvement',
           category: 'other',
         },

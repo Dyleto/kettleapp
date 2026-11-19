@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 19 novembre : 809 tests unitaires, 46 suites de banc et 804
-assertions, 4 min 13 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 19 novembre : 809 tests unitaires, 47 suites de banc et 812
+assertions, 4 min 18 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -405,7 +405,14 @@ banc actuel, inchangé, qui le prouve.
       bascule ; dans un modèle, l'aperçu seul, « vu par le client ».
 - [ ] **E10** Atelier, les bords : importer un modèle et son avertissement,
       programme vide, séance introuvable, états d'enregistrement,
-      suppression et « Annuler » partout.
+      suppression et « Annuler » partout. En deux temps. L'import (E10a) :
+      il n'avait jamais eu d'écran — le crochet existait, rien ne
+      l'appelait. « Importer un modèle… » au pied du rail, « Partir d'un
+      modèle » dans un programme vide ; un programme qui a des séances
+      demande d'abord, en disant ce qui part, ce qui vient et ce qui reste.
+      L'éditeur adopte ce que le serveur rend, et refuse l'import pendant un
+      enregistrement en vol : sans cela, une frappe pas encore partie
+      renvoyait l'ancien programme par-dessus l'import.
 - [ ] **E11** Ressentis d'un client : résumé, calendrier, « prévu / fait »,
       réponse, lue à l'ouverture de la séance.
 

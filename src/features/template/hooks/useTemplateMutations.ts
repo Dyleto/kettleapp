@@ -119,7 +119,10 @@ export const useUpdateTemplateSessions = (templateId: string) => {
  * Écrire un modèle dans le programme d'un client.
  *
  * Invalide la fiche du client et son programme : les deux portent les séances
- * qui viennent d'être remplacées, et le client les lit de son côté.
+ * qui viennent d'être remplacées, et le client les lit de son côté. Le
+ * message est à l'écran qui importe : lui seul connaît le prénom du client
+ * et le nom du modèle — « Erreur · Impossible d'importer le modèle » ne
+ * disait ni lequel, ni ce qui restait.
  */
 export const useImportTemplate = (clientId: string) => {
   const queryClient = useQueryClient();
@@ -134,13 +137,9 @@ export const useImportTemplate = (clientId: string) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.client.program.get(),
       });
-      toaster.create({ title: 'Programme importé', type: 'success' });
-    },
-    onError: () => {
-      toaster.create({
-        title: 'Erreur',
-        description: "Impossible d'importer le modèle",
-        type: 'error',
+      // La liste des modèles porte leur usage : il vient de changer.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.templates.lists(),
       });
     },
   });

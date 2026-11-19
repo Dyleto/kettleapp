@@ -50,6 +50,9 @@ interface AutoSaveState {
   savedAt: Date | null;
   /** Force un envoi immédiat : le bouton de reprise après un échec. */
   flush: () => void;
+  /** Remplace tout le programme par une autre porte — un import —, et
+   * adopte ce que le serveur rend. Voir sa définition. */
+  replaceWith: (load: () => Promise<Session[]>) => Promise<void>;
 }
 
 /**
@@ -99,6 +102,8 @@ export const useProgramAutoSave = ({
   const structure = useRef<string>('');
   /** `send` s'appelle lui-même ; il passe par ici pour pouvoir le faire. */
   const rerun = useRef<() => void>(() => {});
+  /** Un remplacement est en cours : rien de l'ancien programme ne part. */
+  const replacing = useRef(false);
 
   useEffect(() => {
     last.current = program?.sessions ?? null;
@@ -113,7 +118,7 @@ export const useProgramAutoSave = ({
 
   const send = useCallback(() => {
     const sessions = last.current;
-    if (!sessions) return;
+    if (!sessions || replacing.current) return;
     const content = JSON.stringify(sessions);
 
     if (content === savedRef.current) {
@@ -222,6 +227,37 @@ export const useProgramAutoSave = ({
     send();
   }, [send]);
 
+  /**
+   * Remplacer tout le programme par une autre porte — un import —, sans
+   * qu'un envoi de l'ancien ne passe derrière.
+   *
+   * Sans elle, deux défauts se tenaient : la relecture d'arrière-plan
+   * ignore un programme reçu tant que l'éditeur a un changement en
+   * attente, et ce changement, envoyé ensuite, remplaçait l'import par
+   * l'ancien programme. L'envoi programmé est donc annulé, aucun ne part
+   * pendant le remplacement, et ce que le serveur rend est adopté tel quel.
+   *
+   * Refusé pendant un envoi : parti avant, il pourrait arriver au serveur
+   * après l'import, et l'écraser. L'écran attend qu'il revienne.
+   */
+  const replaceWith = useCallback(
+    async (load: () => Promise<Session[]>) => {
+      if (inFlight.current !== null)
+        throw new Error('Un enregistrement est en cours');
+      if (timer.current) clearTimeout(timer.current);
+      replacing.current = true;
+      try {
+        const sessions = await load();
+        adopt(sessions, JSON.stringify(sessions));
+        initialize({ sessions });
+        setState('idle');
+      } finally {
+        replacing.current = false;
+      }
+    },
+    [adopt, initialize]
+  );
+
   // ── Le filet à la fermeture ──────────────────────────────────────────────
   const atRisk = isDirty || state === 'saving' || state === 'error';
 
@@ -261,5 +297,5 @@ export const useProgramAutoSave = ({
     []
   );
 
-  return { state, isDirty, savedAt, flush };
+  return { state, isDirty, savedAt, flush, replaceWith };
 };

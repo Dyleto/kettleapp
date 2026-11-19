@@ -1,6 +1,11 @@
 /**
- * Ce que les modèles prêtent aux autres fonctionnalités : rien d'autre que
- * « Enregistrer comme modèle », que le menu d'une séance appelle depuis le
- * programme d'un client.
+ * Ce que les modèles prêtent aux autres fonctionnalités : « Enregistrer
+ * comme modèle », que le menu d'une séance appelle depuis le programme d'un
+ * client, et ce qu'il faut pour l'inverse — la liste des modèles, et
+ * l'import de l'un d'eux chez un client.
  */
-export { useSaveAsTemplate } from './hooks/useTemplateMutations';
+export {
+  useImportTemplate,
+  useSaveAsTemplate,
+} from './hooks/useTemplateMutations';
+export { useTemplates } from './hooks/useTemplates';

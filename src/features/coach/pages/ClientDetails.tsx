@@ -23,6 +23,9 @@ import {
 } from '@/features/workshop';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { useSessionMenu } from '@/features/coach/hooks/useSessionMenu';
+import { ImportTemplateDialog } from '@/features/coach/components/ImportTemplateDialog';
+import { useImportTemplate } from '@/features/template';
+import { toaster } from '@/shared/components/ui/toasterInstance';
 import { useSessionSheets } from '@/features/coach/hooks/useSessionSheets';
 import { SessionRail } from '@/features/coach/components/SessionRail';
 import { SessionSheet } from '@/features/coach/components/SessionSheet';
@@ -102,6 +105,7 @@ const ClientDetails = () => {
     saveState,
     savedAt,
     flush,
+    replaceProgram,
   } = useProgramWorkshop({
     serverProgram: client?.program,
     save,
@@ -137,6 +141,8 @@ const ClientDetails = () => {
   // coach touche — le premier tant qu'il n'en a touché aucun.
   const [asideView, setAsideView] = useState<'preview' | 'feedback'>('preview');
   const [previewBlockId, setPreviewBlockId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const importTemplate = useImportTemplate(clientId!);
   const [sessionSheet, setSessionSheet] = useState<{
     focusName: boolean;
   } | null>(null);
@@ -358,6 +364,7 @@ const ClientDetails = () => {
             sessions={program.sessions}
             activeIndex={currentIndex}
             onSelect={(index) => goToSession(index + 1)}
+            onImport={() => setImportOpen(true)}
             onAddSession={() => {
               // Sur téléphone, le nom d'une séance neuve s'écrit dans sa
               // feuille : son titre y est caché.
@@ -403,16 +410,25 @@ const ClientDetails = () => {
                 title="Ce programme est vide"
                 line="Ajoute une séance pour commencer à le construire."
                 action={
-                  <Button
-                    bg="app.primary"
-                    color="bg.canvas"
-                    fontWeight="bold"
-                    minH="44px"
-                    onClick={() => addSession()}
-                    _hover={{ bg: 'app.primary.hover' }}
-                  >
-                    Ajouter une séance
-                  </Button>
+                  <HStack gap="10px" wrap="wrap" justify="center">
+                    <Button
+                      bg="app.primary"
+                      color="bg.canvas"
+                      fontWeight="bold"
+                      minH="44px"
+                      onClick={() => addSession()}
+                      _hover={{ bg: 'app.primary.hover' }}
+                    >
+                      Ajouter une séance
+                    </Button>
+                    <ActionButton
+                      tone="ghost"
+                      size="md"
+                      onClick={() => setImportOpen(true)}
+                    >
+                      Partir d’un modèle
+                    </ActionButton>
+                  </HStack>
                 }
               />
             ) : (
@@ -502,6 +518,39 @@ const ClientDetails = () => {
         </Stack>
 
         {sheets}
+
+        {importOpen && (
+          <ImportTemplateDialog
+            clientFirstName={client.firstName}
+            currentCount={program.sessions.length}
+            onClose={() => setImportOpen(false)}
+            onImport={async (template) => {
+              const who = client.firstName ?? 'ton client';
+              try {
+                await replaceProgram(() =>
+                  importTemplate.mutateAsync(template._id)
+                );
+              } catch {
+                // Rien n'est parti, ou le serveur a refusé : dans les deux
+                // cas l'import n'a pas eu lieu, et c'est ce qui compte.
+                toaster.create({
+                  type: 'error',
+                  title: 'Le modèle n’a pas été importé',
+                  description: `Le programme de ${who} n’a pas bougé. Réessaie dans un instant.`,
+                });
+                return;
+              }
+              setImportOpen(false);
+              // Le programme importé n'a peut-être pas autant de séances que
+              // l'adresse en désignait : on l'ouvre au début.
+              goToSession(1);
+              toaster.create({
+                type: 'success',
+                title: `« ${template.name} » importé chez ${who}`,
+              });
+            }}
+          />
+        )}
 
         {passagesOpen && activeSession && !isWide && (
           <PassagesSheet
