@@ -89,7 +89,7 @@ export default {
       name: 'la pause compte en étapes',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: '      : positionLabel(\n          session,',
           to: '      : `Étape ${state.index + 1} sur ${steps.length}` || positionLabel(\n          session,',
         },
@@ -126,7 +126,7 @@ export default {
       name: 'le dernier bloc propose quand même de le passer',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: '              nextBlockIndex(state) === -1\n                ? undefined',
           to: '              false\n                ? undefined',
         },

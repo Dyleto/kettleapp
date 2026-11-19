@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 19 novembre : 805 tests unitaires, 45 suites de banc et 796
-assertions, 4 min 8 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 19 novembre : 809 tests unitaires, 45 suites de banc et 796
+assertions, 3 min 57 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -390,7 +390,14 @@ banc actuel, inchangé, qui le prouve.
       format et son rang parmi ceux de ce format ; la pastille de « À
       lire » lit la même source.
 - [ ] **E9** Atelier, l'aperçu « vu par le client » : les scènes de la
-      séance guidée, à l'échelle.
+      séance guidée, à l'échelle. En deux temps. La scène (E9a) : le choix
+      de la scène quitte `GuidedSession` pour `GuidedScene`, que l'atelier
+      montera aussi — deux copies de ce choix finiraient par montrer au
+      coach un écran que son client ne voit pas —, et `previewState` ouvre
+      la séance au début d'un bloc, horloge à l'arrêt. L'aperçu (E9b) : une
+      iframe de 390 × 844 à l'échelle, parce que les scènes lisent la
+      taille de la fenêtre (59 fois) et qu'un cadre réduit de l'écran du
+      coach les rendrait en mise en page large.
 - [ ] **E10** Atelier, les bords : importer un modèle et son avertissement,
       programme vide, séance introuvable, états d'enregistrement,
       suppression et « Annuler » partout.

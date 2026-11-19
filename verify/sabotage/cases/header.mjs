@@ -31,7 +31,7 @@ export default {
       name: 'le rang du bloc ne suit plus',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: '  const rank = `Bloc ${segmentIndex + 1} sur ${segments.length}`;',
           to: '  const rank = `Bloc 1 sur ${segments.length}`;',
         },
@@ -61,7 +61,7 @@ export default {
       name: 'un repos prend le nom de son format',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: '  const title = titled ? blockTitle(titled.block) : step.blockLabel;',
           to: "  const title =\n    step.type === 'rest' || !titled\n      ? step.blockLabel\n      : blockTitle(titled.block);",
         },
@@ -94,7 +94,7 @@ export default {
       name: 'la barre se lit de nouveau en étapes',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: '        valuetext={`${position} — ${step.blockLabel}`}',
           to: '        valuetext={`Étape ${state.index + 1} sur ${steps.length} — ${step.blockLabel}`}',
         },

@@ -26,7 +26,7 @@ export default {
       name: 'la reprise ne dit rien',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: '        notice={state.resumed ? `Reprise au bloc ${resumedBlock}` : undefined}',
           to: '        notice={undefined}',
         },

@@ -14,6 +14,7 @@ import {
   guidedTransition,
   initialGuidedState,
   nextBlockIndex,
+  previewState,
   type GuidedAction,
   type GuidedState,
   type ProgressPatch,
@@ -491,5 +492,31 @@ describe('les charges', () => {
       { type: 'askLoad', exerciseKey: '1:1' }
     );
     expect(t.state.askedLoad).toEqual(['1:1']);
+  });
+});
+
+describe('l’aperçu du coach', () => {
+  // Le coach voit ce que le client a devant lui en arrivant sur le bloc.
+  it('s’ouvre sur la première étape du bloc, rien de fait, l’horloge à l’arrêt', () => {
+    const state = previewState(steps, 2);
+    expect(state.phase).toBe('scene');
+    expect(state.index).toBe(2);
+    expect(state.done).toEqual([]);
+    expect(state.armedBlock).toBeNull();
+    expect(state.resumed).toBe(false);
+  });
+
+  // L'étape 1 est le repos qui clôt le premier bloc : ce n'en est pas le
+  // début.
+  it('le premier bloc s’ouvre sur sa liste, pas sur son repos', () => {
+    expect(previewState(steps, 1).index).toBe(0);
+  });
+
+  it('un bloc sans étape retombe sur la première', () => {
+    expect(previewState(steps, 9).index).toBe(0);
+  });
+
+  it('une séance sans étape le dit', () => {
+    expect(previewState([], 1).phase).toBe('empty');
   });
 });

@@ -229,6 +229,30 @@ export const initialGuidedState = (
   };
 };
 
+/**
+ * La séance ouverte au début d'un bloc, rien de fait, l'horloge pas
+ * lancée : ce que le client a devant lui en arrivant sur ce bloc. C'est
+ * l'image que l'atelier montre au coach, « vu par le client ».
+ *
+ * Un repos n'est pas un début de bloc : on cherche la première étape qui
+ * porte ce bloc. Un bloc qu'aucune étape ne porte — vide, il n'en a pas —
+ * retombe sur la première, plutôt que de ne rien montrer.
+ */
+export const previewState = (
+  steps: GuidedStep[],
+  blockOrder: number
+): GuidedState => {
+  const index = steps.findIndex(
+    (step) => step.type !== 'rest' && step.block.order === blockOrder
+  );
+  return {
+    ...initialGuidedState(steps, null),
+    phase: steps.length === 0 ? 'empty' : 'scene',
+    index: Math.max(0, index),
+    resumed: false,
+  };
+};
+
 // ─── Ce qui se lit de l'état ────────────────────────────────────────────────
 
 /** Une série s'enregistre par mouvement : c'est la clé de ses charges. */

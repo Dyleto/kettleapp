@@ -49,7 +49,7 @@ export default {
       name: 'la pause ne propose pas de terminer un EMOM sans limite',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: "              step.type === 'round' && step.rounds === null",
           to: '              false',
         },
@@ -63,7 +63,7 @@ export default {
       name: 'la pause propose de terminer tout bloc à tours',
       edits: [
         {
-          file: 'src/features/client/guided/GuidedSession.tsx',
+          file: 'src/features/client/guided/GuidedScene.tsx',
           from: "              step.type === 'round' && step.rounds === null",
           to: "              step.type === 'round'",
         },
