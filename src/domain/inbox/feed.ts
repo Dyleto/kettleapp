@@ -1,11 +1,6 @@
-import type {
-  BlockSnapshot,
-  BlockType,
-  CompletedSession,
-  InboxItem,
-} from '@/shared/types';
+import type { CompletedSession, InboxItem } from '@/shared/types';
 import { formatWeight, heaviest } from '@/domain/history/load';
-import { getBlockLabel } from '@/domain/session/blocks';
+import { scoreChip } from '@/domain/history/blockScore';
 import { dayKey } from '@/domain/week/dates';
 
 /**
@@ -144,18 +139,6 @@ export const loadsOf = (completed: CompletedSession | undefined) => {
   return loads;
 };
 
-/** Le score d'un bloc qui se compte, tel qu'il se lit. */
-const scoreOf = (block: BlockSnapshot): string | null => {
-  const name = getBlockLabel(block.type as BlockType);
-  if (block.performedRungs !== undefined && block.repsScheme?.length)
-    return `palier ${block.performedRungs} sur ${block.repsScheme.length}`;
-  if (block.performedMovements !== undefined)
-    return `${name} ${block.performedMovements} sur ${block.exercises.length}`;
-  if (block.performedRounds !== undefined)
-    return `${name} ${block.performedRounds} tour${block.performedRounds > 1 ? 's' : ''}`;
-  return null;
-};
-
 /**
  * Ce qui a été fait, en pastilles : les charges comparées au passage d'avant,
  * et les scores des blocs qui se comptent.
@@ -189,7 +172,7 @@ export const doneChips = (
         tone: load > was ? 'up' : 'down',
       });
     });
-    const score = scoreOf(block);
+    const score = scoreChip(block);
     if (score) all.push({ text: score, tone: 'score' });
   });
   return { chips: all.slice(0, max), more: Math.max(0, all.length - max) };

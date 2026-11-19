@@ -12,6 +12,7 @@ import { LuEllipsis, LuGripVertical, LuPlus } from 'react-icons/lu';
 import { BlockType, Exercise, SessionBlock } from '@/shared/types';
 import { formatName } from '@/domain/session/dose';
 import type { ExerciseTrace } from '@/domain/history/exerciseTrace';
+import type { BlockScore } from '@/domain/history/blockScore';
 import { Bubble, touchHitArea } from '@/kit';
 import { BlockFrame } from './BlockFrame';
 import { BlockPill, StaticPill } from './BlockPill';
@@ -57,7 +58,41 @@ interface WorkshopBlockProps {
   onOpenExerciseSheet?: (exercise: Exercise) => void;
   /** Ce que le client a fait de chaque ligne, quand il y a un client. */
   traceOf?: (index: number) => ExerciseTrace | undefined;
+  /** Ce que le bloc a donné — tours, palier, mouvements —, quand il se
+   * compte et que le client l'a fait. */
+  score?: BlockScore;
 }
+
+/**
+ * Le score du bloc, sous ses exercices : « Tours bouclés : 4, 5, 5 »,
+ * « Palier 5 sur 7 en 12:00 ». La maquette le pose sous la dernière ligne,
+ * à sa manière — un point, puis le score — : c'est le bloc entier qui se
+ * compte, pas son dernier exercice.
+ */
+const ScoreLine = ({ score }: { score: BlockScore }) => (
+  <HStack
+    gap="8px"
+    px="20px"
+    py="10px"
+    borderTopWidth="1px"
+    borderColor="line"
+    fontSize="13px"
+    color="fg.muted"
+    data-block-score={score.tone}
+  >
+    {score.tone !== 'plain' && (
+      <Box
+        w="8px"
+        h="8px"
+        borderRadius="full"
+        flexShrink={0}
+        bg={score.tone === 'up' ? 'session.rest' : 'session.work'}
+        aria-hidden
+      />
+    )}
+    <Text>{score.line}</Text>
+  </HStack>
+);
 
 /**
  * Un bloc dans l'éditeur du coach : une carte qui se lit comme le client la
@@ -89,6 +124,7 @@ export const WorkshopBlock = ({
   onRequestExercisePicker,
   onOpenExerciseSheet,
   traceOf,
+  score,
 }: WorkshopBlockProps) => {
   const [isPickerOpen, setIsPickerOpen] = useState(startPicking);
   const [pickingFormat, setPickingFormat] = useState(false);
@@ -361,6 +397,7 @@ export const WorkshopBlock = ({
             trace={traceOf?.(index)}
           />
         ))}
+        {score && <ScoreLine score={score} />}
       </BlockFrame>
 
       {sheetOpen && settingsInSheet && (

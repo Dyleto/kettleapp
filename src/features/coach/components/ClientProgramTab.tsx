@@ -40,6 +40,7 @@ import {
 } from '@dnd-kit/core';
 import { ExerciseSheet } from '@/features/exercise';
 import { traceKey, type ExerciseTrace } from '@/domain/history/exerciseTrace';
+import type { BlockScore } from '@/domain/history/blockScore';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 import { SessionHeader } from './SessionHeader';
 import type { SessionMenuAction } from './SessionMenu';
@@ -72,6 +73,8 @@ interface Props {
    * mot. Indexé par `traceKey` ; absent d'un modèle.
    */
   traces?: ReadonlyMap<string, ExerciseTrace>;
+  /** Le score de chaque bloc qui se compte, par identifiant de bloc. */
+  scores?: ReadonlyMap<string, BlockScore>;
   /**
    * Ce que le client a fait de la séance, posé entre l'en-tête et les
    * blocs : le pouls. La page d'un client le construit ; un modèle n'en a
@@ -176,6 +179,7 @@ export const ClientProgramTab = ({
   sessionSheetOnPhone = false,
   pulse,
   traces,
+  scores,
   focusExerciseId,
   onOpenExerciseSheet,
   inProgram,
@@ -385,6 +389,7 @@ export const ClientProgramTab = ({
                         traces &&
                         ((index) => traces.get(traceKey(block._id, index)))
                       }
+                      score={scores?.get(block._id)}
                     />
                   )}
                 </SortableBlock>

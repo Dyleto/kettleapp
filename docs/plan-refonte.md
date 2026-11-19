@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 19 novembre : 794 tests unitaires, 45 suites de banc et 793
-assertions, 3 min 53 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 19 novembre : 805 tests unitaires, 45 suites de banc et 796
+assertions, 4 min 8 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -76,7 +76,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                                                                |
 | Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                                                                          |
-| Atelier d'un client   | partiel  | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice. Manquent le score sous un bloc, l'aperçu « vu par le client », l'import d'un modèle. |
+| Atelier d'un client   | partiel  | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc. Manquent l'aperçu « vu par le client », l'import d'un modèle. |
 | Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                |
 | Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                                                                                                                      |
 | Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                                                                                                                            |
@@ -368,7 +368,7 @@ banc actuel, inchangé, qui le prouve.
       mot d'avant séance, et le reste du menu. « + » y ouvre la séance
       neuve, nom prêt à la frappe. La page d'un modèle, sans barre du haut,
       garde son en-tête.
-- [ ] **E8** Atelier, ce que le client en a fait : pouls, ressenti sous
+- [x] **E8** Atelier, ce que le client en a fait : pouls, ressenti sous
       chaque exercice, score sous un bloc (« palier 5 sur 7 en 12:00 »). En
       trois temps. Le pouls (E8a) : une carte sous l'en-tête — les passages,
       cinq points, « Devient trop dure depuis deux passages », le dernier mot
@@ -383,7 +383,12 @@ banc actuel, inchangé, qui le prouve.
       a fait mal ; ouverte, la ligne ajoute « Elle monte seule : + 6 kg en
       trois passages » (`domain/history/exerciseTrace`). Une ligne retrouve
       son mouvement par son identifiant, et par son rang d'apparition quand
-      il revient.
+      il revient. Le score (E8c) : sous un bloc qui se compte, « Tours
+      bouclés : 4, 5, 5 », « Palier 5 sur 7 en 12:00. Avant : 4 sur 7 »,
+      « Fini en 9:40 », un point sarcelle quand il monte, corail quand il
+      baisse (`domain/history/blockScore`). Un bloc se retrouve par son
+      format et son rang parmi ceux de ce format ; la pastille de « À
+      lire » lit la même source.
 - [ ] **E9** Atelier, l'aperçu « vu par le client » : les scènes de la
       séance guidée, à l'échelle.
 - [ ] **E10** Atelier, les bords : importer un modèle et son avertissement,

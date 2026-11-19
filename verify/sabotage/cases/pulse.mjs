@@ -4,6 +4,7 @@ const PASSAGES = 'src/features/coach/components/SessionPassages.tsx';
 const PAGE = 'src/features/coach/pages/ClientDetails.tsx';
 const ROW = 'src/features/workshop/components/ExerciseRow.tsx';
 const TRACE = 'src/domain/history/exerciseTrace.ts';
+const SCORE = 'src/domain/history/blockScore.ts';
 
 export default {
   suite: 'verify_pulse.mjs',
@@ -215,6 +216,82 @@ export default {
         '→ une seule charge notée : la dernière fois',
         '→ ouverte, la ligne dit ce que les charges racontent',
       ],
+    },
+    {
+      name: 'la page ne passe plus les scores à l’atelier',
+      edits: [
+        {
+          file: PAGE,
+          from: '                  scores={blockScores(activeSession, history)}\n',
+          to: '',
+        },
+      ],
+      falls: [
+        'sous un AMRAP, les tours bouclés des derniers passages',
+        '→ sous une échelle, le palier et son temps, et le passage d’avant',
+        '→ sous un chipper, qu’il est fini, et en combien de temps',
+      ],
+    },
+    {
+      name: 'un score qui monte ne le marque plus',
+      edits: [
+        {
+          file: 'src/features/workshop/components/WorkshopBlock.tsx',
+          from: "    {score.tone !== 'plain' && (",
+          to: '    {false && (',
+        },
+      ],
+      falls: [
+        '→ sous une échelle, le palier et son temps, et le passage d’avant',
+      ],
+    },
+    {
+      name: 'les tours se lisent du plus récent au plus ancien',
+      edits: [
+        {
+          file: SCORE,
+          from: "${rounds.join(', ')}",
+          to: "${[...rounds].reverse().join(', ')}",
+        },
+      ],
+      falls: ['sous un AMRAP, les tours bouclés des derniers passages'],
+    },
+    {
+      name: 'l’échelle tait le passage d’avant',
+      edits: [
+        {
+          file: SCORE,
+          from: "        before ? ` Avant : ${before.performedRungs} sur ${total}.` : ''",
+          to: "        ''",
+        },
+      ],
+      falls: [
+        '→ sous une échelle, le palier et son temps, et le passage d’avant',
+      ],
+    },
+    {
+      name: 'un chipper fini se compte comme s’il ne l’était pas',
+      edits: [
+        {
+          file: SCORE,
+          from: "        finished\n          ? 'Fini'",
+          to: "        false\n          ? 'Fini'",
+        },
+      ],
+      falls: ['→ sous un chipper, qu’il est fini, et en combien de temps'],
+    },
+    {
+      // Par sa place : le premier bloc de chaque passage est
+      // l'échauffement, qui ne se compte pas.
+      name: 'un bloc se retrouve par sa place, et non par son format',
+      edits: [
+        {
+          file: SCORE,
+          from: '        .filter((b) => b.type === block.type);',
+          to: '        .filter(() => true);',
+        },
+      ],
+      falls: ['sous un AMRAP, les tours bouclés des derniers passages'],
     },
   ],
 };
