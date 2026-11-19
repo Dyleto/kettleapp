@@ -39,6 +39,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { ExerciseSheet } from '@/features/exercise';
+import { traceKey, type ExerciseTrace } from '@/domain/history/exerciseTrace';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 import { SessionHeader } from './SessionHeader';
 import type { SessionMenuAction } from './SessionMenu';
@@ -66,6 +67,11 @@ interface Props {
    * son en-tête.
    */
   sessionSheetOnPhone?: boolean;
+  /**
+   * Ce que le client a fait de chaque ligne, sous elle : ses charges, son
+   * mot. Indexé par `traceKey` ; absent d'un modèle.
+   */
+  traces?: ReadonlyMap<string, ExerciseTrace>;
   /**
    * Ce que le client a fait de la séance, posé entre l'en-tête et les
    * blocs : le pouls. La page d'un client le construit ; un modèle n'en a
@@ -169,6 +175,7 @@ export const ClientProgramTab = ({
   onRenamed,
   sessionSheetOnPhone = false,
   pulse,
+  traces,
   focusExerciseId,
   onOpenExerciseSheet,
   inProgram,
@@ -374,6 +381,10 @@ export const ClientProgramTab = ({
                           : undefined
                       }
                       onOpenExerciseSheet={openSheet}
+                      traceOf={
+                        traces &&
+                        ((index) => traces.get(traceKey(block._id, index)))
+                      }
                     />
                   )}
                 </SortableBlock>

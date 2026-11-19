@@ -171,6 +171,10 @@ export const sessionPulse = (
 
 const COUNT_WORDS = ['', 'un', 'deux', 'trois', 'quatre', 'cinq'];
 
+/** « deux », « trois » : un petit compte s'écrit en lettres dans une
+ * phrase, comme on le dirait. Au-delà de cinq, en chiffres. */
+export const countWord = (n: number): string => COUNT_WORDS[n] ?? String(n);
+
 /**
  * La phrase du pouls, en deux temps : ce qui se passe, et depuis quand.
  *
@@ -183,7 +187,7 @@ export const pulseHeadline = (
 ): { text: string; tone: EffortZone | null; since?: string } => {
   const since =
     pulse.streak >= 2
-      ? `depuis ${COUNT_WORDS[pulse.streak] ?? pulse.streak} passages`
+      ? `depuis ${countWord(pulse.streak)} passages`
       : undefined;
   if (pulse.drift === 'harder')
     return { text: 'Devient trop dure', tone: 'hard', since };

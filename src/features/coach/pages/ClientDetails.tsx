@@ -32,6 +32,7 @@ import {
 } from '@/features/coach/components/SessionPassages';
 import { SessionPulse } from '@/features/coach/components/SessionPulse';
 import { sessionPulse } from '@/domain/history/pulse';
+import { exerciseTraces } from '@/domain/history/exerciseTrace';
 import { sessionName } from '@/domain/session/name';
 import {
   ActionButton,
@@ -374,6 +375,7 @@ const ClientDetails = () => {
                   {...workshopProps}
                   menuActions={actionsFor(activeSession, { rename: false })}
                   sessionSheetOnPhone
+                  traces={exerciseTraces(activeSession, history)}
                   pulse={
                     <SessionPulse
                       pulse={sessionPulse(history, activeSession._id)}

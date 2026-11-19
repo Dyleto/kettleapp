@@ -2,6 +2,8 @@
 const PULSE = 'src/features/coach/components/SessionPulse.tsx';
 const PASSAGES = 'src/features/coach/components/SessionPassages.tsx';
 const PAGE = 'src/features/coach/pages/ClientDetails.tsx';
+const ROW = 'src/features/workshop/components/ExerciseRow.tsx';
+const TRACE = 'src/domain/history/exerciseTrace.ts';
 
 export default {
   suite: 'verify_pulse.mjs',
@@ -137,6 +139,82 @@ export default {
         },
       ],
       falls: ['le pouls tient en une phrase et cinq points'],
+    },
+    {
+      name: 'la page ne passe plus les traces à l’atelier',
+      edits: [
+        {
+          file: PAGE,
+          from: '                  traces={exerciseTraces(activeSession, history)}\n',
+          to: '',
+        },
+      ],
+      falls: [
+        'sous chaque exercice, les charges des derniers passages, qui montent',
+        '→ une seule charge notée : la dernière fois',
+        '→ le mot du client qui en parle, en corail quand il a fait mal',
+        '→ ouverte, la ligne dit ce que les charges racontent',
+      ],
+    },
+    {
+      name: 'une charge qui monte n’a plus ses barres',
+      edits: [
+        {
+          file: ROW,
+          from: "    {trace.tone === 'up' && trace.loads.length > 1 ? (",
+          to: '    {false ? (',
+        },
+      ],
+      falls: [
+        'sous chaque exercice, les charges des derniers passages, qui montent',
+      ],
+    },
+    {
+      name: 'le mot du client ne s’écrit plus sous l’exercice',
+      edits: [
+        { file: ROW, from: '      {trace.quote && (', to: '      {false && (' },
+      ],
+      falls: ['→ le mot du client qui en parle, en corail quand il a fait mal'],
+    },
+    {
+      // Un mot dit dans la douleur se lit comme une charge qui monte.
+      name: 'un mot dit dans la douleur n’inquiète plus',
+      edits: [
+        {
+          file: TRACE,
+          from: "    tone: worrying ? 'warn' : tone,",
+          to: '    tone,',
+        },
+      ],
+      falls: ['→ le mot du client qui en parle, en corail quand il a fait mal'],
+    },
+    {
+      name: 'la ligne fermée raconte déjà les charges',
+      edits: [
+        {
+          file: ROW,
+          from: '      {lit && trace.insight && (',
+          to: '      {trace.insight && (',
+        },
+      ],
+      falls: ['→ ouverte, la ligne dit ce que les charges racontent'],
+    },
+    {
+      // La place d'hier, et non le mouvement : le goblet lit les mountain
+      // climbers de l'échauffement, les fentes lisent le swing.
+      name: 'une ligne lit l’exercice qui était à sa place',
+      edits: [
+        {
+          file: TRACE,
+          from: '          entry: entriesOf(passage).filter((e) => idOf(e) === id)[occurrence],',
+          to: '          entry: entriesOf(passage)[index],',
+        },
+      ],
+      falls: [
+        'sous chaque exercice, les charges des derniers passages, qui montent',
+        '→ une seule charge notée : la dernière fois',
+        '→ ouverte, la ligne dit ce que les charges racontent',
+      ],
     },
   ],
 };

@@ -1,5 +1,6 @@
 /**
- * Le pouls d'une séance, sous son en-tête (E8a).
+ * Ce que le client a fait de la séance, dans l'atelier : le pouls sous
+ * l'en-tête (E8a), et la trace sous chaque exercice (E8b).
  *
  * Un bandeau gris le portait au-dessus du titre, avec un axe gradué qu'il
  * fallait lire puis compter. La maquette en fait une carte : les passages,
@@ -10,7 +11,8 @@
  * L'historique du coach est vide sur le serveur d'essai : la suite lui
  * substitue celui du client. La séance 1 y a quatre passages — un sans
  * ressenti, puis Juste, Dure (douleur, « épaule ») et Trop dure (fatigue,
- * « Dur sur la fin. », pas encore lu).
+ * « Dur sur la fin. », pas encore lu). Le goblet y monte de 20 à 26 kg, le
+ * swing de 16 à 20, et les fentes n'ont qu'une charge notée.
  */
 import {
   API,
@@ -100,6 +102,54 @@ const open = async (options, n = 1) => {
     'une séance jamais faite n’a pas de pouls',
     (await p.getByRole('button', { name: 'Nom de la séance 4' }).count()) ===
       1 && (await pulseOf(p).count()) === 0
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── sous chaque exercice');
+  const { ctx, p } = await open(WIDE);
+  const row = (name) =>
+    p.locator('main [data-exercise-row]').filter({ hasText: name }).first();
+  const goblet = row('Goblet Squat');
+  const swing = row('Kettlebell Swing');
+
+  ok(
+    'sous chaque exercice, les charges des derniers passages, qui montent',
+    (await text(goblet)).includes('20 → 24 → 26 kg') &&
+      (await goblet
+        .locator('[data-trace="up"] [aria-hidden] > div')
+        .count()) === 3,
+    (await text(goblet)).replace(/\n+/g, ' | ')
+  );
+  ok(
+    '  → une seule charge notée : la dernière fois',
+    (await text(row('Fentes marchées'))).includes(
+      'Fait à 12 kg la dernière fois.'
+    ),
+    (await text(row('Fentes marchées'))).replace(/\n+/g, ' | ')
+  );
+  ok(
+    '  → le mot du client qui en parle, en corail quand il a fait mal',
+    (await text(swing)).includes(
+      '« Épaule un peu sensible sur les swings. »'
+    ) && (await swing.locator('[data-trace="warn"]').count()) === 1,
+    (await text(swing)).replace(/\n+/g, ' | ')
+  );
+
+  const closed = await text(goblet);
+  await goblet
+    .locator(':scope > button')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '  → ouverte, la ligne dit ce que les charges racontent',
+    !closed.includes('Elle monte seule') &&
+      (await text(goblet)).includes(
+        'Elle monte seule : + 6 kg en trois passages.'
+      ),
+    (await text(goblet)).split('\n').slice(0, 3).join(' | ')
   );
   await ctx.close();
 }

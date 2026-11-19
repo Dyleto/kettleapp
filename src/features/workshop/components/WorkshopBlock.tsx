@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { LuEllipsis, LuGripVertical, LuPlus } from 'react-icons/lu';
 import { BlockType, Exercise, SessionBlock } from '@/shared/types';
 import { formatName } from '@/domain/session/dose';
+import type { ExerciseTrace } from '@/domain/history/exerciseTrace';
 import { Bubble, touchHitArea } from '@/kit';
 import { BlockFrame } from './BlockFrame';
 import { BlockPill, StaticPill } from './BlockPill';
@@ -54,6 +55,8 @@ interface WorkshopBlockProps {
   onRequestExercisePicker?: () => void;
   /** Ouvre la fiche d'un exercice par-dessus l'éditeur. */
   onOpenExerciseSheet?: (exercise: Exercise) => void;
+  /** Ce que le client a fait de chaque ligne, quand il y a un client. */
+  traceOf?: (index: number) => ExerciseTrace | undefined;
 }
 
 /**
@@ -85,6 +88,7 @@ export const WorkshopBlock = ({
   startPicking = false,
   onRequestExercisePicker,
   onOpenExerciseSheet,
+  traceOf,
 }: WorkshopBlockProps) => {
   const [isPickerOpen, setIsPickerOpen] = useState(startPicking);
   const [pickingFormat, setPickingFormat] = useState(false);
@@ -354,6 +358,7 @@ export const WorkshopBlock = ({
                 ? () => onOpenExerciseSheet(exercise.exercise)
                 : undefined
             }
+            trace={traceOf?.(index)}
           />
         ))}
       </BlockFrame>

@@ -4,6 +4,7 @@ import { LuMessageSquare } from 'react-icons/lu';
 import type { BlockExercise, SessionBlock } from '@/shared/types';
 import { blockIndexPrefix } from '@/domain/session/blocks';
 import { coachDose } from '@/domain/session/dose';
+import type { ExerciseTrace } from '@/domain/history/exerciseTrace';
 import { Sheet } from '@/kit';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 import { useSheetDismiss } from '@/features/workshop/hooks/useSheetDismiss';
@@ -25,7 +26,84 @@ interface ExerciseRowProps {
   onRemove: () => void;
   onDuplicate: () => void;
   onOpenSheet?: () => void;
+  /** Ce que le client en a fait, quand il y a un client. */
+  trace?: ExerciseTrace;
 }
+
+/**
+ * Les charges des derniers passages en barres, de la plus légère à la plus
+ * lourde : la montée se voit avant de lire les nombres. De 8 à 20 px, en
+ * proportion de la plus lourde.
+ */
+const LoadBars = ({ loads }: { loads: number[] }) => {
+  const top = Math.max(...loads);
+  return (
+    <HStack gap="3px" align="flex-end" h="20px" aria-hidden flexShrink={0}>
+      {loads.map((load, i) => (
+        <Box
+          key={i}
+          w="6px"
+          h={`${Math.max(8, Math.round((load / top) * 20))}px`}
+          borderRadius="2px"
+          bg="session.rest"
+        />
+      ))}
+    </HStack>
+  );
+};
+
+/**
+ * Ce que le client a fait de la ligne, sous elle : « 20 → 24 → 26 kg », son
+ * mot quand il en parle. Ouverte, la ligne dit en plus ce que les charges
+ * racontent — « Elle monte seule : + 6 kg en trois passages ».
+ *
+ * Le sarcelle pour ce qui monte, le corail pour ce qui inquiète : une
+ * charge qui baisse, un mot dit dans la douleur. Le reste se lit en gris.
+ */
+const TraceLine = ({ trace, lit }: { trace: ExerciseTrace; lit: boolean }) => (
+  <HStack
+    gridColumn="1 / -1"
+    gap="8px"
+    fontSize="13px"
+    color="fg.muted"
+    minW={0}
+    align="center"
+    data-trace={trace.tone}
+  >
+    {trace.tone === 'up' && trace.loads.length > 1 ? (
+      <LoadBars loads={trace.loads} />
+    ) : trace.tone === 'warn' ? (
+      <Box
+        w="8px"
+        h="8px"
+        borderRadius="full"
+        bg="session.work"
+        flexShrink={0}
+        aria-hidden
+      />
+    ) : null}
+    <Text>
+      {trace.line}
+      {lit && trace.insight && (
+        <chakra.b
+          fontWeight="600"
+          color={trace.tone === 'warn' ? 'session.work.fg' : 'session.rest.fg'}
+        >
+          {' '}
+          {trace.insight}
+        </chakra.b>
+      )}
+      {trace.quote && (
+        <chakra.b
+          fontWeight="600"
+          color={trace.tone === 'warn' ? 'session.work.fg' : 'fg'}
+        >
+          {trace.line ? ' ' : ''}« {trace.quote} »
+        </chakra.b>
+      )}
+    </Text>
+  </HStack>
+);
 
 /**
  * Une ligne d'exercice dans l'atelier : elle se lit, puis s'ouvre.
@@ -50,6 +128,7 @@ export const ExerciseRow = ({
   onRemove,
   onDuplicate,
   onOpenSheet,
+  trace,
 }: ExerciseRowProps) => {
   const rootRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -147,6 +226,7 @@ export const ExerciseRow = ({
             <Text lineClamp={1}>{note}</Text>
           </HStack>
         )}
+        {trace && <TraceLine trace={trace} lit={lit} />}
       </chakra.button>
 
       {lit && (
