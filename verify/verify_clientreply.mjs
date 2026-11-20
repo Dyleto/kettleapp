@@ -168,10 +168,10 @@ const browser = await launch();
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
+  // À 1 280 px, la séance s'ouvre dans le panneau de droite (E11c).
   const detail = clean(
     await p
-      .getByRole('dialog')
-      .last()
+      .locator('main [data-journal-detail]')
       .innerText({ timeout: 3000 })
       .catch(() => '')
   );
@@ -181,6 +181,79 @@ const browser = await launch();
       sent.length === 0 &&
       (await stored())?.replies?.at(-1)?.readAt === undefined,
     `${sent.length} lecture(s) · ${detail.replace(/\n+/g, ' | ').slice(0, 120)}`
+  );
+  await ctx.close();
+}
+
+{
+  console.log(
+    '\n── l’aperçu d’un client, dans la liste, ne lit pas non plus à sa place'
+  );
+  // Le dernier endroit où le coach ouvre le tiroir du client, en lecture
+  // seule. Le journal a son propre détail depuis E11c : sans cette partie,
+  // la garde qui empêche le coach de lire à la place du client ne serait
+  // plus éprouvée nulle part. Le serveur d'essai ne rend aucun client :
+  // la suite pose Sarah dans la liste.
+  const history = (await (await fetch(`${API}/api/client/history`)).json())
+    .history;
+  const ctx = await browser.newContext(DESKTOP);
+  const sent = reads(ctx);
+  await ctx.route(/\/api\/coach\/clients(\?.*)?$/, (r) =>
+    r.request().method() === 'GET'
+      ? r.fulfill({
+          json: [
+            {
+              _id: CLIENT,
+              firstName: 'Sarah',
+              lastName: 'Martin',
+              unseenCount: 0,
+              linkedAt: '2026-06-01T09:00:00.000Z',
+              tagIds: [],
+              weekDone: 0,
+              weekTarget: 3,
+              sessionCount: 6,
+              recentEfforts: [3, 4, 5],
+              lastCompletedAt: '2026-08-30T18:00:00.000Z',
+              lastEffort: 5,
+            },
+          ],
+        })
+      : r.fallback()
+  );
+  await ctx.route(new RegExp(`/api/coach/clients/${CLIENT}/history`), (r) =>
+    r.fulfill({ json: history })
+  );
+  const p = await signIn(ctx);
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  await p
+    .locator('main')
+    .getByText('Sarah Martin')
+    .first()
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  await p
+    .locator('main')
+    .getByRole('button', { name: /Full body A/ })
+    .first()
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await settle(p);
+  const drawer = clean(
+    await p
+      .getByRole('dialog')
+      .last()
+      .innerText({ timeout: 3000 })
+      .catch(() => '')
+  );
+  ok(
+    'dans l’aperçu d’un client, le coach voit ses réponses sans les marquer lues',
+    drawer.includes('Dur sur la fin.') &&
+      drawer.includes('Une de plus.') &&
+      sent.length === 0 &&
+      (await stored())?.replies?.at(-1)?.readAt === undefined,
+    `${sent.length} lecture(s) · ${drawer.replace(/\n+/g, ' | ').slice(0, 120)}`
   );
   await ctx.close();
 }

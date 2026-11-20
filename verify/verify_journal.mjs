@@ -1,6 +1,6 @@
 /**
- * Les ressentis d'un client (E11b) : le résumé, le calendrier, la liste, et
- * une séance qui devient lue quand on l'ouvre.
+ * Les ressentis d'un client : le résumé, le calendrier, la liste, une
+ * séance qui devient lue quand on l'ouvre (E11b), et son détail (E11c).
  *
  * L'ancien journal n'avait pas de résumé, filtrait sa liste au calendrier,
  * et marquait tout l'historique lu dès l'ouverture de l'écran. La maquette
@@ -44,6 +44,9 @@ const serverHistory = async () =>
 const unreadOnServer = async () =>
   (await serverHistory()).filter((c) => !c.viewedByCoach).map((c) => c._id);
 
+/** La séance ouverte : à droite sur grand écran, en feuille en dessous. */
+const detailOf = (p) => p.locator('[data-journal-detail]');
+
 const browser = await launch();
 
 /** `details` retouche la fiche du client : la suite y pose un refus de
@@ -80,6 +83,14 @@ const open = async (options, { details, now } = {}) => {
   if (now) await p.clock.setFixedTime(now);
   await p.goto(JOURNAL, { waitUntil: 'domcontentloaded' });
   await settle(p);
+  // L'historique passe par une route de la suite, qui le relit au serveur
+  // d'essai : sous charge, `settle` rendait la main avant la liste, et une
+  // partie a compté zéro ligne. On attend la première.
+  await p
+    .locator('main [data-journal-row]')
+    .first()
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
   return { ctx, p, reads };
 };
 
@@ -190,12 +201,9 @@ const open = async (options, { details, now } = {}) => {
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
-  const drawer = p.getByRole('dialog');
-  const otherOpened = (await text(drawer)).includes(
+  const otherOpened = (await text(detailOf(p))).includes(
     'Épaule un peu sensible sur les swings.'
   );
-  await p.keyboard.press('Escape');
-  await gone(drawer);
   const readsAfterOther = reads.length;
 
   await last.click({ timeout: 2000 }).catch(() => {});
@@ -270,11 +278,11 @@ const open = async (options, { details, now } = {}) => {
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
-  const drawer = await text(p.getByRole('dialog'));
+  const opened = await text(detailOf(p));
   ok(
     '  → une pastille ouvre sa séance, qui devient lue',
-    drawer.includes('Dur sur la fin.') && JSON.stringify(reads) === '[["cs6"]]',
-    `${JSON.stringify(reads)} · ${drawer.slice(0, 60)}`
+    opened.includes('Dur sur la fin.') && JSON.stringify(reads) === '[["cs6"]]',
+    `${JSON.stringify(reads)} · ${opened.slice(0, 60)}`
   );
   await ctx.close();
 }
@@ -295,6 +303,161 @@ const open = async (options, { details, now } = {}) => {
         .getByRole('group', { name: 'Filtrer par étiquette' })
         .count()) === 0,
     said
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── une séance ouverte');
+  const { ctx, p } = await open(WIDE);
+  const rows = p.locator('main [data-journal-row]');
+  await rows
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const detail = detailOf(p);
+  const said = await text(detail);
+  ok(
+    'sur grand écran, la séance s’ouvre à droite : son ressenti, ses étiquettes, son mot',
+    (await p.locator('main aside [data-journal-detail="cs6"]').count()) === 1 &&
+      (await p.getByRole('dialog').count()) === 0 &&
+      said.startsWith('Full body A Dimanche 30 août Trop dure Fatigue') &&
+      /Son mot Dur sur la fin\./i.test(said),
+    said.slice(0, 120)
+  );
+
+  const line = (name) =>
+    detail.locator('[data-done-line]').filter({ hasText: name }).first();
+  const goblet = await text(line('Goblet Squat'));
+  const swing = await text(line('Kettlebell Swing'));
+  ok(
+    '  → ce qui a été fait, en face du prévu, et la flèche quand la charge monte',
+    goblet ===
+      'Goblet Squat prévu 12 reps 12 reps · 26 kg ↗ , plus lourd que la fois d’avant' &&
+      (await line('Goblet Squat').locator('[data-up]').count()) === 1 &&
+      swing === 'Kettlebell Swing prévu 15 reps 15 reps · 20 kg' &&
+      (await line('Kettlebell Swing').locator('[data-up]').count()) === 0,
+    `${goblet} | ${swing}`
+  );
+
+  const answer = 'Bien vu, on garde.';
+  await detail
+    .getByRole('textbox', { name: 'Répondre à Sarah' })
+    .fill(answer)
+    .catch(() => {});
+  await detail
+    .getByRole('button', { name: 'Envoyer à Sarah' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  // La réponse partie, et non le texte : le champ le porte déjà avant
+  // l'envoi, et une attente sur le texte rendait la main avant que le
+  // serveur ait répondu.
+  const thread = detail.locator('[data-reply-thread]');
+  const sent = thread.locator('[data-reply]').filter({ hasText: answer });
+  await sent
+    .first()
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  const stored = (await serverHistory()).find((c) => c._id === 'cs6');
+  const bubbles = await sent.count();
+  const state = await text(thread);
+  ok(
+    '  → répondre d’ici : la réponse part, et se lit aussitôt avec son état',
+    bubbles >= 1 &&
+      /pas encore lue/.test(state) &&
+      stored?.replies?.at(-1)?.text === answer,
+    `${bubbles} réponse(s) partie(s) · serveur : ${stored?.replies?.at(-1)?.text} · ${state.slice(0, 90)}`
+  );
+
+  // « Haut du corps » est la séance 2 : l'atelier s'ouvre sur elle.
+  await rows
+    .filter({ hasText: 'Haut du corps' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  await detail
+    .getByRole('button', { name: 'Ajuster la séance' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '  → « Ajuster la séance » ouvre l’atelier sur elle',
+    new URL(p.url()).pathname === `/coach/clients/${CLIENT}/s/2`,
+    p.url().replace(BASE, '')
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── ce que le programme est devenu');
+  const { ctx, p } = await open(WIDE);
+  const rows = p.locator('main [data-journal-row]');
+  const detail = detailOf(p);
+  await rows
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sameSaysNothing =
+    (await detail.locator('[data-program-changed]').count()) === 0;
+  // La séance 3 a été faite, puis remaniée : même identifiant, autre
+  // contenu.
+  await rows
+    .filter({ hasText: 'Séance 3' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    'une séance remaniée depuis le dit : le « prévu » est celui du jour où elle a été faite',
+    sameSaysNothing &&
+      (await text(detail.locator('[data-program-changed]'))) ===
+        'Le programme a changé depuis : le « prévu » est celui du jour où elle a été faite.',
+    await text(detail.locator('[data-program-changed]'))
+  );
+
+  await rows
+    .filter({ hasText: 'ancien bilan' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const legacy = await text(detail.locator('[data-legacy-metrics]'));
+  ok(
+    'un ancien bilan : ses cinq axes en lecture seule, sans ressenti',
+    legacy === 'Stress 1/5 Humeur 5/5 Énergie 4/5 Sommeil 5/5 Douleurs 1/5' &&
+      (await text(detail)).startsWith(
+        'Full body A Dimanche 16 août ancien bilan'
+      ),
+    legacy
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── une séance retirée du programme');
+  const { ctx, p } = await open(WIDE, {
+    details: (client) => ({
+      ...client,
+      program: {
+        ...client.program,
+        sessions: client.program.sessions.filter((s) => s._id !== 'sess3'),
+      },
+    }),
+  });
+  await p
+    .locator('main [data-journal-row]')
+    .filter({ hasText: 'Séance 3' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const detail = detailOf(p);
+  ok(
+    'une séance qui n’est plus au programme le dit, et n’offre pas de l’ajuster',
+    (await text(detail)).includes('Cette séance n’est plus au programme.') &&
+      (await detail
+        .getByRole('button', { name: 'Ajuster la séance' })
+        .count()) === 0,
+    (await text(detail)).slice(-80)
   );
   await ctx.close();
 }
@@ -338,6 +501,27 @@ const open = async (options, { details, now } = {}) => {
         }).length,
       device
     );
+  await p
+    .locator('main [data-journal-row]')
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog', {
+    name: 'Full body A · Dimanche 30 août',
+  });
+  const sheetSays = await text(sheet);
+  const inSheet = await sheet.locator('[data-journal-detail="cs6"]').count();
+  // Le fond assombri, au-dessus de la feuille.
+  await p.mouse.click(20, 80);
+  await gone(sheet);
+  ok(
+    '  → une séance monte en feuille, qui se referme en touchant le fond',
+    inSheet === 1 &&
+      sheetSays.includes('Dur sur la fin.') &&
+      (await p.getByRole('dialog').count()) === 0,
+    sheetSays.slice(0, 80)
+  );
   ok(
     '  → rien ne déborde de l’écran',
     spilled === 0,

@@ -19,7 +19,6 @@
  * `guided`.
  */
 export { SessionHistoryCard } from './progress/SessionHistoryCard';
-export { CompletedSessionDrawer } from './progress/CompletedSessionDrawer';
 export { SessionCalendarFilter } from './progress/SessionCalendarFilter';
 // L'aperçu « vu par le client » de l'atelier : la scène guidée elle-même.
 export { ScenePreview } from './guided/ScenePreview';

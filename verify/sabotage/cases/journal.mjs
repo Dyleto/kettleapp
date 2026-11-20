@@ -23,6 +23,23 @@ const DAY_OPENS = '→ une pastille ouvre sa séance, qui devient lue';
 const NO_HEALTH =
   'la carte dit pourquoi ses ressentis n’ont ni étiquette ni mot';
 const OVERFLOW = '→ rien ne déborde de l’écran';
+const DETAIL = 'src/features/coach/journal/JournalDetail.tsx';
+const LINES = 'src/domain/history/journalDetail.ts';
+const WIDE_DETAIL =
+  'sur grand écran, la séance s’ouvre à droite : son ressenti, ses étiquettes, son mot';
+const PLANNED =
+  '→ ce qui a été fait, en face du prévu, et la flèche quand la charge monte';
+const REPLY =
+  '→ répondre d’ici : la réponse part, et se lit aussitôt avec son état';
+const ADJUST = '→ « Ajuster la séance » ouvre l’atelier sur elle';
+const CHANGED =
+  'une séance remaniée depuis le dit : le « prévu » est celui du jour où elle a été faite';
+const LEGACY =
+  'un ancien bilan : ses cinq axes en lecture seule, sans ressenti';
+const GONE =
+  'une séance qui n’est plus au programme le dit, et n’offre pas de l’ajuster';
+const SHEET =
+  '→ une séance monte en feuille, qui se referme en touchant le fond';
 
 export default {
   suite: 'verify_journal.mjs',
@@ -195,6 +212,112 @@ export default {
       falls: [NO_HEALTH],
     },
     {
+      // Plus de panneau à droite, et pas de feuille sur grand écran : rien
+      // ne s'ouvre, et tout ce qui lit une séance ouverte tombe avec lui.
+      name: 'le panneau de droite disparaît',
+      edits: [
+        {
+          file: PAGE,
+          from: '            {wide && (',
+          to: '            {false && (',
+        },
+      ],
+      falls: [
+        ON_OPEN,
+        DAY_OPENS,
+        WIDE_DETAIL,
+        PLANNED,
+        REPLY,
+        ADJUST,
+        CHANGED,
+        LEGACY,
+        GONE,
+      ],
+    },
+    {
+      name: 'le prévu ne se dit plus',
+      edits: [
+        {
+          file: LINES,
+          from: '              planned: planned ? `prévu ${planned}` : null,',
+          to: '              planned: null,',
+        },
+      ],
+      falls: [PLANNED],
+    },
+    {
+      name: 'la flèche monte quand la charge baisse',
+      edits: [
+        {
+          file: LINES,
+          from: 'was !== undefined && load > was,',
+          to: 'was !== undefined && load < was,',
+        },
+      ],
+      falls: [PLANNED],
+    },
+    {
+      // Le serveur la garde ; l'écran ne la montre qu'au rechargement.
+      name: 'une réponse partie n’entre pas dans l’historique affiché',
+      edits: [
+        {
+          file: 'src/features/coach/hooks/useInboxActions.ts',
+          from: '      replaceInHistories(queryClient, completed);\n',
+          to: '',
+        },
+      ],
+      falls: [REPLY],
+    },
+    {
+      name: '« Ajuster la séance » ouvre toujours la séance 1',
+      edits: [{ file: PAGE, from: '        session.order,', to: '        1,' }],
+      falls: [ADJUST],
+    },
+    {
+      name: 'un programme remanié depuis se tait',
+      edits: [
+        {
+          file: DETAIL,
+          from: "          {since.state === 'changed' && (",
+          to: '          {false && (',
+        },
+      ],
+      falls: [CHANGED],
+    },
+    {
+      name: 'l’ancien bilan perd ses cinq axes',
+      edits: [
+        {
+          file: DETAIL,
+          from: '      {completed.metrics && <LegacyMetrics metrics={completed.metrics} />}',
+          to: '',
+        },
+      ],
+      falls: [LEGACY],
+    },
+    {
+      name: 'une séance retirée s’offre encore à ajuster',
+      edits: [
+        {
+          file: DETAIL,
+          from: "      {since.state === 'gone' ? (",
+          to: '      {false ? (',
+        },
+      ],
+      falls: [GONE],
+    },
+    {
+      name: 'sur téléphone, la séance ne monte plus en feuille',
+      edits: [
+        {
+          file: PAGE,
+          from: '      {!wide && item && (',
+          to: '      {false && item && (',
+        },
+      ],
+      falls: [SHEET],
+    },
+    {
       name: 'les jours du calendrier débordent sur téléphone',
       edits: [
         {
@@ -203,7 +326,10 @@ export default {
           to: "            w: '52px',\n            maxW: '52px',",
         },
       ],
-      falls: [OVERFLOW],
+      // Sur grand écran aussi : depuis le panneau de droite (E11c), la
+      // colonne du calendrier est étroite, il déborde sur la liste, et la
+      // pastille du 30 ne se touche plus.
+      falls: [DAY_OPENS, OVERFLOW],
     },
   ],
 };

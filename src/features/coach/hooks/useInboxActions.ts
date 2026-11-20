@@ -30,6 +30,26 @@ const replaceCompleted = (
   );
 
 /**
+ * La séance rendue, à sa place dans l'historique d'un client déjà chargé.
+ *
+ * Les ressentis d'un client répondent avec la même pièce que le fil : sans
+ * cela, la réponse partie n'apparaissait qu'au rechargement, et le coach
+ * la croyait perdue. L'historique ne dit pas de quel client il est — la
+ * séance non plus — : on le cherche dans chacun, il n'est que dans un.
+ */
+const replaceInHistories = (
+  queryClient: QueryClient,
+  completed: CompletedSession
+) =>
+  queryClient.setQueriesData<CompletedSession[]>(
+    {
+      queryKey: queryKeys.coach.clients.all(),
+      predicate: (query) => query.queryKey.at(-1) === 'history',
+    },
+    (history) => history?.map((c) => (c._id === completed._id ? completed : c))
+  );
+
+/**
  * Ce qui change ailleurs quand une séance est lue : le fil, « Déjà lues »,
  * et les compteurs de la liste des clients.
  *
@@ -61,6 +81,7 @@ export const useReply = () => {
     }) => coachService.replyTo(completedId, body),
     onSuccess: (completed) => {
       replaceCompleted(queryClient, completed);
+      replaceInHistories(queryClient, completed);
       staleEverywhere(queryClient);
     },
   });

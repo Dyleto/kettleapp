@@ -5,9 +5,8 @@ import { FEEDBACK_TAG_LABELS } from '@/domain/history/tags';
 import { formatPerformed } from '@/domain/history/performedFormat';
 import { sessionName } from '@/domain/session/name';
 import { clientLabel, tagsInOrder, whenLabel } from '@/domain/inbox/feed';
-import { replyLine, sentLabel } from '@/domain/inbox/reply';
 import { ClientAvatar, EffortPill } from './InboxCard';
-import { ReplyComposer } from './ReplyComposer';
+import { ReplyThread } from './ReplyThread';
 
 /**
  * Une séance ouverte : son détail et la réponse, au même endroit.
@@ -32,7 +31,6 @@ export const InboxDetail = ({
   const { completed, client } = item;
   const tags = tagsInOrder(completed.feedback?.tags);
   const said = completed.clientNotes?.trim();
-  const mine = completed.replies.filter((reply) => reply.coachId === coachId);
   const title =
     completed.sessionName ||
     sessionName({ order: completed.sessionOrder, name: completed.sessionName });
@@ -69,18 +67,7 @@ export const InboxDetail = ({
         )}
       </VStack>
 
-      <VStack align="stretch" gap="8px">
-        <Eyebrow>Ta réponse</Eyebrow>
-        {mine.map((reply) => (
-          <Box key={reply.sentAt}>
-            <Bubble tone="raised">{replyLine(reply)}</Bubble>
-            <Text fontSize="xs" color="fg.muted" mt="4px">
-              {sentLabel(reply, client.firstName)}
-            </Text>
-          </Box>
-        ))}
-        <ReplyComposer item={item} coachId={coachId} />
-      </VStack>
+      <ReplyThread item={item} coachId={coachId} />
 
       <VStack align="stretch" gap="8px">
         <Eyebrow>Ce qui a été fait</Eyebrow>

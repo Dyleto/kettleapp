@@ -96,9 +96,11 @@ export default {
           to: "                            {''}",
         },
       ],
+      // Le tiroir du client n'est plus celui des ressentis du coach (E11c) :
+      // il tombe côté client, et dans l'aperçu de la liste des clients.
       falls: [
         'dans le détail de la séance, la même bulle, sous son mot',
-        'le coach voit ses réponses dans le détail, sans les marquer lues',
+        'dans l’aperçu d’un client, le coach voit ses réponses sans les marquer lues',
       ],
     },
     {
@@ -108,6 +110,21 @@ export default {
           file: 'src/features/client/progress/CompletedSessionDrawer.tsx',
           from: '    if (isOpen && editable && hasUnread(completed.replies))',
           to: '    if (isOpen && hasUnread(completed.replies))',
+        },
+      ],
+      // Le coach n'ouvre plus ce tiroir que dans l'aperçu de la liste des
+      // clients : c'est là que la garde s'éprouve depuis E11c.
+      falls: [
+        'dans l’aperçu d’un client, le coach voit ses réponses sans les marquer lues',
+      ],
+    },
+    {
+      name: 'les ressentis du coach ne montrent plus ses réponses',
+      edits: [
+        {
+          file: 'src/features/coach/inbox/ReplyThread.tsx',
+          from: '          <Bubble tone="raised">{replyLine(reply)}</Bubble>',
+          to: '          <Bubble tone="raised">{\'\'}</Bubble>',
         },
       ],
       falls: [

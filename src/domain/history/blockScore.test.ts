@@ -11,7 +11,7 @@ import {
   makeExerciseSnapshot,
   makeSession,
 } from '@/domain/fixtures';
-import { blockScores, scoreLine } from './blockScore';
+import { blockResult, blockScores, scoreLine } from './blockScore';
 
 const amrap = (performedRounds?: number) =>
   makeBlockSnapshot({ type: 'amrap', performedRounds });
@@ -121,5 +121,45 @@ describe('les blocs de la séance', () => {
 
   it('rien pour une séance jamais faite', () => {
     expect(blockScores(makeSession(), []).size).toBe(0);
+  });
+});
+
+describe('le score d’un passage, seul', () => {
+  it('des tours : « 5 tours », « 1 tour »', () => {
+    expect(blockResult(amrap(5))).toBe('5 tours');
+    expect(blockResult(amrap(1))).toBe('1 tour');
+  });
+
+  it('une échelle : son palier, ou bouclée avec son temps', () => {
+    const scheme = { type: 'ladder', repsScheme: [5, 10, 15] };
+    expect(
+      blockResult(makeBlockSnapshot({ ...scheme, performedRungs: 2 }))
+    ).toBe('Palier 2 sur 3');
+    expect(
+      blockResult(
+        makeBlockSnapshot({
+          ...scheme,
+          performedRungs: 3,
+          performedSeconds: 540,
+        })
+      )
+    ).toBe('Échelle bouclée en 9:00');
+  });
+
+  it('une liste : finie en un temps, ou ce qui en a été fait', () => {
+    const list = (performedMovements: number) =>
+      makeBlockSnapshot({
+        type: 'chipper',
+        performedMovements,
+        performedSeconds: 580,
+        exercises: [makeExerciseSnapshot(), makeExerciseSnapshot({ order: 2 })],
+      });
+    expect(blockResult(list(2))).toBe('Fini en 9:40');
+    expect(blockResult(list(1))).toBe('1 mouvement sur 2');
+  });
+
+  it('un bloc qui ne se compte pas : rien', () => {
+    expect(blockResult(makeBlockSnapshot())).toBeNull();
+    expect(blockResult(amrap())).toBeNull();
   });
 });

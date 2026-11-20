@@ -7,12 +7,20 @@ import {
   Grid,
   Heading,
   HStack,
+  Portal,
   Spinner,
   Text,
+  useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
-import type { CompletedSession, FeedbackTag } from '@/shared/types';
+import type {
+  CompletedSession,
+  FeedbackTag,
+  InboxItem,
+  Session,
+} from '@/shared/types';
+import { useAuth } from '@/shared/contexts/useAuth';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
@@ -21,7 +29,8 @@ import { HISTORY_PAGE_SIZE } from '@/features/coach/coach.service';
 import { ClientTabs } from '@/features/coach/components/ClientTabs';
 import { JournalSummary } from '@/features/coach/journal/JournalSummary';
 import { JournalList } from '@/features/coach/journal/JournalList';
-import { CompletedSessionDrawer } from '@/features/client';
+import { JournalDetail } from '@/features/coach/journal/JournalDetail';
+import { useSheetDismiss } from '@/features/workshop';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { Header } from '@/shared/components/Header';
 import {
@@ -31,11 +40,14 @@ import {
   hitArea,
   LoadFailure,
   MonthCalendar,
+  Sheet,
   type DayMark,
 } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { getEffortSummary } from '@/domain/history/effort';
 import { calendarBounds, latestByDay, withTag } from '@/domain/history/journal';
+import { detailDate, previousPassage } from '@/domain/history/journalDetail';
+import { concernedExercise } from '@/domain/inbox/concerned';
 import { TAG_NOUN } from '@/domain/history/pulse';
 import { weekTarget } from '@/domain/week/ring';
 import { formatDayLabel } from '@/domain/week/dates';
@@ -92,6 +104,11 @@ const ClientJournal = () => {
   const readOnOpen = useReadOnOpen(clientId!);
   const [tag, setTag] = useState<FeedbackTag | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const coachId = useAuth().user?.coachId;
+  // Le panneau tient à côté de la liste à partir de 1 280 px ; en dessous,
+  // la séance monte en feuille, comme dans « À lire ».
+  const wide = useBreakpointValue({ base: false, xl: true }) ?? false;
+  useSheetDismiss(!!openId && !wide, () => setOpenId(null));
 
   const marks = useMemo(() => dayMarks(history), [history]);
   const byDay = useMemo(() => latestByDay(history), [history]);
@@ -141,6 +158,37 @@ const ClientJournal = () => {
   };
   const opened = history.find((c) => c._id === openId) ?? null;
   const visible = withTag(history, tag);
+  // La pièce de « À lire » attend une séance, son client et le passage
+  // d'avant : le champ de réponse et l'exercice dont parle la séance s'en
+  // servent tels quels.
+  const item: InboxItem | null = opened && {
+    client: {
+      _id: client._id,
+      firstName: client.firstName,
+      lastName: client.lastName,
+      picture: client.picture,
+    },
+    completed: opened,
+    previous: previousPassage(opened, history),
+  };
+  const adjust = (session: Session) =>
+    item &&
+    navigate(
+      COACH_ROUTES.clientSession(
+        clientId!,
+        session.order,
+        concernedExercise(item)
+      )
+    );
+  const detail = item && (
+    <JournalDetail
+      key={item.completed._id}
+      item={item}
+      coachId={coachId}
+      sessions={client.program.sessions}
+      onAdjust={adjust}
+    />
+  );
 
   return (
     <>
@@ -176,7 +224,7 @@ const ClientJournal = () => {
       </Box>
 
       <Box
-        maxW={{ base: 'full', md: '6xl' }}
+        maxW={{ base: 'full', md: '6xl', xl: '7xl' }}
         mx="auto"
         px={{ base: 4, md: 8 }}
         pt={{ base: 4, md: 7 }}
@@ -222,6 +270,7 @@ const ClientJournal = () => {
             templateColumns={{
               base: 'minmax(0, 1fr)',
               md: 'minmax(0, 1fr) minmax(0, 1.1fr)',
+              xl: 'minmax(0, 1fr) minmax(0, 1.1fr) 380px',
             }}
             gap="16px"
             alignItems="start"
@@ -268,16 +317,39 @@ const ClientJournal = () => {
               )}
               <JournalList history={visible} openId={openId} onOpen={open} />
             </VStack>
+            {wide && (
+              <Box
+                as="aside"
+                aria-label="Séance ouverte"
+                position="sticky"
+                top="24px"
+                maxH="calc(100dvh - 48px)"
+                overflowY="auto"
+                bg="bg.surface"
+                borderRadius="18px"
+                p="20px"
+              >
+                {detail ?? (
+                  <Text color="fg.muted" fontSize="sm">
+                    Ouvre une séance : elle s’affiche ici, avec ce que{' '}
+                    {client.firstName ?? 'ton client'} en a dit, et ta réponse.
+                  </Text>
+                )}
+              </Box>
+            )}
           </Grid>
         )}
       </Box>
 
-      {opened && (
-        <CompletedSessionDrawer
-          completed={opened}
-          isOpen
-          onClose={() => setOpenId(null)}
-        />
+      {!wide && item && (
+        <Portal>
+          <Sheet
+            label={`${item.completed.sessionName || sessionName({ order: item.completed.sessionOrder, name: item.completed.sessionName })} · ${detailDate(item.completed.completedAt)}`}
+            onDismiss={() => setOpenId(null)}
+          >
+            {detail}
+          </Sheet>
+        </Portal>
       )}
     </>
   );

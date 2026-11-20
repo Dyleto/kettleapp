@@ -109,9 +109,9 @@ export default {
       name: 'la réponse partie ne dit plus si elle est lue',
       edits: [
         {
-          file: 'src/features/coach/inbox/InboxDetail.tsx',
-          from: '              {sentLabel(reply, client.firstName)}',
-          to: "              {''}",
+          file: 'src/features/coach/inbox/ReplyThread.tsx',
+          from: '            {sentLabel(reply, item.client.firstName)}',
+          to: "            {''}",
         },
       ],
       falls: [

@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 20 novembre : 832 tests unitaires, 49 suites de banc et 831
-assertions, 4 min 33 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 20 novembre : 857 tests unitaires, 49 suites de banc et 840
+assertions, 4 min 30 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -78,7 +78,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                                                                            |
 | Atelier d'un client   | **fait** | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc, l'aperçu « vu par le client », l'import d'un modèle, les bords. |
 | Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                  |
-| Ressentis d'un client | partiel  | Là : le résumé, le calendrier à pastilles, la liste lue séance par séance, la bascule « Programme / Ressentis ». Manque le détail d'une séance (E11c).                                                                                                                                                                            |
+| Ressentis d'un client | **fait** | Là : le résumé, le calendrier à pastilles, la liste lue séance par séance, la bascule « Programme / Ressentis », le détail avec « prévu / fait » et la réponse.                                                                                                                                                                   |
 | Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                                                                                                                              |
 | Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                                                                                                                     |
 
@@ -423,7 +423,7 @@ banc actuel, inchangé, qui le prouve.
       introuvable existait. Les suppressions avaient déjà toutes leur
       « Annuler », chacune sur le banc : séance, bloc, exercice, format,
       unité.
-- [ ] **E11** Ressentis d'un client : résumé, calendrier, « prévu / fait »,
+- [x] **E11** Ressentis d'un client : résumé, calendrier, « prévu / fait »,
       réponse, lue à l'ouverture de la séance. En trois temps.
   - [x] **E11a** La fiche d'un client dit s'il partage ses données de santé
         (`1c1bee3`, l'API) : sans cela, un client dont le serveur ne garde
@@ -440,9 +440,21 @@ banc actuel, inchangé, qui le prouve.
         sa fenêtre à ce qui déborde, et la page grandissait avec elle. Les
         deux suites mesurent désormais contre la largeur de l'appareil, et
         un sabotage le prouve.
-  - [ ] **E11c** Le détail d'une séance : son mot, la réponse, « prévu /
-        fait », « le programme a changé depuis », l'ancien bilan,
-        « Ajuster la séance » ; en panneau à droite sur grand écran.
+  - [x] **E11c** Le détail d'une séance, en panneau à droite à partir de
+        1 280 px et en feuille en dessous : « Son mot » et non plus « Ton
+        commentaire », la réponse avec la pièce de « À lire » (sortie en
+        `ReplyThread`), le prévu en face du fait avec une flèche sarcelle
+        quand la charge passe celle d'avant, le score d'un bloc qui se
+        compte, « Le programme a changé depuis », les cinq axes d'un ancien
+        bilan, « Ajuster la séance » — ou « Cette séance n'est plus au
+        programme ». Une réponse partie entre aussitôt dans l'historique
+        affiché ; elle n'apparaissait qu'au rechargement. Le coach n'ouvre
+        plus le tiroir du client que dans l'aperçu de la liste des clients :
+        la garde qui l'empêche de lire à la place du client s'y éprouve
+        désormais, faute de quoi plus rien ne la couvrait. Deux attentes du
+        banc étaient creuses sous charge — un texte que le champ de réponse
+        portait déjà, une liste comptée avant d'être là — : elles attendent
+        l'état, et quatre copies de la suite tournent vertes en parallèle.
 
 ### F. Le reste
 
@@ -509,6 +521,14 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
   maquette n'y met que la durée : sur téléphone, rien d'autre ne le dit, et
   les pastilles « S1 … » qu'elle remplace le disaient en s'estompant (E7b).
   Un choix aussi, à confirmer.
+
+- **Une série du détail s'écrit comme partout** — « 12 reps · 26 kg » —
+  et non « 12 × 26 kg » comme dans la maquette des ressentis : c'est
+  l'écriture de `formatPerformed`, issue d'un retour du terrain, et deux
+  écritures de la même série finiraient par se contredire (E11c).
+- **Une ligne des ressentis n'a pas de durée** (« dim. 30 août · 41 min »
+  dans la maquette) : aucun bilan ne l'enregistre. Elle demanderait un
+  champ côté API.
 
 Tranché le 16 novembre : la série en cours garde le bloc entier sous elle.
 Ce n'est plus un écart, c'est la maquette qui a changé — son chapitre

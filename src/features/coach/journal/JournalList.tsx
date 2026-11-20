@@ -16,7 +16,7 @@ import { sessionName } from '@/domain/session/name';
  * séance date des cinq curseurs, et rien quand le client ne s'est pas
  * prononcé — « ancien bilan » sur une séance d'hier serait faux.
  */
-const Verdict = ({ completed }: { completed: CompletedSession }) => {
+export const Verdict = ({ completed }: { completed: CompletedSession }) => {
   const effort = getEffortSummary(completed);
   if (effort)
     return (

@@ -53,6 +53,33 @@ const inTime = (seconds: number | undefined) =>
   seconds ? ` en ${formatCountdown(seconds)}` : '';
 
 /**
+ * Ce qu'un bloc a donné ce jour-là, seul : « 5 tours », « Palier 2 sur 3 »,
+ * « Échelle bouclée en 9:00 », « Fini en 9:40 ». `null` pour un bloc qui
+ * ne se compte pas.
+ *
+ * Pour le détail d'une séance faite : la ligne y porte déjà le nom du bloc,
+ * et un seul passage n'a pas de suite à lire. Les mêmes mots que sous un
+ * bloc dans l'atelier, pour qu'un score se dise de la même façon partout.
+ */
+export const blockResult = (block: BlockSnapshot): string | null => {
+  const total = block.repsScheme?.length ?? 0;
+  if (block.performedRungs !== undefined && total > 0)
+    return block.performedRungs >= total
+      ? `Échelle bouclée${inTime(block.performedSeconds)}`
+      : `Palier ${block.performedRungs} sur ${total}`;
+  if (block.performedMovements !== undefined) {
+    const done = block.performedMovements;
+    const count = block.exercises.length;
+    return done >= count
+      ? `Fini${inTime(block.performedSeconds)}`
+      : `${done} mouvement${done > 1 ? 's' : ''} sur ${count}`;
+  }
+  if (block.performedRounds !== undefined)
+    return `${block.performedRounds} tour${block.performedRounds > 1 ? 's' : ''}`;
+  return null;
+};
+
+/**
  * La ligne sous un bloc, à partir de ses instantanés, du plus ancien au
  * plus récent.
  *
