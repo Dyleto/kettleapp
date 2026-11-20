@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, HStack, Spinner, Text } from '@chakra-ui/react';
+import { Box, chakra, HStack, Spinner, Text } from '@chakra-ui/react';
 import { LuCheck, LuTriangleAlert } from 'react-icons/lu';
 import type { SaveState } from '@/features/workshop/hooks/useProgramAutoSave';
 import { useClaimBottomBar } from '@/shared/hooks/useBottomBar';
@@ -10,19 +10,24 @@ interface Props {
   onRetry: () => void;
 }
 
-/** Combien de temps « Enregistré » reste à l'écran avant de s'effacer. */
-const CONFIRMATION_DURATION = 2500;
+/** Combien de temps « Enregistré » reste à l'écran avant de s'effacer : les
+ * trois secondes de la maquette. */
+const CONFIRMATION_DURATION = 3000;
 
 /**
- * L'état de l'enregistrement automatique, en une ligne.
+ * Ce que l'enregistrement automatique a à dire, et rien quand tout va bien
+ * depuis un moment.
  *
- * Le parti pris : ne rien montrer quand tout va bien depuis un moment. Le
- * coach n'a pas à surveiller une barre pour se sentir en sécurité — c'est
- * précisément ce que l'enregistrement automatique lui épargne. La ligne
- * n'apparaît que pendant un enregistrement, brièvement après pour confirmer,
- * et elle s'installe pour de bon si quelque chose échoue.
+ * Le parti pris : le coach n'a pas à surveiller une ligne pour se sentir en
+ * sécurité — c'est précisément ce que l'enregistrement automatique lui
+ * épargne. L'état n'apparaît que pendant un enregistrement, trois secondes
+ * après pour confirmer, et il reste si quelque chose échoue, jusqu'à ce
+ * qu'un enregistrement réussisse.
  */
-export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
+const useSaveSignal = (
+  state: SaveState,
+  savedAt: Date | null
+): 'saving' | 'saved' | 'failed' | null => {
   // On retient le dernier enregistrement *expiré* plutôt qu'un booléen :
   // l'état n'est alors écrit que depuis le minuteur, jamais pendant un rendu
   // ni au montage de l'effet.
@@ -34,13 +39,90 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
     return () => clearTimeout(timer);
   }, [savedAt]);
 
-  const confirmed = savedAt !== null && cleared !== savedAt;
-
+  if (state === 'error') return 'failed';
   // « En attente » et « en vol » sont un seul état pour qui regarde : les
   // distinguer ferait clignoter la ligne à chaque frappe.
-  const inFlight = state === 'pending' || state === 'saving';
-  const failed = state === 'error';
-  const visible = inFlight || failed || confirmed;
+  if (state === 'pending' || state === 'saving') return 'saving';
+  if (savedAt !== null && cleared !== savedAt) return 'saved';
+  return null;
+};
+
+/**
+ * L'état de l'enregistrement dans l'en-tête de la séance, à droite, avant
+ * son « ⋯ » : là où la maquette le pose, et là où le regard du coach est
+ * déjà. Il vivait en bas de page, loin de ce qu'on venait d'écrire.
+ *
+ * À partir de `md` seulement : sur téléphone, l'en-tête cède sa place, et
+ * la ligne du bas (`ProgramSaveStatus`) dit la même chose.
+ */
+export const SaveStatus = ({ state, savedAt, onRetry }: Props) => {
+  const signal = useSaveSignal(state, savedAt);
+  if (!signal) return null;
+  return (
+    <chakra.span
+      role="status"
+      display={{ base: 'none', md: 'inline-flex' }}
+      alignItems="center"
+      gap="8px"
+      fontSize="13px"
+      fontWeight="600"
+      color={
+        signal === 'failed'
+          ? 'session.work.fg'
+          : signal === 'saved'
+            ? 'session.rest.fg'
+            : 'fg.muted'
+      }
+      data-save-status={signal}
+    >
+      {signal === 'failed' ? (
+        <>
+          <LuTriangleAlert size={16} aria-hidden />
+          Non enregistré ·
+          <chakra.button
+            type="button"
+            onClick={onRetry}
+            fontWeight="800"
+            textDecoration="underline"
+            textUnderlineOffset="3px"
+          >
+            Réessayer
+          </chakra.button>
+        </>
+      ) : signal === 'saving' ? (
+        <>
+          <Spinner size="xs" />
+          Enregistrement…
+        </>
+      ) : (
+        <>
+          <LuCheck size={16} aria-hidden />
+          Enregistré
+        </>
+      )}
+    </chakra.span>
+  );
+};
+
+/**
+ * La même chose en une ligne au bas de l'écran : sur téléphone, où
+ * l'en-tête de la séance cède sa place, et partout où il n'y a pas de séance
+ * ouverte pour porter l'en-tête — supprimer la dernière séance s'enregistre
+ * aussi.
+ */
+export const ProgramSaveStatus = ({
+  state,
+  savedAt,
+  onRetry,
+  phoneOnly = false,
+}: Props & {
+  /** L'en-tête de la séance dit déjà l'état à partir de `md`. */
+  phoneOnly?: boolean;
+}) => {
+  const signal = useSaveSignal(state, savedAt);
+  const failed = signal === 'failed';
+  const inFlight = signal === 'saving';
+  const visible = signal !== null;
 
   // Seul un échec réclame le bas de l'écran. Un enregistrement qui se passe
   // bien ne prend rien au coach : ce qu'il vient d'écrire est en route, et
@@ -52,6 +134,7 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
 
   return (
     <Box
+      display={phoneOnly ? { base: 'block', md: 'none' } : 'block'}
       position="sticky"
       bottom={0}
       zIndex={2}
@@ -75,13 +158,13 @@ export const ProgramSaveStatus = ({ state, savedAt, onRetry }: Props) => {
         justify="flex-end"
         role="status"
       >
-        {state === 'error' ? (
+        {failed ? (
           <>
             <Box color="app.error" display="flex">
               <LuTriangleAlert size={14} />
             </Box>
             <Text fontSize="sm" color="app.error" mr="auto">
-              Modifications non enregistrées
+              Non enregistré
             </Text>
             <Box
               as="button"

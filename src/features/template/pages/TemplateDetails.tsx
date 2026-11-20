@@ -16,6 +16,7 @@ import {
   useProgramWorkshop,
   InlineText,
   ProgramSaveStatus,
+  SaveStatus,
 } from '@/features/workshop';
 import {
   ClientProgramTab,
@@ -269,6 +270,13 @@ const TemplateDetails = () => {
                 {...workshopProps}
                 menuActions={actionsFor(activeSession, { rename: false })}
                 onFocusBlock={setPreviewBlockId}
+                saveStatus={
+                  <SaveStatus
+                    state={saveState}
+                    savedAt={savedAt}
+                    onRetry={flush}
+                  />
+                }
               />
             </>
           ) : sessions.length === 0 ? (
@@ -324,7 +332,14 @@ const TemplateDetails = () => {
         )}
       </Stack>
 
-      <ProgramSaveStatus state={saveState} savedAt={savedAt} onRetry={flush} />
+      {/* L'en-tête de la séance dit l'état à partir de `md` ; sans séance
+          ouverte, cette ligne le dit seule. */}
+      <ProgramSaveStatus
+        state={saveState}
+        savedAt={savedAt}
+        onRetry={flush}
+        phoneOnly={!!activeSession}
+      />
     </Box>
   );
 };

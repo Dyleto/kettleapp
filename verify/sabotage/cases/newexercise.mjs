@@ -15,5 +15,18 @@ export default {
       ],
       falls: ['→ elle referme la fiche et rend le programme, la ligne ouverte'],
     },
+    {
+      // La fiche se referme avec le champ encore ouvert : ce qu'il portait
+      // ne part jamais, puisqu'il part à la perte du focus.
+      name: '« Retour au programme » referme sans valider le champ ouvert',
+      edits: [
+        {
+          file: 'src/features/exercise/components/ExerciseSheet.tsx',
+          from: '            (document.activeElement as HTMLElement | null)?.blur();\n',
+          to: '',
+        },
+      ],
+      falls: ['→ et la frappe en cours est enregistrée, pas perdue'],
+    },
   ],
 };

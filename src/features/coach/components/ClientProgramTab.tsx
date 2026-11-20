@@ -75,6 +75,8 @@ interface Props {
   traces?: ReadonlyMap<string, ExerciseTrace>;
   /** Le score de chaque bloc qui se compte, par identifiant de bloc. */
   scores?: ReadonlyMap<string, BlockScore>;
+  /** L'état de l'enregistrement, que l'en-tête de la séance porte. */
+  saveStatus?: ReactNode;
   /**
    * Prévenu du bloc que le coach touche : c'est lui que l'aperçu « vu par
    * le client » montre, et il change sans qu'on ait à le choisir.
@@ -185,6 +187,7 @@ export const ClientProgramTab = ({
   pulse,
   traces,
   scores,
+  saveStatus,
   onFocusBlock,
   focusExerciseId,
   onOpenExerciseSheet,
@@ -292,6 +295,7 @@ export const ClientProgramTab = ({
             onDays={onUpdateSessionDays}
             onRenamed={onRenamed}
             renameRequest={renameRequest}
+            status={saveStatus}
             actions={[
               {
                 value: 'rename',

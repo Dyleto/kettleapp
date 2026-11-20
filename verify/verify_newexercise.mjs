@@ -311,7 +311,15 @@ const main = async () => {
             .count()} ligne(s) ouverte(s)`
         );
 
-        const kept = (await library()).find((e) => e.name === name);
+        // La consigne part à la perte du focus : on attend qu'elle soit
+        // arrivée — un état, pas une durée. Lue aussitôt, sous la charge de
+        // quatre files, elle était encore en route, et l'assertion tombait
+        // sans que rien ne soit perdu.
+        let kept = (await library()).find((e) => e.name === name);
+        for (let i = 0; i < 20 && kept?.description !== PLACED; i++) {
+          await settle(p);
+          kept = (await library()).find((e) => e.name === name);
+        }
         ok(
           '  → et la frappe en cours est enregistrée, pas perdue',
           kept?.description === PLACED,

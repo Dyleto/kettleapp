@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { chakra, HStack, Input } from '@chakra-ui/react';
 import type { Session } from '@/shared/types';
 import { sessionName } from '@/domain/session/name';
@@ -99,6 +99,8 @@ interface SessionHeaderProps {
   /** Le nombre de « Renommer » demandés : chacun rouvre le titre à
    * l'écriture. */
   renameRequest?: number;
+  /** L'état de l'enregistrement, à droite, avant le « ⋯ » (`SaveStatus`). */
+  status?: ReactNode;
 }
 
 /**
@@ -119,6 +121,7 @@ export const SessionHeader = ({
   actions,
   onRenamed,
   renameRequest = 0,
+  status,
 }: SessionHeaderProps) => (
   <HStack gap="10px" rowGap="8px" wrap="wrap" align="center" mb={4}>
     <SessionTitle
@@ -139,7 +142,8 @@ export const SessionHeader = ({
         <SuggestedDaysPicker value={session.suggestedDays} onChange={onDays} />
       )}
     </BlockPill>
-    <HStack ml="auto">
+    <HStack ml="auto" gap="12px">
+      {status}
       <SessionMenu
         label={`Menu de la séance ${session.order}`}
         actions={actions}

@@ -12,7 +12,13 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { LuArrowLeft, LuBookOpen, LuEllipsis } from 'react-icons/lu';
+import {
+  LuArrowLeft,
+  LuBookOpen,
+  LuEllipsis,
+  LuLayoutGrid,
+  LuPlus,
+} from 'react-icons/lu';
 import { useClientDetails } from '@/features/coach/hooks/useClientDetails';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -20,6 +26,7 @@ import {
   useProgramWorkshop,
   useUpdateProgramSessions,
   ProgramSaveStatus,
+  SaveStatus,
 } from '@/features/workshop';
 import { ClientProgramTab } from '@/features/coach/components/ClientProgramTab';
 import { useSessionMenu } from '@/features/coach/hooks/useSessionMenu';
@@ -390,6 +397,13 @@ const ClientDetails = () => {
                   {...workshopProps}
                   menuActions={actionsFor(activeSession, { rename: false })}
                   sessionSheetOnPhone
+                  saveStatus={
+                    <SaveStatus
+                      state={saveState}
+                      savedAt={savedAt}
+                      onRetry={flush}
+                    />
+                  }
                   traces={exerciseTraces(activeSession, history)}
                   scores={blockScores(activeSession, history)}
                   onFocusBlock={setPreviewBlockId}
@@ -406,26 +420,26 @@ const ClientDetails = () => {
                 />
               </>
             ) : sessions.length === 0 ? (
+              // Le premier écran d'un nouveau client, que la maquette accueille
+              // par le personnage, son prénom et les deux façons de commencer.
+              // « Ce programme est vide » disait un manque ; celui-ci dit par
+              // où partir.
               <EmptyState
-                title="Ce programme est vide"
-                line="Ajoute une séance pour commencer à le construire."
+                mood="hello"
+                title={`Le programme de ${client.firstName ?? 'ton client'} est vide`}
+                line="Écris sa première séance, ou pars d’un de tes modèles."
                 action={
                   <HStack gap="10px" wrap="wrap" justify="center">
-                    <Button
-                      bg="app.primary"
-                      color="bg.canvas"
-                      fontWeight="bold"
-                      minH="44px"
-                      onClick={() => addSession()}
-                      _hover={{ bg: 'app.primary.hover' }}
-                    >
+                    <ActionButton size="md" onClick={() => addSession()}>
+                      <LuPlus size={18} aria-hidden />
                       Ajouter une séance
-                    </Button>
+                    </ActionButton>
                     <ActionButton
                       tone="ghost"
                       size="md"
                       onClick={() => setImportOpen(true)}
                     >
+                      <LuLayoutGrid size={18} aria-hidden />
                       Partir d’un modèle
                     </ActionButton>
                   </HStack>
@@ -579,10 +593,13 @@ const ClientDetails = () => {
           />
         )}
 
+        {/* Sur téléphone, où l'en-tête cède sa place ; et sans séance
+            ouverte, où il n'y a pas d'en-tête pour dire l'état. */}
         <ProgramSaveStatus
           state={saveState}
           savedAt={savedAt}
           onRetry={flush}
+          phoneOnly={!!activeSession}
         />
       </Box>
     </>

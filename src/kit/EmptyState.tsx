@@ -11,8 +11,9 @@ export interface EmptyStateProps {
   action?: ReactNode;
   /**
    * L'humeur du personnage. Sans elle, pas de personnage : c'est le cas dans
-   * l'atelier du coach, où un écran vide est une étape de travail et non un
-   * moment d'attente.
+   * l'atelier du coach, où un écran vide est d'ordinaire une étape de
+   * travail et non un moment d'attente — sauf le programme vide d'un
+   * nouveau client, que la maquette accueille par le personnage.
    */
   mood?: MascotMood;
   /**

@@ -30,7 +30,25 @@ const ORDER = 'À lire · Clients · Modèles · Exercices';
  * La navigation visible, mesurée : sa place, ses libellés lisibles, les
  * noms que ses liens annoncent, son compteur et l'onglet allumé.
  */
-const nav = (p) =>
+/**
+ * Le rail tel qu'il se lit, une fois là.
+ *
+ * On attend qu'il paraisse avant de le lire : sous la charge de quatre
+ * files, `settle` pouvait rendre la main entre la réponse de
+ * l'authentification et le chargement de l'espace du coach — un rail pas
+ * encore monté se lisait `null`, et « 99+ » tombait sans raison.
+ */
+const nav = async (p) => {
+  await p
+    .locator('nav[aria-label="Navigation principale"]')
+    .filter({ visible: true })
+    .first()
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
+  return readNav(p);
+};
+
+const readNav = (p) =>
   p.evaluate(() => {
     const el = [
       ...document.querySelectorAll('nav[aria-label="Navigation principale"]'),
