@@ -71,17 +71,23 @@ const openBoard = async (options) => {
     PIECES.every((name) => found.includes(name)),
     found.join(' · ')
   );
-  const overflow = await p.evaluate(() => ({
-    page: document.documentElement.scrollWidth,
-    screen: window.innerWidth,
-    wide: [...document.querySelectorAll('main *')]
-      .filter((e) => e.getBoundingClientRect().right > window.innerWidth + 1)
-      .slice(0, 3)
-      .map((e) => e.tagName + (e.textContent ?? '').slice(0, 20)),
-  }));
+  // Contre la largeur de l'appareil, pas `innerWidth` : un téléphone
+  // élargit sa fenêtre à ce qui déborde, et la page et la fenêtre
+  // grandissaient ensemble — l'assertion restait verte sur une planche de
+  // 480 px. Relevé en E11b, où le même piège a été pris par un sabotage.
+  const overflow = await p.evaluate(
+    (device) => ({
+      page: document.documentElement.scrollWidth,
+      wide: [...document.querySelectorAll('main *')]
+        .filter((e) => e.getBoundingClientRect().right > device + 1)
+        .slice(0, 3)
+        .map((e) => e.tagName + (e.textContent ?? '').slice(0, 20)),
+    }),
+    p.viewportSize().width
+  );
   ok(
     'rien ne déborde à 390 px',
-    overflow.page === overflow.screen && overflow.wide.length === 0,
+    overflow.page === 390 && overflow.wide.length === 0,
     `${overflow.page} px · ${overflow.wide.join(' | ')}`
   );
 

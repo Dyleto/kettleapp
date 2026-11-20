@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 20 novembre : 809 tests unitaires, 48 suites de banc et 817
-assertions, 4 min 18 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 20 novembre : 832 tests unitaires, 49 suites de banc et 831
+assertions, 4 min 33 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -78,7 +78,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                                                                            |
 | Atelier d'un client   | **fait** | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc, l'aperçu « vu par le client », l'import d'un modèle, les bords. |
 | Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                  |
-| Ressentis d'un client | à faire  | L'ancien journal sous son nouveau nom : pas de résumé, pas de « prévu / fait », pas de réponse, et tout l'historique devient lu d'un coup.                                                                                                                                                                                        |
+| Ressentis d'un client | partiel  | Là : le résumé, le calendrier à pastilles, la liste lue séance par séance, la bascule « Programme / Ressentis ». Manque le détail d'une séance (E11c).                                                                                                                                                                            |
 | Modèles               | à faire  | Des cartes qui montrent le contenu, l'usage, « Utiliser pour un client », dupliquer.                                                                                                                                                                                                                                              |
 | Exercices             | partiel  | Création à la frappe et usage : là. Manquent les vignettes, le panneau, le tri « les plus utilisés » en menu.                                                                                                                                                                                                                     |
 
@@ -297,8 +297,9 @@ banc actuel, inchangé, qui le prouve.
 - [x] **D3** Fil « À lire » : les séances non lues de tous les clients, avec
       ce qui a été fait et le passage d'avant ; lue à l'unité (`e15ef30`).
       Lue ou non lue, une ou plusieurs à la fois : « Annuler » défait une
-      lecture envoyée. Quand E11 lira séance par séance, la route qui marque
-      tout l'historique d'un client pourra partir.
+      lecture envoyée. Depuis E11b, le front lit séance par séance : la
+      route qui marque tout l'historique d'un client part de l'API une fois
+      ce front en production (H4), pas avant — l'ancien front l'appelle.
 - [x] **D4** Le prénom du coach dans le programme du client.
 - [x] **D5** Étiquettes de clients : créer, renommer, supprimer, rattacher
       (`a69e976`). Posées sur le lien coach–client : chacun les siennes.
@@ -423,7 +424,25 @@ banc actuel, inchangé, qui le prouve.
       « Annuler », chacune sur le banc : séance, bloc, exercice, format,
       unité.
 - [ ] **E11** Ressentis d'un client : résumé, calendrier, « prévu / fait »,
-      réponse, lue à l'ouverture de la séance.
+      réponse, lue à l'ouverture de la séance. En trois temps.
+  - [x] **E11a** La fiche d'un client dit s'il partage ses données de santé
+        (`1c1bee3`, l'API) : sans cela, un client dont le serveur ne garde
+        ni étiquette ni mot passait pour un client qui n'écrit rien.
+  - [x] **E11b** Le résumé — cinq points, « Les deux dernières : dures »,
+        le rythme sur quatre semaines, les étiquettes qui filtrent la
+        liste —, un calendrier dont la pastille pleine ouvre sa séance, la
+        bascule « Programme / Ressentis ». Une séance devient lue quand on
+        l'ouvre : l'écran ne lit plus tout l'historique à son ouverture, ce
+        qui effaçait les séances arrivées depuis la dernière visite. La
+        ligne ne dit plus « Aucun commentaire » ; elle n'a pas de durée,
+        qu'aucun bilan n'enregistre. En chemin : « rien ne déborde à
+        390 px » de la planche du kit était creux — un téléphone élargit
+        sa fenêtre à ce qui déborde, et la page grandissait avec elle. Les
+        deux suites mesurent désormais contre la largeur de l'appareil, et
+        un sabotage le prouve.
+  - [ ] **E11c** Le détail d'une séance : son mot, la réponse, « prévu /
+        fait », « le programme a changé depuis », l'ancien bilan,
+        « Ajuster la séance » ; en panneau à droite sur grand écran.
 
 ### F. Le reste
 
@@ -470,7 +489,9 @@ banc actuel, inchangé, qui le prouve.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
 - [ ] **H4** Mise en production, dans l'ordre : `npm run verify:copy` depuis
       une machine en réseau, `npm run migrate:ladder` sur la base, l'API,
-      puis le front.
+      puis le front. Ensuite seulement, retirer de l'API
+      `PATCH /coach/clients/:id/history/mark-viewed`, que le front n'appelle
+      plus depuis E11b.
 
 ## 6. Écarts avec la maquette
 

@@ -9,6 +9,14 @@ import {
 } from '@/shared/types';
 
 /**
+ * Combien de séances faites une page d'historique rend : la taille par
+ * défaut de l'API, demandée ici en clair pour que l'écran sache quand il
+ * n'a pas tout reçu — et ne date pas « depuis le » d'une séance qui n'est
+ * pas la première.
+ */
+export const HISTORY_PAGE_SIZE = 50;
+
+/**
  * Ce que l'espace coach demande à l'API : ses clients, leur historique, ses
  * invitations.
  *
@@ -86,13 +94,10 @@ export const coachService = {
 
   getClientHistory: async (clientId: string) => {
     const { data } = await api.get<CompletedSession[]>(
-      `/api/coach/clients/${clientId}/history`
+      `/api/coach/clients/${clientId}/history`,
+      { params: { limit: HISTORY_PAGE_SIZE } }
     );
     return data;
-  },
-
-  markClientHistoryAsViewed: async (clientId: string) => {
-    await api.patch(`/api/coach/clients/${clientId}/history/mark-viewed`);
   },
 
   generateInvitation: async (expiresIn = 7) => {

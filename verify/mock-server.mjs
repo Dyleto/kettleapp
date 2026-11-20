@@ -676,6 +676,7 @@ const server = http.createServer(async (req, res) => {
       email: 'sarah@example.com',
       program: { ...program(), sessions: COACH_SESSIONS },
       unseenCount: 0,
+      sharesHealthData: true,
     });
   }
 

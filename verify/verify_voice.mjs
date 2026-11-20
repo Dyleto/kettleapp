@@ -340,11 +340,18 @@ const browser = await launch();
     'les ressentis vides disent « Sarah n’a encore rien fait »',
     await appears(p, "Sarah n'a encore rien fait")
   );
-  const title = await pageTitle(p);
+  // L'écran porte le nom du client, comme l'atelier ; c'est le volet
+  // ouvert qui dit « Ressentis », et le titre de l'onglet du navigateur.
+  const tab = await p
+    .getByRole('link', { name: 'Ressentis' })
+    .filter({ visible: true })
+    .getAttribute('aria-current')
+    .catch(() => null);
+  const title = await p.title();
   ok(
     '  → sous le titre « Ressentis de Sarah »',
-    title === 'Ressentis de Sarah',
-    title
+    title.startsWith('Ressentis de Sarah · ') && tab === 'page',
+    `${title} · volet ${tab ?? 'non marqué'}`
   );
   await ctx.close();
 }

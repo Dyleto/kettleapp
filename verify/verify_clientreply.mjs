@@ -159,8 +159,11 @@ const browser = await launch();
     waitUntil: 'domcontentloaded',
   });
   await settle(p);
+  // La ligne la plus récente de la liste : le calendrier porte aussi des
+  // boutons « … Full body A », dans l'ordre des jours.
   await p
-    .getByRole('button', { name: /Full body A/ })
+    .locator('main [data-journal-row]')
+    .filter({ hasText: 'Full body A' })
     .first()
     .click({ timeout: 2000 })
     .catch(() => {});

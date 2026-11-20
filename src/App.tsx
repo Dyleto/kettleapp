@@ -131,7 +131,13 @@ const router = createBrowserRouter(
           element={<ClientDetails />}
           handle={{ ownsMobileTopBar: true, collapsesRail: true }}
         />
-        <Route path="clients/:clientId/journal" element={<ClientJournal />} />
+        {/* Les ressentis aussi : le nom du client et le retour, sur une
+            seule barre. */}
+        <Route
+          path="clients/:clientId/journal"
+          element={<ClientJournal />}
+          handle={{ ownsMobileTopBar: true }}
+        />
         {/* La fiche d'un exercice s'ouvre dans la bibliothèque, et non
             sur un écran d'entrée séparé : même route, panneau ou tiroir
             selon la largeur. « new » n'existe plus — on crée en tapant un

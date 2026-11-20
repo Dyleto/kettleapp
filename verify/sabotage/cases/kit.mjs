@@ -3,6 +3,26 @@ export default {
   suite: 'verify_kit.mjs',
   cases: [
     {
+      // Une rangée de pastilles qui ne passe plus à la ligne : 480 px sur
+      // un téléphone de 390. Avant E11b, la planche et la fenêtre
+      // s'élargissaient ensemble et l'assertion restait verte. La feuille
+      // tombe avec elle, et c'est juste : la fenêtre élargie la rend plus
+      // étroite que l'écran, et le fond qu'on touche n'est plus où il était.
+      name: 'une rangée de pastilles déborde sur téléphone',
+      edits: [
+        {
+          file: 'src/kit/board/KitBoard.tsx',
+          from: '<HStack key={size} gap="6px" wrap="wrap" data-chip-row={size}>',
+          to: '<HStack key={size} gap="6px" minW="480px" data-chip-row={size}>',
+        },
+      ],
+      falls: [
+        'rien ne déborde à 390 px',
+        'la feuille s’ouvre, et toucher le fond la referme',
+        'la feuille apparaît sans monter',
+      ],
+    },
+    {
       name: 'la planche demande un compte',
       note: "Sans compte, la planche renvoie à la connexion : aucune pièce ne s'y lit, et rien ne s'y ouvre ni ne s'y focalise. Cascade attendue.",
       edits: [

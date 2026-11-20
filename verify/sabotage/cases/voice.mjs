@@ -151,8 +151,8 @@ export default {
       name: "l'état vide des ressentis ne nomme plus personne",
       edits: [
         {
-          file: 'src/features/coach/components/ClientJournalTab.tsx',
-          from: "title={`${clientFirstName ?? 'Ton client'} n'a encore rien fait`}",
+          file: 'src/features/coach/pages/ClientJournal.tsx',
+          from: "title={`${client.firstName ?? 'Ton client'} n'a encore rien fait`}",
           to: 'title="Aucune séance réalisée"',
         },
       ],
@@ -163,8 +163,8 @@ export default {
       edits: [
         {
           file: 'src/features/coach/pages/ClientJournal.tsx',
-          from: '          Ressentis de {client.firstName}',
-          to: '          Journal de {client.firstName}',
+          from: 'client ? `Ressentis de ${client.firstName',
+          to: 'client ? `Journal de ${client.firstName',
         },
       ],
       falls: ['→ sous le titre « Ressentis de Sarah »'],
