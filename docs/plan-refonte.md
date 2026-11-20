@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 20 novembre : 863 tests unitaires, 49 suites de banc et 842
-assertions, 4 min 36 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 20 novembre : 843 tests unitaires, 50 suites de banc et 854
+assertions, 4 min 31 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -61,14 +61,14 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Client
 
-| Écran           | État     | Ce qui manque                                                                                                                                                                  |
-| --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                                    |
-| Programme       | **fait** | Là : la durée, la barre de composition, les jours en pastilles, l'état en pastille dont « En cours » et « Modifiée depuis ta dernière fois », le chargement.                   |
-| Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                                      |
-| Progrès         | à faire  | L'ancien historique sous un nouveau nom : pas de records, des suites « 20 → 24 → 26 kg » au lieu de courbes, pas de feuille par mouvement, calendrier sans pastilles d'effort. |
-| Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                                              |
-| Premiers pas    | partiel  | La question des données de santé existe. Les trois cartes de bienvenue et le détail dépliable manquent.                                                                        |
+| Écran           | État     | Ce qui manque                                                                                                                                                |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                  |
+| Programme       | **fait** | Là : la durée, la barre de composition, les jours en pastilles, l'état en pastille dont « En cours » et « Modifiée depuis ta dernière fois », le chargement. |
+| Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                    |
+| Progrès         | partiel  | Là : les records, les mouvements en courbes, la feuille d'un mouvement. Manquent le calendrier à pastilles d'effort, la liste et le détail (F3).             |
+| Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                            |
+| Premiers pas    | partiel  | La question des données de santé existe. Les trois cartes de bienvenue et le détail dépliable manquent.                                                      |
 
 ### Coach
 
@@ -470,8 +470,17 @@ banc actuel, inchangé, qui le prouve.
       la requête, à qui en avait un. La tranche « prochaine séance » part :
       « À faire aujourd'hui » dit la même chose, et seulement quand c'est
       vrai.
-- [ ] **F2** Progrès : records, « Tes mouvements » en courbes, feuille d'un
-      mouvement.
+- [x] **F2** Progrès : records, « Tes mouvements » en courbes, feuille d'un
+      mouvement. En tête, deux records au plus, les plus récents — une
+      charge, ou des tours d'AMRAP —, datés au passage qui les a établis :
+      refaire 20 kg ne rend pas un record plus neuf. Puis une ligne par
+      mouvement chargé : sa dernière charge, une courbe au kit, l'écart
+      depuis le premier passage, en sarcelle ou en bleu (un ton ajouté au
+      kit, la baisse « sans jugement »). Sa feuille : la courbe en grand,
+      chaque passage avec le format de son bloc, « Record » sur celui qui
+      l'a établi. Seules les charges ont une courbe : l'ancienne colonne
+      mêlait kilos, répétitions totales et secondes ; elle part, avec sa
+      logique. Le calendrier et la liste attendent F3.
 - [ ] **F3** Progrès : calendrier à pastilles d'effort, liste et ses
       mentions, détail, « Corriger », ancien bilan à cinq axes.
 - [ ] **F4** Clients : tuiles, lignes, recherche, tri, panneau, état vide.

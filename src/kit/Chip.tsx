@@ -2,13 +2,15 @@ import { HStack } from '@chakra-ui/react';
 import type { ReactNode } from 'react';
 
 /** Ce qu'une pastille porte, et donc sa couleur. */
-export type ChipTone = 'neutral' | 'amber' | 'coral' | 'teal' | 'outline';
+export type ChipTone =
+  'neutral' | 'amber' | 'coral' | 'teal' | 'blue' | 'outline';
 
 const BG: Record<ChipTone, string> = {
   neutral: 'bg.surface',
   amber: 'app.primary.bg',
   coral: 'session.work/16',
   teal: 'session.rest/18',
+  blue: 'effort.easy/16',
   outline: 'transparent',
 };
 const FG: Record<ChipTone, string> = {
@@ -16,6 +18,7 @@ const FG: Record<ChipTone, string> = {
   amber: 'app.primary.fg',
   coral: 'session.work.fg',
   teal: 'session.rest.fg',
+  blue: 'effort.easy',
   outline: 'fg',
 };
 
@@ -29,7 +32,8 @@ const FG: Record<ChipTone, string> = {
  * d'elles au hasard.
  *
  * L'ambre dit un réglage ou un repère de durée, le sarcelle ce qui est fait
- * ou ce qui a été réalisé, le corail l'effort ; le contour, une information
+ * ou ce qui a été réalisé, le corail l'effort ; le bleu une baisse, sans
+ * jugement (une charge allégée, dans Progrès) ; le contour, une information
  * secondaire. `lg` est celle de l'ouverture d'une séance, lue de plus loin.
  */
 export const Chip = ({

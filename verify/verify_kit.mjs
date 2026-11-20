@@ -99,8 +99,8 @@ const openBoard = async (options) => {
     )
   );
   ok(
-    'cinq tons de pastille, cinq fonds distincts, aux deux tailles',
-    chips.every((row) => row.length === 5 && new Set(row).size === 5),
+    'six tons de pastille, six fonds distincts, aux deux tailles',
+    chips.every((row) => row.length === 6 && new Set(row).size === 6),
     chips.map((row) => new Set(row).size).join(' · ')
   );
 

@@ -22,7 +22,14 @@ import {
   Sheet,
 } from '@/kit';
 
-const TONES: ChipTone[] = ['neutral', 'amber', 'teal', 'coral', 'outline'];
+const TONES: ChipTone[] = [
+  'neutral',
+  'amber',
+  'teal',
+  'coral',
+  'blue',
+  'outline',
+];
 const MOODS: MascotMood[] = ['hello', 'effort', 'bravo', 'sleep', 'oops'];
 
 /** Une pièce de la planche : son nom, ce qu'on en montre. */
