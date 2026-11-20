@@ -140,26 +140,9 @@ export const estimatedMinutes = (session: Session): number => {
   return Math.max(5, Math.round(seconds / 300) * 5);
 };
 
-/** « 3 blocs · 12 exercices » : ce qui tient sous le nom d'une séance dans
- * une liste, et qui dit son ampleur sans l'ouvrir. */
-export const getSessionSummary = (session: Session): string => {
-  const blockCount = session.blocks.length;
-  const exerciseCount = session.blocks.reduce(
-    (sum, b) => sum + b.exercises.length,
-    0
-  );
-  return `${blockCount} bloc${blockCount > 1 ? 's' : ''} · ${exerciseCount} exercice${exerciseCount > 1 ? 's' : ''}`;
-};
-
-/** Les formats d'une séance, sans doublon : « Échauffement · AMRAP » dit ce
- * qui attend mieux que « 3 blocs ». */
-export const getSessionBlockTypes = (session: Session): string => {
-  const uniqueTypes = [...new Set(session.blocks.map((b) => b.type))];
-  return uniqueTypes.map(getBlockLabel).join(' · ');
-};
-
-/** La même chose sur un instantané, dont le type de bloc est une chaîne
- * libre : un bilan ancien peut porter un format qui n'existe plus. */
+/** Les formats d'un bilan, sans doublon : « Échauffement · AMRAP ». Le
+ * type d'un instantané est une chaîne libre — un bilan ancien peut porter
+ * un format qui n'existe plus —, d'où la conversion. */
 export const getCompletedSessionBlockTypes = (
   completed: CompletedSession
 ): string => {

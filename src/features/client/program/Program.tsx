@@ -1,138 +1,188 @@
-import { useOutletContext, useNavigate } from 'react-router';
-import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useMemo } from 'react';
-import { Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
-import { LegacyCard } from '@/shared/components/LegacyCard';
-import { Session } from '@/shared/types';
-import { CLIENT_GRID_MAX_W } from '@/features/client/shell/layout';
+import { useNavigate, useOutletContext } from 'react-router';
 import {
-  getSessionBlockTypes,
-  getSessionSummary,
-} from '@/domain/session/measure';
+  chakra,
+  Container,
+  Grid,
+  HStack,
+  Skeleton,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
+import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import type { Session } from '@/shared/types';
+import { CLIENT_GRID_MAX_W } from '@/features/client/shell/layout';
 import { SuggestedDays } from '@/features/client/program/SuggestedDays';
 import { useClientSessions } from '@/features/client/common/useClientSessions';
+import { unfinishedSession } from '@/features/client/home/unfinished';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { EmptyState } from '@/kit';
+import { Chip, type ChipTone, Composition, EmptyState } from '@/kit';
 import { sessionName } from '@/domain/session/name';
 import {
-  matchSession,
-  matchLabel,
-  type SessionMatch,
-} from '@/domain/history/sessionMatch';
+  programLine,
+  sessionState,
+  type CardState,
+  type CardTone,
+} from '@/domain/session/programCard';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
+/** La couleur d'une pastille d'état : l'ambre pour ce qui attend
+ * aujourd'hui ou sur ce téléphone, le sarcelle pour ce qui est fait. */
+const TONE: Record<CardTone, ChipTone> = {
+  local: 'amber',
+  today: 'amber',
+  done: 'teal',
+  changed: 'neutral',
+  never: 'outline',
+};
+
 /**
- * La prochaine séance est celle qui porte une action, et c'est la carte qui le
- * dit — une surface plus claire et une tranche colorée. Tout le reste se lit
- * pareil, parce que tout le reste est tout aussi disponible.
+ * Une séance du programme, en carte : son nom, son état, ce qu'elle demande,
+ * sa composition et ses jours.
  *
- * Les pastilles d'état qui vivaient ici — « TERMINÉE », « À FAIRE », « À
- * VENIR » — ne disaient rien sur quoi agir. Pire, « TERMINÉE » était une
- * affirmation sur le passé tirée d'un identifiant qui survit à une
- * modification : elle devenait fausse dès que le coach réécrivait une séance.
- * La carte porte maintenant le seul fait qui vaille d'être lu : quand on a
- * fait cette séance pour la dernière fois, telle qu'elle est aujourd'hui.
+ * La carte entière est le bouton : elle ouvre la fiche de la séance. Le nom
+ * tient en deux lignes, puis « … » — un nom long ne doit pas pousser
+ * l'état hors de la carte.
  */
-const NEXT_ACCENT = 'app.primary';
-const PLAIN_ACCENT = 'fg.muted';
-
-interface SessionRowProps {
+const ProgramCard = ({
+  session,
+  state,
+  onOpen,
+}: {
   session: Session;
-  isNext: boolean;
-  match: SessionMatch;
-  onSelect: () => void;
-}
-
-const SessionRow = ({ session, isNext, match, onSelect }: SessionRowProps) => (
-  <LegacyCard
-    accentColor={isNext ? NEXT_ACCENT : PLAIN_ACCENT}
-    hoverEffect="border"
-    withGlow={false}
-    onClick={onSelect}
-    p={4}
-    bg={isNext ? 'bg.surface' : undefined}
-  >
-    <VStack align="stretch" gap={1.5}>
-      <HStack justify="space-between" align="baseline" gap={2}>
-        <Text fontWeight="bold" fontSize="sm">
+  state: CardState;
+  onOpen: () => void;
+}) => {
+  const line = programLine(session);
+  return (
+    <chakra.button
+      type="button"
+      onClick={onOpen}
+      display="flex"
+      flexDirection="column"
+      alignItems="stretch"
+      gap="9px"
+      textAlign="left"
+      bg="surface.card"
+      borderRadius="card"
+      px="18px"
+      py="16px"
+      _hover={{ bg: 'bg.raised' }}
+      data-program-card={session._id}
+      data-state={state.tone}
+    >
+      <HStack align="start" gap="8px">
+        <Text fontWeight="800" fontSize="18px" lineClamp={2} flex={1} minW={0}>
           {sessionName(session)}
         </Text>
-        {/* Une date, pas une pastille. « Faite le 12 sept. » se lit une
-            fois et dit ce qu'une pastille ne pouvait pas : s'il est temps de
-            revenir à celle-là. */}
-        <Text
-          fontSize="xs"
-          color={match.state === 'done' ? 'fg.muted' : 'fg.subtle'}
-          flexShrink={0}
-          textAlign="right"
-        >
-          {matchLabel(match)}
-        </Text>
+        <Chip tone={TONE[state.tone]}>{state.label}</Chip>
       </HStack>
-      {/* Le jour conseillé se lit ici parce que c'est ici qu'on choisit
-            quoi faire — et sous la forme exacte que le coach lui a donnée.
-            Une séance sans jour ne rend rien : l'absence de conseil n'est pas
-            une information qui mérite d'être affichée. */}
-      <SuggestedDays days={session.suggestedDays} withLabel />
-      {session.blocks.length === 0 ? (
-        <Text fontSize="xs" color="fg.muted">
-          Aucun bloc pour cette séance.
-        </Text>
-      ) : (
-        <>
-          <Text fontSize="xs" color="fg.muted">
-            {getSessionSummary(session)}
-          </Text>
-          <Text fontSize="xs" color="fg.muted">
-            {getSessionBlockTypes(session)}
-          </Text>
-        </>
-      )}
-    </VStack>
-  </LegacyCard>
-);
+      <Text fontSize="sm" color="fg.muted">
+        {line ?? 'Rien dedans pour l’instant'}
+      </Text>
+      <Composition blocks={session.blocks} />
+      <SuggestedDays days={session.suggestedDays} />
+    </chakra.button>
+  );
+};
 
+/**
+ * Le programme du client : toutes ses séances, dans l'ordre du coach.
+ *
+ * On y vient pour choisir une autre séance que celle du jour, ou pour voir
+ * ce qui attend. L'ancien écran le disait mal : pas de durée, pas de
+ * composition, une tranche colorée pour « la prochaine » et un « Faite le
+ * 12 sept. » en petit. Chaque carte porte maintenant son état en pastille
+ * (`sessionState`), dont « À faire aujourd'hui » et « En cours ».
+ *
+ * Pendant le chargement, six cartes fantômes : l'écran affichait « Ton
+ * programme arrive » le temps que la requête revienne, et annonçait à un
+ * client qui en avait un qu'il n'avait pas de programme. La panne est tenue
+ * plus haut, par `ClientProgramBoundary`.
+ */
 const Program = () => {
   useDocumentTitle('Programme');
   const navigate = useNavigate();
-  const { sessions, nextSession, history, coach } =
+  const { sessions, history, isLoading, coach } =
     useOutletContext<ClientSessionsData>();
 
+  // L'enregistrement du téléphone : la séance laissée en cours, comme sur
+  // l'accueil, relu quand le programme ou l'historique change.
+  const unfinished = useMemo(
+    () => unfinishedSession(sessions),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- relu quand l'historique change
+    [sessions, history]
+  );
   // Un passage sur l'historique par séance : la comparaison parcourt les
   // blocs, elle n'est donc pas gratuite, et la liste se redessine à chaque
   // navigation.
-  const matches = useMemo(
-    () => new Map(sessions.map((s) => [s._id, matchSession(s, history)])),
-    [sessions, history]
+  const states = useMemo(
+    () =>
+      new Map(
+        sessions.map((s) => [
+          s._id,
+          sessionState(s, history, {
+            local:
+              unfinished?.session._id === s._id ? unfinished.state : undefined,
+          }),
+        ])
+      ),
+    [sessions, history, unfinished]
   );
 
-  const handleSelect = (sessionId: string) => {
-    navigate(CLIENT_ROUTES.sessionById(sessionId));
-  };
-
+  const count = sessions.length;
   return (
     <Container maxW={CLIENT_GRID_MAX_W} py={6} px={4}>
-      <VStack align="stretch" gap={4}>
-        <Text as="h1" fontWeight="bold" fontSize="lg">
-          Programme
-        </Text>
+      <VStack align="stretch" gap="16px">
+        <HStack gap="12px">
+          <Text
+            as="h1"
+            fontWeight="800"
+            fontSize={{ base: '26px', md: '32px' }}
+          >
+            Programme
+          </Text>
+          {!isLoading && count > 0 && (
+            <Chip>
+              {count} séance{count > 1 ? 's' : ''}
+            </Chip>
+          )}
+        </HStack>
 
-        {sessions.length === 0 ? (
+        {isLoading ? (
+          <Grid
+            templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}
+            gap="12px"
+            aria-busy="true"
+            aria-label="Chargement du programme"
+          >
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} h="128px" borderRadius="card" />
+            ))}
+          </Grid>
+        ) : count === 0 ? (
           <EmptyState
             mood="sleep"
             title="Ton programme arrive"
             line={`${coach.opening} prépare tes séances. Elles apparaîtront ici, dans l'ordre où les faire.`}
           />
         ) : (
-          <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={3}>
+          <Grid
+            templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }}
+            gap={{ base: '12px', md: '16px' }}
+          >
             {sessions.map((session) => (
-              <SessionRow
+              <ProgramCard
                 key={session._id}
                 session={session}
-                isNext={session._id === nextSession?._id}
-                match={matches.get(session._id) ?? { state: 'never' }}
-                onSelect={() => handleSelect(session._id)}
+                state={
+                  states.get(session._id) ?? {
+                    tone: 'never',
+                    label: 'Jamais faite',
+                  }
+                }
+                onOpen={() => navigate(CLIENT_ROUTES.sessionById(session._id))}
               />
             ))}
           </Grid>

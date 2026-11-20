@@ -1,23 +1,22 @@
 /**
- * « Mon programme » : quand ai-je fait cette séance pour la dernière fois ?
+ * Le programme du client (F1) : une carte par séance, sa durée, sa
+ * composition, ses jours, et une pastille d'état.
  *
- * Retour du terrain : « j'ai modifié mon programme en changeant les séances
- * plutôt qu'en les supprimant et en les recréant, donc elles ont gardé le même
- * id, et ça me met une séance comme terminée alors que je ne l'ai jamais
- * faite. Je pense pas que ça soit pertinent comme info, ça serait plus utile
- * d'avoir la dernière fois qu'on a fait la séance, mais que ça compare le
- * contenu aussi, pas juste l'id. »
+ * Retour du terrain, à l'origine de la comparaison du contenu : « j'ai
+ * modifié mon programme en changeant les séances plutôt qu'en les
+ * supprimant et en les recréant, donc elles ont gardé le même id, et ça me
+ * met une séance comme terminée alors que je ne l'ai jamais faite. » Une
+ * séance est faite quand son contenu d'aujourd'hui l'a été ; réécrite, elle
+ * le dit — « Modifiée depuis ta dernière fois ».
  *
- * Les pastilles se fondaient sur `originalSessionId`, et un identifiant
- * survit à une modification. Il annonçait « TERMINÉE » d'une séance réécrite
- * de fond en comble. Le même identifiant alimentait aussi « 7 séances sur 2
- * déjà faites » — un compte de bilans dont les séances n'existent plus toutes,
- * rapporté à un programme qui a rétréci depuis.
- *
- * La carte porte donc une date, et cette date se gagne en comparant ce qu'il
- * y a à faire — pas en faisant correspondre un identifiant.
+ * La maquette ajoute ce que l'ancien écran n'avait pas : la durée et le
+ * compte des mouvements, la barre de composition, « À faire aujourd'hui »
+ * et « En cours ». L'horloge de la page est posée au samedi 5 septembre
+ * 2026, quand l'état dépend du jour : la séance 1 a été faite le dimanche
+ * d'avant, la séance 2 est conseillée le samedi.
  */
 import {
+  API,
   launch,
   BASE,
   MOBILE,
@@ -32,143 +31,215 @@ import {
 } from './common.mjs';
 
 const browser = await launch();
+const SATURDAY = new Date('2026-09-05T10:00:00+02:00');
+const WIDE = { viewport: { width: 1280, height: 900 } };
 
-/** Le titre de chaque carte, dans l'ordre du programme : le nom que le
- * coach a donné, sinon le rang. Le décor nomme les séances 1, 2 et 6. */
-const TITLES = [
-  'Full body A',
-  'Haut du corps',
-  'Séance 3',
-  'Séance 4',
-  'Séance 5',
-  'Échelle à deux',
-];
+const text = (locator) =>
+  locator
+    .innerText({ timeout: 2000 })
+    .then(clean)
+    .then((t) => t.replace(/\s+/g, ' ').trim())
+    .catch(() => '');
 
-/** Chaque carte de séance, par son titre, avec la ligne qu'elle porte à
- * droite. */
-const cards = async (p) => {
+/** Le programme, à l'horloge voulue : les cartes, une fois là. */
+const open = async (options = MOBILE, now) => {
+  const ctx = await browser.newContext(options);
+  const p = await signIn(ctx);
+  if (now) await p.clock.setFixedTime(now);
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
   await settle(p);
-  return p.evaluate((titles) => {
-    const out = {};
-    for (const el of document.querySelectorAll('*')) {
-      if (el.children.length !== 2) continue;
-      const [left, right] = el.children;
-      const title = (left.textContent || '').trim();
-      if (!titles.includes(title)) continue;
-      out[title] = (right.textContent || '').trim();
-    }
-    return out;
-  }, TITLES);
+  await p
+    .locator('[data-program-card]')
+    .first()
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+  return { ctx, p };
+};
+const card = (p, id) => p.locator(`[data-program-card="${id}"]`);
+const stateOf = async (p, id) => {
+  const shown = await text(card(p, id));
+  // Le titre, puis la pastille : la pastille suit le nom sur la carte.
+  return shown;
 };
 
-// ── Les trois réponses ──────────────────────────────────────────────────
 {
-  console.log(
-    '\n── chaque séance dit quand elle a été faite pour la dernière fois'
-  );
-  const ctx = await browser.newContext(MOBILE);
-  const p = await signIn(ctx);
-  const rows = await cards(p);
-  const line = (n) => clean(rows[TITLES[n - 1]] ?? '(absente)');
-
+  console.log('\n── chaque carte, son état');
+  const { ctx, p } = await open(MOBILE, SATURDAY);
+  const titles = await p
+    .locator('[data-program-card]')
+    .evaluateAll((cards) =>
+      cards.map((c) => c.querySelector('p')?.textContent?.trim())
+    );
   ok(
-    'le programme liste ses séances',
-    Object.keys(rows).length >= 5,
-    Object.keys(rows).join(' · ')
-  );
-
-  // Les séances 1 et 2 ont été faites avec le contenu qu'elles portent
-  // encore.
-  ok(
-    "une séance faite telle qu'elle est aujourd'hui porte sa date",
-    /^Faite le \d+ \S+$/.test(line(1)),
-    line(1)
-  );
-  ok("  → et l'autre aussi", /^Faite le /.test(line(2)), line(2));
-
-  // La séance 3 a été faite une fois, puis remaniée. L'identifiant
-  // correspond, le contenu non — et c'est exactement le cas que la pastille
-  // fondée sur l'identifiant se trompait à traiter.
-  ok(
-    "une séance remaniée depuis qu'elle a été faite le dit",
-    line(3) === 'Modifiée depuis',
-    line(3)
-  );
-  ok(
-    "  → et ne s'appelle jamais « Terminée »",
-    !/Terminée/i.test(line(3)),
-    line(3)
+    'les séances dans l’ordre du coach, nommées, et leur compte en tête',
+    titles.join(' | ') ===
+      'Full body A | Haut du corps | Séance 3 | Séance 4 | Séance 5 | Échelle à deux' &&
+      (await text(p.locator('main h1').locator('..'))) ===
+        'Programme 6 séances',
+    titles.join(' | ')
   );
 
-  // Les séances 4 et 5 ne portent aucun bilan.
+  const states = {};
+  for (const id of ['sess1', 'sess2', 'sess3', 'sess4']) {
+    states[id] = await card(p, id).getAttribute('data-state');
+  }
   ok(
-    'une séance jamais faite le dit simplement',
-    line(4) === 'Jamais faite',
-    line(4)
+    'une séance faite telle qu’elle est porte le jour : « Faite dimanche »',
+    (await stateOf(p, 'sess1')).startsWith('Full body A Faite dimanche') &&
+      states.sess1 === 'done',
+    await stateOf(p, 'sess1')
   );
-  ok('  → et la dernière aussi', line(5) === 'Jamais faite', line(5));
+  ok(
+    '  → conseillée ce jour-ci : « À faire aujourd’hui »',
+    (await stateOf(p, 'sess2')).startsWith(
+      'Haut du corps À faire aujourd’hui'
+    ) && states.sess2 === 'today',
+    await stateOf(p, 'sess2')
+  );
+  // La séance 3 a été faite une fois, puis remaniée : l'identifiant
+  // correspond, le contenu non.
+  ok(
+    '  → remaniée depuis qu’elle a été faite : « Modifiée depuis ta dernière fois »',
+    (await stateOf(p, 'sess3')).startsWith(
+      'Séance 3 Modifiée depuis ta dernière fois'
+    ) && !/Terminée|Faite/i.test(await stateOf(p, 'sess3')),
+    await stateOf(p, 'sess3')
+  );
+  ok(
+    '  → sans bilan : « Jamais faite »',
+    (await stateOf(p, 'sess4')).startsWith('Séance 4 Jamais faite'),
+    await stateOf(p, 'sess4')
+  );
+
+  const first = card(p, 'sess1');
+  ok(
+    'une carte dit sa durée, ses blocs et ses mouvements distincts',
+    (await stateOf(p, 'sess1')).includes('≈ 30 min · 3 blocs · 7 exercices'),
+    await stateOf(p, 'sess1')
+  );
+  // Les couleurs affichées, et non l'attribut : c'est la couleur qui dit
+  // l'échauffement à part.
+  const colors = await first
+    .locator('[data-composition] > *')
+    .evaluateAll((segments) =>
+      segments.map((s) => getComputedStyle(s).backgroundColor)
+    );
+  ok(
+    '  → sa composition, un segment par bloc, l’échauffement à part',
+    colors.length === 3 && colors[0] !== colors[1] && colors[1] === colors[2],
+    colors.join(' · ')
+  );
+  ok(
+    '  → et ses jours conseillés, que le lecteur d’écran entend en entier',
+    (await text(first.locator('[data-suggested-days]'))) === 'Lun Jeu' &&
+      (await first
+        .getByRole('group', { name: 'Conseillée le lundi et le jeudi' })
+        .count()) === 1 &&
+      (await card(p, 'sess6').locator('[data-suggested-days]').count()) === 0,
+    await text(first.locator('[data-suggested-days]'))
+  );
+
+  const pageText = clean(await p.evaluate(() => document.body.innerText));
+  ok(
+    'ni « TERMINÉE », ni « À VENIR », ni proportion du programme',
+    !/TERMINÉE|À VENIR|séances? sur \d+ déjà faite/i.test(pageText)
+  );
+
+  await first.click({ timeout: 2000 }).catch(() => {});
+  await settle(p);
+  ok(
+    'une carte ouvre la fiche de sa séance',
+    new URL(p.url()).pathname === '/client/session/sess1',
+    p.url().replace(BASE, '')
+  );
   await ctx.close();
 }
 
-// ── Ce que les pastilles disaient a disparu ─────────────────────────────
 {
-  console.log("\n── les pastilles d'état et la proportion ont disparu");
+  console.log('\n── pendant le chargement');
+  // La lecture du programme est retenue : l'écran doit montrer qu'il
+  // charge, et non annoncer qu'il n'y a pas de programme.
   const ctx = await browser.newContext(MOBILE);
+  let release;
+  const held = new Promise((resolve) => (release = resolve));
+  await ctx.route(/\/api\/client\/program(\?|$)/, async (route) => {
+    await held;
+    return route.fallback();
+  });
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
+  const busy = p.locator('[aria-busy="true"]');
+  await busy
+    .first()
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
+  const ghosts = await busy.locator('.chakra-skeleton').count();
+  const saysEmpty = await p.getByText('Ton programme arrive').count();
+  release();
   await settle(p);
-  const text = clean(await p.evaluate(() => document.body.innerText));
-
-  ok('aucune pastille « TERMINÉE »', !/TERMINÉE/i.test(text));
-  ok('  → aucune « À VENIR » non plus', !/À VENIR/i.test(text));
   ok(
-    '  → et aucune proportion du programme',
-    !/séances? sur \d+ déjà faite/i.test(text),
-    (text.match(/[^\n]*déjà faite[^\n]*/) ?? ['(rien)'])[0]
-  );
-
-  // La prochaine séance se distingue toujours — c'est elle qui porte une
-  // action. Elle le fait simplement par la carte plutôt que par une
-  // pastille.
-  const nextIsMarked = await p.evaluate((titles) => {
-    // Le début du texte, pas son entier : la carte elle-même, dont le
-    // premier enfant porte le titre suivi de sa date, doit en être.
-    const cards = [...document.querySelectorAll('*')].filter((e) => {
-      const text = (e.children[0]?.textContent || '').trim();
-      return titles.some((title) => text.startsWith(title));
-    });
-    const surfaces = cards.map((e) => {
-      const box = e.closest('[class]');
-      return box ? getComputedStyle(box).backgroundColor : '';
-    });
-    return new Set(surfaces).size > 1;
-  }, TITLES);
-  ok(
-    'la prochaine séance se distingue toujours des autres',
-    nextIsMarked,
-    nextIsMarked ? '' : 'toutes les cartes ont le même fond'
+    'six cartes fantômes, et pas « Ton programme arrive »',
+    ghosts === 6 && saysEmpty === 0,
+    `${ghosts} fantôme(s) · ${saysEmpty ? '« Ton programme arrive »' : 'rien d’autre'}`
   );
   await ctx.close();
 }
 
-// ── Faire une séance fait apparaître sa date ────────────────────────────
-//
-// L'aller-retour qui compte : une séance en « Jamais faite » est faite, et la
-// carte qui se taisait porte maintenant la date du jour. Si la comparaison
-// était trop stricte — si elle comparait la note du coach, par exemple — elle
-// resterait « Jamais faite » pour toujours, et rien d'autre ne le
-// révélerait.
 {
-  console.log('\n── terminer une séance met à jour sa propre carte');
+  console.log('\n── une séance laissée en cours');
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
-
-  const before = await cards(p);
+  // L'échelle de la séance 5 : un palier coché, et l'on s'en va.
+  await start(p, 'sess5');
+  await p
+    .getByRole('button', { name: /^(Fait|Série faite|Palier fait)$/ })
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  await card(p, 'sess5')
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
   ok(
-    "la séance 5 n'a jamais été faite",
-    clean(before['Séance 5'] ?? '') === 'Jamais faite',
-    clean(before['Séance 5'] ?? '(absente)')
+    'une séance commencée sur ce téléphone dit « En cours »',
+    (await stateOf(p, 'sess5')).startsWith('Séance 5 En cours') &&
+      (await card(p, 'sess5').getAttribute('data-state')) === 'local',
+    await stateOf(p, 'sess5')
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── sur grand écran');
+  const { ctx, p } = await open(WIDE, SATURDAY);
+  const boxes = await p
+    .locator('[data-program-card]')
+    .evaluateAll((cards) =>
+      cards.slice(0, 2).map((c) => c.getBoundingClientRect().top)
+    );
+  ok(
+    'les cartes passent sur deux colonnes',
+    boxes.length === 2 && Math.abs(boxes[0] - boxes[1]) < 2,
+    boxes.join(' · ')
+  );
+  await ctx.close();
+}
+
+// ── Faire une séance fait apparaître son état ───────────────────────────
+//
+// L'aller-retour qui compte : une séance « Jamais faite » est faite, et sa
+// carte le dit. Si la comparaison était trop stricte — si elle comparait la
+// note du coach, par exemple — elle resterait « Jamais faite » pour
+// toujours, et rien d'autre ne le révélerait.
+{
+  console.log('\n── terminer une séance met à jour sa propre carte');
+  const { ctx, p } = await open(MOBILE);
+  ok(
+    'la séance 5 n’a jamais été faite',
+    (await stateOf(p, 'sess5')).startsWith('Séance 5 Jamais faite'),
+    await stateOf(p, 'sess5')
   );
 
   // La séance 5 est une échelle : un bloc, sept paliers.
@@ -184,27 +255,30 @@ const cards = async (p) => {
   }
   await p.getByRole('button', { name: 'Terminer', exact: true }).click();
   await settle(p);
-  // L'écran de fin, puis le ressenti : ce qui est éprouvé ici est la
-  // carte, pas ces écrans.
   await reachFeeling(p);
   await p.getByRole('radio', { name: /Juste/ }).click();
   await settle(p);
   await p.getByRole('button', { name: /^Envoyer à Julie$/ }).click();
   await settle(p);
 
-  const after = await cards(p);
+  await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  await card(p, 'sess5')
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
   ok(
-    '  → et porte maintenant la date à laquelle elle a été faite',
-    /^Faite le /.test(clean(after['Séance 5'] ?? '')),
-    clean(after['Séance 5'] ?? '(absente)')
+    '  → et dit maintenant qu’elle est faite',
+    (await stateOf(p, 'sess5')).startsWith('Séance 5 Faite aujourd’hui'),
+    await stateOf(p, 'sess5')
   );
   ok(
     '  → sans déranger les autres',
-    clean(after['Séance 4'] ?? '') === 'Jamais faite',
-    clean(after['Séance 4'] ?? '(absente)')
+    (await stateOf(p, 'sess4')).startsWith('Séance 4 Jamais faite'),
+    await stateOf(p, 'sess4')
   );
   await ctx.close();
 }
 
+await fetch(`${API}/api/mock/reset`, { method: 'POST' });
 await browser.close();
 process.exit(failureCount() ? 1 : 0);

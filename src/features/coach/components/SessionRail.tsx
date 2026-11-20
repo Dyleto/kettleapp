@@ -8,8 +8,8 @@ import {
 } from '@chakra-ui/react';
 import { LuGripVertical, LuPlus } from 'react-icons/lu';
 import { CompletedSession, Session } from '@/shared/types';
-import { BLOCK_ACCENT_COLOR, getBlockAccent } from '@/domain/session/blocks';
 import { cardLine, pulseOf, railLine } from '@/domain/session/rail';
+import { Composition } from '@/kit';
 import {
   DndContext,
   DragEndEvent,
@@ -52,29 +52,6 @@ interface SessionRailProps {
    */
   menuFor?: (session: Session) => SessionMenuAction[];
 }
-
-/**
- * Une rangée de segments, un par bloc, dans l'accent de son type : on lit
- * l'équilibre travail / repos d'une séance en 150 px, sans l'ouvrir.
- */
-const Composition = ({ session }: { session: Session }) => {
-  if (session.blocks.length === 0) {
-    return <Box h="6px" borderRadius="3px" bg="line" />;
-  }
-  return (
-    <HStack gap="3px" h="6px" data-composition>
-      {session.blocks.map((block) => (
-        <Box
-          key={block._id}
-          flex={1}
-          h="full"
-          borderRadius="3px"
-          bg={BLOCK_ACCENT_COLOR[getBlockAccent(block.type)]}
-        />
-      ))}
-    </HStack>
-  );
-};
 
 interface RowProps {
   session: Session;
@@ -172,7 +149,7 @@ const RailRow = ({
       <Text fontSize="12.5px" color="fg.muted" lineClamp={1}>
         {line}
       </Text>
-      <Composition session={session} />
+      <Composition blocks={session.blocks} />
       {/* Les points seulement pour une séance faite : « jamais faite » le
           dit déjà, et cinq ronds vides le rediraient. */}
       {tracked && done && <EffortDots zones={pulseOf(history, session._id)} />}
@@ -262,7 +239,7 @@ const BandCard = ({
       <Text fontSize="12px" color="fg.muted" lineClamp={1}>
         {cardLine(session, { tracked, done })}
       </Text>
-      <Composition session={session} />
+      <Composition blocks={session.blocks} />
       {/* La place des points reste prise sans eux : les cartes d'une bande
           ont toutes la même hauteur. */}
       {tracked && done ? (

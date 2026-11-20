@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 20 novembre : 857 tests unitaires, 49 suites de banc et 840
-assertions, 4 min 30 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 20 novembre : 863 tests unitaires, 49 suites de banc et 842
+assertions, 4 min 36 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -64,7 +64,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Écran           | État     | Ce qui manque                                                                                                                                                                  |
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                                    |
-| Programme       | à faire  | L'ancien écran : pas de durée, pas de barre de composition, pas d'état « En cours » ni « Modifiée depuis ta dernière fois » en pastille.                                       |
+| Programme       | **fait** | Là : la durée, la barre de composition, les jours en pastilles, l'état en pastille dont « En cours » et « Modifiée depuis ta dernière fois », le chargement.                   |
 | Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                                      |
 | Progrès         | à faire  | L'ancien historique sous un nouveau nom : pas de records, des suites « 20 → 24 → 26 kg » au lieu de courbes, pas de feuille par mouvement, calendrier sans pastilles d'effort. |
 | Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                                              |
@@ -458,8 +458,18 @@ banc actuel, inchangé, qui le prouve.
 
 ### F. Le reste
 
-- [ ] **F1** Programme du client : cartes, durée, barre de composition,
-      états.
+- [x] **F1** Programme du client : cartes, durée, barre de composition,
+      états. Chaque carte dit « ≈ 45 min · 3 blocs · 7 exercices » — les
+      mouvements distincts, l'ancien compte additionnait les lignes —, sa
+      composition (la barre du rail, passée au kit), ses jours en pastilles,
+      et son état : « En cours », « À faire aujourd'hui », « Faite
+      dimanche », « Modifiée depuis ta dernière fois », « Jamais faite ».
+      Une séance laissée sur le téléphone parle comme sur l'accueil (« À
+      valider », « En attente de réseau »). Six cartes fantômes au
+      chargement : l'écran annonçait « Ton programme arrive » le temps de
+      la requête, à qui en avait un. La tranche « prochaine séance » part :
+      « À faire aujourd'hui » dit la même chose, et seulement quand c'est
+      vrai.
 - [ ] **F2** Progrès : records, « Tes mouvements » en courbes, feuille d'un
       mouvement.
 - [ ] **F3** Progrès : calendrier à pastilles d'effort, liste et ses

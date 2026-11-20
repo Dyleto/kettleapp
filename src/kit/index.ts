@@ -13,6 +13,7 @@ export { BackLink } from './BackLink';
 export { Bubble } from './Bubble';
 export { Card, HeroCard } from './Card';
 export { Chip, type ChipTone } from './Chip';
+export { Composition } from './Composition';
 export { countLabel } from './count';
 export { DateInput } from './DateInput';
 export { Dots, type DotMark } from './Dots';

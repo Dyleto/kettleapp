@@ -5,8 +5,6 @@ import {
   distinctExerciseCount,
   estimatedMinutes,
   getCompletedSessionBlockTypes,
-  getSessionBlockTypes,
-  getSessionSummary,
 } from './measure';
 import {
   makeBlock,
@@ -201,86 +199,6 @@ describe('estimatedMinutes', () => {
       ],
     });
     expect(estimatedMinutes(session) % 5).toBe(0);
-  });
-});
-
-describe('l’ampleur d’une séance, sans l’ouvrir', () => {
-  it('compte ses blocs et ses exercices', () => {
-    expect(
-      getSessionSummary(
-        makeSession({
-          blocks: [
-            makeBlock({
-              exercises: [makeBlockExercise(), makeBlockExercise({ order: 2 })],
-            }),
-            makeBlock({
-              _id: 'bloc-2',
-              order: 2,
-              exercises: [makeBlockExercise()],
-            }),
-          ],
-        })
-      )
-    ).toBe('2 blocs · 3 exercices');
-  });
-
-  it('reste au singulier à un seul de chaque', () => {
-    expect(getSessionSummary(makeSession())).toBe('1 bloc · 1 exercice');
-  });
-
-  it('et au singulier à zéro, comme le veut le français', () => {
-    // « 0 blocs » est une faute ; en français le pluriel commence à deux.
-    expect(getSessionSummary(makeSession({ blocks: [] }))).toBe(
-      '0 bloc · 0 exercice'
-    );
-  });
-});
-
-describe('les formats d’une séance', () => {
-  it('se lisent en clair', () => {
-    expect(
-      getSessionBlockTypes(
-        makeSession({
-          blocks: [
-            makeBlock({ type: 'warmup' }),
-            makeBlock({ _id: 'bloc-2', order: 2, type: 'amrap' }),
-          ],
-        })
-      )
-    ).toBe('Échauffement · AMRAP');
-  });
-
-  it('sans répéter un format présent deux fois', () => {
-    // « AMRAP · AMRAP » ne dit rien de plus que « AMRAP », et une séance de
-    // quatre blocs identiques remplirait la ligne pour rien.
-    expect(
-      getSessionBlockTypes(
-        makeSession({
-          blocks: [
-            makeBlock({ type: 'amrap' }),
-            makeBlock({ _id: 'bloc-2', order: 2, type: 'amrap' }),
-            makeBlock({ _id: 'bloc-3', order: 3, type: 'emom' }),
-          ],
-        })
-      )
-    ).toBe('AMRAP · EMOM');
-  });
-
-  it('dans l’ordre des blocs, et non dans celui de la liste des formats', () => {
-    expect(
-      getSessionBlockTypes(
-        makeSession({
-          blocks: [
-            makeBlock({ type: 'amrap' }),
-            makeBlock({ _id: 'bloc-2', order: 2, type: 'warmup' }),
-          ],
-        })
-      )
-    ).toBe('AMRAP · Échauffement');
-  });
-
-  it('rien du tout sur une séance sans bloc', () => {
-    expect(getSessionBlockTypes(makeSession({ blocks: [] }))).toBe('');
   });
 });
 

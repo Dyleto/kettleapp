@@ -31,9 +31,11 @@ export default {
       name: 'la barre de composition ne montre que le premier bloc',
       edits: [
         {
-          file: RAIL,
-          from: '      {session.blocks.map((block) => (\n        <Box\n          key={block._id}\n          flex={1}',
-          to: '      {session.blocks.slice(0, 1).map((block) => (\n        <Box\n          key={block._id}\n          flex={1}',
+          // La barre vit dans le kit depuis F1, partagée avec le programme
+          // du client.
+          file: 'src/kit/Composition.tsx',
+          from: '      {blocks.map((block) => (\n        <Box\n          key={block._id}\n          flex={1}',
+          to: '      {blocks.slice(0, 1).map((block) => (\n        <Box\n          key={block._id}\n          flex={1}',
         },
       ],
       falls: ['la barre dit la composition : un segment par bloc'],
