@@ -249,13 +249,12 @@ export const weekSummary = (
       : done > 0
         ? `${sessions(done)} cette semaine`
         : 'aucune séance cette semaine';
-  if (!history) return week;
-  const total =
-    history.total === 0
-      ? 'aucune encore'
-      : history.complete
-        ? `${sessions(history.total)} au total`
-        : `au moins ${history.total} séances`;
+  // Sans séance du tout, le total n'ajoute rien à « aucune séance cette
+  // semaine » — il le redirait.
+  if (!history || history.total === 0) return week;
+  const total = history.complete
+    ? `${sessions(history.total)} au total`
+    : `au moins ${history.total} séances`;
   return `${week} · ${total}`;
 };
 

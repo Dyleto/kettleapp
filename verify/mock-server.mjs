@@ -319,6 +319,24 @@ let COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
 /** Le nombre d'enregistrements que le serveur a réellement acceptés. */
 let PUT_COUNT = 0;
 
+// Les étiquettes du coach, et celles posées sur chaque client. Les mêmes
+// règles que l'API : un nom ramené à ses espaces, un doublon refusé sans
+// tenir compte des accents ni de la casse, une liste rangée par sa clé.
+let TAGS = [];
+let CLIENT_TAGS = {};
+let TAG_SEQ = 0;
+const tagName = (name) =>
+  String(name ?? '')
+    .trim()
+    .replace(/\s+/g, ' ');
+const tagKey = (name) =>
+  tagName(name)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+const sortedTags = () =>
+  [...TAGS].sort((a, b) => tagKey(a.name).localeCompare(tagKey(b.name)));
+
 /**
  * Ce que l'API rend d'un lot de séances reçu : rangs posés, identifiants
  * attribués, mouvements repeuplés.
@@ -764,6 +782,52 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/coach/clients' && method === 'GET')
     return sendJson(res, 200, []);
 
+  if (pathname === '/api/coach/tags' && method === 'GET')
+    return sendJson(res, 200, sortedTags());
+  if (pathname === '/api/coach/tags' && method === 'POST') {
+    const name = tagName(body.name);
+    if (!name || name.length > 24)
+      return sendJson(res, 400, { message: '24 caractères au plus.' });
+    if (TAGS.some((t) => tagKey(t.name) === tagKey(name)))
+      return sendJson(res, 409, { message: 'Cette étiquette existe déjà.' });
+    const tag = { _id: `tag-${++TAG_SEQ}`, name };
+    TAGS.push(tag);
+    return sendJson(res, 201, tag);
+  }
+  const tagMatch = pathname.match(/^\/api\/coach\/tags\/([^/]+)$/);
+  if (tagMatch && method === 'PATCH') {
+    const tag = TAGS.find((t) => t._id === tagMatch[1]);
+    if (!tag) return sendJson(res, 404, { message: 'Étiquette introuvable' });
+    const name = tagName(body.name);
+    if (TAGS.some((t) => t._id !== tag._id && tagKey(t.name) === tagKey(name)))
+      return sendJson(res, 409, { message: 'Cette étiquette existe déjà.' });
+    tag.name = name;
+    return sendJson(res, 200, tag);
+  }
+  if (tagMatch && method === 'DELETE') {
+    if (!TAGS.some((t) => t._id === tagMatch[1]))
+      return sendJson(res, 404, { message: 'Étiquette introuvable' });
+    TAGS = TAGS.filter((t) => t._id !== tagMatch[1]);
+    CLIENT_TAGS = Object.fromEntries(
+      Object.entries(CLIENT_TAGS).map(([id, ids]) => [
+        id,
+        ids.filter((tagId) => tagId !== tagMatch[1]),
+      ])
+    );
+    return sendJson(res, 200, { status: 'success' });
+  }
+  const clientTagsMatch = pathname.match(
+    /^\/api\/coach\/clients\/([^/]+)\/tags$/
+  );
+  if (clientTagsMatch && method === 'PUT') {
+    const known = new Set(TAGS.map((t) => t._id));
+    const tagIds = [...new Set(body.tagIds ?? [])].filter((id) =>
+      known.has(id)
+    );
+    CLIENT_TAGS[clientTagsMatch[1]] = tagIds;
+    return sendJson(res, 200, { tagIds });
+  }
+
   if (/^\/api\/coach\/clients\/[^/]+\/history$/.test(pathname))
     return sendJson(res, 200, []);
 
@@ -909,6 +973,9 @@ const server = http.createServer(async (req, res) => {
     COACH_SESSIONS = JSON.parse(JSON.stringify(SESSIONS));
     TEMPLATES = initialTemplates();
     PUT_COUNT = 0;
+    TAGS = [];
+    CLIENT_TAGS = {};
+    TAG_SEQ = 0;
     // Les exercices créés repartent aussi : la bibliothèque doit retrouver sa
     // taille, sinon une assertion qui la compte dérive d'un tour à l'autre.
     CREATED_EXERCISES.splice(0).forEach((created) => {

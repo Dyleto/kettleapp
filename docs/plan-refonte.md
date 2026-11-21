@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 884 tests unitaires, 51 suites de banc et 917
-assertions, 4 min 52 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 895 tests unitaires, 51 suites de banc et 932
+assertions, 5 min 0 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -545,8 +545,21 @@ banc actuel, inchangé, qui le prouve.
         maquette. « Inviter » faisait sortir le lien sans le montrer —
         partage, sinon presse-papiers, sinon une boîte de repli — : la
         boîte de repli et ce chemin partent.
-  - [ ] **F5b** Les étiquettes : sur les lignes, en barre de filtre, la
-        feuille d'un client, leur gestion.
+  - [x] **F5b** Les étiquettes : trois au plus sur une ligne, puis « + 1 »,
+        à la teinte tirée de leur nom ; la barre « Tous », chaque étiquette,
+        « + étiquette », où plusieurs choisies montrent les clients qui en
+        portent au moins une ; la feuille d'un client, ouverte par
+        « modifier » dans le panneau, qui filtre au début des mots, propose
+        « Créer » pour un nom neuf seulement et coche à la touche ; la
+        gestion, qui dit combien de clients porte chaque étiquette, renomme
+        sur place et demande avant de supprimer. Chercher au milieu des mots
+        faisait remonter « Prise de masse » pour « se » : un test l'a dit
+        avant l'écran. Le serveur d'essai sert les étiquettes avec les
+        règles de l'API. Supprimer une étiquette ne réécrit plus la liste
+        des clients : une ligne ne montre que les étiquettes connues, et un
+        sabotage a montré que cette réécriture ne changeait rien à
+        l'écran. Le menu d'une ligne, qui les ouvrira aussi sur
+        téléphone, vient avec « Retirer » (F5c).
   - [ ] **F5c** « Retirer de mes clients » (une route de l'API) et le menu
         d'une ligne.
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,

@@ -1,5 +1,13 @@
-import { Avatar, Box, chakra, Grid, Text, VStack } from '@chakra-ui/react';
-import type { Client } from '@/shared/types';
+import {
+  Avatar,
+  Box,
+  chakra,
+  Grid,
+  HStack,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
+import type { Client, Tag } from '@/shared/types';
 import { Chip, type ChipTone, Ring } from '@/kit';
 import { getEffortLevel } from '@/domain/history/effort';
 import {
@@ -7,7 +15,9 @@ import {
   statusLine,
   type StatusTone,
 } from '@/domain/clients/roster';
+import { visibleTags } from '@/domain/clients/tags';
 import { EffortDots } from '../components/EffortDots';
+import { TagChip } from './Tags';
 
 const TEXT_COLOR: Record<StatusTone, string> = {
   amber: 'app.primary',
@@ -90,12 +100,15 @@ const Pulse = ({ efforts }: { efforts: readonly number[] }) =>
  */
 export const ClientRow = ({
   client,
+  tags,
   now,
   selected = false,
   onOpen,
   onOpenProgram,
 }: {
   client: Client;
+  /** Les étiquettes du coach : la ligne montre celles du client. */
+  tags: readonly Tag[];
   now: Date;
   selected?: boolean;
   onOpen: () => void;
@@ -104,6 +117,7 @@ export const ClientRow = ({
   const name = clientName(client);
   const status = statusLine(client, now);
   const chip = CHIP_TONE[status.tone];
+  const { shown, more } = visibleTags(client.tagIds, tags);
   return (
     <chakra.button
       type="button"
@@ -137,9 +151,17 @@ export const ClientRow = ({
         </Avatar.Root>
 
         <VStack align="start" gap="6px" minW={0}>
-          <Text fontWeight="700" fontSize="16px" truncate maxW="full">
-            {name}
-          </Text>
+          {/* Le nom, puis trois étiquettes au plus et « + 2 » : au-delà,
+              la ligne passerait sur trois rangs. */}
+          <HStack gap="6px" wrap="wrap" maxW="full" data-row-tags>
+            <Text fontWeight="700" fontSize="16px" truncate maxW="full">
+              {name}
+            </Text>
+            {shown.map((tag) => (
+              <TagChip key={tag._id} name={tag.name} />
+            ))}
+            {more > 0 && <Chip tone="outline">+ {more}</Chip>}
+          </HStack>
           <Text
             display={{ base: 'block', md: 'none' }}
             fontSize="sm"

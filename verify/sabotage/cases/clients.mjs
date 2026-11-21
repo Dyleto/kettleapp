@@ -68,6 +68,29 @@ const REFUSED =
 const EMPTY_COPY =
   'l’état vide copie le lien d’une touche, sans ouvrir de feuille';
 
+const TAGS_DOMAIN = 'src/domain/clients/tags.ts';
+const TAGS_UI = 'src/features/coach/clients/Tags.tsx';
+const TAGS_HOOK = 'src/features/coach/hooks/useTags.ts';
+const ROW_TAGS =
+  'chaque ligne porte ses étiquettes : trois au plus, puis « + 1 »';
+const BAR = 'la barre : « Tous », chaque étiquette, et « + étiquette »';
+const ONE_TAG = 'une étiquette filtre la liste';
+const TWO_TAGS = '→ deux étiquettes : les clients qui en portent au moins une';
+const ALL_TAGS = '→ « Tous » retire le filtre';
+const CHECKED = '« modifier » ouvre ses étiquettes, cochées';
+const UNCHECK =
+  'décocher part tout de suite, et la ligne derrière la feuille suit';
+const FIELD =
+  'le champ filtre au début des mots, et propose « Créer » pour un nom neuf seulement';
+const ENTER = '→ Entrée crée l’étiquette, la coche, et la barre la montre';
+const CLOSED = '« C’est bon » referme, et le panneau dit ses étiquettes';
+const MANAGED = '« + étiquette » : chacune, et combien de clients la portent';
+const CREATE =
+  'créer : un nom déjà pris ne se crée pas, un neuf rejoint la liste et la barre';
+const RENAME = 'renommer : partout à la fois';
+const DELETE =
+  'supprimer : la feuille dit combien de clients la perdront, puis la retire de tous';
+
 export default {
   suite: 'verify_clients.mjs',
   cases: [
@@ -108,7 +131,9 @@ export default {
           to: '      (group(a) === 0 ? a.unseenCount - b.unseenCount : 0) ||',
         },
       ],
-      falls: [ORDER, OTHERS],
+      // Le panneau montre le premier de la liste : Sarah, au lieu de
+      // Thomas.
+      falls: [ORDER, OTHERS, DEFAULT],
     },
     {
       // La ligne de Sarah devient « 1 séance à lire », dans l'ambre de Thomas.
@@ -595,6 +620,161 @@ export default {
         },
       ],
       falls: [EMPTY_COPY],
+    },
+    {
+      name: 'une ligne montre quatre étiquettes',
+      edits: [{ file: TAGS_DOMAIN, from: '  max = 3', to: '  max = 4' }],
+      falls: [ROW_TAGS],
+    },
+    {
+      // Sarah lirait « Compétition, Reprise, Senior » : l'ordre où on les
+      // a posées, et non celui de la barre.
+      name: 'les étiquettes d’une ligne suivent l’ordre de pose',
+      edits: [
+        {
+          file: TAGS_DOMAIN,
+          from: '  const mine = tags.filter((tag) => tagIds.includes(tag._id));',
+          to: '  const mine = tagIds.flatMap((id) => tags.filter((tag) => tag._id === id));',
+        },
+      ],
+      // Le décochage relit la ligne de Sarah dans le même ordre : il tombe
+      // avec.
+      falls: [ROW_TAGS, UNCHECK],
+    },
+    {
+      name: '« + 1 » ne se dit plus',
+      edits: [
+        {
+          file: 'src/features/coach/clients/ClientRow.tsx',
+          from: '            {more > 0 && <Chip tone="outline">+ {more}</Chip>}\n',
+          to: '',
+        },
+      ],
+      falls: [ROW_TAGS],
+    },
+    {
+      name: 'deux étiquettes ne montrent que les clients qui portent les deux',
+      edits: [
+        {
+          file: TAGS_DOMAIN,
+          from: '  selected.size === 0 || client.tagIds.some((id) => selected.has(id));',
+          to: '  [...selected].every((id) => client.tagIds.includes(id));',
+        },
+      ],
+      falls: [TWO_TAGS],
+    },
+    {
+      name: 'la barre ne filtre plus',
+      edits: [
+        {
+          file: PAGE,
+          from: '        hasAnyTag(c, tagFilter)',
+          to: '        true',
+        },
+      ],
+      falls: [ONE_TAG, TWO_TAGS],
+    },
+    {
+      name: '« Tous » ne retire plus le filtre',
+      edits: [
+        {
+          file: TAGS_UI,
+          from: '    <Toggle on={selected.size === 0} onPress={() => onChange(new Set())}>',
+          to: '    <Toggle on={selected.size === 0} onPress={() => undefined}>',
+        },
+      ],
+      falls: [ALL_TAGS],
+    },
+    {
+      // « se » trouverait aussi « Prise de masse » et « Reprise ».
+      name: 'le champ cherche au milieu des mots',
+      edits: [
+        {
+          file: TAGS_DOMAIN,
+          from: "      key.startsWith(needle) ||\n      key.split(' ').some((word) => word.startsWith(needle))",
+          to: '      key.includes(needle)',
+        },
+      ],
+      falls: [FIELD],
+    },
+    {
+      name: '« Créer » se propose pour un nom déjà pris',
+      edits: [
+        {
+          file: TAGS_DOMAIN,
+          from: '    !tags.some((tag) => tagKey(tag.name) === tagKey(name))',
+          to: '    true',
+        },
+      ],
+      falls: [FIELD, CREATE],
+    },
+    {
+      name: 'décocher n’envoie rien de ce qui reste',
+      edits: [
+        {
+          file: TAGS_HOOK,
+          from: '          { tagIds }\n',
+          to: '          { tagIds: [] }\n',
+        },
+      ],
+      // Chaque pose vide tout : l'étiquette créée ensuite aussi.
+      falls: [UNCHECK, ENTER, CLOSED],
+    },
+    {
+      name: 'une étiquette créée dans la feuille ne se coche pas',
+      edits: [
+        {
+          file: TAGS_UI,
+          from: '        put([...mine, tag._id]);',
+          to: '        put(mine);',
+        },
+      ],
+      falls: [ENTER, CLOSED],
+    },
+    {
+      name: 'le panneau ne montre plus les étiquettes du client',
+      edits: [
+        {
+          file: PANEL,
+          from: '  const mine = tags.filter((tag) => client.tagIds.includes(tag._id));',
+          to: '  const mine = tags.filter(() => false);',
+        },
+      ],
+      falls: [CLOSED],
+    },
+    {
+      name: 'la gestion ne compte plus les clients',
+      edits: [
+        {
+          file: TAGS_UI,
+          from: '                used={tagUsage(clients, tag._id)}',
+          to: '                used={0}',
+        },
+      ],
+      // Une étiquette neuve ne compte personne : celle-là reste juste.
+      falls: [MANAGED, RENAME, DELETE],
+    },
+    {
+      name: 'un renommage ne se voit pas',
+      edits: [
+        {
+          file: TAGS_HOOK,
+          from: '      setTags((tags) => tags.map((t) => (t._id === tag._id ? tag : t))),',
+          to: '      undefined,',
+        },
+      ],
+      falls: [RENAME],
+    },
+    {
+      name: 'supprimer sans demander',
+      edits: [
+        {
+          file: TAGS_UI,
+          from: '            onClick={() => setConfirming(true)}',
+          to: '            onClick={() => remove.mutate(tag._id)}',
+        },
+      ],
+      falls: [DELETE],
     },
   ],
 };

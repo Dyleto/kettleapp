@@ -825,5 +825,296 @@ const clipboard = (p) =>
   await ctx.close();
 }
 
+// ── Les étiquettes ──────────────────────────────────────────────────────
+// Servies par le serveur d'essai, remis à zéro puis garni à chaque partie :
+// leurs identifiants suivent l'ordre de création.
+const seedTags = async () => {
+  await fetch(`${API}/api/mock/reset`, { method: 'POST' });
+  const ids = {};
+  for (const name of ['Compétition', 'Prise de masse', 'Reprise', 'Senior']) {
+    const tag = await (
+      await fetch(`${API}/api/coach/tags`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+    ).json();
+    ids[name] = tag._id;
+  }
+  return ids;
+};
+const tagged = (ids) =>
+  ROSTER.map((c) => ({
+    ...c,
+    tagIds:
+      {
+        thomas: [ids['Prise de masse']],
+        sarah: [
+          ids['Compétition'],
+          ids['Reprise'],
+          ids['Senior'],
+          ids['Prise de masse'],
+        ],
+        julien: [ids['Reprise']],
+        lea: [ids['Compétition']],
+      }[c._id] ?? [],
+  }));
+/** Les pastilles d'une ligne, sans son nom. */
+const rowTags = (p, id) =>
+  p
+    .locator(`main [data-client-row="${id}"] [data-row-tags] > span`)
+    .evaluateAll((chips) => chips.map((c) => c.textContent.trim()))
+    .catch(() => []);
+const bar = (p) => text(p.locator('main [data-tag-bar]'));
+
+{
+  console.log('\n── les étiquettes');
+  const ids = await seedTags();
+  const { ctx, p } = await open(MOBILE, tagged(ids));
+  const sarah = await rowTags(p, 'sarah');
+  ok(
+    'chaque ligne porte ses étiquettes : trois au plus, puis « + 1 »',
+    sarah.join(', ') === 'Compétition, Prise de masse, Reprise, + 1' &&
+      (await rowTags(p, 'thomas')).join() === 'Prise de masse',
+    sarah.join(', ')
+  );
+  const tone = (id) =>
+    p
+      .locator(`main [data-client-row="${id}"] [data-row-tags] > span`, {
+        hasText: 'Reprise',
+      })
+      .evaluate((el) => getComputedStyle(el).backgroundColor)
+      .catch(() => '');
+  ok(
+    '→ une étiquette a la même teinte d’une ligne à l’autre',
+    (await tone('sarah')) !== '' &&
+      (await tone('sarah')) === (await tone('julien'))
+  );
+  ok(
+    'la barre : « Tous », chaque étiquette, et « + étiquette »',
+    (await bar(p)) ===
+      'Tous Compétition Prise de masse Reprise Senior + étiquette',
+    await bar(p)
+  );
+  const press = (name) =>
+    p
+      .locator('main [data-tag-bar]')
+      .getByRole('button', { name, exact: true })
+      .click({ timeout: 2000 })
+      .catch(() => {});
+  // Qui reste, et non dans quel ordre : l'ordre a son assertion.
+  await press('Reprise');
+  await settle(p);
+  const one = (await names(p)).sort();
+  ok(
+    'une étiquette filtre la liste',
+    one.join(', ') === 'Julien Moreau, Sarah Martin',
+    one.join(', ')
+  );
+  await press('Compétition');
+  await settle(p);
+  const two = (await names(p)).sort();
+  ok(
+    '→ deux étiquettes : les clients qui en portent au moins une',
+    two.join(', ') === 'Julien Moreau, Léa Dubois, Sarah Martin',
+    two.join(', ')
+  );
+  await press('Tous');
+  await settle(p);
+  ok('→ « Tous » retire le filtre', (await names(p)).length === 6);
+  await ctx.close();
+}
+
+{
+  console.log('\n── les étiquettes d’un client');
+  const ids = await seedTags();
+  const { ctx, p } = await open(WIDE, tagged(ids));
+  const sent = [];
+  await ctx.route(/\/api\/coach\/clients\/sarah\/tags$/, (route) => {
+    sent.push(route.request().postDataJSON());
+    return route.fallback();
+  });
+  await p
+    .locator('main [data-client-row="sarah"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p
+    .getByRole('button', { name: 'Modifier les étiquettes de Sarah Martin' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog', { name: 'Étiquettes de Sarah' });
+  const boxes = () =>
+    sheet
+      .getByRole('checkbox')
+      .evaluateAll((all) =>
+        all.map(
+          (b) =>
+            `${b.getAttribute('aria-label')}${b.getAttribute('aria-checked') === 'true' ? ' ✓' : ''}`
+        )
+      )
+      .catch(() => []);
+  ok(
+    '« modifier » ouvre ses étiquettes, cochées',
+    (await boxes()).join(', ') ===
+      'Compétition ✓, Prise de masse ✓, Reprise ✓, Senior ✓',
+    (await boxes()).join(', ')
+  );
+  await sheet
+    .getByRole('checkbox', { name: 'Senior' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    'décocher part tout de suite, et la ligne derrière la feuille suit',
+    JSON.stringify(sent.at(-1)?.tagIds) ===
+      JSON.stringify([
+        ids['Compétition'],
+        ids['Reprise'],
+        ids['Prise de masse'],
+      ]) &&
+      (await rowTags(p, 'sarah')).join(', ') ===
+        'Compétition, Prise de masse, Reprise',
+    `${JSON.stringify(sent)} · ${(await rowTags(p, 'sarah')).join(', ')}`
+  );
+  const field = sheet.getByRole('textbox', {
+    name: 'Chercher ou créer une étiquette',
+  });
+  await field.fill('se', { timeout: 2000 }).catch(() => {});
+  const filtered = await boxes();
+  await field.fill('Reprise', { timeout: 2000 }).catch(() => {});
+  const known = await sheet.locator('[data-create-tag]').count();
+  await field.fill('Sen', { timeout: 2000 }).catch(() => {});
+  const fresh = await text(sheet.locator('[data-create-tag]'));
+  ok(
+    'le champ filtre au début des mots, et propose « Créer » pour un nom neuf seulement',
+    filtered.join() === 'Senior' && known === 0 && /^Créer « Sen »/.test(fresh),
+    `${filtered.join()} · ${known} · ${fresh}`
+  );
+  await field.fill('Sèche', { timeout: 2000 }).catch(() => {});
+  await field.press('Enter').catch(() => {});
+  await sheet
+    .getByRole('checkbox', { name: 'Sèche' })
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  // La case se coche avant la réponse du serveur : on lit ce qu'il a
+  // gardé, une fois plus rien en vol.
+  await settle(p);
+  ok(
+    '→ Entrée crée l’étiquette, la coche, et la barre la montre',
+    (await sheet
+      .getByRole('checkbox', { name: 'Sèche' })
+      .getAttribute('aria-checked', { timeout: 2000 })
+      .catch(() => null)) === 'true' && (await bar(p)).includes('Sèche'),
+    await bar(p)
+  );
+  await sheet
+    .getByRole('button', { name: 'C’est bon' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '« C’est bon » referme, et le panneau dit ses étiquettes',
+    (await p.getByRole('dialog').count()) === 0 &&
+      (await text(p.locator('[data-preview-tags]'))) ===
+        'Compétition Prise de masse Reprise Sèche modifier',
+    await text(p.locator('[data-preview-tags]'))
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── gérer les étiquettes');
+  const ids = await seedTags();
+  const { ctx, p } = await open(MOBILE, tagged(ids));
+  await p
+    .locator('main [data-tag-bar]')
+    .getByRole('button', { name: '+ étiquette' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog', { name: 'Tes étiquettes' });
+  const rows = () =>
+    sheet
+      .locator('[data-managed-tag]')
+      .evaluateAll((all) =>
+        all.map((r) => r.innerText.replace(/\s+/g, ' ').trim())
+      )
+      .catch(() => []);
+  ok(
+    '« + étiquette » : chacune, et combien de clients la portent',
+    (await rows()).join(' | ') ===
+      'Compétition 2 clients | Prise de masse 2 clients | Reprise 2 clients | Senior 1 client',
+    (await rows()).join(' | ')
+  );
+  const field = sheet.getByRole('textbox', { name: 'Nouvelle étiquette' });
+  await field.fill('COMPÉTITION', { timeout: 2000 }).catch(() => {});
+  const taken = await sheet
+    .getByRole('button', { name: 'Créer', exact: true })
+    .isDisabled({ timeout: 2000 })
+    .catch(() => false);
+  await field.fill('Hors saison', { timeout: 2000 }).catch(() => {});
+  await sheet
+    .getByRole('button', { name: 'Créer', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await sheet
+    .locator('[data-managed-tag]', { hasText: 'Hors saison' })
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  ok(
+    'créer : un nom déjà pris ne se crée pas, un neuf rejoint la liste et la barre',
+    taken &&
+      (await rows()).includes('Hors saison aucun client') &&
+      (await bar(p)).includes('Hors saison'),
+    `${taken} · ${(await rows()).join(' | ')}`
+  );
+  await sheet
+    .getByRole('button', { name: 'Renommer « Senior »' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const rename = sheet.getByRole('textbox', {
+    name: 'Nouveau nom de « Senior »',
+  });
+  await rename.fill('Seniors', { timeout: 2000 }).catch(() => {});
+  await rename.press('Enter').catch(() => {});
+  await sheet
+    .locator('[data-managed-tag]', { hasText: 'Seniors' })
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  ok(
+    'renommer : partout à la fois',
+    (await rows()).includes('Seniors 1 client') &&
+      (await bar(p)).includes('Seniors'),
+    await bar(p)
+  );
+  await sheet
+    .getByRole('button', { name: 'Supprimer « Reprise »' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const asked = await text(sheet.locator('[data-confirm-delete]'));
+  await sheet
+    .locator('[data-confirm-delete]')
+    .getByRole('button', { name: 'Supprimer' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  // La ligne de « Reprise » a déjà laissé place à la confirmation : c'est
+  // la confirmation qui part quand l'étiquette n'est plus.
+  await sheet
+    .locator('[data-confirm-delete]')
+    .waitFor({ state: 'detached', timeout: 4000 })
+    .catch(() => {});
+  ok(
+    'supprimer : la feuille dit combien de clients la perdront, puis la retire de tous',
+    asked.startsWith(
+      'Supprimer « Reprise » ? Elle sera retirée de 2 clients.'
+    ) &&
+      !(await bar(p)).includes('Reprise') &&
+      (await rowTags(p, 'julien')).length === 0,
+    `${asked} · ${await bar(p)}`
+  );
+  await ctx.close();
+}
+
 await browser.close();
 process.exit(failureCount() ? 1 : 0);

@@ -324,11 +324,11 @@ describe('le panneau d’un client', () => {
       })
     ).toBe('aucune séance cette semaine · au moins 50 séances');
     expect(
-      weekSummary(client({ weekTarget: 0, weekDone: 2 }), {
+      weekSummary(client({ weekTarget: 0, weekDone: 0 }), {
         total: 0,
         complete: true,
       })
-    ).toBe('2 séances cette semaine · aucune encore');
+    ).toBe('aucune séance cette semaine');
   });
 
   it('la tendance de la ligne passe avant la série', () => {

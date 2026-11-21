@@ -23,6 +23,7 @@ import type {
   BlockSnapshotPayload,
   BlockTypePayload,
   ClientRowPayload,
+  TagPayload,
   ClientDetailsPayload,
   CompletedSessionPayload,
   ExercisePayload,
@@ -60,6 +61,12 @@ export type AccountSummary = AccountSummaryPayload;
  * Le front en déclarait une — qu'aucun écran ne lisait.
  */
 export type Client = ClientRowPayload;
+
+/**
+ * Une étiquette du coach : un nom, rien d'autre. Sa couleur se déduit du nom
+ * (`domain/clients/tags`), pour que la même étiquette ait toujours la même.
+ */
+export type Tag = TagPayload;
 
 /**
  * Le fil « À lire » : les séances non lues de tous les clients, et combien

@@ -23,6 +23,9 @@ export const queryKeys = {
 
     invitation: () => [...queryKeys.coach.all, 'invitation'] as const,
 
+    /** Les étiquettes du coach : une liste, rangée par l'API. */
+    tags: () => [...queryKeys.coach.all, 'tags'] as const,
+
     /** « À lire » ou « Déjà lues » : deux listes, deux entrées en cache. */
     inbox: (state: 'unread' | 'read') =>
       [...queryKeys.coach.all, 'inbox', state] as const,

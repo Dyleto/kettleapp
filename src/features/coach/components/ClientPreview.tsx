@@ -9,7 +9,9 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router';
-import type { Client, CompletedSession } from '@/shared/types';
+import type { Client, CompletedSession, Tag } from '@/shared/types';
+import { LuPencil } from 'react-icons/lu';
+import { TagChip } from '@/features/coach/clients/Tags';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
 import { HISTORY_PAGE_SIZE } from '@/features/coach/coach.service';
@@ -98,7 +100,17 @@ const RecentRow = ({
  * ne contredit pas ce qu'elle vient de dire. Les séances viennent de
  * l'historique, qui arrive par sa propre requête.
  */
-export const ClientPreview = ({ client }: { client: Client | null }) => {
+export const ClientPreview = ({
+  client,
+  tags,
+  onEditTags,
+}: {
+  client: Client | null;
+  /** Les étiquettes du coach : le panneau montre celles du client. */
+  tags: readonly Tag[];
+  /** Ouvre la feuille des étiquettes du client (« modifier »). */
+  onEditTags: () => void;
+}) => {
   const navigate = useNavigate();
   const historyQuery = useClientHistory(client?._id ?? '');
   const history = historyQuery.data ?? [];
@@ -116,6 +128,9 @@ export const ClientPreview = ({ client }: { client: Client | null }) => {
   const loaded = historyQuery.isSuccess;
   const headline = previewHeadline(client);
   const opened = history.find((c) => c._id === openedId) ?? null;
+  // Les étiquettes connues seulement : une étiquette supprimée garde son
+  // identifiant sur le client jusqu'au prochain chargement.
+  const mine = tags.filter((tag) => client.tagIds.includes(tag._id));
 
   return (
     <VStack align="stretch" gap="16px" data-client-preview={client._id}>
@@ -132,6 +147,24 @@ export const ClientPreview = ({ client }: { client: Client | null }) => {
             {followedSince(client.linkedAt, new Date())}
           </Text>
         </VStack>
+      </HStack>
+
+      {/* Toutes ses étiquettes, et de quoi les changer. */}
+      <HStack gap="6px" wrap="wrap" data-preview-tags>
+        {mine.map((tag) => (
+          <TagChip key={tag._id} name={tag.name} />
+        ))}
+        <chakra.button
+          type="button"
+          onClick={onEditTags}
+          borderRadius="full"
+          aria-label={`Modifier les étiquettes de ${name}`}
+        >
+          <Chip tone="outline">
+            <LuPencil size={13} aria-hidden />
+            {mine.length > 0 ? 'modifier' : 'ajouter une étiquette'}
+          </Chip>
+        </chakra.button>
       </HStack>
 
       <ActionButton

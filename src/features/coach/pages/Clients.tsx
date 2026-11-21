@@ -20,6 +20,13 @@ import {
   useCopyInvitation,
 } from '@/features/coach/hooks/useActiveInvitation';
 import { InviteSheet } from '@/features/coach/clients/InviteSheet';
+import {
+  ClientTagsSheet,
+  TagBar,
+  TagsSheet,
+} from '@/features/coach/clients/Tags';
+import { useTags } from '@/features/coach/hooks/useTags';
+import { hasAnyTag } from '@/domain/clients/tags';
 import { ClientTiles } from '@/features/coach/clients/ClientTiles';
 import { ClientRow } from '@/features/coach/clients/ClientRow';
 import { ClientSearch, SortMenu } from '@/features/coach/clients/ClientSearch';
@@ -55,6 +62,16 @@ const Clients = () => {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<ClientSort>('triage');
   const [filter, setFilter] = useState<ClientFilter | null>(null);
+  const { data: tags = [] } = useTags();
+  const [chosenTags, setChosenTags] = useState<Set<string>>(new Set());
+  // Une étiquette supprimée sort du filtre d'elle-même : un filtre sur une
+  // étiquette qui n'existe plus viderait la liste sans rien montrer pour
+  // le retirer.
+  const tagFilter = new Set(
+    [...chosenTags].filter((id) => tags.some((tag) => tag._id === id))
+  );
+  const [tagsFor, setTagsFor] = useState<string | null>(null);
+  const [managing, setManaging] = useState(false);
   const now = new Date();
   // Chargé à l'ouverture de la liste : le lien doit être en main avant le
   // toucher, sinon l'aller-retour réseau coûte l'« activation » dont le
@@ -87,7 +104,10 @@ const Clients = () => {
   const counts = tileCounts(clients, now);
   const visible = sortClients(
     clients.filter(
-      (c) => matchesQuery(c, query) && (!filter || passesFilter(c, filter, now))
+      (c) =>
+        matchesQuery(c, query) &&
+        (!filter || passesFilter(c, filter, now)) &&
+        hasAnyTag(c, tagFilter)
     ),
     sort,
     now
@@ -155,6 +175,12 @@ const Clients = () => {
         <ClientSearch value={query} onChange={setQuery} />
         <SortMenu sort={sort} onSort={setSort} />
       </HStack>
+      <TagBar
+        tags={tags}
+        selected={tagFilter}
+        onChange={setChosenTags}
+        onManage={() => setManaging(true)}
+      />
       {visible.length === 0 ? (
         <VStack gap="10px" py="32px" textAlign="center" data-no-match>
           <Text as="h2" fontWeight="800" fontSize="20px">
@@ -171,6 +197,7 @@ const Clients = () => {
             onClick={() => {
               setQuery('');
               setFilter(null);
+              setChosenTags(new Set());
             }}
           >
             Effacer la recherche
@@ -189,6 +216,7 @@ const Clients = () => {
             <ClientRow
               key={client._id}
               client={client}
+              tags={tags}
               now={now}
               selected={withPreview && client._id === preview?._id}
               onOpen={() => open(client)}
@@ -253,7 +281,11 @@ const Clients = () => {
               borderRadius="18px"
               p="20px"
             >
-              <ClientPreview client={preview} />
+              <ClientPreview
+                client={preview}
+                tags={tags}
+                onEditTags={() => preview && setTagsFor(preview._id)}
+              />
             </Box>
           </Grid>
         ) : (
@@ -262,6 +294,20 @@ const Clients = () => {
       </VStack>
 
       {inviting && <InviteSheet onClose={() => setInviting(false)} />}
+      {tagsFor && clients.some((c) => c._id === tagsFor) && (
+        <ClientTagsSheet
+          client={clients.find((c) => c._id === tagsFor)!}
+          tags={tags}
+          onClose={() => setTagsFor(null)}
+        />
+      )}
+      {managing && (
+        <TagsSheet
+          tags={tags}
+          clients={clients}
+          onClose={() => setManaging(false)}
+        />
+      )}
     </Container>
   );
 };
