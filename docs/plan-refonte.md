@@ -17,7 +17,7 @@ le rangement (B12) et avant `main` (H1).
 | Fondations                | 5      | 3    | 2       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
 | Client (hors séance)      | 6      | 4    | 2       | 0       |
-| Coach                     | 7      | 1    | 2       | 4       |
+| Coach                     | 7      | 4    | 2       | 1       |
 | Commun                    | 3      | 0    | 2       | 1       |
 | Ce que ça demande à l'API | 6      | 6    | 0       | 0       |
 
@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 856 tests unitaires, 50 suites de banc et 876
-assertions, 4 min 53 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 880 tests unitaires, 51 suites de banc et 899
+assertions, 4 min 45 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -75,7 +75,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Écran                 | État     | Ce qui manque                                                                                                                                                                                                                                                                                                                     |
 | --------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                                                                  |
-| Clients               | à faire  | Tuiles de tête, anneau et points d'effort par ligne, ligne d'état, étiquettes, panneau d'aperçu, feuille d'invitation.                                                                                                                                                                                                            |
+| Clients               | partiel  | Là : les tuiles qui filtrent, l'anneau et les points par ligne, la ligne d'état, la recherche, le tri, l'état vide. Manquent le panneau (F4b), les étiquettes et la feuille d'invitation (F5).                                                                                                                                    |
 | Atelier d'un client   | **fait** | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc, l'aperçu « vu par le client », l'import d'un modèle, les bords. |
 | Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                  |
 | Ressentis d'un client | **fait** | Là : le résumé, le calendrier à pastilles, la liste lue séance par séance, la bascule « Programme / Ressentis », le détail avec « prévu / fait » et la réponse.                                                                                                                                                                   |
@@ -512,6 +512,19 @@ banc actuel, inchangé, qui le prouve.
         dernière séance » —, et l'aperçu d'un client chez le coach aussi,
         au « Son mot », sans « Corriger ».
 - [ ] **F4** Clients : tuiles, lignes, recherche, tri, panneau, état vide.
+      En deux temps.
+  - [x] **F4a** La liste : trois tuiles en tête — « à lire », « à
+        relancer », « mal réglées » — qui filtrent ce qu'elles comptent et
+        se touchent de nouveau pour le retirer ; une ligne par client, son
+        anneau de semaine (un tiret sans jour conseillé), ses derniers
+        ressentis en points, sa ligne d'état en couleur (en pastille sur
+        grand écran) ; l'ordre de ce qui demande de l'attention ; la
+        recherche toujours là, sans accent ni casse ; « Activité » et
+        « A → Z » dans un menu de tri ; l'état vide qui propose le lien.
+        La logique sort du composant (`domain/clients/roster`) : les tuiles
+        et les lignes comptent avec la même règle. La pastille gagne un ton
+        vert, celui de « Juste ».
+  - [ ] **F4b** Le panneau d'aperçu, sur grand écran.
 - [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ».
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
       dupliquer.
@@ -571,6 +584,17 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
   et non « 12 × 26 kg » comme dans la maquette des ressentis : c'est
   l'écriture de `formatPerformed`, issue d'un retour du terrain, et deux
   écritures de la même série finiraient par se contredire (E11c).
+- **Un client qui arrive est un « nouveau suivi »**, et non « nouvelle »
+  comme dans la maquette : on ne connaît pas son genre, et un prénom ne le
+  dit pas. De même « aucune séance depuis 3 semaines » pour qui n'a jamais
+  commencé, et non « jamais démarré » (F4a).
+- **La tuile « à relancer » dit sa règle** — « 14 jours sans séance » — et
+  non « rien depuis 3 sem. », qui ne vaut que pour un client du décor
+  (F4a).
+- **L'état vide de la liste propose « Obtenir le lien d'invitation »**, et
+  non « Copier le lien d'invitation » : jusqu'à la feuille d'invitation
+  (F5), le lien part par le partage du téléphone là où il existe, et ne
+  serait pas copié (F4a).
 - **Une ligne des ressentis n'a pas de durée** (« dim. 30 août · 41 min »
   dans la maquette) : aucun bilan ne l'enregistre. Elle demanderait un
   champ côté API.

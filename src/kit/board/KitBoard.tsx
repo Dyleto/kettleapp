@@ -28,6 +28,7 @@ const TONES: ChipTone[] = [
   'teal',
   'coral',
   'blue',
+  'green',
   'outline',
 ];
 const MOODS: MascotMood[] = ['hello', 'effort', 'bravo', 'sleep', 'oops'];

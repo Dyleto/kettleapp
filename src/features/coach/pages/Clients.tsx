@@ -1,35 +1,65 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import {
   Box,
-  Button,
   Container,
   Grid,
   HStack,
+  Skeleton,
   Text,
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { LuCheck, LuUserPlus } from 'react-icons/lu';
-import {
-  ClientPreview,
-  ClientsList,
-  COACH_CONTENT_MAX_W,
-} from '@/features/coach';
+import { LuCheck, LuPlus } from 'react-icons/lu';
+import { ClientPreview, COACH_CONTENT_MAX_W } from '@/features/coach';
 import { Client } from '@/shared/types';
 import { useClients } from '@/features/coach/hooks/useClients';
 import { useGenerateInvitation } from '@/features/coach/hooks/useGenerateInvitation';
 import { useActiveInvitation } from '@/features/coach/hooks/useActiveInvitation';
 import { InvitationLinkDialog } from '@/features/coach/components/InvitationLinkDialog';
+import { ClientTiles } from '@/features/coach/clients/ClientTiles';
+import { ClientRow } from '@/features/coach/clients/ClientRow';
+import { ClientSearch, SortMenu } from '@/features/coach/clients/ClientSearch';
 import {
   linkExpiry,
   invitationLink,
   deliverLink,
 } from '@/features/coach/invitation';
+import {
+  matchesQuery,
+  passesFilter,
+  sortClients,
+  tileCounts,
+  type ClientFilter,
+  type ClientSort,
+} from '@/domain/clients/roster';
+import { ActionButton, EmptyState, LoadFailure } from '@/kit';
+import { isUnavailable } from '@/shared/utils/queryState';
+import { COACH_ROUTES } from '@/shared/config/routes';
 import { toaster } from '@/shared/components/ui/toasterInstance';
 
+/**
+ * Clients : la liste, triée par ce qui demande de l'attention, et trois
+ * chiffres en tête qui disent où regarder.
+ *
+ * Les tuiles filtrent ce qu'elles comptent ; la recherche et le menu de tri
+ * se cumulent avec elles. Une ligne ouvre l'atelier du client — ou, à partir
+ * de 1 280 px, son aperçu à côté de la liste, l'atelier restant au
+ * double-clic.
+ *
+ * La recherche et le tri n'apparaissaient qu'au-delà de cinq clients, et en
+ * trois pastilles : la maquette pose la recherche toujours, et range le tri
+ * dans un menu.
+ */
 const Clients = () => {
-  const { data: clients = [] } = useClients();
+  const navigate = useNavigate();
+  const clientsQuery = useClients();
+  const { data: clients = [], isLoading } = clientsQuery;
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<ClientSort>('triage');
+  const [filter, setFilter] = useState<ClientFilter | null>(null);
+  const now = new Date();
   const { mutate: generateInvitation, isPending } = useGenerateInvitation();
   // Chargé à l'ouverture de la liste : le lien doit être en main *avant* le
   // clic, sinon l'aller-retour réseau coûte l'activation utilisateur dont le
@@ -52,6 +82,22 @@ const Clients = () => {
   const [preview, setPreview] = useState<Client | null>(null);
   useDocumentTitle('Clients');
 
+  const counts = tileCounts(clients, now);
+  const visible = sortClients(
+    clients.filter(
+      (c) => matchesQuery(c, query) && (!filter || passesFilter(c, filter, now))
+    ),
+    sort,
+    now
+  );
+  // Toujours l'atelier, jamais le journal : le geste qu'un ressenti appelle
+  // — alléger la séance — se fait dans l'atelier, qui montre déjà ce même
+  // ressenti à côté du programme qu'il commente.
+  const openProgram = (client: Client) =>
+    navigate(COACH_ROUTES.clientSession(client._id, 1));
+  const open = (client: Client) =>
+    withPreview ? setPreview(client) : openProgram(client);
+
   /**
    * Ce qui se passe une fois le lien en main.
    *
@@ -63,7 +109,7 @@ const Clients = () => {
    * C'est ce dernier cas qui manquait. Kettle affichait le lien dans un
    * bandeau de vingt secondes, après quoi il n'était plus nulle part.
    */
-  const sendOut = useCallback(async (link: string, expiresAt?: string) => {
+  const sendOut = async (link: string, expiresAt?: string) => {
     const outcome = await deliverLink(link);
     if (outcome === 'cancelled') return;
     if (outcome === 'failed') {
@@ -90,7 +136,7 @@ const Clients = () => {
         .filter(Boolean)
         .join(' '),
     });
-  }, []);
+  };
 
   /**
    * Inviter est une seule action : obtenir un lien et le faire sortir.
@@ -115,71 +161,159 @@ const Clients = () => {
     });
   };
 
+  const list = isLoading ? (
+    <VStack
+      align="stretch"
+      gap={0}
+      bg="surface.card"
+      borderRadius="card"
+      overflow="hidden"
+      aria-busy="true"
+      aria-label="Chargement de tes clients"
+    >
+      {[...Array(6)].map((_, index) => (
+        <HStack
+          key={index}
+          gap="12px"
+          px="16px"
+          py="13px"
+          borderTopWidth={index ? '1px' : 0}
+          borderColor="line"
+        >
+          <Skeleton w="34px" h="34px" borderRadius="full" />
+          <Skeleton h="14px" w="40%" />
+        </HStack>
+      ))}
+    </VStack>
+  ) : isUnavailable(clientsQuery) ? (
+    // L'écran dit la panne, et lui seul : un toast l'annonçait en même
+    // temps, la même phrase deux fois.
+    <LoadFailure
+      query={clientsQuery}
+      line="Tes clients n'ont pas bougé. Vérifie ta connexion, puis réessaie."
+    />
+  ) : clients.length === 0 ? (
+    // L'état vide propose l'action au lieu de la décrire.
+    <EmptyState
+      mood="hello"
+      title="Invite ton premier client"
+      line="Un lien suffit : la personne crée son compte et apparaît ici. Tu pourras alors écrire son programme."
+      action={
+        <ActionButton size="md" onClick={invite} loading={isPending}>
+          Obtenir le lien d’invitation
+        </ActionButton>
+      }
+    />
+  ) : (
+    <VStack align="stretch" gap="12px">
+      <ClientTiles counts={counts} filter={filter} onFilter={setFilter} />
+      <HStack gap="8px">
+        <ClientSearch value={query} onChange={setQuery} />
+        <SortMenu sort={sort} onSort={setSort} />
+      </HStack>
+      {visible.length === 0 ? (
+        <VStack gap="10px" py="32px" textAlign="center" data-no-match>
+          <Text as="h2" fontWeight="800" fontSize="20px">
+            {query.trim()
+              ? `Aucun client ne s’appelle « ${query.trim()} »`
+              : 'Aucun client ici'}
+          </Text>
+          <Text color="fg.muted">
+            Vérifie l’orthographe, ou invite cette personne.
+          </Text>
+          <ActionButton
+            tone="ghost"
+            size="md"
+            onClick={() => {
+              setQuery('');
+              setFilter(null);
+            }}
+          >
+            Effacer la recherche
+          </ActionButton>
+        </VStack>
+      ) : (
+        <VStack
+          align="stretch"
+          gap={0}
+          bg="surface.card"
+          borderRadius="card"
+          overflow="hidden"
+          data-client-list
+        >
+          {visible.map((client) => (
+            <ClientRow
+              key={client._id}
+              client={client}
+              now={now}
+              selected={withPreview && client._id === preview?._id}
+              onOpen={() => open(client)}
+              onOpenProgram={() => openProgram(client)}
+            />
+          ))}
+        </VStack>
+      )}
+    </VStack>
+  );
+
   return (
     <Container
       maxW={withPreview ? '1400px' : COACH_CONTENT_MAX_W}
-      py={8}
+      py={{ base: 6, md: 8 }}
       px={4}
     >
-      <VStack align="stretch" gap={6}>
-        <HStack justify="space-between" align="center" gap={3}>
-          <VStack align="start" gap={0} minW={0}>
-            <Text as="h1" fontWeight="bold" fontSize="lg">
-              Clients
-            </Text>
-            {clients.length > 0 && (
-              <Text fontSize="xs" color="fg.muted">
-                {clients.length} client{clients.length > 1 ? 's' : ''}
-              </Text>
-            )}
-          </VStack>
-          <Button
-            size="sm"
-            flexShrink={0}
-            bg={isCopied ? 'app.success' : 'app.primary'}
-            color="bg.canvas"
-            fontWeight="bold"
-            _hover={{
-              bg: isCopied ? 'app.success.hover' : 'app.primary.hover',
-            }}
-            onClick={invite}
-            loading={isPending}
+      <VStack align="stretch" gap="16px">
+        <HStack gap="12px" align="center">
+          <Text
+            as="h1"
+            fontWeight="800"
+            fontSize={{ base: '26px', md: '32px' }}
+            lineHeight="1.05"
           >
-            {isCopied ? (
-              <>
-                <LuCheck /> Lien copié
-              </>
-            ) : (
-              <>
-                <LuUserPlus /> Inviter
-              </>
-            )}
-          </Button>
+            Clients
+          </Text>
+          {clients.length > 0 && (
+            <Text color="fg.muted" data-client-count>
+              {clients.length} client{clients.length > 1 ? 's' : ''}
+            </Text>
+          )}
+          {/* « Lien copié » deux secondes et demie : le bouton dit ce qui
+              vient de se passer, à l'endroit où on a touché. */}
+          <Box ml="auto">
+            <ActionButton
+              size="sm"
+              onClick={invite}
+              loading={isPending}
+              aria-label={isCopied ? 'Lien copié' : 'Inviter un client'}
+            >
+              {isCopied ? <LuCheck size={16} /> : <LuPlus size={16} />}
+              {isCopied ? (
+                'Lien copié'
+              ) : (
+                <span>
+                  Inviter
+                  <Text as="span" display={{ base: 'none', md: 'inline' }}>
+                    {' un client'}
+                  </Text>
+                </span>
+              )}
+            </ActionButton>
+          </Box>
         </HStack>
 
-        {/* Pas de ligne d'état. Elle prenait en permanence deux lignes
-            avant le premier client, pour une information — la date
-            d'expiration — et une action — « Recopier » — que le bouton
-            « Inviter » couvre déjà : l'API recycle un lien encore valide, donc
-            recliquer copie le même. */}
-
-        {/* Entre 30 et 55 % de la fenêtre restait vide : la liste s'arrêtait
-            à 720 px et le reste ne servait à rien. Le coach devait ouvrir
-            l'atelier — et donc perdre la liste — pour savoir ce qui attendait
-            chez un client, puis revenir pour passer au suivant. */}
         {withPreview ? (
           <Grid
-            templateColumns="minmax(0, 1fr) 420px"
-            gap={8}
+            templateColumns="minmax(0, 1fr) 360px"
+            gap="24px"
             alignItems="start"
           >
-            <ClientsList onPreview={setPreview} selectedId={preview?._id} />
+            {list}
             <Box position="sticky" top="24px" minW={0}>
               <ClientPreview client={preview} />
             </Box>
           </Grid>
         ) : (
-          <ClientsList />
+          list
         )}
       </VStack>
 

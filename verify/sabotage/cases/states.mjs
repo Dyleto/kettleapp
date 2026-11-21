@@ -108,9 +108,9 @@ export default {
       name: 'la liste des clients retombe sur sa liste vide',
       edits: [
         {
-          file: 'src/features/coach/components/ClientsList.tsx',
-          from: 'if (isUnavailable(clientsQuery)) {',
-          to: 'if (isUnavailable(clientsQuery) && false) {',
+          file: 'src/features/coach/pages/Clients.tsx',
+          from: '  ) : isUnavailable(clientsQuery) ? (',
+          to: '  ) : isUnavailable(clientsQuery) && false ? (',
         },
       ],
       falls: [
@@ -185,12 +185,12 @@ export default {
       name: 'un toast redit la panne',
       edits: [
         {
-          file: 'src/features/coach/components/ClientsList.tsx',
-          from: "import { useMemo, useState } from 'react';",
-          to: "import { useEffect, useMemo, useState } from 'react';\nimport { toaster } from '@/shared/components/ui/toasterInstance';",
+          file: 'src/features/coach/pages/Clients.tsx',
+          from: "import { useState } from 'react';",
+          to: "import { useEffect, useState } from 'react';",
         },
         {
-          file: 'src/features/coach/components/ClientsList.tsx',
+          file: 'src/features/coach/pages/Clients.tsx',
           from: "  const [query, setQuery] = useState('');",
           to: "  useEffect(() => {\n    if (clientsQuery.error) toaster.create({ title: 'Impossible de charger vos clients', type: 'error', duration: 60000 });\n  }, [clientsQuery.error]);\n  const [query, setQuery] = useState('');",
         },

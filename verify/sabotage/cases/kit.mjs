@@ -35,7 +35,7 @@ export default {
       falls: [
         'la planche se lit sans compte',
         'chaque pièce a sa place sur la planche',
-        'six tons de pastille, six fonds distincts, aux deux tailles',
+        'sept tons de pastille, sept fonds distincts, aux deux tailles',
         'une bulle coupée tient en deux lignes',
         'les cinq humeurs du personnage, plus celles des deux états',
         'le personnage se balance',
@@ -54,7 +54,7 @@ export default {
           to: "  teal: 'bg.surface',",
         },
       ],
-      falls: ['six tons de pastille, six fonds distincts, aux deux tailles'],
+      falls: ['sept tons de pastille, sept fonds distincts, aux deux tailles'],
     },
     {
       name: 'une bulle ne se coupe plus',
