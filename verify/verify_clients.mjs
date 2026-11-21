@@ -420,7 +420,7 @@ const open = async (options = MOBILE, roster = ROSTER) => {
     /Invite ton premier client/.test(main) &&
       (await p
         .locator('main')
-        .getByRole('button', { name: 'Obtenir le lien d’invitation' })
+        .getByRole('button', { name: 'Copier le lien d’invitation' })
         .count()) === 1 &&
       (await p.locator('main [data-tile]').count()) === 0 &&
       (await p.getByRole('searchbox').count()) === 0,
@@ -622,6 +622,205 @@ const open = async (options = MOBILE, roster = ROSTER) => {
     '« Ouvrir son programme » mène à son atelier',
     new URL(p.url()).pathname === '/coach/clients/manon/s/1',
     new URL(p.url()).pathname
+  );
+  await ctx.close();
+}
+
+const LINK_TOKEN = 'kx82hd0s';
+const INVITE = {
+  token: LINK_TOKEN,
+  expiresAt: '2026-09-08T12:00:00+02:00',
+};
+/** Une page de la liste, le lien d'invitation servi tel que demandé, et les
+ * créations de lien comptées. */
+const inviting = async ({
+  roster = ROSTER,
+  invitation = INVITE,
+  init,
+} = {}) => {
+  const ctx = await browser.newContext({
+    ...MOBILE,
+    permissions: ['clipboard-read', 'clipboard-write'],
+  });
+  if (init) await ctx.addInitScript(init);
+  const created = [];
+  await ctx.route(/\/api\/coach\/clients(\?|$)/, (route) =>
+    route.fulfill({ json: roster })
+  );
+  await ctx.route(/\/api\/coach\/invitation$/, (route) =>
+    route.fulfill({ json: invitation })
+  );
+  await ctx.route(/\/api\/coach\/generate-invitation$/, (route) => {
+    created.push(route.request().method());
+    return route.fulfill({
+      json: { token: 'nouveau1', expiresAt: '2026-09-12T12:00:00+02:00' },
+    });
+  });
+  const p = await signIn(ctx);
+  await p.clock.setFixedTime(NOW);
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  await p
+    .locator('main [data-client-row]')
+    .or(p.getByText('Invite ton premier client'))
+    .first()
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+  return { ctx, p, created };
+};
+const clipboard = (p) =>
+  p.evaluate(() => navigator.clipboard.readText()).catch(() => '');
+
+{
+  console.log('\n── inviter');
+  const { ctx, p, created } = await inviting();
+  await p
+    .getByRole('button', { name: /^Inviter/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog', { name: 'Inviter un client' });
+  const link = await text(sheet.locator('[data-invite-link]'));
+  ok(
+    '« Inviter » ouvre la feuille, le lien déjà prêt, et sa validité',
+    link.endsWith(`/join?token=${LINK_TOKEN}`) &&
+      (await text(sheet)).includes(
+        'Valable jusqu’au 8 septembre. Le même lien sert à plusieurs clients.'
+      ) &&
+      created.length === 0,
+    `${link} · ${created.length} lien(s) créé(s)`
+  );
+  await sheet
+    .getByRole('button', { name: 'Copier le lien' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const copied = await clipboard(p);
+  ok(
+    '« Copier le lien » copie, et le bouton le dit',
+    copied === link &&
+      (await sheet.getByRole('button', { name: 'Lien copié' }).count()) === 1,
+    copied
+  );
+  const back = await p
+    .waitForFunction(
+      () =>
+        [...document.querySelectorAll('[role="dialog"] button')].some(
+          (b) => b.textContent?.trim() === 'Copier le lien'
+        ),
+      null,
+      { timeout: 4000 }
+    )
+    .then(() => true)
+    .catch(() => false);
+  ok('→ puis il redevient « Copier le lien »', back);
+  ok(
+    'sans partage sur l’appareil, pas de « Partager… »',
+    (await sheet.getByRole('button', { name: 'Partager…' }).count()) === 0
+  );
+  await p.keyboard.press('Escape');
+  await settle(p);
+  ok(
+    '→ Échap referme la feuille',
+    (await p.getByRole('dialog', { name: 'Inviter un client' }).count()) === 0
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── partager, un lien expiré, une copie refusée');
+  // Le partage du téléphone, remplacé par une fonction qui retient ce
+  // qu'on lui passe : le navigateur du banc n'en a pas.
+  const shared = await inviting({
+    init: () => {
+      navigator.share = (data) => {
+        window.__shared = data;
+        return Promise.resolve();
+      };
+    },
+  });
+  await shared.p
+    .getByRole('button', { name: /^Inviter/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await shared.p
+    .getByRole('button', { name: 'Partager…' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  // Comparé au lien que la feuille montre, et non au jeton du décor : le
+  // partage doit passer ce que le coach voit, quel qu'il soit.
+  const shown = await text(shared.p.locator('[data-invite-link]'));
+  const passed = await shared.p.evaluate(() => window.__shared ?? null);
+  ok(
+    'là où le téléphone partage, « Partager… » lui passe le lien',
+    shown !== '' && passed?.url === shown,
+    `${shown} · ${JSON.stringify(passed)}`
+  );
+  await shared.ctx.close();
+
+  const expired = await inviting({
+    invitation: { token: 'vieux', expiresAt: '2026-08-01T12:00:00+02:00' },
+  });
+  await expired.p
+    .getByRole('button', { name: /^Inviter/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await expired.p
+    .locator('[data-invite-link]')
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  const fresh = await text(expired.p.locator('[data-invite-link]'));
+  ok(
+    'un lien expiré : un nouveau est créé à l’ouverture de la feuille',
+    fresh.endsWith('/join?token=nouveau1') && expired.created.length === 1,
+    `${fresh} · ${expired.created.length} création(s)`
+  );
+  await expired.ctx.close();
+
+  const refused = await inviting({
+    init: () => {
+      navigator.clipboard.writeText = () =>
+        Promise.reject(new DOMException('refusé', 'NotAllowedError'));
+    },
+  });
+  await refused.p
+    .getByRole('button', { name: /^Inviter/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await refused.p
+    .getByRole('button', { name: 'Copier le lien' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(refused.p);
+  const selected = await refused.p.evaluate(() =>
+    String(window.getSelection())
+  );
+  const kept = await text(refused.p.locator('[data-invite-link]'));
+  const alert = await text(refused.p.getByRole('alert'));
+  ok(
+    'une copie refusée : le lien reste, sélectionné, et la feuille le dit',
+    kept !== '' && selected === kept && /copie-le à la main/.test(alert),
+    `${selected} · ${alert}`
+  );
+  await refused.ctx.close();
+}
+
+{
+  console.log('\n── le premier lien, depuis l’état vide');
+  const { ctx, p } = await inviting({ roster: [] });
+  const button = p
+    .locator('main')
+    .getByRole('button', { name: 'Copier le lien d’invitation' });
+  await button.click({ timeout: 2000 }).catch(() => {});
+  const copied = await clipboard(p);
+  ok(
+    'l’état vide copie le lien d’une touche, sans ouvrir de feuille',
+    copied.endsWith(`/join?token=${LINK_TOKEN}`) &&
+      (await p.getByRole('dialog').count()) === 0 &&
+      (await p
+        .locator('main')
+        .getByRole('button', { name: 'Lien copié' })
+        .count()) === 1,
+    copied
   );
   await ctx.close();
 }

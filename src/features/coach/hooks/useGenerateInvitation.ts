@@ -1,4 +1,3 @@
-import { toaster } from '@/shared/components/ui/toasterInstance';
 import api from '@/shared/config/api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@/shared/config/queryKeys';
@@ -39,12 +38,7 @@ export const useGenerateInvitation = () => {
         expiresAt,
       });
     },
-    onError: () => {
-      toaster.create({
-        title: 'Erreur',
-        description: `Une erreur est survenue lors de la génération de l'invitation`,
-        type: 'error',
-      });
-    },
+    // Pas de toast : la feuille d'invitation dit elle-même que le lien n'a
+    // pas pu être préparé, et propose de réessayer.
   });
 };

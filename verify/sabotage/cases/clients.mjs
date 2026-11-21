@@ -53,6 +53,21 @@ const NO_HISTORY =
   'un client sans séance : le panneau le dit, sans lien vers un journal vide';
 const OPEN_PROGRAM = '« Ouvrir son programme » mène à son atelier';
 
+const INVITE = 'src/features/coach/clients/InviteSheet.tsx';
+const INVITE_HOOK = 'src/features/coach/hooks/useActiveInvitation.ts';
+const READY = '« Inviter » ouvre la feuille, le lien déjà prêt, et sa validité';
+const COPY = '« Copier le lien » copie, et le bouton le dit';
+const REVERT = '→ puis il redevient « Copier le lien »';
+const NO_SHARE = 'sans partage sur l’appareil, pas de « Partager… »';
+const ESCAPE = '→ Échap referme la feuille';
+const SHARE = 'là où le téléphone partage, « Partager… » lui passe le lien';
+const EXPIRED =
+  'un lien expiré : un nouveau est créé à l’ouverture de la feuille';
+const REFUSED =
+  'une copie refusée : le lien reste, sélectionné, et la feuille le dit';
+const EMPTY_COPY =
+  'l’état vide copie le lien d’une touche, sans ouvrir de feuille';
+
 export default {
   suite: 'verify_clients.mjs',
   cases: [
@@ -301,11 +316,12 @@ export default {
       edits: [
         {
           file: PAGE,
-          from: '      action={\n        <ActionButton size="md" onClick={invite} loading={isPending}>\n          Obtenir le lien d’invitation\n        </ActionButton>\n      }\n',
+          from: "      action={\n        <ActionButton size=\"md\" onClick={copyFirstLink}>\n          {copied ? <LuCheck size={18} /> : <LuLink size={18} />}\n          {copied ? 'Lien copié' : 'Copier le lien d’invitation'}\n        </ActionButton>\n      }\n",
           to: '',
         },
       ],
-      falls: [EMPTY],
+      // Sans bouton, plus rien à toucher pour copier.
+      falls: [EMPTY, EMPTY_COPY],
     },
     {
       // La pastille ne se coupe pas : c'est la colonne qui lui laisse la
@@ -467,6 +483,118 @@ export default {
         },
       ],
       falls: [OPEN_PROGRAM],
+    },
+    {
+      // Un lien encore valable n'a pas à être recréé : chaque création
+      // fait un aller-retour, et le partage perd son activation.
+      name: 'la feuille crée un lien même quand il y en a un',
+      edits: [
+        {
+          file: INVITE,
+          from: '  const needed = active.isFetched && !valid;',
+          to: '  const needed = active.isFetched;',
+        },
+      ],
+      falls: [READY],
+    },
+    {
+      name: 'la feuille ne dit plus jusqu’à quand le lien vaut',
+      edits: [
+        {
+          file: INVITE,
+          from: '            {linkExpiry(valid.expiresAt)} Le même lien sert à plusieurs clients.',
+          to: '            Le même lien sert à plusieurs clients.',
+        },
+      ],
+      falls: [READY],
+    },
+    {
+      name: '« Copier le lien » copie autre chose',
+      edits: [
+        {
+          file: INVITE,
+          from: '      await navigator.clipboard.writeText(link);',
+          to: "      await navigator.clipboard.writeText('');",
+        },
+      ],
+      falls: [COPY],
+    },
+    {
+      name: '« Lien copié » reste',
+      edits: [
+        {
+          file: INVITE,
+          from: '      timer.current = window.setTimeout(() => setCopied(false), 2000);\n',
+          to: '',
+        },
+      ],
+      falls: [REVERT],
+    },
+    {
+      name: '« Partager… » s’affiche sans partage possible',
+      edits: [
+        {
+          file: INVITE,
+          from: '        {canShare && link && (',
+          to: '        {link && (',
+        },
+      ],
+      falls: [NO_SHARE],
+    },
+    {
+      name: '« Partager… » ne passe pas le lien',
+      edits: [
+        {
+          file: INVITE,
+          from: "                .share({ title: 'Rejoindre mon suivi sur Kettle', url: link })",
+          to: "                .share({ title: 'Rejoindre mon suivi sur Kettle', url: '' })",
+        },
+      ],
+      falls: [SHARE],
+    },
+    {
+      name: 'Échap ne referme plus la feuille d’invitation',
+      edits: [
+        {
+          file: INVITE,
+          from: '  useSheetDismiss(true, onClose);\n',
+          to: '',
+        },
+      ],
+      falls: [ESCAPE],
+    },
+    {
+      name: 'un lien expiré passe pour valable',
+      edits: [
+        {
+          file: INVITE_HOOK,
+          from: '  data?.token && data.expiresAt && Date.parse(data.expiresAt) > Date.now()',
+          to: '  data?.token && data.expiresAt',
+        },
+      ],
+      falls: [EXPIRED],
+    },
+    {
+      name: 'une copie refusée ne sélectionne pas le lien',
+      edits: [
+        {
+          file: INVITE,
+          from: '      setCopyFailed(true);\n      selectLink();',
+          to: '      setCopyFailed(true);',
+        },
+      ],
+      falls: [REFUSED],
+    },
+    {
+      name: 'l’état vide ouvre toujours la feuille',
+      edits: [
+        {
+          file: PAGE,
+          from: '    if (!(await copyInvitation())) return setInviting(true);',
+          to: '    return setInviting(true);',
+        },
+      ],
+      falls: [EMPTY_COPY],
     },
   ],
 };

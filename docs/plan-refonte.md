@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 884 tests unitaires, 51 suites de banc et 908
-assertions, 4 min 38 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 884 tests unitaires, 51 suites de banc et 917
+assertions, 4 min 52 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -535,7 +535,20 @@ banc actuel, inchangé, qui le prouve.
         formats d'un bilan. Une première version tirait la phrase de
         l'historique et les points de la ligne : elle disait « dures » sous
         cinq points verts ; les deux viennent désormais de la ligne.
-- [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ».
+- [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ». En
+      trois temps.
+  - [x] **F5a** La feuille d'invitation : le lien déjà prêt et sous les
+        yeux, sa validité, « Copier le lien » qui dit « Lien copié » deux
+        secondes, « Partager… » là où le téléphone partage. Un lien expiré
+        est remplacé à l'ouverture ; une copie refusée sélectionne le lien
+        et le dit. L'état vide copie d'une touche, comme le veut la
+        maquette. « Inviter » faisait sortir le lien sans le montrer —
+        partage, sinon presse-papiers, sinon une boîte de repli — : la
+        boîte de repli et ce chemin partent.
+  - [ ] **F5b** Les étiquettes : sur les lignes, en barre de filtre, la
+        feuille d'un client, leur gestion.
+  - [ ] **F5c** « Retirer de mes clients » (une route de l'API) et le menu
+        d'une ligne.
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
       dupliquer.
 - [ ] **F7** Exercices : vignettes, panneau, tri.
@@ -601,10 +614,6 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 - **La tuile « à relancer » dit sa règle** — « 14 jours sans séance » — et
   non « rien depuis 3 sem. », qui ne vaut que pour un client du décor
   (F4a).
-- **L'état vide de la liste propose « Obtenir le lien d'invitation »**, et
-  non « Copier le lien d'invitation » : jusqu'à la feuille d'invitation
-  (F5), le lien part par le partage du téléphone là où il existe, et ne
-  serait pas copié (F4a).
 - **Une ligne des ressentis n'a pas de durée** (« dim. 30 août · 41 min »
   dans la maquette) : aucun bilan ne l'enregistre. Elle demanderait un
   champ côté API.
