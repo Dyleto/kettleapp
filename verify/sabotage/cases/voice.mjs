@@ -94,27 +94,39 @@ export default {
       ],
     },
     {
-      name: "l'aperçu du coach rouvre le bilan en mode modifiable",
+      name: "l'aperçu du coach ouvre la séance en lecteur client",
+      // La carte passait `readOnly` au tiroir ; elle dit désormais au
+      // détail qui lit (F3b).
       edits: [
         {
-          file: 'src/features/coach/components/ClientPreview.tsx',
-          from: '                readOnly\n',
-          to: '',
+          file: 'src/features/client/progress/SessionHistoryCard.tsx',
+          from: '          viewer="coach"\n',
+          to: '          viewer="self"\n',
         },
       ],
       falls: [
         'le coach lit « Son mot »',
         '→ et non « Ton mot » ni « Ton commentaire »',
-        '→ sans pouvoir corriger la séance de son client',
       ],
+    },
+    {
+      name: "l'aperçu du coach propose « Corriger »",
+      edits: [
+        {
+          file: 'src/features/client/progress/SessionHistoryCard.tsx',
+          from: '          viewer="coach"\n          onClose={() => setIsOpen(false)}',
+          to: '          viewer="coach"\n          onCorrect={() => undefined}\n          onClose={() => setIsOpen(false)}',
+        },
+      ],
+      falls: ['→ sans pouvoir corriger la séance de son client'],
     },
     {
       name: 'le libellé reste « Ton mot » pour tout le monde',
       edits: [
         {
-          file: 'src/features/client/progress/CompletedSessionDrawer.tsx',
-          from: "{editable ? 'Ton mot' : 'Son mot'}",
-          to: "{'Ton mot'}",
+          file: 'src/features/client/progress/CompletedDetail.tsx',
+          from: "<Eyebrow>{self ? 'Ton mot' : 'Son mot'}</Eyebrow>",
+          to: "<Eyebrow>{'Ton mot'}</Eyebrow>",
         },
       ],
       falls: [
@@ -126,28 +138,27 @@ export default {
       name: 'le libellé devient « Son mot » pour tout le monde',
       edits: [
         {
-          file: 'src/features/client/progress/CompletedSessionDrawer.tsx',
-          from: "{editable ? 'Ton mot' : 'Son mot'}",
-          to: "{'Son mot'}",
+          file: 'src/features/client/progress/CompletedDetail.tsx',
+          from: "<Eyebrow>{self ? 'Ton mot' : 'Son mot'}</Eyebrow>",
+          to: "<Eyebrow>{'Son mot'}</Eyebrow>",
         },
       ],
       falls: ['le client lit « Ton mot »'],
     },
     {
       name: 'Progrès ouvre la séance en lecture seule',
-      // Progrès ouvre le tiroir lui-même depuis F3a, sans passer par la
-      // carte d'historique, que seul l'aperçu du coach garde.
+      // Sur téléphone, la feuille de Progrès : c'est elle que lit la
+      // suite, et non le panneau du grand écran.
       edits: [
         {
           file: 'src/features/client/progress/History.tsx',
-          from: '          editable\n          onClose={() => setOpenedId(null)}',
-          to: '          editable={false}\n          onClose={() => setOpenedId(null)}',
+          from: '          onCorrect={() => setCorrecting(true)}\n          onClose={() => setOpenedId(null)}',
+          to: '          onClose={() => setOpenedId(null)}',
         },
       ],
-      falls: [
-        'le client lit « Ton mot »',
-        '→ et peut toujours corriger sa séance',
-      ],
+      // « Ton mot » ne dépend plus de « Corriger » mais de qui lit : seule
+      // la correction tombe.
+      falls: ['→ et peut toujours corriger sa séance'],
     },
     {
       name: "l'état vide des ressentis ne nomme plus personne",

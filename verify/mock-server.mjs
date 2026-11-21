@@ -1009,8 +1009,11 @@ const server = http.createServer(async (req, res) => {
     const i = HISTORY.findIndex((c) => c._id === patchMatch[1]);
     if (i < 0) return sendJson(res, 404, { message: 'introuvable' });
     const before = HISTORY[i];
+    // Comme l'API : une correction se date, et la ligne de Progrès le dit
+    // (« corrigée le 2 sept. »).
     const completed = {
       ...before,
+      editedAt: new Date().toISOString(),
       ...(body.feedback !== undefined ? { feedback: body.feedback } : {}),
       ...(body.clientNotes !== undefined
         ? { clientNotes: body.clientNotes }

@@ -6,11 +6,10 @@ import {
   VisuallyHidden,
   VStack,
 } from '@chakra-ui/react';
-import type { CompletedSession, InboxItem, Session } from '@/shared/types';
-import { ActionButton, Bubble, Chip, Eyebrow } from '@/kit';
+import type { InboxItem, Session } from '@/shared/types';
+import { ActionButton, Bubble, Chip, Eyebrow, LegacyMetrics } from '@/kit';
 import { TAG_NOUN } from '@/domain/history/pulse';
 import { tagsInOrder } from '@/domain/inbox/feed';
-import { LEGACY_METRIC_LABELS } from '@/domain/history/tags';
 import {
   detailDate,
   doneLines,
@@ -30,45 +29,6 @@ interface JournalDetailProps {
   /** Ouvre l'atelier sur la séance d'aujourd'hui. */
   onAdjust: (session: Session) => void;
 }
-
-/** Les cinq axes de l'ancien bilan, en lecture seule. */
-const LegacyMetrics = ({
-  metrics,
-}: {
-  metrics: NonNullable<CompletedSession['metrics']>;
-}) => (
-  <VStack align="stretch" gap="8px">
-    <Eyebrow>Ancien bilan</Eyebrow>
-    <VStack
-      align="stretch"
-      gap={0}
-      bg="bg.raised"
-      borderRadius="14px"
-      data-legacy-metrics
-    >
-      {(
-        Object.keys(
-          LEGACY_METRIC_LABELS
-        ) as (keyof typeof LEGACY_METRIC_LABELS)[]
-      ).map((key) => (
-        <HStack
-          key={key}
-          justify="space-between"
-          px="16px"
-          py="10px"
-          borderTopWidth="1px"
-          borderColor="line"
-          _first={{ borderTopWidth: 0 }}
-        >
-          <Text>{LEGACY_METRIC_LABELS[key]}</Text>
-          <Text fontWeight="700" fontVariantNumeric="tabular-nums">
-            {metrics[key]}/5
-          </Text>
-        </HStack>
-      ))}
-    </VStack>
-  </VStack>
-);
 
 /**
  * Une séance faite, ouverte : ce que le client en a dit, la réponse, et ce

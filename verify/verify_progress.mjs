@@ -1,6 +1,8 @@
 /**
- * Progrès (F2) : les records, « Tes mouvements » en courbes, et la feuille
- * d'un mouvement.
+ * Progrès (F2, F3) : les records, « Tes mouvements » en courbes, la feuille
+ * d'un mouvement, le mois et la liste des séances, et le détail d'une
+ * séance — en panneau sur grand écran, en feuille sur téléphone — avec
+ * « Corriger ».
  *
  * L'ancien écran ouvrait sur un calendrier, et rangeait « 20 → 24 → 26 kg »
  * dans une colonne étroite dessous. La maquette met en tête les records,
@@ -356,6 +358,167 @@ const SEPTEMBER = new Date('2026-09-05T10:00:00+02:00');
   await ctx.close();
 }
 
+const lines = (scope) =>
+  scope
+    .locator('[data-done-line]')
+    .evaluateAll((nodes) =>
+      nodes.map((n) => n.innerText.replace(/\s+/g, ' ').trim())
+    )
+    .catch(() => []);
+const recordLines = (scope) =>
+  scope
+    .locator('[data-done-line][data-record]')
+    .evaluateAll((nodes) => nodes.map((n) => n.innerText.split('\n')[0].trim()))
+    .catch(() => []);
+
+{
+  console.log('\n── le détail d’une séance');
+  // Une réponse de Julie, pas encore lue, sur la dernière.
+  const reply = {
+    coachId: 'coach-julie',
+    firstName: 'Julie',
+    text: 'Bien joué, on garde 26.',
+    sentAt: '2026-08-31T08:00:00.000Z',
+  };
+  const history = (await serverHistory()).map((c) =>
+    c._id === 'cs6' ? { ...c, replies: [reply] } : c
+  );
+  const { ctx, p } = await open(MOBILE, history);
+  const reads = [];
+  await ctx.route(/\/replies\/read$/, (route) => {
+    reads.push(route.request().url());
+    return route.fulfill({
+      json: {
+        completed: {
+          ...history.find((c) => c._id === 'cs6'),
+          replies: [{ ...reply, readAt: '2026-09-01T08:00:00.000Z' }],
+        },
+      },
+    });
+  });
+  await p
+    .locator('main [data-session-row="cs6"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  // Lue sans son nom : un nom cassé ne doit faire tomber que l'assertion
+  // qui le regarde.
+  const sheet = p.getByRole('dialog');
+  const name = await sheet.getAttribute('aria-label').catch(() => null);
+  ok(
+    'sur téléphone, une séance s’ouvre en feuille, nommée par sa date',
+    (await sheet.count()) === 1 && name === 'Full body A · Dimanche 30 août',
+    name ?? '(aucune feuille)'
+  );
+  const feeling = sheet.locator('[data-detail-feeling]');
+  ok(
+    '→ son ressenti : le visage, le mot, et ce qu’il veut dire',
+    (await text(feeling)) === "Trop dure « je n'ai pas pu tout faire »" &&
+      (await feeling.getAttribute('data-detail-feeling').catch(() => '')) ===
+        'hard',
+    await text(feeling)
+  );
+  const said = await text(sheet);
+  ok(
+    '→ ton mot, et sous lui la réponse de Julie, que l’ouvrir marque lue',
+    /Ton mot Dur sur la fin\. Julie Bien joué, on garde 26\./i.test(said) &&
+      reads.length === 1 &&
+      reads[0].includes('/cs6/'),
+    `${reads.length} lecture(s) · ${said.slice(0, 120)}`
+  );
+  const done = await lines(sheet);
+  ok(
+    '→ ce que tu as fait, mouvement par mouvement : le format et la dose, le fait en face',
+    done.join(' | ') ===
+      [
+        'Corde à sauter Échauffement · 2 min fait',
+        'Mountain Climbers Échauffement · 15 reps fait, sans charge notée',
+        'Kettlebell Swing EMOM · 15 reps 15 reps · 20 kg',
+        'Goblet Squat EMOM · 12 reps 12 reps · 26 kg Record',
+        'Burpee AMRAP · 10 reps fait, sans charge notée',
+        'Row (rameur) AMRAP · 1 min fait',
+        'Fentes marchées AMRAP · 20 reps 20 reps · 12 kg',
+      ].join(' | '),
+    done.join(' | ')
+  );
+  // Le swing a fait 20 kg le 26 et le 30 : son record est au 26, et le 30
+  // ne le porte pas.
+  const here = await recordLines(sheet);
+  await p.keyboard.press('Escape');
+  await settle(p);
+  await p
+    .locator('main [data-session-row="cs5"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const before = await recordLines(p.getByRole('dialog'));
+  ok(
+    '→ un record se marque sur la seule séance qui l’a établi',
+    here.join() === 'Goblet Squat' && before.join() === 'Kettlebell Swing',
+    `30 août : ${here.join()} · 26 août : ${before.join()}`
+  );
+  // Ce qui s'affiche, et ce que dit le lecteur d'écran : l'attribut
+  // `data-up` restait posé quand la flèche ne l'était plus.
+  const arrows = (await lines(p.getByRole('dialog'))).filter((l) =>
+    l.includes('↗')
+  );
+  ok(
+    '→ une charge plus lourde que la fois d’avant porte sa flèche',
+    arrows.join(' | ') ===
+      'Goblet Squat EMOM · 12 reps 12 reps · 24 kg ↗ , plus lourd que la fois d’avant',
+    arrows.join(' | ') || '(aucune flèche)'
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── l’ancien bilan');
+  const { ctx, p } = await open();
+  const patched = [];
+  await ctx.route(/\/api\/client\/sessions\/completed\/[^/]+$/, (route) => {
+    if (route.request().method() === 'PATCH')
+      patched.push(route.request().postDataJSON());
+    return route.fallback();
+  });
+  await p
+    .locator('main [data-session-row="cs3"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog');
+  ok(
+    'un ancien bilan montre ses cinq axes, sans visage ni moyenne',
+    (await text(sheet.locator('[data-legacy-metrics]'))) ===
+      'Stress 1/5 Humeur 5/5 Énergie 4/5 Sommeil 5/5 Douleurs 1/5' &&
+      (await sheet.locator('[data-detail-feeling]').count()) === 0,
+    await text(sheet.locator('[data-legacy-metrics]'))
+  );
+  await p
+    .getByRole('button', { name: 'Corriger' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const loads = p.getByRole('dialog', { name: 'Mes charges' });
+  const save = loads.getByRole('button', { name: 'Enregistrer', exact: true });
+  ok(
+    '→ « Corriger » rouvre ses charges, et s’enregistre de là : aucun ressenti à inventer',
+    (await loads.count()) === 1 &&
+      (await save.count()) === 1 &&
+      (await loads.getByRole('button', { name: 'Continuer' }).count()) === 0
+  );
+  await save.click({ timeout: 2000 }).catch(() => {});
+  await settle(p);
+  ok(
+    '→ rien de changé : rien n’est envoyé, et la séance revient',
+    patched.length === 0 &&
+      (await p.getByRole('dialog', { name: 'Mes charges' }).count()) === 0 &&
+      (await p.getByRole('dialog', { name: 'Le ressenti' }).count()) === 0 &&
+      (await p.locator('[data-legacy-metrics]').count()) === 1,
+    `${patched.length} envoi(s)`
+  );
+  await ctx.close();
+}
+
 {
   console.log('\n── sur grand écran');
   const { ctx, p } = await open(WIDE);
@@ -371,6 +534,122 @@ const SEPTEMBER = new Date('2026-09-05T10:00:00+02:00');
     'les records et les mouvements à gauche, le mois et les séances à droite',
     left >= 0 && calendar > left + 300,
     `${left} · ${calendar}`
+  );
+
+  const aside = p.getByRole('complementary', { name: 'Séance ouverte' });
+  ok(
+    'le panneau attend une séance, et dit ce qu’il montrera',
+    /^Ouvre une séance/.test(await text(aside)),
+    await text(aside)
+  );
+  const row = p.locator('main [data-session-row="cs6"]');
+  await row.click({ timeout: 2000 }).catch(() => {});
+  await settle(p);
+  const list = await p
+    .locator('main [data-session-list]')
+    .evaluate((el) => el.getBoundingClientRect().right)
+    .catch(() => -1);
+  const panel = await aside
+    .evaluate((el) => el.getBoundingClientRect().left)
+    .catch(() => -1);
+  ok(
+    'une ligne ouvre sa séance dans le panneau, à droite de la liste, sans feuille',
+    (await aside.locator('[data-completed-detail="cs6"]').count()) === 1 &&
+      (await p.getByRole('dialog').count()) === 0 &&
+      list > 0 &&
+      panel > list,
+    `liste jusqu’à ${list} · panneau dès ${panel}`
+  );
+  ok(
+    '→ la ligne ouverte le dit',
+    (await row.getAttribute('aria-current').catch(() => null)) === 'true' &&
+      (await p
+        .locator('main [aria-current="true"][data-session-row]')
+        .count()) === 1
+  );
+  await ctx.close();
+}
+
+// En dernier : la correction s'enregistre sur le serveur d'essai, que les
+// parties d'avant lisent tel qu'il démarre.
+{
+  console.log('\n── corriger une séance');
+  const { ctx, p } = await open();
+  const patched = [];
+  await ctx.route(/\/api\/client\/sessions\/completed\/[^/]+$/, (route) => {
+    if (route.request().method() === 'PATCH')
+      patched.push(route.request().postDataJSON());
+    return route.fallback();
+  });
+  await p
+    .locator('main [data-session-row="cs4"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  await p
+    .getByRole('button', { name: 'Corriger' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  // Le goblet du 22 : 20 kg, ramené à 19.
+  await p
+    .locator('[data-load-row="2:2"] button[aria-label$="à corriger"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p
+    .getByRole('button', { name: 'Un kilo de moins' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p
+    .getByRole('button', { name: 'Continuer', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const feeling = p.getByRole('dialog', { name: 'Le ressenti' });
+  const date = feeling.getByRole('textbox', {
+    name: 'Date de réalisation de la séance',
+  });
+  ok(
+    '« Corriger » rouvre tes charges, puis ton ressenti tel que tu l’as laissé, date comprise',
+    (await text(feeling.locator('h1'))) === 'Ton ressenti' &&
+      (await feeling
+        .getByRole('radio', { name: /^Juste/ })
+        .getAttribute('aria-checked')
+        .catch(() => null)) === 'true' &&
+      (await date.inputValue().catch(() => '')) === '22/08/2026',
+    `${await text(feeling.locator('h1'))} · ${await date.inputValue().catch(() => '(pas de date)')}`
+  );
+  await date.fill('21/08/2026').catch(() => {});
+  await date.press('Enter').catch(() => {});
+  await settle(p);
+  await feeling
+    .getByRole('button', { name: 'Enregistrer', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const back = p.getByRole('dialog', {
+    name: 'Full body A · Vendredi 21 août',
+  });
+  await back.waitFor({ timeout: 6000 }).catch(() => {});
+  const [sent] = patched;
+  ok(
+    '→ n’envoie que ce qui a changé : une charge, le ressenti tel quel, et la date',
+    patched.length === 1 &&
+      JSON.stringify(sent.performed) ===
+        JSON.stringify([
+          { blockOrder: 2, exerciseOrder: 2, sets: [{ weight: 19, reps: 12 }] },
+        ]) &&
+      JSON.stringify(sent.feedback) === JSON.stringify({ effort: 3 }) &&
+      sent.clientNotes === 'Bon rythme.' &&
+      sent.completedAt === '2026-08-21',
+    JSON.stringify(patched)
+  );
+  const after = await text(back);
+  ok(
+    '→ la séance revient corrigée : à sa nouvelle date, avec sa charge, et « Corrigée le »',
+    (await lines(back)).includes(
+      'Goblet Squat EMOM · 12 reps 12 reps · 19 kg'
+    ) && /Corrigée le \d+ \p{L}+/u.test(after),
+    after.slice(-80)
   );
   await ctx.close();
 }

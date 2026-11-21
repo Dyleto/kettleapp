@@ -11,10 +11,14 @@ import { FeedbackTags } from '@/features/client/end/FeedbackTags';
 import { useCoachVoice } from '@/features/client/common/coach';
 
 interface FeelingProps {
+  /** `completedAt` n'est donné que pour un autre jour qu'aujourd'hui ;
+   * `day` est toujours le jour choisi — une correction compare au jour
+   * enregistré, pas à aujourd'hui. */
   onSubmit: (
     feedback: SessionFeedback,
     notes: string,
-    completedAt?: string
+    completedAt?: string,
+    day?: string
   ) => void;
   /** L'envoi est en cours : le bouton attend la réponse. */
   isSending: boolean;
@@ -32,6 +36,22 @@ interface FeelingProps {
    * redemande pas.
    */
   date?: string;
+  /**
+   * Ce qui était enregistré, quand on corrige une séance déjà envoyée
+   * (F3b) : l'écran rouvre sur ces valeurs au lieu de partir de rien —
+   * un client qui corrige sa date ne doit pas avoir à redire son effort.
+   */
+  initial?: { effort?: number; tags?: FeedbackTag[]; notes?: string };
+  /** Le titre, la ligne et le bouton d'une correction ; ceux de la fin de
+   * séance sinon. */
+  title?: string;
+  line?: string;
+  submitLabel?: string;
+  /** Ce que dit un envoi raté : une correction n'a rien laissé sur le
+   * téléphone, elle dit que la séance n'a pas bougé. */
+  failedLine?: string;
+  /** Le nom de la croix : une correction ne part pas, elle s'abandonne. */
+  closeLabel?: string;
 }
 
 // Le jour local, pas celui de Greenwich : `toISOString` rendait la veille
@@ -63,14 +83,20 @@ export const Feeling = ({
   onClose,
   onLeave,
   date,
+  initial,
+  title,
+  line,
+  submitLabel,
+  failedLine,
+  closeLabel = 'Quitter sans envoyer',
 }: FeelingProps) => {
   const coach = useCoachVoice();
   const { user } = useAuth();
   const sharesHealth = user?.healthConsent?.granted === true;
 
-  const [effort, setEffort] = useState<number | undefined>(undefined);
-  const [tags, setTags] = useState<FeedbackTag[]>([]);
-  const [notes, setNotes] = useState('');
+  const [effort, setEffort] = useState<number | undefined>(initial?.effort);
+  const [tags, setTags] = useState<FeedbackTag[]>(initial?.tags ?? []);
+  const [notes, setNotes] = useState(initial?.notes ?? '');
   const [completedAt, setCompletedAt] = useState(
     () => date ?? toDateInputValue(new Date())
   );
@@ -84,7 +110,8 @@ export const Feeling = ({
     onSubmit(
       { effort, ...(tags.length > 0 ? { tags } : {}) },
       notes,
-      completedAt !== today ? completedAt : undefined
+      completedAt !== today ? completedAt : undefined,
+      completedAt
     );
   };
 
@@ -103,7 +130,7 @@ export const Feeling = ({
       <HStack justify="flex-end" px={3} pt={3}>
         <Box
           as="button"
-          aria-label="Quitter sans envoyer"
+          aria-label={closeLabel}
           w="44px"
           h="44px"
           display="grid"
@@ -134,10 +161,11 @@ export const Feeling = ({
             fontWeight="800"
             lineHeight="1.1"
           >
-            Alors, cette séance&nbsp;?
+            {title ?? 'Alors, cette séance\u00A0?'}
           </Text>
           <Text color="fg.muted">
-            Une touche. C’est ce qui permet à {coach.inline} de régler la suite.
+            {line ??
+              `Une touche. C’est ce qui permet à ${coach.inline} de régler la suite.`}
           </Text>
         </VStack>
 
@@ -227,8 +255,8 @@ export const Feeling = ({
       >
         {failed && !isSending && (
           <Text role="alert" textAlign="center" fontSize="sm" color="fg.muted">
-            L’envoi n’est pas parti. Ta séance reste sur ce téléphone, rien
-            n’est perdu.
+            {failedLine ??
+              'L’envoi n’est pas parti. Ta séance reste sur ce téléphone, rien n’est perdu.'}
           </Text>
         )}
         {/* Sans réseau, réessayer d'une touche ne servirait à rien : le
@@ -253,7 +281,9 @@ export const Feeling = ({
             disabled={effort === undefined}
             loading={isSending}
           >
-            {failed ? 'Réessayer' : `Envoyer à ${coach.inline}`}
+            {failed
+              ? 'Réessayer'
+              : (submitLabel ?? `Envoyer à ${coach.inline}`)}
           </ActionButton>
         )}
       </VStack>

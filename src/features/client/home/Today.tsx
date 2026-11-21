@@ -18,7 +18,8 @@ import {
   CLIENT_CONTENT_MAX_W,
   CLIENT_GRID_MAX_W,
 } from '@/features/client/shell/layout';
-import { CompletedSessionDrawer } from '@/features/client/progress/CompletedSessionDrawer';
+import { CompletedSheet } from '@/features/client/progress/CompletedDetail';
+import { CorrectFlow } from '@/features/client/progress/CorrectFlow';
 import { useClientSessions } from '@/features/client/common/useClientSessions';
 import { buildWeekPlan } from '@/domain/week/plan';
 import { dayKey, WEEKDAY_FULL } from '@/domain/week/dates';
@@ -85,8 +86,8 @@ const Today = () => {
   const navigate = useNavigate();
   const { sessions, nextSession, history, isLoading, coach, sendPending } =
     useOutletContext<ClientSessionsData>();
-  const [opened, setOpened] = useState<CompletedSession | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [openedId, setOpenedId] = useState<string | null>(null);
+  const [correcting, setCorrecting] = useState(false);
   const [confirmRestart, setConfirmRestart] = useState(false);
   // L'enregistrement du téléphone, relu quand le programme ou l'historique
   // change : un ressenti parti en arrière-plan efface l'enregistrement, puis
@@ -98,9 +99,12 @@ const Today = () => {
     [sessions, history]
   );
 
+  // Relue dans l'historique à chaque rendu, comme dans Progrès : une
+  // correction enregistrée se voit sans refermer la séance.
+  const opened = history.find((c) => c._id === openedId) ?? null;
   const openCompleted = (completed: CompletedSession) => {
-    setOpened(completed);
-    setDrawerOpen(true);
+    setCorrecting(false);
+    setOpenedId(completed._id);
   };
   // `from` dit à la fiche d'où l'on vient : son lien de retour ramène ici,
   // et non au programme.
@@ -409,13 +413,17 @@ const Today = () => {
         </Sheet>
       )}
 
-      {opened && (
-        <CompletedSessionDrawer
+      {opened && !correcting && (
+        <CompletedSheet
           completed={opened}
-          isOpen={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          editable
+          history={history}
+          viewer="self"
+          onCorrect={() => setCorrecting(true)}
+          onClose={() => setOpenedId(null)}
         />
+      )}
+      {opened && correcting && (
+        <CorrectFlow completed={opened} onClose={() => setCorrecting(false)} />
       )}
     </Container>
   );

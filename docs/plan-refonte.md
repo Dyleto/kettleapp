@@ -16,7 +16,7 @@ le rangement (B12) et avant `main` (H1).
 | ------------------------- | ------ | ---- | ------- | ------- |
 | Fondations                | 5      | 3    | 2       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
-| Client (hors séance)      | 6      | 2    | 2       | 2       |
+| Client (hors séance)      | 6      | 4    | 2       | 0       |
 | Coach                     | 7      | 1    | 2       | 4       |
 | Commun                    | 3      | 0    | 2       | 1       |
 | Ce que ça demande à l'API | 6      | 6    | 0       | 0       |
@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 847 tests unitaires, 50 suites de banc et 861
-assertions, 4 min 34 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 856 tests unitaires, 50 suites de banc et 876
+assertions, 4 min 53 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -66,7 +66,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                  |
 | Programme       | **fait** | Là : la durée, la barre de composition, les jours en pastilles, l'état en pastille dont « En cours » et « Modifiée depuis ta dernière fois », le chargement. |
 | Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                    |
-| Progrès         | partiel  | Là : les records, les mouvements en courbes, la feuille d'un mouvement, le calendrier à pastilles, la liste et ses mentions. Manque le détail (F3b).         |
+| Progrès         | **fait** | Là : les records, les mouvements en courbes, la feuille d'un mouvement, le calendrier à pastilles, la liste et ses mentions, le détail et « Corriger ».      |
 | Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                            |
 | Premiers pas    | partiel  | La question des données de santé existe. Les trois cartes de bienvenue et le détail dépliable manquent.                                                      |
 
@@ -481,7 +481,7 @@ banc actuel, inchangé, qui le prouve.
       l'a établi. Seules les charges ont une courbe : l'ancienne colonne
       mêlait kilos, répétitions totales et secondes ; elle part, avec sa
       logique. Le calendrier et la liste attendent F3.
-- [ ] **F3** Progrès : calendrier à pastilles d'effort, liste et ses
+- [x] **F3** Progrès : calendrier à pastilles d'effort, liste et ses
       mentions, détail, « Corriger », ancien bilan à cinq axes. En deux
       temps.
   - [x] **F3a** Le calendrier du kit, toujours là — plus de « Filtrer par
@@ -497,9 +497,20 @@ banc actuel, inchangé, qui le prouve.
         sabotage a montré que le calendrier du kit gardait le mois de son
         premier rendu : monté avant l'historique, il restait sur un mois
         vide. Il suit désormais un nouveau mois de départ.
-  - [ ] **F3b** Le détail : panneau sur grand écran, feuille sur
+  - [x] **F3b** Le détail : panneau sur grand écran, feuille sur
         téléphone ; « Corriger » qui rouvre les charges puis le ressenti,
-        date comprise ; l'ancien bilan à cinq axes.
+        date comprise ; l'ancien bilan à cinq axes. Le détail dit le
+        ressenti par son visage, « Ton mot » et la réponse du coach en
+        bulles, puis une ligne par mouvement — son format, sa dose, le fait
+        en face, la flèche d'une charge qui monte, et le record en ambre sur
+        la seule séance qui l'a établi. « Corriger » rouvre « Mes charges »
+        puis le ressenti, sur les valeurs enregistrées, et n'envoie que ce
+        qui a changé ; un ancien bilan s'enregistre dès ses charges, sans
+        ressenti à inventer. Le tiroir du bilan part, avec ses champs de
+        série et les cartes de bloc qu'il était seul à lire. L'accueil
+        ouvre le même détail en feuille — le jour fait comme « Voir ta
+        dernière séance » —, et l'aperçu d'un client chez le coach aussi,
+        au « Son mot », sans « Corriger ».
 - [ ] **F4** Clients : tuiles, lignes, recherche, tri, panneau, état vide.
 - [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ».
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
@@ -545,8 +556,6 @@ banc actuel, inchangé, qui le prouve.
 
 Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 
-- **Le jour fait s'ouvre sur place**, dans un tiroir — tant que Progrès n'a
-  pas son détail (F3).
 - **« À lire » ne se recharge pas en tirant vers le bas** : le geste est
   à faire pour tout l'espace, avec les autres états (G).
 - **Changer d'unité prévient après coup**, par la bannière « Annuler », et

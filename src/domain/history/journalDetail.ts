@@ -61,7 +61,14 @@ export const plannedDose = (
 export interface DoneLine {
   key: string;
   name: string;
-  /** « prévu 4 × 12 reps », ou rien. */
+  /** Le mouvement, quand l'instantané le nomme : le détail du client
+   * l'éclaire en ambre s'il y a battu son record. */
+  exerciseId?: string;
+  /** « EMOM » : le format du bloc ce jour-là. */
+  format: string;
+  /** « 4 × 12 reps », ce qui était prescrit, ou rien. */
+  dose: string | null;
+  /** « prévu 4 × 12 reps », ou rien : la même dose, dite au coach. */
   planned: string | null;
   done: string;
   /** Faux quand rien n'a été noté : la ligne se met en retrait, pour que
@@ -137,6 +144,9 @@ export const doneLines = (
             {
               key: `${block.order}:${entry.order}`,
               name: typeof name === 'string' ? name : 'Exercice',
+              ...(typeof id === 'string' ? { exerciseId: id } : {}),
+              format: formatName(block.type as BlockType),
+              dose: planned,
               planned: planned ? `prévu ${planned}` : null,
               done:
                 noted ??
@@ -159,6 +169,8 @@ export const doneLines = (
         {
           key: `${block.order}:score`,
           name: `${block.label || formatName(block.type as BlockType)}${minutes}`,
+          format: formatName(block.type as BlockType),
+          dose: null,
           planned: null,
           done: result,
           noted: true,

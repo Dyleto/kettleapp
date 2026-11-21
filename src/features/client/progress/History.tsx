@@ -1,10 +1,23 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router';
-import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
+import {
+  Box,
+  Container,
+  Grid,
+  HStack,
+  Text,
+  useBreakpointValue,
+  VStack,
+} from '@chakra-ui/react';
 import { LuFlame } from 'react-icons/lu';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { CLIENT_GRID_MAX_W } from '@/features/client/shell/layout';
-import { CompletedSessionDrawer } from '@/features/client/progress/CompletedSessionDrawer';
+import {
+  CompletedDetail,
+  CompletedSheet,
+} from '@/features/client/progress/CompletedDetail';
+import { CorrectFlow } from '@/features/client/progress/CorrectFlow';
+import { useCoachVoice } from '@/features/client/common/coach';
 import { DaySheet, SessionList } from '@/features/client/progress/SessionList';
 import {
   MovementList,
@@ -44,6 +57,11 @@ const History = () => {
   const [movementId, setMovementId] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);
   const [openedId, setOpenedId] = useState<string | null>(null);
+  const [correcting, setCorrecting] = useState(false);
+  const coach = useCoachVoice();
+  // Le détail tient à côté du mois et de la liste à partir de 1 280 px ;
+  // en dessous, il monte en feuille — comme le journal du coach.
+  const wide = useBreakpointValue({ base: false, xl: true }) ?? false;
 
   const movements = useMemo(() => movementsOf(history), [history]);
   const records = useMemo(() => recordCards(history), [history]);
@@ -64,12 +82,13 @@ const History = () => {
   const opened = history.find((c) => c._id === openedId) ?? null;
   const open = (completed: CompletedSession) => {
     setDay(null);
+    setCorrecting(false);
     setOpenedId(completed._id);
   };
   const count = history.length;
 
   return (
-    <Container maxW={CLIENT_GRID_MAX_W} py={6} px={4}>
+    <Container maxW={{ base: CLIENT_GRID_MAX_W, xl: '7xl' }} py={6} px={4}>
       <VStack align="stretch" gap="16px">
         <HStack gap="12px" wrap="wrap">
           <Text
@@ -112,7 +131,11 @@ const History = () => {
           />
         ) : (
           <Grid
-            templateColumns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }}
+            templateColumns={{
+              base: '1fr',
+              md: 'repeat(2, minmax(0, 1fr))',
+              xl: 'repeat(2, minmax(0, 1fr)) 360px',
+            }}
             gap={{ base: '16px', md: '24px' }}
             alignItems="start"
           >
@@ -136,8 +159,41 @@ const History = () => {
                   else if (ofDay.length > 1) setDay(picked);
                 }}
               />
-              <SessionList history={recent} sessions={sessions} onOpen={open} />
+              <SessionList
+                history={recent}
+                sessions={sessions}
+                openId={wide ? openedId : null}
+                onOpen={open}
+              />
             </VStack>
+
+            {wide && (
+              <Box
+                as="aside"
+                aria-label="Séance ouverte"
+                position="sticky"
+                top="24px"
+                maxH="calc(100dvh - 48px)"
+                overflowY="auto"
+                bg="bg.surface"
+                borderRadius="18px"
+                p="20px"
+              >
+                {opened ? (
+                  <CompletedDetail
+                    completed={opened}
+                    history={history}
+                    viewer="self"
+                    onCorrect={() => setCorrecting(true)}
+                  />
+                ) : (
+                  <Text color="fg.muted" fontSize="sm">
+                    Ouvre une séance : elle s’affiche ici, avec tes charges et
+                    ce que {coach.inline} t’a répondu.
+                  </Text>
+                )}
+              </Box>
+            )}
           </Grid>
         )}
       </VStack>
@@ -157,13 +213,20 @@ const History = () => {
           onClose={() => setDay(null)}
         />
       )}
-      {opened && (
-        <CompletedSessionDrawer
+      {opened && !wide && !correcting && (
+        <CompletedSheet
           completed={opened}
-          isOpen
-          editable
+          history={history}
+          viewer="self"
+          onCorrect={() => setCorrecting(true)}
           onClose={() => setOpenedId(null)}
         />
+      )}
+      {/* La feuille se retire le temps de corriger, et revient sur la
+          séance corrigée : les écrans de la fin de séance passent sous
+          elle. */}
+      {opened && correcting && (
+        <CorrectFlow completed={opened} onClose={() => setCorrecting(false)} />
       )}
     </Container>
   );

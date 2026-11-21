@@ -91,12 +91,12 @@ export default {
       name: 'le détail ne montre plus la réponse',
       edits: [
         {
-          file: 'src/features/client/progress/CompletedSessionDrawer.tsx',
-          from: '                            {replyLine(reply)}',
-          to: "                            {''}",
+          file: 'src/features/client/progress/CompletedDetail.tsx',
+          from: '              {replyLine(reply)}',
+          to: "              {''}",
         },
       ],
-      // Le tiroir du client n'est plus celui des ressentis du coach (E11c) :
+      // Le détail du client n'est pas celui des ressentis du coach (E11c) :
       // il tombe côté client, et dans l'aperçu de la liste des clients.
       falls: [
         'dans le détail de la séance, la même bulle, sous son mot',
@@ -107,12 +107,12 @@ export default {
       name: 'le coach lit à la place du client',
       edits: [
         {
-          file: 'src/features/client/progress/CompletedSessionDrawer.tsx',
-          from: '    if (isOpen && editable && hasUnread(completed.replies))',
-          to: '    if (isOpen && hasUnread(completed.replies))',
+          file: 'src/features/client/progress/CompletedDetail.tsx',
+          from: '    if (self && hasUnread(completed.replies)) markRead(completed._id);',
+          to: '    if (hasUnread(completed.replies)) markRead(completed._id);',
         },
       ],
-      // Le coach n'ouvre plus ce tiroir que dans l'aperçu de la liste des
+      // Le coach n'ouvre ce détail que dans l'aperçu de la liste des
       // clients : c'est là que la garde s'éprouve depuis E11c.
       falls: [
         'dans l’aperçu d’un client, le coach voit ses réponses sans les marquer lues',

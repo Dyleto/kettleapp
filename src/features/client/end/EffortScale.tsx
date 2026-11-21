@@ -61,6 +61,35 @@ const FACES: Record<number, ReactElement> = {
 };
 
 /**
+ * Le visage d'un cran, seul : le détail d'une séance faite le pose à côté
+ * de son ressenti (F3b), le même que le client a touché en fin de séance —
+ * il le reconnaît avant de lire le mot.
+ */
+export const EffortFace = ({
+  value,
+  size = 56,
+}: {
+  value: number;
+  size?: number;
+}) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 40 40"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    focusable="false"
+  >
+    <circle cx="20" cy="20" r="16" />
+    {FACES[value]}
+  </svg>
+);
+
+/**
  * Les cinq crans du ressenti, du plus facile au plus dur.
  *
  * Elle se lisait dans l'autre sens, et avec des numéros : « 1 » y voulait

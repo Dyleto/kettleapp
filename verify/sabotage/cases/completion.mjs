@@ -22,8 +22,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/end/Feeling.tsx',
-          from: '  const [effort, setEffort] = useState<number | undefined>(undefined);',
-          to: '  const [effort, setEffort] = useState<number | undefined>(3);',
+          from: '  const [effort, setEffort] = useState<number | undefined>(initial?.effort);',
+          to: '  const [effort, setEffort] = useState<number | undefined>(initial?.effort ?? 3);',
         },
       ],
       falls: ['→ et attend un visage : rien n’est choisi d’avance'],
@@ -33,8 +33,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/end/Feeling.tsx',
-          from: "          {failed ? 'Réessayer' : `Envoyer à ${coach.inline}`}",
-          to: '          {failed ? `Envoyer à ${coach.inline}` : `Envoyer à ${coach.inline}`}',
+          from: "            {failed\n              ? 'Réessayer'",
+          to: "            {false\n              ? 'Réessayer'",
         },
       ],
       falls: ['→ le bouton redevient actif : « Réessayer »'],

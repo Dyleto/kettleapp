@@ -27,6 +27,10 @@ interface LoadsProps {
    * la flèche revient à la séance, « Continuer » mène au ressenti.
    */
   from: 'end' | 'declared';
+  /** Le bouton du bas d'une séance déclarée. « Continuer » mène au
+   * ressenti ; la correction d'un ancien bilan, qui n'en a pas, enregistre
+   * d'ici. */
+  doneLabel?: string;
   onDone: () => void;
   onBack: () => void;
 }
@@ -53,6 +57,7 @@ export const Loads = ({
   onPerformedChange,
   lastPerformance,
   from,
+  doneLabel = 'Continuer',
   onDone,
   onBack,
 }: LoadsProps) => {
@@ -142,7 +147,7 @@ export const Loads = ({
       {from === 'declared' && (
         <Box px={4} pt={2} pb="calc(env(safe-area-inset-bottom, 0px) + 12px)">
           <ActionButton size="xl" w="full" onClick={onDone}>
-            Continuer
+            {doneLabel}
           </ActionButton>
         </Box>
       )}

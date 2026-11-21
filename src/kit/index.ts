@@ -24,6 +24,7 @@ export { ErrorState } from './ErrorState';
 export { Eyebrow } from './Eyebrow';
 export { FullScreenState } from './FullScreenState';
 export { hitArea, touchGap, touchHitArea, touchRow, TOUCH } from './hitArea';
+export { LegacyMetrics } from './LegacyMetrics';
 export { LinkButton } from './LinkButton';
 export { LoadFailure } from './LoadFailure';
 export { Mascot, type MascotMood } from './Mascot';

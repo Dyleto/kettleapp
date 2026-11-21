@@ -36,6 +36,33 @@ const LIST =
   'une ligne par séance, la plus récente d’abord : son nom, sa date, ce qu’il y a à savoir, son ressenti';
 const ROW_OPENS = '→ une ligne ouvre sa séance';
 
+const DETAIL = 'src/features/client/progress/CompletedDetail.tsx';
+const CORRECT = 'src/features/client/progress/CorrectFlow.tsx';
+const SHEET_NAMED =
+  'sur téléphone, une séance s’ouvre en feuille, nommée par sa date';
+const FEELING = '→ son ressenti : le visage, le mot, et ce qu’il veut dire';
+const REPLY =
+  '→ ton mot, et sous lui la réponse de Julie, que l’ouvrir marque lue';
+const DONE =
+  '→ ce que tu as fait, mouvement par mouvement : le format et la dose, le fait en face';
+const RECORD_ONCE = '→ un record se marque sur la seule séance qui l’a établi';
+const ARROW = '→ une charge plus lourde que la fois d’avant porte sa flèche';
+const LEGACY = 'un ancien bilan montre ses cinq axes, sans visage ni moyenne';
+const LEGACY_LOADS =
+  '→ « Corriger » rouvre ses charges, et s’enregistre de là : aucun ressenti à inventer';
+const LEGACY_BACK =
+  '→ rien de changé : rien n’est envoyé, et la séance revient';
+const PLACEHOLDER = 'le panneau attend une séance, et dit ce qu’il montrera';
+const PANEL =
+  'une ligne ouvre sa séance dans le panneau, à droite de la liste, sans feuille';
+const CURRENT = '→ la ligne ouverte le dit';
+const REOPEN =
+  '« Corriger » rouvre tes charges, puis ton ressenti tel que tu l’as laissé, date comprise';
+const SENT =
+  '→ n’envoie que ce qui a changé : une charge, le ressenti tel quel, et la date';
+const CORRECTED =
+  '→ la séance revient corrigée : à sa nouvelle date, avec sa charge, et « Corrigée le »';
+
 export default {
   suite: 'verify_progress.mjs',
   cases: [
@@ -217,11 +244,13 @@ export default {
       edits: [
         {
           file: PAGE,
-          from: "            templateColumns={{ base: '1fr', md: 'repeat(2, minmax(0, 1fr))' }}",
-          to: '            templateColumns="1fr"',
+          from: "              md: 'repeat(2, minmax(0, 1fr))',\n              xl: 'repeat(2, minmax(0, 1fr)) 360px',",
+          to: "              md: '1fr',\n              xl: '1fr',",
         },
       ],
-      falls: [WIDE],
+      // Sur une colonne, le panneau passe sous la liste, et non plus à
+      // côté : il tombe avec.
+      falls: [WIDE, PANEL],
     },
     {
       name: 'le calendrier s’ouvre sur l’avenir',
@@ -348,6 +377,201 @@ export default {
         },
       ],
       falls: [EACH, ROW_OPENS],
+    },
+    {
+      // La correction attend la feuille par son nom pour la relire : elle
+      // tombe avec.
+      name: 'la feuille d’une séance perd son nom',
+      edits: [
+        {
+          file: DETAIL,
+          from: '        label={`${titleOf(detail.completed)} · ${detailDate(detail.completed.completedAt)}`}',
+          to: '        label="Séance"',
+        },
+      ],
+      falls: [SHEET_NAMED, CORRECTED],
+    },
+    {
+      name: 'le ressenti ne dit plus ce qu’il veut dire',
+      edits: [
+        {
+          file: DETAIL,
+          from: '                « {level.description} »',
+          to: '',
+        },
+      ],
+      falls: [FEELING],
+    },
+    {
+      name: 'le détail ne montre plus la réponse du coach',
+      edits: [
+        {
+          file: DETAIL,
+          from: '              {replyLine(reply)}',
+          to: "              {''}",
+        },
+      ],
+      falls: [REPLY],
+    },
+    {
+      name: 'ouvrir une séance ne marque plus sa réponse lue',
+      edits: [
+        {
+          file: DETAIL,
+          from: '    if (self && hasUnread(completed.replies)) markRead(completed._id);',
+          to: '    if (false) markRead(completed._id);',
+        },
+      ],
+      falls: [REPLY],
+    },
+    {
+      name: 'une ligne perd le format de son bloc',
+      edits: [
+        {
+          file: DETAIL,
+          from: "              const sub = [line.format, line.dose].filter(Boolean).join(' · ');",
+          to: "              const sub = [line.dose].filter(Boolean).join(' · ');",
+        },
+      ],
+      falls: [DONE, CORRECTED],
+    },
+    {
+      name: 'chaque passage qui égale un record le porte',
+      edits: [
+        {
+          file: DETAIL,
+          from: '          .filter((m) => m.recordId === completed._id)',
+          to: '          .filter((m) => completed.blocks.some((b) => b.exercises.some((e) => e.exercise?._id === m.exerciseId && e.performed?.sets?.some((set) => set.weight === m.best))))',
+        },
+      ],
+      falls: [DONE, RECORD_ONCE],
+    },
+    {
+      name: 'le record ne se dit plus sur sa ligne',
+      edits: [
+        {
+          file: DETAIL,
+          from: '                    {record && <Chip tone="amber">Record</Chip>}',
+          to: '',
+        },
+      ],
+      falls: [DONE],
+    },
+    {
+      name: 'la flèche d’une charge qui monte disparaît',
+      edits: [
+        {
+          file: DETAIL,
+          from: '                      {line.up && !record && (',
+          to: '                      {false && (',
+        },
+      ],
+      falls: [ARROW],
+    },
+    {
+      // Le retour au détail se reconnaît à ses axes : il tombe avec.
+      name: 'un ancien bilan ne montre plus ses axes',
+      edits: [
+        {
+          file: DETAIL,
+          from: '        completed.metrics && <LegacyMetrics metrics={completed.metrics} />',
+          to: '        null',
+        },
+      ],
+      falls: [LEGACY, LEGACY_BACK],
+    },
+    {
+      name: 'un ancien bilan demande un ressenti',
+      edits: [
+        {
+          file: CORRECT,
+          from: '  const legacy = !completed.feedback;',
+          to: '  const legacy = false;',
+        },
+      ],
+      falls: [LEGACY_LOADS, LEGACY_BACK],
+    },
+    {
+      // Sans visage, « Enregistrer » attend : rien ne part.
+      name: '« Corriger » repart d’un ressenti vide',
+      edits: [
+        {
+          file: CORRECT,
+          from: '        effort: completed.feedback?.effort,',
+          to: '        effort: undefined,',
+        },
+      ],
+      falls: [REOPEN, SENT, CORRECTED],
+    },
+    {
+      name: '« Corriger » oublie la date enregistrée',
+      edits: [
+        {
+          file: CORRECT,
+          from: '      date={recordedDay}\n',
+          to: '',
+        },
+      ],
+      falls: [REOPEN, SENT, CORRECTED],
+    },
+    {
+      // Les séries que le client n'a pas regardées repartiraient, et
+      // réécriraient ce qui est enregistré.
+      name: 'une correction renvoie toutes les charges',
+      edits: [
+        {
+          file: CORRECT,
+          from: '    const changed = changedPerformed(original, performed);',
+          to: '    const changed = changedPerformed({}, performed);',
+        },
+      ],
+      falls: [SENT],
+    },
+    {
+      name: 'le détail ne dit plus qu’une séance a été corrigée',
+      edits: [
+        {
+          file: DETAIL,
+          from: '      {completed.editedAt && (',
+          to: '      {false && (',
+        },
+      ],
+      falls: [CORRECTED],
+    },
+    {
+      // Elle recouvre aussi « Mes charges » d'un ancien bilan, dont
+      // « Enregistrer » ne reçoit plus le toucher.
+      name: 'la feuille reste ouverte par-dessus la correction',
+      edits: [
+        {
+          file: PAGE,
+          from: '      {opened && !wide && !correcting && (',
+          to: '      {opened && !wide && (',
+        },
+      ],
+      falls: [REOPEN, SENT, CORRECTED, LEGACY_BACK],
+    },
+    {
+      name: 'sur grand écran, une séance s’ouvre en feuille',
+      edits: [
+        {
+          file: PAGE,
+          from: '  const wide = useBreakpointValue({ base: false, xl: true }) ?? false;',
+          to: '  const wide = false;',
+        },
+      ],
+      falls: [PLACEHOLDER, PANEL, CURRENT],
+    },
+    {
+      name: 'la ligne ouverte ne se marque plus',
+      edits: [
+        {
+          file: LIST_PIECES,
+          from: "      aria-current={open ? 'true' : undefined}",
+          to: '',
+        },
+      ],
+      falls: [CURRENT],
     },
   ],
 };

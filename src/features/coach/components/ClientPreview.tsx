@@ -101,7 +101,7 @@ export const ClientPreview = ({ client }: ClientPreviewProps) => {
               <SessionHistoryCard
                 key={completed._id}
                 completed={completed}
-                readOnly
+                history={history}
               />
             ))}
           </VStack>

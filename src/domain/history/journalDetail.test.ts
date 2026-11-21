@@ -118,6 +118,17 @@ describe('ce qui a été fait', () => {
     });
   });
 
+  // Le détail du client écrit « Classique · 12 reps » et cherche le
+  // record par mouvement.
+  it('le format, la dose seule et le mouvement, pour le client', () => {
+    const [goblet] = doneLines(passage([{ weight: 26, reps: 12 }]), undefined);
+    expect(goblet).toMatchObject({
+      format: 'Classique',
+      dose: '12 reps',
+      exerciseId: 'ex-goblet',
+    });
+  });
+
   it('la charge passe celle d’avant : la flèche', () => {
     const before = passage([{ weight: 24, reps: 12 }]);
     const [goblet] = doneLines(passage([{ weight: 26, reps: 12 }]), before);

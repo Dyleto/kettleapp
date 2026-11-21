@@ -11,10 +11,12 @@ import { sessionName } from '@/domain/session/name';
 const SessionRow = ({
   completed,
   sessions,
+  open,
   onOpen,
 }: {
   completed: CompletedSession;
   sessions: readonly Session[];
+  open: boolean;
   onOpen: () => void;
 }) => {
   const mentions = sessionMentions(completed, sessions);
@@ -32,7 +34,9 @@ const SessionRow = ({
       borderTopWidth="1px"
       borderColor="line"
       _first={{ borderTopWidth: 0 }}
+      bg={open ? 'bg.raised' : undefined}
       _hover={{ bg: 'bg.raised' }}
+      aria-current={open ? 'true' : undefined}
       data-session-row={completed._id}
     >
       <VStack align="start" gap="2px" flex={1} minW={0}>
@@ -58,10 +62,12 @@ const SessionRow = ({
 const Rows = ({
   history,
   sessions,
+  openId = null,
   onOpen,
 }: {
   history: readonly CompletedSession[];
   sessions: readonly Session[];
+  openId?: string | null;
   onOpen: (completed: CompletedSession) => void;
 }) => (
   <VStack
@@ -77,6 +83,7 @@ const Rows = ({
         key={completed._id}
         completed={completed}
         sessions={sessions}
+        open={completed._id === openId}
         onOpen={() => onOpen(completed)}
       />
     ))}
@@ -91,19 +98,29 @@ const Rows = ({
  * Elle remplace des cartes qui écrivaient les formats de la séance et
  * cachaient tout le reste derrière « Voir le détail » ; une réponse du
  * coach ne se voyait qu'une fois la séance ouverte.
+ *
+ * `openId` marque la ligne dont le détail est ouvert à côté, sur grand
+ * écran : sans elle, rien ne disait laquelle le panneau montrait.
  */
 export const SessionList = ({
   history,
   sessions,
+  openId,
   onOpen,
 }: {
   history: readonly CompletedSession[];
   sessions: readonly Session[];
+  openId?: string | null;
   onOpen: (completed: CompletedSession) => void;
 }) => (
   <VStack align="stretch" gap="8px">
     <Eyebrow>Tes séances</Eyebrow>
-    <Rows history={history} sessions={sessions} onOpen={onOpen} />
+    <Rows
+      history={history}
+      sessions={sessions}
+      openId={openId}
+      onOpen={onOpen}
+    />
   </VStack>
 );
 

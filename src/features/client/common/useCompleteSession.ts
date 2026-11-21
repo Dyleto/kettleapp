@@ -44,8 +44,8 @@ export const useCompleteSession = () => {
   });
 };
 
-/** Corrige un bilan déjà envoyé : un chiffre tapé de travers en plein effort
- * doit pouvoir se réparer depuis l'historique. */
+/** Corrige une séance déjà envoyée : un chiffre tapé de travers en plein
+ * effort doit pouvoir se réparer depuis Progrès. */
 export const useUpdateCompletedSession = () => {
   const queryClient = useQueryClient();
 
@@ -59,14 +59,9 @@ export const useUpdateCompletedSession = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.client.history.all(),
       });
-      toaster.create({ title: 'Bilan corrigé', type: 'success' });
+      toaster.create({ title: 'Séance corrigée', type: 'success' });
     },
-    onError: () => {
-      toaster.create({
-        title: 'Erreur',
-        description: 'Impossible de corriger ce bilan, réessaie.',
-        type: 'error',
-      });
-    },
+    // Pas de toast « Erreur » : l'écran de la correction dit lui-même ce
+    // qui n'est pas parti, et que la séance n'a pas bougé (F3b).
   });
 };
