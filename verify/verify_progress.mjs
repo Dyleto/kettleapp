@@ -41,17 +41,32 @@ const browser = await launch();
 
 /** `history` remplace l'historique du serveur d'essai, quand la partie en
  * demande un autre. */
-const open = async (options = MOBILE, history) => {
+const open = async (options = MOBILE, history, now) => {
   const ctx = await browser.newContext(options);
   if (history)
     await ctx.route(/\/api\/client\/history(\?|$)/, (route) =>
       route.fulfill({ json: { history } })
     );
   const p = await signIn(ctx);
+  if (now) await p.clock.setFixedTime(now);
   await p.goto(`${BASE}/client/history`, { waitUntil: 'domcontentloaded' });
   await settle(p);
+  // L'historique là, ou l'écran vide : un sabotage qui fait recompiler la
+  // page laissait `settle` rendre la main avant, et trois parties lisaient
+  // un calendrier pas encore dessiné.
+  await p
+    .locator('main [data-session-row]')
+    .or(p.getByText('Rien à montrer encore'))
+    .first()
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
   return { ctx, p };
 };
+const serverHistory = async () =>
+  (await (await fetch(`${API}/api/client/history`)).json()).history;
+// Le samedi 5 septembre : le mois en cours est celui d'après la dernière
+// séance, et il n'y en a pas d'autre.
+const SEPTEMBER = new Date('2026-09-05T10:00:00+02:00');
 
 {
   console.log('\n── les records et les mouvements');
@@ -87,21 +102,14 @@ const open = async (options = MOBILE, history) => {
     `${await colorOf('Kettlebell Swing')} · ${await colorOf('Fentes marchées')}`
   );
 
-  // Sur téléphone, le calendrier est replié derrière « Filtrer par date ».
   // L'ordre à l'écran, par la hauteur, et non celui du document : une
   // grille peut les intervertir sans toucher au document.
   const order = await p.evaluate(() =>
     [
       ...document.querySelectorAll(
-        'main [data-records], main [data-movements], main button'
+        'main [data-records], main [data-movements], main [data-calendar]'
       ),
     ]
-      .filter(
-        (n) =>
-          n.hasAttribute('data-records') ||
-          n.hasAttribute('data-movements') ||
-          n.textContent?.trim() === 'Filtrer par date'
-      )
       .map((n) => ({
         top: n.getBoundingClientRect().top,
         name: n.hasAttribute('data-records')
@@ -157,6 +165,132 @@ const open = async (options = MOBILE, history) => {
     swingPassages.join(' | ') ===
       '30 août · EMOM 15 reps · 20 kg | 26 août · EMOM 15 reps · 20 kg Record | 22 août · EMOM 15 reps · 16 kg',
     swingPassages.join(' | ')
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── le calendrier');
+  const { ctx, p } = await open(MOBILE, undefined, SEPTEMBER);
+  const calendar = p.locator('main [data-calendar]');
+  const month = calendar.locator('[data-calendar-month]');
+  const next = calendar.getByRole('button', { name: 'Mois suivant' });
+  const first = await text(month);
+  const zones = await calendar
+    .locator('[data-day]')
+    .evaluateAll((days) => days.map((d) => d.dataset.zone).join(','));
+  await next.click({ timeout: 2000 }).catch(() => {});
+  const second = await text(month);
+  ok(
+    'toujours là : une pastille par séance, à la couleur de son effort, sur le mois de la dernière',
+    first === 'Août 2026' &&
+      zones === 'target,none,hard,target,hard,hard' &&
+      (await p.getByText('Filtrer par date').count()) === 0,
+    `${first} · ${zones}`
+  );
+  ok(
+    '  → ses flèches s’arrêtent au mois en cours : pas de mois futur',
+    second === 'Septembre 2026' && (await next.isDisabled()),
+    `${second} · suivant ${(await next.isDisabled()) ? 'éteint' : 'actif'}`
+  );
+  await calendar
+    .getByRole('button', { name: 'Mois précédent' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await calendar
+    .locator('[data-day="2026-08-30"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '  → une pastille ouvre sa séance',
+    (await text(p.getByRole('dialog'))).includes('Dur sur la fin.'),
+    (await text(p.getByRole('dialog'))).slice(0, 80)
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── deux séances le même jour');
+  const history = await serverHistory();
+  const morning = {
+    ...history.find((c) => c._id === 'cs5'),
+    _id: 'matin',
+    completedAt: '2026-08-30T07:00:00.000Z',
+    clientNotes: 'Réveil difficile.',
+  };
+  const { ctx, p } = await open(MOBILE, [morning, ...history]);
+  const day = p.locator('main [data-calendar] [data-day="2026-08-30"]');
+  const label = await day.getAttribute('aria-label').catch(() => null);
+  await day.click({ timeout: 2000 }).catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog', { name: 'Dimanche 30 août' });
+  const rows = await texts(sheet.locator('[data-session-row]'));
+  await sheet
+    .locator('[data-session-row="matin"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    'la pastille d’un jour à deux séances ouvre la liste des deux',
+    label === 'dimanche 30 août : 2 séances' && rows.length === 2,
+    `${label} · ${rows.join(' | ')}`
+  );
+  ok(
+    '  → et chacune s’ouvre de là',
+    (await text(p.getByRole('dialog').last())).includes('Réveil difficile.'),
+    (await text(p.getByRole('dialog').last())).slice(0, 80)
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── tes séances');
+  // Une réponse du coach sur la dernière, et une correction sur celle du
+  // 22 : les deux mentions que le décor ne porte pas.
+  const history = (await serverHistory()).map((c) =>
+    c._id === 'cs6'
+      ? {
+          ...c,
+          replies: [
+            {
+              coachId: 'coach-julie',
+              firstName: 'Julie',
+              text: 'Bien joué.',
+              sentAt: '2026-08-31T08:00:00.000Z',
+            },
+          ],
+        }
+      : c._id === 'cs4'
+        ? { ...c, editedAt: '2026-09-02T10:00:00.000Z' }
+        : c
+  );
+  const { ctx, p } = await open(MOBILE, history);
+  const rows = await texts(p.locator('main [data-session-row]'));
+  ok(
+    'une ligne par séance, la plus récente d’abord : son nom, sa date, ce qu’il y a à savoir, son ressenti',
+    rows.join(' | ') ===
+      [
+        'Full body A dim. 30 août · Julie a répondu Trop dure',
+        'Full body A mer. 26 août Dure',
+        'Full body A sam. 22 août · corrigée le 2 sept. Juste',
+        'Haut du corps mer. 19 août Dure',
+        'Full body A dim. 16 août · ancien bilan',
+        'Séance 3 mer. 12 août · modifiée depuis Juste',
+      ].join(' | '),
+    rows.join(' | ')
+  );
+  await p
+    .locator('main [data-session-row="cs5"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '  → une ligne ouvre sa séance',
+    (await text(p.getByRole('dialog'))).includes(
+      'Épaule un peu sensible sur les swings.'
+    ),
+    (await text(p.getByRole('dialog'))).slice(0, 80)
   );
   await ctx.close();
 }
@@ -230,8 +364,7 @@ const open = async (options = MOBILE, history) => {
     .evaluate((el) => el.getBoundingClientRect().left)
     .catch(() => -1);
   const calendar = await p
-    .locator('[aria-label^="Séances de"]')
-    .first()
+    .locator('main [data-calendar]')
     .evaluate((el) => el.getBoundingClientRect().left)
     .catch(() => -1);
   ok(

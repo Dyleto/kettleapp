@@ -22,6 +22,20 @@ const EMPTY = 'rien à montrer : le personnage, une phrase, et le programme';
 const WIDE =
   'les records et les mouvements à gauche, le mois et les séances à droite';
 
+const JOURNAL = 'src/domain/history/journal.ts';
+const ROWS_DOMAIN = 'src/domain/history/sessionRow.ts';
+const LIST_PIECES = 'src/features/client/progress/SessionList.tsx';
+const CALENDAR =
+  'toujours là : une pastille par séance, à la couleur de son effort, sur le mois de la dernière';
+const NO_FUTURE =
+  '→ ses flèches s’arrêtent au mois en cours : pas de mois futur';
+const DAY_OPENS = '→ une pastille ouvre sa séance';
+const TWO = 'la pastille d’un jour à deux séances ouvre la liste des deux';
+const EACH = '→ et chacune s’ouvre de là';
+const LIST =
+  'une ligne par séance, la plus récente d’abord : son nom, sa date, ce qu’il y a à savoir, son ressenti';
+const ROW_OPENS = '→ une ligne ouvre sa séance';
+
 export default {
   suite: 'verify_progress.mjs',
   cases: [
@@ -185,6 +199,9 @@ export default {
       falls: [MORE],
     },
     {
+      // Sans la garde, le calendrier se monte avant l'historique : ce cas
+      // garde aussi `MonthCalendar`, qui doit suivre un nouveau `start`.
+      // Sans cela, trois parties du calendrier tombaient avec lui.
       name: 'un historique vide n’accueille plus',
       edits: [
         {
@@ -205,6 +222,132 @@ export default {
         },
       ],
       falls: [WIDE],
+    },
+    {
+      name: 'le calendrier s’ouvre sur l’avenir',
+      edits: [
+        {
+          file: JOURNAL,
+          from: '    last: newest > current ? newest : current,',
+          to: '    last: new Date(current.getFullYear() + 1, current.getMonth()),',
+        },
+      ],
+      falls: [NO_FUTURE],
+    },
+    {
+      name: 'les pastilles perdent leur zone',
+      edits: [
+        {
+          file: JOURNAL,
+          from: '          zone: level?.zone ?? null,',
+          to: '          zone: null,',
+        },
+      ],
+      falls: [CALENDAR],
+    },
+    {
+      // Une pastille à une séance ouvre la liste d'un jour, au lieu de la
+      // séance.
+      name: 'une pastille n’ouvre plus sa séance',
+      edits: [
+        {
+          file: PAGE,
+          from: '                  if (ofDay.length === 1) open(ofDay[0]);',
+          to: '                  if (ofDay.length === 1) setDay(picked);',
+        },
+      ],
+      falls: [DAY_OPENS],
+    },
+    {
+      // L'ancien calendrier : la plus récente du jour, l'autre perdue.
+      name: 'un jour à deux séances n’ouvre que la dernière',
+      edits: [
+        {
+          file: PAGE,
+          from: '                  else if (ofDay.length > 1) setDay(picked);',
+          to: '                  else if (ofDay.length > 1) open(ofDay[0]);',
+        },
+      ],
+      falls: [TWO, EACH],
+    },
+    {
+      name: 'un jour à deux séances ne le dit pas',
+      edits: [
+        {
+          file: JOURNAL,
+          from: '        sessions.length > 1',
+          to: '        false',
+        },
+      ],
+      falls: [TWO],
+    },
+    {
+      name: 'la réponse du coach ne se dit plus sur la ligne',
+      edits: [
+        {
+          file: ROWS_DOMAIN,
+          from: '  if (last) mentions.push(`${last.firstName} a répondu`);\n',
+          to: '',
+        },
+      ],
+      falls: [LIST],
+    },
+    {
+      name: 'une séance remaniée depuis ne le dit plus',
+      edits: [
+        {
+          file: ROWS_DOMAIN,
+          from: "  if (sinceThen(completed, sessions).state === 'changed')",
+          to: '  if (false)',
+        },
+      ],
+      falls: [LIST],
+    },
+    {
+      name: 'une correction ne se dit plus',
+      edits: [
+        {
+          file: ROWS_DOMAIN,
+          from: '  if (completed.editedAt)',
+          to: '  if (false)',
+        },
+      ],
+      falls: [LIST],
+    },
+    {
+      name: 'la ligne perd son ressenti',
+      edits: [
+        {
+          file: LIST_PIECES,
+          from: '      <EffortPill effort={completed.feedback?.effort} />\n',
+          to: '',
+        },
+      ],
+      falls: [LIST],
+    },
+    {
+      name: 'la liste se lit du plus ancien au plus récent',
+      edits: [
+        {
+          file: PAGE,
+          from: '        (a, b) => Date.parse(b.completedAt) - Date.parse(a.completedAt)',
+          to: '        (a, b) => Date.parse(a.completedAt) - Date.parse(b.completedAt)',
+        },
+      ],
+      falls: [LIST],
+    },
+    {
+      // Les lignes du jour à deux séances sont les mêmes : elles tombent
+      // avec.
+      name: 'une ligne n’ouvre plus sa séance',
+      edits: [
+        {
+          file: LIST_PIECES,
+          from: '        onOpen={() => onOpen(completed)}',
+          to: '        onOpen={() => undefined}',
+        },
+      ],
+      falls: [EACH, ROW_OPENS],
     },
   ],
 };

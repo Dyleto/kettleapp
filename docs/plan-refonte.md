@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 20 novembre : 843 tests unitaires, 50 suites de banc et 854
-assertions, 4 min 31 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 847 tests unitaires, 50 suites de banc et 861
+assertions, 4 min 34 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -66,7 +66,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                  |
 | Programme       | **fait** | Là : la durée, la barre de composition, les jours en pastilles, l'état en pastille dont « En cours » et « Modifiée depuis ta dernière fois », le chargement. |
 | Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                    |
-| Progrès         | partiel  | Là : les records, les mouvements en courbes, la feuille d'un mouvement. Manquent le calendrier à pastilles d'effort, la liste et le détail (F3).             |
+| Progrès         | partiel  | Là : les records, les mouvements en courbes, la feuille d'un mouvement, le calendrier à pastilles, la liste et ses mentions. Manque le détail (F3b).         |
 | Mon compte      | partiel  | L'écran actuel, avec le réglage du son. Manquent les vibrations, la déconnexion sur l'écran, et le passage aux composants du kit.                            |
 | Premiers pas    | partiel  | La question des données de santé existe. Les trois cartes de bienvenue et le détail dépliable manquent.                                                      |
 
@@ -482,7 +482,24 @@ banc actuel, inchangé, qui le prouve.
       mêlait kilos, répétitions totales et secondes ; elle part, avec sa
       logique. Le calendrier et la liste attendent F3.
 - [ ] **F3** Progrès : calendrier à pastilles d'effort, liste et ses
-      mentions, détail, « Corriger », ancien bilan à cinq axes.
+      mentions, détail, « Corriger », ancien bilan à cinq axes. En deux
+      temps.
+  - [x] **F3a** Le calendrier du kit, toujours là — plus de « Filtrer par
+        date » —, qui ouvre sur le mois de la dernière séance et s'arrête au
+        mois en cours ; une pastille ouvre sa séance, un jour à deux
+        séances la liste des deux. Les marques du calendrier passent au
+        domaine, partagées avec le journal du coach. « Tes séances » : une
+        ligne par séance, son nom du jour, sa date et ce qu'il y a à savoir
+        — « Julie a répondu », « ancien bilan », « modifiée depuis »,
+        « corrigée le 2 sept. » —, son ressenti en pastille (au kit, celle
+        du journal). Les cartes qui écrivaient les formats et cachaient la
+        réponse du coach derrière « Voir le détail » partent de Progrès. Un
+        sabotage a montré que le calendrier du kit gardait le mois de son
+        premier rendu : monté avant l'historique, il restait sur un mois
+        vide. Il suit désormais un nouveau mois de départ.
+  - [ ] **F3b** Le détail : panneau sur grand écran, feuille sur
+        téléphone ; « Corriger » qui rouvre les charges puis le ressenti,
+        date comprise ; l'ancien bilan à cinq axes.
 - [ ] **F4** Clients : tuiles, lignes, recherche, tri, panneau, état vide.
 - [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ».
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,

@@ -307,9 +307,12 @@ const browser = await launch();
   const ctx = await browser.newContext(MOBILE);
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/history`, { waitUntil: 'domcontentloaded' });
-  await appears(p, 'Dur sur la fin');
-  const card = p.getByRole('button').filter({ hasText: 'Dur sur la fin' });
-  if (await card.count()) await card.first().click();
+  await settle(p);
+  // La séance du 30 août, la plus récente : la ligne ne montre plus le
+  // mot du client, elle se trouve par sa place (F3a).
+  const row = p.locator('[data-session-row]').first();
+  await row.waitFor({ timeout: 8000 }).catch(() => {});
+  if (await row.count()) await row.click();
   await settle(p);
 
   const drawer = clean(

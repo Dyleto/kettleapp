@@ -41,40 +41,20 @@ import {
   LoadFailure,
   MonthCalendar,
   Sheet,
-  type DayMark,
 } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
-import { getEffortSummary } from '@/domain/history/effort';
-import { calendarBounds, latestByDay, withTag } from '@/domain/history/journal';
+import {
+  calendarBounds,
+  calendarMarks,
+  latestByDay,
+  withTag,
+} from '@/domain/history/journal';
 import { detailDate, previousPassage } from '@/domain/history/journalDetail';
 import { concernedExercise } from '@/domain/inbox/concerned';
 import { TAG_NOUN } from '@/domain/history/pulse';
 import { weekTarget } from '@/domain/week/ring';
-import { formatDayLabel } from '@/domain/week/dates';
 import { clientLabel } from '@/domain/inbox/feed';
 import { sessionName } from '@/domain/session/name';
-
-/** Ce que la pastille d'un jour dit à qui ne la voit pas : « dimanche 30
- * août : Full body A, Trop dure ». */
-const dayMarks = (history: readonly CompletedSession[]) =>
-  new Map<string, DayMark>(
-    [...latestByDay(history)].map(([day, completed]) => {
-      const effort = getEffortSummary(completed);
-      const name =
-        completed.sessionName ||
-        sessionName({
-          order: completed.sessionOrder,
-          name: completed.sessionName,
-        });
-      return [
-        day,
-        {
-          zone: effort?.zone ?? null,
-          label: `${formatDayLabel(day)} : ${name}${effort ? `, ${effort.label}` : ''}`,
-        },
-      ];
-    })
-  );
 
 /**
  * Les ressentis d'un client : le second volet de sa fiche, à côté de son
@@ -110,7 +90,7 @@ const ClientJournal = () => {
   const wide = useBreakpointValue({ base: false, xl: true }) ?? false;
   useSheetDismiss(!!openId && !wide, () => setOpenId(null));
 
-  const marks = useMemo(() => dayMarks(history), [history]);
+  const marks = useMemo(() => calendarMarks(history), [history]);
   const byDay = useMemo(() => latestByDay(history), [history]);
   const bounds = useMemo(() => calendarBounds(history), [history]);
 

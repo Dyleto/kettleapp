@@ -326,6 +326,15 @@ const open = async (n) => {
     .catch(() => {});
   await settle(p);
   const n = before + 1;
+  // Le focus arrive après le rendu de la séance neuve : sous la charge du
+  // banc complet, `settle` rendait la main avant lui. On attend l'état.
+  await p
+    .waitForFunction(
+      (name) => document.activeElement?.getAttribute('aria-label') === name,
+      `Nom de la séance ${n}`,
+      { timeout: 3000 }
+    )
+    .catch(() => {});
   ok(
     '« + Séance » ouvre la séance neuve sur son nom, prêt à la frappe',
     p.url().endsWith(`/s/${n}`) &&

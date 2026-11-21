@@ -18,6 +18,7 @@ export { Curve } from './Curve';
 export { countLabel } from './count';
 export { DateInput } from './DateInput';
 export { Dots, type DotMark } from './Dots';
+export { EffortPill } from './EffortPill';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { ErrorState } from './ErrorState';
 export { Eyebrow } from './Eyebrow';

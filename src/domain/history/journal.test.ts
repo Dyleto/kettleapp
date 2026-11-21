@@ -7,6 +7,8 @@ import type { CompletedSession, FeedbackTag } from '@/shared/types';
 import { makeCompleted } from '@/domain/fixtures';
 import {
   calendarBounds,
+  calendarMarks,
+  sessionsByDay,
   latestByDay,
   recentZones,
   rhythmLine,
@@ -239,6 +241,38 @@ describe('le calendrier', () => {
       first: new Date(2026, 10),
       last: new Date(2026, 10),
       start: new Date(2026, 10),
+    });
+  });
+});
+
+describe('les marques du calendrier', () => {
+  it('la zone de la séance, et ce qu’un lecteur d’écran entend', () => {
+    const marks = calendarMarks(AUGUST);
+    expect(marks.get('2026-08-30')).toEqual({
+      zone: 'hard',
+      label: 'dimanche 30 août : Séance 1, Trop dure',
+    });
+    expect(marks.get('2026-08-16')).toEqual({
+      zone: null,
+      label: 'dimanche 16 août : Séance 1',
+    });
+  });
+
+  // La seconde séance d'un jour ne se perd pas.
+  it('deux séances le même jour : les deux, la plus récente d’abord', () => {
+    const morning = done('2026-08-30', 2, [], {
+      _id: 'matin',
+      completedAt: '2026-08-30T07:00:00.000Z',
+    });
+    const history = [morning, ...AUGUST];
+    expect(
+      sessionsByDay(history)
+        .get('2026-08-30')
+        ?.map((c) => c._id)
+    ).toEqual(['bilan-2026-08-30', 'matin']);
+    expect(calendarMarks(history).get('2026-08-30')).toEqual({
+      zone: 'hard',
+      label: 'dimanche 30 août : 2 séances',
     });
   });
 });

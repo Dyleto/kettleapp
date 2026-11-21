@@ -4,19 +4,23 @@ import { Box, Container, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuFlame } from 'react-icons/lu';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { CLIENT_GRID_MAX_W } from '@/features/client/shell/layout';
-import { lifetimeTotal } from '@/features/client/progress/counts';
-import { SessionCalendarFilter } from '@/features/client/progress/SessionCalendarFilter';
-import { SessionHistoryCard } from '@/features/client/progress/SessionHistoryCard';
+import { CompletedSessionDrawer } from '@/features/client/progress/CompletedSessionDrawer';
+import { DaySheet, SessionList } from '@/features/client/progress/SessionList';
 import {
   MovementList,
   MovementSheet,
   Records,
 } from '@/features/client/progress/Movements';
 import { useClientSessions } from '@/features/client/common/useClientSessions';
-import { dayKey, formatDayLabel } from '@/domain/week/dates';
 import { weekStreak, weekTarget } from '@/domain/week/ring';
 import { movementsOf, recordCards } from '@/domain/history/movements';
-import { ActionButton, Chip, EmptyState, Eyebrow } from '@/kit';
+import {
+  calendarBounds,
+  calendarMarks,
+  sessionsByDay,
+} from '@/domain/history/journal';
+import type { CompletedSession } from '@/shared/types';
+import { ActionButton, Chip, EmptyState, MonthCalendar } from '@/kit';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
@@ -37,19 +41,31 @@ const History = () => {
   useDocumentTitle('Progrès');
   const navigate = useNavigate();
   const { history, sessions } = useOutletContext<ClientSessionsData>();
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [movementId, setMovementId] = useState<string | null>(null);
+  const [day, setDay] = useState<string | null>(null);
+  const [openedId, setOpenedId] = useState<string | null>(null);
 
   const movements = useMemo(() => movementsOf(history), [history]);
   const records = useMemo(() => recordCards(history), [history]);
+  const byDay = useMemo(() => sessionsByDay(history), [history]);
+  const marks = useMemo(() => calendarMarks(history), [history]);
+  const bounds = useMemo(() => calendarBounds(history), [history]);
+  const recent = useMemo(
+    () =>
+      [...history].sort(
+        (a, b) => Date.parse(b.completedAt) - Date.parse(a.completedAt)
+      ),
+    [history]
+  );
   const streak = weekStreak(history, weekTarget(sessions));
-  const opened = movements.find((m) => m.exerciseId === movementId) ?? null;
-
-  // Le calendrier filtre, il ne remplace pas : sans jour choisi, on lit
-  // tout.
-  const visible = selectedDay
-    ? history.filter((c) => dayKey(new Date(c.completedAt)) === selectedDay)
-    : history;
+  const movement = movements.find((m) => m.exerciseId === movementId) ?? null;
+  // Relu dans l'historique à chaque rendu : une correction enregistrée
+  // se voit sans refermer la séance.
+  const opened = history.find((c) => c._id === openedId) ?? null;
+  const open = (completed: CompletedSession) => {
+    setDay(null);
+    setOpenedId(completed._id);
+  };
   const count = history.length;
 
   return (
@@ -106,42 +122,48 @@ const History = () => {
             </VStack>
 
             <VStack align="stretch" gap="16px" minW={0}>
-              <SessionCalendarFilter
-                history={history}
-                selectedDay={selectedDay}
-                onSelectDay={setSelectedDay}
+              {/* Toujours là, plus derrière « Filtrer par date » : une
+                  pastille ouvre sa séance, et un jour à deux séances ouvre
+                  la liste des deux. */}
+              <MonthCalendar
+                marks={marks}
+                first={bounds.first}
+                last={bounds.last}
+                start={bounds.start}
+                onPick={(picked) => {
+                  const ofDay = byDay.get(picked) ?? [];
+                  if (ofDay.length === 1) open(ofDay[0]);
+                  else if (ofDay.length > 1) setDay(picked);
+                }}
               />
-              <VStack align="stretch" gap="8px">
-                <HStack justify="space-between" align="baseline">
-                  <Eyebrow>Tes séances</Eyebrow>
-                  <Text fontSize="xs" color="fg.muted">
-                    {selectedDay
-                      ? formatDayLabel(selectedDay)
-                      : lifetimeTotal(count)}
-                  </Text>
-                </HStack>
-                {selectedDay && (
-                  <Box
-                    as="button"
-                    alignSelf="start"
-                    fontSize="xs"
-                    color="app.primary"
-                    onClick={() => setSelectedDay(null)}
-                  >
-                    tout l'historique
-                  </Box>
-                )}
-                {visible.map((c) => (
-                  <SessionHistoryCard key={c._id} completed={c} />
-                ))}
-              </VStack>
+              <SessionList history={recent} sessions={sessions} onOpen={open} />
             </VStack>
           </Grid>
         )}
       </VStack>
 
+      {movement && (
+        <MovementSheet
+          movement={movement}
+          onClose={() => setMovementId(null)}
+        />
+      )}
+      {day && (
+        <DaySheet
+          day={day}
+          history={byDay.get(day) ?? []}
+          sessions={sessions}
+          onOpen={open}
+          onClose={() => setDay(null)}
+        />
+      )}
       {opened && (
-        <MovementSheet movement={opened} onClose={() => setMovementId(null)} />
+        <CompletedSessionDrawer
+          completed={opened}
+          isOpen
+          editable
+          onClose={() => setOpenedId(null)}
+        />
       )}
     </Container>
   );

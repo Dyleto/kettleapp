@@ -1,5 +1,6 @@
 import type { CompletedSession, FeedbackTag } from '@/shared/types';
-import { dayKey } from '@/domain/week/dates';
+import { dayKey, formatDayLabel } from '@/domain/week/dates';
+import { sessionName } from '@/domain/session/name';
 import { doneInWeek } from '@/domain/week/ring';
 import { getEffortLevel, type EffortZone } from './effort';
 import { TAG_NOUN, countWord, type TagCount } from './pulse';
@@ -213,6 +214,59 @@ export const latestByDay = (
     days.set(dayKey(new Date(completed.completedAt)), completed);
   return days;
 };
+
+/**
+ * Les séances de chaque jour, la plus récente d'abord.
+ *
+ * Progrès ouvre un jour à deux séances sur la liste des deux, au lieu
+ * d'en choisir une : la maquette le veut, et la seconde ne se perd pas.
+ */
+export const sessionsByDay = (
+  history: readonly CompletedSession[]
+): Map<string, CompletedSession[]> => {
+  const days = new Map<string, CompletedSession[]>();
+  for (const completed of [...byDate(history)].reverse()) {
+    const day = dayKey(new Date(completed.completedAt));
+    days.set(day, [...(days.get(day) ?? []), completed]);
+  }
+  return days;
+};
+
+/**
+ * Ce que la pastille d'un jour porte : la zone de la séance la plus
+ * récente, et ce qu'un lecteur d'écran en entend — « dimanche 30 août :
+ * Full body A, Trop dure », ou « mercredi 26 août : 2 séances ».
+ *
+ * Écrit ici et non dans un écran : le journal du coach et Progrès en ont
+ * chacun un calendrier, et deux écritures auraient fini par ne plus dire
+ * la même chose du même jour.
+ */
+export const calendarMarks = (
+  history: readonly CompletedSession[]
+): Map<string, { zone: EffortZone | null; label: string }> =>
+  new Map(
+    [...sessionsByDay(history)].map(([day, sessions]) => {
+      const [latest] = sessions;
+      const level = getEffortLevel(latest.feedback?.effort);
+      const what =
+        sessions.length > 1
+          ? `${sessions.length} séances`
+          : `${
+              latest.sessionName ||
+              sessionName({
+                order: latest.sessionOrder,
+                name: latest.sessionName,
+              })
+            }${level ? `, ${level.label}` : ''}`;
+      return [
+        day,
+        {
+          zone: level?.zone ?? null,
+          label: `${formatDayLabel(day)} : ${what}`,
+        },
+      ];
+    })
+  );
 
 /** Le premier jour d'un mois. */
 const monthOf = (date: Date) => new Date(date.getFullYear(), date.getMonth());

@@ -134,12 +134,14 @@ export default {
       falls: ['le client lit « Ton mot »'],
     },
     {
-      name: 'la carte est en lecture seule pour tout le monde',
+      name: 'Progrès ouvre la séance en lecture seule',
+      // Progrès ouvre le tiroir lui-même depuis F3a, sans passer par la
+      // carte d'historique, que seul l'aperçu du coach garde.
       edits: [
         {
-          file: 'src/features/client/progress/SessionHistoryCard.tsx',
-          from: 'editable={!readOnly}',
-          to: 'editable={false}',
+          file: 'src/features/client/progress/History.tsx',
+          from: '          editable\n          onClose={() => setOpenedId(null)}',
+          to: '          editable={false}\n          onClose={() => setOpenedId(null)}',
         },
       ],
       falls: [

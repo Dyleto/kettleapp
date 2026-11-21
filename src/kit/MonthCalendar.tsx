@@ -76,7 +76,8 @@ const Arrow = ({
  * commande du tout : il ne prend pas le focus et ne s'annonce pas.
  *
  * Les flèches parcourent `first` à `last`, sans au-delà : un mois avant la
- * première séance n'a rien à montrer. Il ouvre sur `start`.
+ * première séance n'a rien à montrer. Il ouvre sur `start`, et y revient
+ * quand `start` change.
  */
 export const MonthCalendar = ({
   marks,
@@ -93,6 +94,14 @@ export const MonthCalendar = ({
   onPick: (day: string) => void;
 }) => {
   const [month, setMonth] = useState(start);
+  // Un nouveau `start` replace le calendrier : monté avant que l'historique
+  // n'arrive, il restait sur le mois en cours, vide, et ignorait le mois de
+  // la dernière séance. Un sabotage de l'écran vide de Progrès l'a montré.
+  const [shownStart, setShownStart] = useState(start.getTime());
+  if (start.getTime() !== shownStart) {
+    setShownStart(start.getTime());
+    setMonth(start);
+  }
   const title = monthLabel(month);
 
   return (

@@ -7,7 +7,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import type { CompletedSession } from '@/shared/types';
-import { EFFORT_ZONE_COLOR, getEffortSummary } from '@/domain/history/effort';
+import { EffortPill } from '@/kit';
 import { rowDate } from '@/domain/history/journal';
 import { sessionName } from '@/domain/session/name';
 
@@ -17,24 +17,8 @@ import { sessionName } from '@/domain/session/name';
  * prononcé — « ancien bilan » sur une séance d'hier serait faux.
  */
 export const Verdict = ({ completed }: { completed: CompletedSession }) => {
-  const effort = getEffortSummary(completed);
-  if (effort)
-    return (
-      <Box
-        as="span"
-        flexShrink={0}
-        px="11px"
-        py="5px"
-        borderRadius="full"
-        bg="bg.raised"
-        color={EFFORT_ZONE_COLOR[effort.zone]}
-        fontSize="13px"
-        fontWeight="700"
-        whiteSpace="nowrap"
-      >
-        {effort.label}
-      </Box>
-    );
+  if (completed.feedback?.effort !== undefined)
+    return <EffortPill effort={completed.feedback.effort} />;
   if (completed.metrics)
     return (
       <Text as="span" fontSize="xs" color="fg.muted" flexShrink={0}>
