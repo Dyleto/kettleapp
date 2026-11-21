@@ -1,6 +1,7 @@
 import type { Client } from '@/shared/types';
 import { normalize } from '@/shared/utils/formatters';
-import { getEffortLevel } from '@/domain/history/effort';
+import { getEffortLevel, type EffortZone } from '@/domain/history/effort';
+import { streakOfZones } from '@/domain/history/journal';
 
 /**
  * La liste des clients du coach : ce que dit chaque ligne, ce que comptent
@@ -207,4 +208,75 @@ export const matchesQuery = (client: Client, query: string): boolean => {
     `${client.firstName ?? ''} ${client.lastName ?? ''}`
   );
   return needle.split(/\s+/).every((word) => haystack.includes(word));
+};
+
+/**
+ * « avec toi depuis le 1er juin » : l'ancienneté du suivi, en tête du
+ * panneau d'un client.
+ *
+ * Le premier du mois s'écrit « 1er », comme on l'écrit à la main ; l'année
+ * n'apparaît que lorsqu'elle n'est pas celle de `now`.
+ */
+export const followedSince = (linkedAt: string, now: Date): string => {
+  const date = new Date(linkedAt);
+  const day = date.getDate() === 1 ? '1er' : String(date.getDate());
+  const month = new Intl.DateTimeFormat('fr-FR', { month: 'long' }).format(
+    date
+  );
+  const year =
+    date.getFullYear() === now.getFullYear() ? '' : ` ${date.getFullYear()}`;
+  return `avec toi depuis le ${day} ${month}${year}`;
+};
+
+/**
+ * La semaine et le total : « 1 séance sur 3 cette semaine · 6 séances au
+ * total ».
+ *
+ * La semaine vient de la ligne de la liste, le total de l'historique, qui
+ * arrive par sa propre requête : tant qu'il n'est pas là (`total` absent),
+ * la phrase s'arrête à la semaine plutôt que d'afficher « 0 séance ».
+ * Un historique qui remplit sa page n'est pas complet : « au moins 50 ».
+ */
+export const weekSummary = (
+  client: Client,
+  history?: { total: number; complete: boolean }
+): string => {
+  const done = client.weekDone;
+  const sessions = (n: number) => `${n} séance${n > 1 ? 's' : ''}`;
+  const week =
+    client.weekTarget > 0
+      ? `${sessions(done)} sur ${client.weekTarget} cette semaine`
+      : done > 0
+        ? `${sessions(done)} cette semaine`
+        : 'aucune séance cette semaine';
+  if (!history) return week;
+  const total =
+    history.total === 0
+      ? 'aucune encore'
+      : history.complete
+        ? `${sessions(history.total)} au total`
+        : `au moins ${history.total} séances`;
+  return `${week} · ${total}`;
+};
+
+/**
+ * La phrase du panneau, sous les points : la tendance de la ligne quand il
+ * y en a une — « Devient trop dure », « Trop facile » —, sinon la série en
+ * cours, dite comme dans le journal (« Les trois dernières : justes »).
+ *
+ * Tirée des ressentis de la ligne, comme les points posés à côté : la tirer
+ * de l'historique, qui arrive par une autre requête, laissait le panneau
+ * dire « dures » sous cinq points verts.
+ */
+export const previewHeadline = (
+  client: Client
+): { text: string; tone: EffortZone | null } => {
+  const trend = effortTrend(client.recentEfforts);
+  if (trend === 'hard') return { text: 'Devient trop dure', tone: 'hard' };
+  if (trend === 'easy') return { text: 'Trop facile', tone: 'easy' };
+  return streakOfZones(
+    client.recentEfforts
+      .map((effort) => getEffortLevel(effort)?.zone)
+      .filter((zone): zone is EffortZone => zone !== undefined)
+  );
 };

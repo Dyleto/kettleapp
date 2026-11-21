@@ -10,6 +10,7 @@
  * programme ; Léa est à jour.
  */
 import {
+  API,
   BASE,
   MOBILE,
   launch,
@@ -476,6 +477,150 @@ const open = async (options = MOBILE, roster = ROSTER) => {
   ok(
     '→ le double-clic ouvre son atelier',
     /\/coach\/clients\/sarah\/s\/1$/.test(new URL(p.url()).pathname),
+    new URL(p.url()).pathname
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── le panneau');
+  // Les séances de Sarah : celles du serveur d'essai, du 12 au 30 août.
+  const history = (await (await fetch(`${API}/api/client/history`)).json())
+    .history;
+  const ctx = await browser.newContext(WIDE);
+  await ctx.route(/\/api\/coach\/clients(\?|$)/, (route) =>
+    route.fulfill({ json: ROSTER })
+  );
+  await ctx.route(/\/api\/coach\/clients\/[^/]+\/history/, (route) =>
+    route.fulfill({ json: [] })
+  );
+  await ctx.route(/\/api\/coach\/clients\/sarah\/history/, (route) =>
+    route.fulfill({ json: history })
+  );
+  const p = await signIn(ctx);
+  await p.clock.setFixedTime(NOW);
+  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  const aside = p.getByRole('complementary', { name: 'Aperçu du client' });
+  await aside
+    .locator('[data-client-preview]')
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+  ok(
+    'sans choix, le panneau montre le premier de la liste : le prochain à traiter',
+    (await aside.locator('[data-client-preview="thomas"]').count()) === 1 &&
+      (await p
+        .locator('main [data-client-row="thomas"]')
+        .getAttribute('aria-current', { timeout: 2000 })
+        .catch(() => null)) === 'true'
+  );
+
+  await p
+    .locator('main [data-client-row="sarah"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await aside
+    .locator('[data-recent]')
+    .first()
+    .waitFor({ timeout: 6000 })
+    .catch(() => {});
+  const head = await text(aside.locator('h2').locator('..'));
+  ok(
+    'une ligne choisie s’y ouvre : le nom, et depuis quand dure le suivi',
+    head === 'Sarah Martin avec toi depuis le 7 juin',
+    head
+  );
+  const pulse = aside.locator('[data-preview-pulse]');
+  const said = await text(pulse);
+  const colors = await pulse
+    .evaluate((card) => ({
+      phrase: getComputedStyle(card.querySelector('p')).color,
+      hard: getComputedStyle(card.querySelector('[data-zone="hard"]'))
+        .backgroundColor,
+    }))
+    .catch(() => ({}));
+  ok(
+    '→ ses ressentis en points, et la phrase de sa ligne, à la couleur du dur',
+    said.startsWith('Devient trop dure') &&
+      colors.phrase !== undefined &&
+      colors.phrase === colors.hard,
+    `${said} · ${JSON.stringify(colors)}`
+  );
+  ok(
+    '→ sa semaine, et son total de séances',
+    said.endsWith('1 séance sur 3 cette semaine · 6 séances au total'),
+    said
+  );
+  const recent = await aside
+    .locator('[data-recent]')
+    .evaluateAll((rows) =>
+      rows.map((r) => r.innerText.replace(/\s+/g, ' ').trim())
+    );
+  ok(
+    '→ ses trois dernières séances, la plus récente d’abord, son mot compris',
+    recent.join(' | ') ===
+      [
+        'Full body A dim. 30 août · « Dur sur la fin. » Trop dure',
+        'Full body A mer. 26 août · « Épaule un peu sensible sur les swings. » Dure',
+        'Full body A sam. 22 août · « Bon rythme. » Juste',
+      ].join(' | '),
+    recent.join(' | ')
+  );
+  await aside
+    .locator('[data-recent]')
+    .first()
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const sheet = p.getByRole('dialog', {
+    name: 'Full body A · Dimanche 30 août',
+  });
+  ok(
+    '→ une séance s’ouvre en feuille, au « Son mot », sans « Corriger »',
+    /Son mot/i.test(await text(sheet)) &&
+      (await sheet.getByRole('button', { name: 'Corriger' }).count()) === 0,
+    (await text(sheet)).slice(0, 80)
+  );
+  await p.keyboard.press('Escape');
+  await settle(p);
+  await aside
+    .getByRole('button', { name: 'Tous ses ressentis' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p.waitForURL(/\/journal$/, { timeout: 4000 }).catch(() => {});
+  ok(
+    '→ « Tous ses ressentis » mène à son journal',
+    new URL(p.url()).pathname === '/coach/clients/sarah/journal',
+    new URL(p.url()).pathname
+  );
+
+  await p.goBack();
+  await aside
+    .locator('[data-client-preview]')
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+  await p
+    .locator('main [data-client-row="manon"]')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const fresh = await text(aside);
+  ok(
+    'un client sans séance : le panneau le dit, sans lien vers un journal vide',
+    /Ses séances terminées apparaîtront ici/.test(fresh) &&
+      (await aside
+        .getByRole('button', { name: 'Tous ses ressentis' })
+        .count()) === 0,
+    fresh.slice(-120)
+  );
+  await aside
+    .getByRole('button', { name: 'Ouvrir son programme' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p.waitForURL(/\/s\/1$/, { timeout: 4000 }).catch(() => {});
+  ok(
+    '« Ouvrir son programme » mène à son atelier',
+    new URL(p.url()).pathname === '/coach/clients/manon/s/1',
     new URL(p.url()).pathname
   );
   await ctx.close();

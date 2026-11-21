@@ -6,6 +6,9 @@ import { describe, expect, it } from 'vitest';
 import type { Client } from '@/shared/types';
 import {
   clientName,
+  followedSince,
+  previewHeadline,
+  weekSummary,
   effortTrend,
   matchesQuery,
   passesFilter,
@@ -283,5 +286,66 @@ describe('le nom', () => {
     expect(
       clientName(client({ firstName: undefined, lastName: undefined }))
     ).toBe('Client sans nom');
+  });
+});
+
+describe('le panneau d’un client', () => {
+  it('l’ancienneté du suivi, le premier du mois en « 1er »', () => {
+    expect(followedSince('2026-06-01T10:00:00.000Z', NOW)).toBe(
+      'avec toi depuis le 1er juin'
+    );
+    expect(followedSince('2026-03-14T10:00:00.000Z', NOW)).toBe(
+      'avec toi depuis le 14 mars'
+    );
+  });
+
+  it('une autre année se date avec elle', () => {
+    expect(followedSince('2025-11-03T10:00:00.000Z', NOW)).toBe(
+      'avec toi depuis le 3 novembre 2025'
+    );
+  });
+
+  it('la semaine, puis le total', () => {
+    expect(weekSummary(client(), { total: 6, complete: true })).toBe(
+      '1 séance sur 3 cette semaine · 6 séances au total'
+    );
+  });
+
+  // L'historique arrive par sa propre requête.
+  it('tant que l’historique n’est pas là : la semaine seule', () => {
+    expect(weekSummary(client())).toBe('1 séance sur 3 cette semaine');
+  });
+
+  it('sans jour conseillé, pas d’objectif ; une page pleine, « au moins »', () => {
+    expect(
+      weekSummary(client({ weekTarget: 0, weekDone: 0 }), {
+        total: 50,
+        complete: false,
+      })
+    ).toBe('aucune séance cette semaine · au moins 50 séances');
+    expect(
+      weekSummary(client({ weekTarget: 0, weekDone: 2 }), {
+        total: 0,
+        complete: true,
+      })
+    ).toBe('2 séances cette semaine · aucune encore');
+  });
+
+  it('la tendance de la ligne passe avant la série', () => {
+    expect(previewHeadline(client({ recentEfforts: [3, 4, 5] }))).toEqual({
+      text: 'Devient trop dure',
+      tone: 'hard',
+    });
+  });
+
+  it('sans tendance, la série en cours, dite comme dans le journal', () => {
+    expect(previewHeadline(client({ recentEfforts: [1, 3, 3, 3] }))).toEqual({
+      text: 'Les trois dernières : justes',
+      tone: 'target',
+    });
+    expect(previewHeadline(client({ recentEfforts: [] }))).toEqual({
+      text: 'Aucun ressenti donné',
+      tone: null,
+    });
   });
 });

@@ -36,6 +36,23 @@ const COMBINED = 'la recherche se cumule avec une tuile';
 const SELECT = 'une ligne choisit le client, sans quitter la liste';
 const DOUBLE = '→ le double-clic ouvre son atelier';
 
+const PANEL = 'src/features/coach/components/ClientPreview.tsx';
+const DEFAULT =
+  'sans choix, le panneau montre le premier de la liste : le prochain à traiter';
+const HEAD =
+  'une ligne choisie s’y ouvre : le nom, et depuis quand dure le suivi';
+const PHRASE =
+  '→ ses ressentis en points, et la phrase de sa ligne, à la couleur du dur';
+const WEEK_TOTAL = '→ sa semaine, et son total de séances';
+const RECENT_ROWS =
+  '→ ses trois dernières séances, la plus récente d’abord, son mot compris';
+const SHEET =
+  '→ une séance s’ouvre en feuille, au « Son mot », sans « Corriger »';
+const JOURNAL = '→ « Tous ses ressentis » mène à son journal';
+const NO_HISTORY =
+  'un client sans séance : le panneau le dit, sans lien vers un journal vide';
+const OPEN_PROGRAM = '« Ouvrir son programme » mène à son atelier';
+
 export default {
   suite: 'verify_clients.mjs',
   cases: [
@@ -273,8 +290,8 @@ export default {
       edits: [
         {
           file: PAGE,
-          from: '    withPreview ? setPreview(client) : openProgram(client);',
-          to: '    setPreview(client);',
+          from: '    withPreview ? setPreviewId(client._id) : openProgram(client);',
+          to: '    setPreviewId(client._id);',
         },
       ],
       falls: [PHONE],
@@ -336,6 +353,120 @@ export default {
         },
       ],
       falls: [DOUBLE],
+    },
+    {
+      name: 'sans choix, le panneau reste vide',
+      edits: [
+        {
+          file: PAGE,
+          from: '    clients.find((c) => c._id === previewId) ?? visible[0] ?? null;',
+          to: '    clients.find((c) => c._id === previewId) ?? null;',
+        },
+      ],
+      falls: [DEFAULT],
+    },
+    {
+      name: 'l’ancienneté se compte depuis la dernière séance',
+      edits: [
+        {
+          file: PANEL,
+          from: '            {followedSince(client.linkedAt, new Date())}',
+          to: '            {followedSince(client.lastCompletedAt ?? client.linkedAt, new Date())}',
+        },
+      ],
+      falls: [HEAD],
+    },
+    {
+      // Sarah lirait « Les deux dernières : dures », la série du journal,
+      // sous une ligne qui dit « devient trop dure ».
+      name: 'le panneau ne reprend plus la tendance de la ligne',
+      edits: [
+        {
+          file: DOMAIN,
+          from: "  if (trend === 'hard') return { text: 'Devient trop dure', tone: 'hard' };\n",
+          to: '',
+        },
+      ],
+      falls: [PHRASE],
+    },
+    {
+      name: 'la phrase du panneau perd sa couleur',
+      edits: [
+        {
+          file: PANEL,
+          from: "            color={headline.tone ? EFFORT_ZONE_COLOR[headline.tone] : 'fg'}",
+          to: '            color="fg"',
+        },
+      ],
+      falls: [PHRASE],
+    },
+    {
+      name: 'le total se dit toujours incomplet',
+      edits: [
+        {
+          file: PANEL,
+          from: '                  complete: history.length < HISTORY_PAGE_SIZE,',
+          to: '                  complete: false,',
+        },
+      ],
+      falls: [WEEK_TOTAL],
+    },
+    {
+      // La première ligne n'est plus la séance du 30 août : la feuille
+      // qu'elle ouvre ne porte plus ce nom.
+      name: 'le panneau montre les trois plus anciennes séances',
+      edits: [
+        {
+          file: PANEL,
+          from: '            {history.slice(0, SHOWN).map((completed) => (',
+          to: '            {history.slice(-SHOWN).map((completed) => (',
+        },
+      ],
+      falls: [RECENT_ROWS, SHEET],
+    },
+    {
+      name: 'une séance récente ne dit plus le mot du client',
+      edits: [
+        {
+          file: PANEL,
+          from: "          {said ? ` · « ${said} »` : ''}",
+          to: "          {''}",
+        },
+      ],
+      falls: [RECENT_ROWS],
+    },
+    {
+      name: '« Tous ses ressentis » mène à un journal vide',
+      edits: [
+        {
+          file: PANEL,
+          from: '      {history.length > 0 && (',
+          to: '      {true && (',
+        },
+      ],
+      falls: [NO_HISTORY],
+    },
+    {
+      name: '« Tous ses ressentis » mène à l’atelier',
+      edits: [
+        {
+          file: PANEL,
+          from: '          onClick={() => navigate(COACH_ROUTES.clientJournal(client._id))}',
+          to: '          onClick={() => navigate(COACH_ROUTES.clientSession(client._id, 1))}',
+        },
+      ],
+      falls: [JOURNAL],
+    },
+    {
+      name: '« Ouvrir son programme » ne mène nulle part',
+      edits: [
+        {
+          file: PANEL,
+          from: '        onClick={() => navigate(COACH_ROUTES.clientSession(client._id, 1))}',
+          to: '        onClick={() => undefined}',
+        },
+      ],
+      falls: [OPEN_PROGRAM],
     },
   ],
 };

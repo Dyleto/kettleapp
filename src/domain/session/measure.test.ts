@@ -4,13 +4,10 @@ import {
   blockTitle,
   distinctExerciseCount,
   estimatedMinutes,
-  getCompletedSessionBlockTypes,
 } from './measure';
 import {
   makeBlock,
   makeBlockExercise,
-  makeBlockSnapshot,
-  makeCompleted,
   makeExercise,
   makeSession,
 } from '@/domain/fixtures';
@@ -205,47 +202,3 @@ describe('estimatedMinutes', () => {
 // Un bilan peut porter un format de bloc qui n'existe plus. On ne peut pas
 // en créer par l'écran — le format a disparu de l'éditeur — et l'historique
 // en contient : seul ce test le voit.
-describe('les formats d’un bilan', () => {
-  it('se lisent comme ceux d’une séance', () => {
-    expect(
-      getCompletedSessionBlockTypes(
-        makeCompleted({
-          blocks: [
-            makeBlockSnapshot({ type: 'warmup' }),
-            makeBlockSnapshot({ order: 2, type: 'tabata' }),
-          ],
-        })
-      )
-    ).toBe('Échauffement · Tabata');
-  });
-
-  it('sans répéter un format présent deux fois, comme sur une séance', () => {
-    // Le dédoublonnage est écrit deux fois, une par fonction : ne le
-    // vérifier que du côté séance laissait celui du bilan sans assertion.
-    expect(
-      getCompletedSessionBlockTypes(
-        makeCompleted({
-          blocks: [
-            makeBlockSnapshot({ type: 'amrap' }),
-            makeBlockSnapshot({ order: 2, type: 'amrap' }),
-            makeBlockSnapshot({ order: 3, type: 'emom' }),
-          ],
-        })
-      )
-    ).toBe('AMRAP · EMOM');
-  });
-
-  it('et un format disparu se montre tel qu’il a été figé', () => {
-    // Le type d'un bloc figé est une chaîne libre : un bilan d'il y a un an
-    // peut porter un format retiré depuis de l'éditeur. Mieux vaut afficher
-    // le mot brut qu'un vide ou un « Classique » inventé — le client, lui,
-    // se souvient de ce qu'il a fait.
-    expect(
-      getCompletedSessionBlockTypes(
-        makeCompleted({
-          blocks: [makeBlockSnapshot({ type: 'ladder-inverse' })],
-        })
-      )
-    ).toBe('ladder-inverse');
-  });
-});

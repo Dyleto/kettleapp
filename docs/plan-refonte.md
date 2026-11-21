@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 880 tests unitaires, 51 suites de banc et 899
-assertions, 4 min 45 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 884 tests unitaires, 51 suites de banc et 908
+assertions, 4 min 38 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -75,7 +75,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Écran                 | État     | Ce qui manque                                                                                                                                                                                                                                                                                                                     |
 | --------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                                                                  |
-| Clients               | partiel  | Là : les tuiles qui filtrent, l'anneau et les points par ligne, la ligne d'état, la recherche, le tri, l'état vide. Manquent le panneau (F4b), les étiquettes et la feuille d'invitation (F5).                                                                                                                                    |
+| Clients               | partiel  | Là : les tuiles qui filtrent, l'anneau et les points par ligne, la ligne d'état, la recherche, le tri, l'état vide, le panneau. Manquent les étiquettes, la feuille d'invitation et « Retirer » (F5).                                                                                                                             |
 | Atelier d'un client   | **fait** | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc, l'aperçu « vu par le client », l'import d'un modèle, les bords. |
 | Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                  |
 | Ressentis d'un client | **fait** | Là : le résumé, le calendrier à pastilles, la liste lue séance par séance, la bascule « Programme / Ressentis », le détail avec « prévu / fait » et la réponse.                                                                                                                                                                   |
@@ -511,7 +511,7 @@ banc actuel, inchangé, qui le prouve.
         ouvre le même détail en feuille — le jour fait comme « Voir ta
         dernière séance » —, et l'aperçu d'un client chez le coach aussi,
         au « Son mot », sans « Corriger ».
-- [ ] **F4** Clients : tuiles, lignes, recherche, tri, panneau, état vide.
+- [x] **F4** Clients : tuiles, lignes, recherche, tri, panneau, état vide.
       En deux temps.
   - [x] **F4a** La liste : trois tuiles en tête — « à lire », « à
         relancer », « mal réglées » — qui filtrent ce qu'elles comptent et
@@ -524,7 +524,17 @@ banc actuel, inchangé, qui le prouve.
         La logique sort du composant (`domain/clients/roster`) : les tuiles
         et les lignes comptent avec la même règle. La pastille gagne un ton
         vert, celui de « Juste ».
-  - [ ] **F4b** Le panneau d'aperçu, sur grand écran.
+  - [x] **F4b** Le panneau d'aperçu, sur grand écran : le nom et
+        l'ancienneté du suivi (« avec toi depuis le 1er juin »), « Ouvrir
+        son programme », les derniers ressentis en points sous la phrase de
+        la ligne — sa tendance, sinon la série du journal —, la semaine et
+        le total, les trois dernières séances, mot du client compris, qui
+        s'ouvrent au « Son mot », et « Tous ses ressentis ». Sans choix, il
+        montre le premier de la liste : le prochain à traiter. La carte de
+        séance que l'aperçu était seul à lire part, avec le calcul des
+        formats d'un bilan. Une première version tirait la phrase de
+        l'historique et les points de la ligne : elle disait « dures » sous
+        cinq points verts ; les deux viennent désormais de la ligne.
 - [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ».
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
       dupliquer.

@@ -18,6 +18,8 @@
  * alignait vingt et un modules et vingt tests à plat, et deux dossiers
  * `guided`.
  */
-export { SessionHistoryCard } from './progress/SessionHistoryCard';
+// Le détail d'une séance faite, en feuille : le panneau d'un client, chez
+// le coach, l'ouvre au « Son mot ».
+export { CompletedSheet } from './progress/CompletedDetail';
 // L'aperçu « vu par le client » de l'atelier : la scène guidée elle-même.
 export { ScenePreview } from './guided/ScenePreview';

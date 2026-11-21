@@ -63,10 +63,22 @@ const ZONE_WORD: Record<EffortZone, [string, string]> = {
  */
 export const streakHeadline = (
   history: readonly CompletedSession[]
+): { text: string; tone: EffortZone | null } =>
+  streakOfZones(
+    byDate(history)
+      .map((c) => getEffortLevel(c.feedback?.effort)?.zone)
+      .filter((zone): zone is EffortZone => zone !== undefined)
+  );
+
+/**
+ * La même phrase, sur une suite de zones déjà rangée du plus ancien au plus
+ * récent : le panneau d'un client la tire des ressentis de sa ligne
+ * (`recentEfforts`), pour ne pas dire autre chose que les points posés à
+ * côté.
+ */
+export const streakOfZones = (
+  zones: readonly EffortZone[]
 ): { text: string; tone: EffortZone | null } => {
-  const zones = byDate(history)
-    .map((c) => getEffortLevel(c.feedback?.effort)?.zone)
-    .filter((zone): zone is EffortZone => zone !== undefined);
   const last = zones[zones.length - 1];
   if (!last) return { text: 'Aucun ressenti donné', tone: null };
   let streak = 0;

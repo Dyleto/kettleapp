@@ -79,7 +79,9 @@ const Clients = () => {
    * avant.
    */
   const withPreview = useBreakpointValue({ base: false, xl: true }) ?? false;
-  const [preview, setPreview] = useState<Client | null>(null);
+  // Le client choisi, par son identifiant : la liste se recharge (au retour
+  // sur l'onglet), et un objet gardé ici montrerait ses chiffres d'avant.
+  const [previewId, setPreviewId] = useState<string | null>(null);
   useDocumentTitle('Clients');
 
   const counts = tileCounts(clients, now);
@@ -96,7 +98,11 @@ const Clients = () => {
   const openProgram = (client: Client) =>
     navigate(COACH_ROUTES.clientSession(client._id, 1));
   const open = (client: Client) =>
-    withPreview ? setPreview(client) : openProgram(client);
+    withPreview ? setPreviewId(client._id) : openProgram(client);
+  // Sans choix, le panneau montre le premier de la liste — le prochain à
+  // traiter : un panneau vide à côté d'une liste ne sert à rien.
+  const preview =
+    clients.find((c) => c._id === previewId) ?? visible[0] ?? null;
 
   /**
    * Ce qui se passe une fois le lien en main.
@@ -308,7 +314,18 @@ const Clients = () => {
             alignItems="start"
           >
             {list}
-            <Box position="sticky" top="24px" minW={0}>
+            <Box
+              as="aside"
+              aria-label="Aperçu du client"
+              position="sticky"
+              top="24px"
+              maxH="calc(100dvh - 48px)"
+              overflowY="auto"
+              minW={0}
+              bg="bg.surface"
+              borderRadius="18px"
+              p="20px"
+            >
               <ClientPreview client={preview} />
             </Box>
           </Grid>

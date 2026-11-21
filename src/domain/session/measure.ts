@@ -1,9 +1,4 @@
-import {
-  BlockType,
-  CompletedSession,
-  Session,
-  SessionBlock,
-} from '@/shared/types';
+import { Session, SessionBlock } from '@/shared/types';
 import {
   blockDefinesOwnMetrics,
   blockSupportsRepsOnly,
@@ -138,14 +133,4 @@ export const estimatedMinutes = (session: Session): number => {
     Math.max(0, blocks.length - 1) * SECONDS_BETWEEN_BLOCKS
   );
   return Math.max(5, Math.round(seconds / 300) * 5);
-};
-
-/** Les formats d'un bilan, sans doublon : « Échauffement · AMRAP ». Le
- * type d'un instantané est une chaîne libre — un bilan ancien peut porter
- * un format qui n'existe plus —, d'où la conversion. */
-export const getCompletedSessionBlockTypes = (
-  completed: CompletedSession
-): string => {
-  const uniqueTypes = [...new Set(completed.blocks.map((b) => b.type))];
-  return uniqueTypes.map((t) => getBlockLabel(t as BlockType)).join(' · ');
 };

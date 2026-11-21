@@ -95,11 +95,11 @@ export default {
     },
     {
       name: "l'aperçu du coach ouvre la séance en lecteur client",
-      // La carte passait `readOnly` au tiroir ; elle dit désormais au
-      // détail qui lit (F3b).
+      // La carte passait `readOnly` au tiroir ; le panneau dit au détail
+      // qui lit (F3b, F4b).
       edits: [
         {
-          file: 'src/features/client/progress/SessionHistoryCard.tsx',
+          file: 'src/features/coach/components/ClientPreview.tsx',
           from: '          viewer="coach"\n',
           to: '          viewer="self"\n',
         },
@@ -113,9 +113,9 @@ export default {
       name: "l'aperçu du coach propose « Corriger »",
       edits: [
         {
-          file: 'src/features/client/progress/SessionHistoryCard.tsx',
-          from: '          viewer="coach"\n          onClose={() => setIsOpen(false)}',
-          to: '          viewer="coach"\n          onCorrect={() => undefined}\n          onClose={() => setIsOpen(false)}',
+          file: 'src/features/coach/components/ClientPreview.tsx',
+          from: '          viewer="coach"\n          onClose={() => setOpenedId(null)}',
+          to: '          viewer="coach"\n          onCorrect={() => undefined}\n          onClose={() => setOpenedId(null)}',
         },
       ],
       falls: ['→ sans pouvoir corriger la séance de son client'],
