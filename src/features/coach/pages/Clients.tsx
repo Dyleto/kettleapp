@@ -11,7 +11,15 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { LuCheck, LuLink, LuPlus } from 'react-icons/lu';
+import {
+  LuCheck,
+  LuDumbbell,
+  LuLink,
+  LuMessageCircle,
+  LuPlus,
+  LuTag,
+  LuUserMinus,
+} from 'react-icons/lu';
 import { ClientPreview, COACH_CONTENT_MAX_W } from '@/features/coach';
 import { Client } from '@/shared/types';
 import { useClients } from '@/features/coach/hooks/useClients';
@@ -20,6 +28,8 @@ import {
   useCopyInvitation,
 } from '@/features/coach/hooks/useActiveInvitation';
 import { InviteSheet } from '@/features/coach/clients/InviteSheet';
+import { RemoveClientSheet } from '@/features/coach/clients/RemoveClientSheet';
+import type { SessionMenuAction } from '@/features/coach/components/SessionMenu';
 import {
   ClientTagsSheet,
   TagBar,
@@ -71,6 +81,7 @@ const Clients = () => {
     [...chosenTags].filter((id) => tags.some((tag) => tag._id === id))
   );
   const [tagsFor, setTagsFor] = useState<string | null>(null);
+  const [removing, setRemoving] = useState<string | null>(null);
   const [managing, setManaging] = useState(false);
   const now = new Date();
   // Chargé à l'ouverture de la liste : le lien doit être en main avant le
@@ -119,6 +130,34 @@ const Clients = () => {
     navigate(COACH_ROUTES.clientSession(client._id, 1));
   const open = (client: Client) =>
     withPreview ? setPreviewId(client._id) : openProgram(client);
+  // Le menu d'une ligne : ce qu'on fait d'un client sans l'ouvrir.
+  const menuFor = (client: Client): SessionMenuAction[] => [
+    {
+      value: 'tags',
+      label: 'Étiquettes',
+      icon: <LuTag size={16} />,
+      onSelect: () => setTagsFor(client._id),
+    },
+    {
+      value: 'program',
+      label: 'Ouvrir son programme',
+      icon: <LuDumbbell size={16} />,
+      onSelect: () => openProgram(client),
+    },
+    {
+      value: 'journal',
+      label: 'Voir ses ressentis',
+      icon: <LuMessageCircle size={16} />,
+      onSelect: () => navigate(COACH_ROUTES.clientJournal(client._id)),
+    },
+    {
+      value: 'remove',
+      label: 'Retirer de mes clients',
+      icon: <LuUserMinus size={16} />,
+      danger: true,
+      onSelect: () => setRemoving(client._id),
+    },
+  ];
   // Sans choix, le panneau montre le premier de la liste — le prochain à
   // traiter : un panneau vide à côté d'une liste ne sert à rien.
   const preview =
@@ -221,6 +260,7 @@ const Clients = () => {
               selected={withPreview && client._id === preview?._id}
               onOpen={() => open(client)}
               onOpenProgram={() => openProgram(client)}
+              actions={menuFor(client)}
             />
           ))}
         </VStack>
@@ -299,6 +339,12 @@ const Clients = () => {
           client={clients.find((c) => c._id === tagsFor)!}
           tags={tags}
           onClose={() => setTagsFor(null)}
+        />
+      )}
+      {removing && clients.some((c) => c._id === removing) && (
+        <RemoveClientSheet
+          client={clients.find((c) => c._id === removing)!}
+          onClose={() => setRemoving(null)}
         />
       )}
       {managing && (

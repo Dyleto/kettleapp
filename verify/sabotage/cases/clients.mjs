@@ -91,6 +91,19 @@ const RENAME = 'renommer : partout à la fois';
 const DELETE =
   'supprimer : la feuille dit combien de clients la perdront, puis la retire de tous';
 
+const REMOVE = 'src/features/coach/clients/RemoveClientSheet.tsx';
+const MENU_OPENS =
+  'le clic droit ouvre le menu de la ligne, sans ouvrir l’atelier';
+const MENU_TAGS = '→ « Étiquettes » ouvre sa feuille, sur téléphone aussi';
+const LONG_PRESS = '→ l’appui long au doigt l’ouvre aussi';
+const MENU_JOURNAL = '→ « Voir ses ressentis » mène à son journal';
+const ASK = '« Retirer » demande, et dit ce qui reste au client';
+const KEEP = '→ « Garder » ne retire rien';
+const REMOVED =
+  '→ « Retirer » : le client quitte la liste, et les tuiles le comptent';
+const REMOVE_FAILED =
+  'un retrait raté : la feuille reste et dit que le client est toujours là';
+
 export default {
   suite: 'verify_clients.mjs',
   cases: [
@@ -775,6 +788,105 @@ export default {
         },
       ],
       falls: [DELETE],
+    },
+    {
+      name: 'une ligne n’a plus de menu',
+      edits: [
+        {
+          file: 'src/features/coach/clients/ClientRow.tsx',
+          from: '  return actions ? (',
+          to: '  return false ? (',
+        },
+      ],
+      falls: [
+        MENU_OPENS,
+        MENU_TAGS,
+        LONG_PRESS,
+        MENU_JOURNAL,
+        ASK,
+        REMOVED,
+        REMOVE_FAILED,
+      ],
+    },
+    {
+      name: '« Étiquettes » n’ouvre rien',
+      edits: [
+        {
+          file: PAGE,
+          from: '      onSelect: () => setTagsFor(client._id),',
+          to: '      onSelect: () => undefined,',
+        },
+      ],
+      falls: [MENU_TAGS],
+    },
+    {
+      name: '« Voir ses ressentis » ne mène nulle part',
+      edits: [
+        {
+          file: PAGE,
+          from: '      onSelect: () => navigate(COACH_ROUTES.clientJournal(client._id)),',
+          to: '      onSelect: () => undefined,',
+        },
+      ],
+      falls: [MENU_JOURNAL],
+    },
+    {
+      name: '« Retirer de mes clients » n’ouvre rien',
+      edits: [
+        {
+          file: PAGE,
+          from: '      onSelect: () => setRemoving(client._id),',
+          to: '      onSelect: () => undefined,',
+        },
+      ],
+      falls: [ASK, REMOVED, REMOVE_FAILED],
+    },
+    {
+      // Karim part dès « Garder » : l'assertion du retrait constate ensuite
+      // un client bien retiré, et reste verte.
+      name: '« Garder » retire quand même',
+      edits: [
+        {
+          file: REMOVE,
+          from: '        <ActionButton tone="ghost" size="md" w="full" onClick={onClose}>',
+          to: '        <ActionButton tone="ghost" size="md" w="full" onClick={() => remove.mutate(client._id, { onSuccess: onClose })}>',
+        },
+      ],
+      falls: [KEEP],
+    },
+    {
+      name: 'un client retiré reste dans la liste',
+      edits: [
+        {
+          file: 'src/features/coach/hooks/useClients.ts',
+          from: '        (list) => list?.filter((c) => c._id !== clientId)',
+          to: '        (list) => list',
+        },
+      ],
+      falls: [REMOVED],
+    },
+    {
+      name: 'un retrait raté ne se dit pas',
+      edits: [
+        {
+          file: REMOVE,
+          from: '        {remove.isError && (',
+          to: '        {false && (',
+        },
+      ],
+      falls: [REMOVE_FAILED],
+    },
+    {
+      // Refermée avant la réponse, la feuille ne peut plus dire l'échec.
+      name: 'la feuille se ferme sans attendre la réponse',
+      edits: [
+        {
+          file: REMOVE,
+          from: '          onClick={() => remove.mutate(client._id, { onSuccess: onClose })}',
+          to: '          onClick={() => {\n            remove.mutate(client._id);\n            onClose();\n          }}',
+        },
+      ],
+      falls: [REMOVE_FAILED],
     },
   ],
 };

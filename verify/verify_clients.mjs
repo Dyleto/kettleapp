@@ -1116,5 +1116,161 @@ const bar = (p) => text(p.locator('main [data-tag-bar]'));
   await ctx.close();
 }
 
+// ── Le menu d'une ligne, et « Retirer » ─────────────────────────────────
+const MENU_ITEMS = [
+  'Étiquettes',
+  'Ouvrir son programme',
+  'Voir ses ressentis',
+  'Retirer de mes clients',
+];
+const menuItems = (p) =>
+  p
+    .getByRole('menuitem')
+    .evaluateAll((items) => items.map((i) => i.textContent.trim()))
+    .catch(() => []);
+const rightClick = (p, id) =>
+  p
+    .locator(`main [data-client-row="${id}"]`)
+    .click({ button: 'right', timeout: 2000 })
+    .catch(() => {});
+const choose = async (p, name) => {
+  await p
+    .getByRole('menuitem', { name })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+};
+
+{
+  console.log('\n── le menu d’une ligne');
+  const { ctx, p } = await open();
+  await rightClick(p, 'sarah');
+  await p
+    .getByRole('menu')
+    .waitFor({ timeout: 3000 })
+    .catch(() => {});
+  ok(
+    'le clic droit ouvre le menu de la ligne, sans ouvrir l’atelier',
+    (await menuItems(p)).join(' | ') === MENU_ITEMS.join(' | ') &&
+      new URL(p.url()).pathname === '/coach/clients',
+    (await menuItems(p)).join(' | ')
+  );
+  await choose(p, 'Étiquettes');
+  ok(
+    '→ « Étiquettes » ouvre sa feuille, sur téléphone aussi',
+    (await p.getByRole('dialog', { name: 'Étiquettes de Sarah' }).count()) === 1
+  );
+  await p.keyboard.press('Escape');
+  await settle(p);
+
+  // L'appui long au doigt : un pointeur tactile qui se pose et reste.
+  const box = await p
+    .locator('main [data-client-row="julien"]')
+    .boundingBox()
+    .catch(() => null);
+  if (box)
+    await p
+      .locator('main [data-client-row="julien"]')
+      .dispatchEvent('pointerdown', {
+        pointerType: 'touch',
+        isPrimary: true,
+        button: 0,
+        clientX: box.x + 40,
+        clientY: box.y + 20,
+      });
+  const pressed = await p
+    .getByRole('menu')
+    .waitFor({ timeout: 3000 })
+    .then(() => true)
+    .catch(() => false);
+  ok(
+    '→ l’appui long au doigt l’ouvre aussi',
+    pressed && new URL(p.url()).pathname === '/coach/clients'
+  );
+  await choose(p, 'Voir ses ressentis');
+  await p.waitForURL(/\/journal$/, { timeout: 4000 }).catch(() => {});
+  ok(
+    '→ « Voir ses ressentis » mène à son journal',
+    new URL(p.url()).pathname === '/coach/clients/julien/journal',
+    new URL(p.url()).pathname
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── retirer un client');
+  const { ctx, p } = await open();
+  const removed = [];
+  let refuse = false;
+  await ctx.route(/\/api\/coach\/clients\/[^/]+$/, (route) => {
+    if (route.request().method() !== 'DELETE') return route.fallback();
+    removed.push(new URL(route.request().url()).pathname);
+    return refuse
+      ? route.fulfill({ status: 500, json: { message: 'panne' } })
+      : route.fallback();
+  });
+  await rightClick(p, 'karim');
+  await choose(p, 'Retirer de mes clients');
+  const sheet = p.getByRole('dialog', {
+    name: 'Retirer Karim Haddad de tes clients\u00A0?',
+  });
+  ok(
+    '« Retirer » demande, et dit ce qui reste au client',
+    (await text(sheet)).includes(
+      'Son compte, son programme et son historique restent les siens.'
+    ),
+    (await text(sheet)).slice(0, 120)
+  );
+  await sheet
+    .getByRole('button', { name: 'Garder' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '→ « Garder » ne retire rien',
+    removed.length === 0 &&
+      (await p.getByRole('dialog').count()) === 0 &&
+      (await names(p)).includes('Karim Haddad')
+  );
+  await rightClick(p, 'karim');
+  await choose(p, 'Retirer de mes clients');
+  await sheet
+    .getByRole('button', { name: 'Retirer', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await sheet.waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
+  await settle(p);
+  ok(
+    '→ « Retirer » : le client quitte la liste, et les tuiles le comptent',
+    removed.join() === '/api/coach/clients/karim' &&
+      !(await names(p)).includes('Karim Haddad') &&
+      /^0 à relancer/.test(await text(p.locator('main [data-tile="silent"]'))),
+    `${removed.join()} · ${(await names(p)).join(', ')}`
+  );
+
+  refuse = true;
+  await rightClick(p, 'julien');
+  await choose(p, 'Retirer de mes clients');
+  const failed = p.getByRole('dialog', {
+    name: 'Retirer Julien Moreau de tes clients\u00A0?',
+  });
+  await failed
+    .getByRole('button', { name: 'Retirer', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await failed
+    .getByRole('alert')
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+  ok(
+    'un retrait raté : la feuille reste et dit que le client est toujours là',
+    (await text(failed.getByRole('alert'))) ===
+      'Le retrait n’a pas abouti : Julien Moreau reste dans tes clients. Réessaie.' &&
+      (await names(p)).includes('Julien Moreau'),
+    await text(failed.getByRole('alert'))
+  );
+  await ctx.close();
+}
+
 await browser.close();
 process.exit(failureCount() ? 1 : 0);

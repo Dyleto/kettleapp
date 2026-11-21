@@ -17,6 +17,10 @@ import {
 } from '@/domain/clients/roster';
 import { visibleTags } from '@/domain/clients/tags';
 import { EffortDots } from '../components/EffortDots';
+import {
+  SessionContextMenu,
+  type SessionMenuAction,
+} from '../components/SessionMenu';
 import { TagChip } from './Tags';
 
 const TEXT_COLOR: Record<StatusTone, string> = {
@@ -105,6 +109,7 @@ export const ClientRow = ({
   selected = false,
   onOpen,
   onOpenProgram,
+  actions,
 }: {
   client: Client;
   /** Les étiquettes du coach : la ligne montre celles du client. */
@@ -113,12 +118,14 @@ export const ClientRow = ({
   selected?: boolean;
   onOpen: () => void;
   onOpenProgram: () => void;
+  /** Le menu de la ligne : clic droit, ou appui long au doigt. */
+  actions?: SessionMenuAction[];
 }) => {
   const name = clientName(client);
   const status = statusLine(client, now);
   const chip = CHIP_TONE[status.tone];
   const { shown, more } = visibleTags(client.tagIds, tags);
-  return (
+  const row = (
     <chakra.button
       type="button"
       onClick={onOpen}
@@ -206,5 +213,12 @@ export const ClientRow = ({
         </Box>
       </Grid>
     </chakra.button>
+  );
+  // Le menu au clic droit de l'atelier : le même composant, qui ouvre aussi
+  // sur un appui long au doigt — le geste de la maquette sur téléphone.
+  return actions ? (
+    <SessionContextMenu actions={actions}>{row}</SessionContextMenu>
+  ) : (
+    row
   );
 };

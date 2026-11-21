@@ -831,6 +831,11 @@ const server = http.createServer(async (req, res) => {
   if (/^\/api\/coach\/clients\/[^/]+\/history$/.test(pathname))
     return sendJson(res, 200, []);
 
+  // Retirer un client : la liste est servie par chaque suite, le serveur
+  // d'essai n'a rien à défaire — il répond comme l'API.
+  if (/^\/api\/coach\/clients\/[^/]+$/.test(pathname) && method === 'DELETE')
+    return sendJson(res, 200, { status: 'success' });
+
   const saveMatch = pathname.match(
     /^\/api\/coach\/clients\/([^/]+)\/program\/sessions$/
   );

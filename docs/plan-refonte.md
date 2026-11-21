@@ -17,7 +17,7 @@ le rangement (B12) et avant `main` (H1).
 | Fondations                | 5      | 3    | 2       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
 | Client (hors séance)      | 6      | 4    | 2       | 0       |
-| Coach                     | 7      | 4    | 2       | 1       |
+| Coach                     | 7      | 5    | 1       | 1       |
 | Commun                    | 3      | 0    | 2       | 1       |
 | Ce que ça demande à l'API | 6      | 6    | 0       | 0       |
 
@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 895 tests unitaires, 51 suites de banc et 932
-assertions, 5 min 0 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 21 novembre : 895 tests unitaires, 51 suites de banc et 940
+assertions, 4 min 46 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -75,7 +75,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 | Écran                 | État     | Ce qui manque                                                                                                                                                                                                                                                                                                                     |
 | --------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | À lire                | **fait** | Le fil, son ordre, les séances repliées, « Tout est lu », « Déjà lues », réagir, répondre, glisser pour lire avec « Annuler », « Ajuster », panneau de droite. Écarts : voir §6.                                                                                                                                                  |
-| Clients               | partiel  | Là : les tuiles qui filtrent, l'anneau et les points par ligne, la ligne d'état, la recherche, le tri, l'état vide, le panneau. Manquent les étiquettes, la feuille d'invitation et « Retirer » (F5).                                                                                                                             |
+| Clients               | **fait** | Là : les tuiles qui filtrent, l'anneau et les points par ligne, la ligne d'état, la recherche, le tri, l'état vide, le panneau, les étiquettes, l'invitation, le menu et « Retirer ».                                                                                                                                             |
 | Atelier d'un client   | **fait** | Là : la ligne qui se lit puis s'ouvre, les réglages en pastilles, la palette dessinée, le rail, l'en-tête de séance et son menu, la bande de séances et la feuille de la séance sur téléphone, le pouls, le ressenti sous chaque exercice, le score sous un bloc, l'aperçu « vu par le client », l'import d'un modèle, les bords. |
 | Les formats de bloc   | **fait** | Les dix formats et la limite de l'échelle ; la palette dessine chacun, et les paliers se tapent librement (E6a).                                                                                                                                                                                                                  |
 | Ressentis d'un client | **fait** | Là : le résumé, le calendrier à pastilles, la liste lue séance par séance, la bascule « Programme / Ressentis », le détail avec « prévu / fait » et la réponse.                                                                                                                                                                   |
@@ -535,7 +535,7 @@ banc actuel, inchangé, qui le prouve.
         formats d'un bilan. Une première version tirait la phrase de
         l'historique et les points de la ligne : elle disait « dures » sous
         cinq points verts ; les deux viennent désormais de la ligne.
-- [ ] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ». En
+- [x] **F5** Clients : étiquettes, feuille d'invitation, « Retirer ». En
       trois temps.
   - [x] **F5a** La feuille d'invitation : le lien déjà prêt et sous les
         yeux, sa validité, « Copier le lien » qui dit « Lien copié » deux
@@ -560,8 +560,15 @@ banc actuel, inchangé, qui le prouve.
         sabotage a montré que cette réécriture ne changeait rien à
         l'écran. Le menu d'une ligne, qui les ouvrira aussi sur
         téléphone, vient avec « Retirer » (F5c).
-  - [ ] **F5c** « Retirer de mes clients » (une route de l'API) et le menu
-        d'une ligne.
+  - [x] **F5c** « Retirer de mes clients » et le menu d'une ligne. L'API
+        gagne `DELETE /coach/clients/:id` (`8070f94`), qui défait le lien de
+        ce coach et lui seul : le compte, le programme et l'historique
+        restent au client, les étiquettes partent avec le lien ; un client
+        qui n'est pas le sien répond 404. Le menu — étiquettes, ouvrir le
+        programme, voir ses ressentis, retirer — s'ouvre au clic droit et à
+        l'appui long, avec le composant du rail de l'atelier. La
+        confirmation dit ce qui reste au client ; un retrait raté laisse la
+        feuille ouverte et le dit.
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
       dupliquer.
 - [ ] **F7** Exercices : vignettes, panneau, tri.
@@ -596,8 +603,8 @@ banc actuel, inchangé, qui le prouve.
       la maquette.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
 - [ ] **H4** Mise en production, dans l'ordre : `npm run verify:copy` depuis
-      une machine en réseau, `npm run migrate:ladder` sur la base, l'API,
-      puis le front. Ensuite seulement, retirer de l'API
+      une machine en réseau, `npm run migrate:ladder` sur la base, l'API
+      (jusqu'à `8070f94`, que « Retirer » appelle), puis le front. Ensuite seulement, retirer de l'API
       `PATCH /coach/clients/:id/history/mark-viewed`, que le front n'appelle
       plus depuis E11b.
 
