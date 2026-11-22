@@ -22,6 +22,7 @@ import {
   API,
   COACHES,
   settle,
+  markWelcomed,
 } from './common.mjs';
 
 const browser = await launch();
@@ -51,6 +52,7 @@ const did = (sessionId, date, month = 10) => {
  */
 const openHome = async (date, { history, program } = {}) => {
   const ctx = await browser.newContext(MOBILE);
+  await markWelcomed(ctx);
   if (history)
     await ctx.route(/\/api\/client\/history(\?|$)/, (r) =>
       r.fulfill({ json: { history } })

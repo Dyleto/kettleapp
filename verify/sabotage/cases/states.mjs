@@ -215,7 +215,7 @@ export default {
       edits: [
         {
           file: 'src/features/client/shell/ClientLayout.tsx',
-          from: '  const { voice } = useProgramCoach(!!user?.needsHealthConsent);',
+          from: "  const { voice } = useProgramCoach(\n    !!user?.needsHealthConsent || welcome.state !== 'skip'\n  );",
           to: '  const { voice } = useProgramCoach();',
         },
       ],

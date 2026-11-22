@@ -12,6 +12,22 @@ const SEVERAL = 'avec plusieurs coachs, la question dit « ton coach »';
 const REFUSE_ASKS =
   '« Je refuse » demande d’abord quand des ressentis seraient effacés, puis ouvre l’accueil';
 const REFUSE_DIRECT = '→ sans rien à effacer, refuser tient en un geste';
+const WELCOME = 'src/features/client/shell/Welcome.tsx';
+const WELCOME_HOOK = 'src/features/client/shell/useWelcome.ts';
+const W_FIRST =
+  'un nouveau client voit trois cartes, et la première nomme son coach';
+const W_NEXT = '« Suivant » avance, et les points suivent';
+const W_SWIPE = 'glisser change de carte, dans les deux sens';
+const W_LAST =
+  '→ la dernière dit ce qu’on demande à la fin, et propose de commencer';
+const W_START =
+  '« Commencer » mène à la question puis à l’accueil, et les cartes ne reviennent plus';
+const W_SKIP = '« Passer » mène droit à la question';
+const W_WIDE = 'sur grand écran, la carte tient dans 480 px, au centre';
+const W_REGULAR =
+  'un client qui s’entraîne déjà ne les voit pas, même sur un nouvel appareil';
+const W_NO_COACH = 'sans coach, pas de cartes : la question vient seule';
+const W_ACCOUNT = 'elles n’arrêtent pas « Mon compte »';
 const LOGOUT =
   '« Se déconnecter » reste offert, pour qui s’est trompé de compte';
 
@@ -28,6 +44,7 @@ export default {
           to: '  if (user?.needsHealthConsent && false)',
         },
       ],
+      // Après les cartes aussi, la question manque.
       falls: [
         QUESTION,
         DETAIL,
@@ -36,6 +53,9 @@ export default {
         SEVERAL,
         REFUSE_ASKS,
         REFUSE_DIRECT,
+        W_START,
+        W_SKIP,
+        W_NO_COACH,
         LOGOUT,
       ],
     },
@@ -115,7 +135,8 @@ export default {
           to: '            onClick={() => mutate(false)}',
         },
       ],
-      falls: [ACCEPT],
+      // Après les cartes, l'accord part en refus tout autant.
+      falls: [ACCEPT, W_START],
     },
     {
       name: 'refuser efface sans prévenir',
@@ -149,7 +170,7 @@ export default {
           to: '        setUser({ ...user, healthConsent });',
         },
       ],
-      falls: [ACCEPT, REFUSE_ASKS, REFUSE_DIRECT],
+      falls: [ACCEPT, REFUSE_ASKS, REFUSE_DIRECT, W_START],
     },
     {
       name: '« Se déconnecter » ne fait rien',
@@ -161,6 +182,140 @@ export default {
         },
       ],
       falls: [LOGOUT],
+    },
+    {
+      // Sans cartes, la question vient seule : « Passer » et « Commencer »
+      // n'ont plus rien à sauter, et ce qui suit la question tient.
+      name: 'les cartes ne se montrent jamais',
+      edits: [
+        {
+          file: LAYOUT,
+          from: "  if (welcome.state === 'show')",
+          to: "  if (welcome.state === 'show' && false)",
+        },
+      ],
+      falls: [W_FIRST, W_NEXT, W_SWIPE, W_LAST, W_WIDE],
+    },
+    {
+      name: 'la première carte ne nomme plus le coach',
+      edits: [
+        {
+          file: WELCOME,
+          from: '    title: `${coach.opening} prépare ton programme`,',
+          to: '    title: `Ton coach prépare ton programme`,',
+        },
+      ],
+      falls: [W_FIRST],
+    },
+    {
+      name: 'la dernière carte ne nomme plus le coach',
+      edits: [
+        {
+          file: WELCOME,
+          from: '    line: `Une touche à la fin. ${coach.opening} s’en sert pour régler la suite.`,',
+          to: '    line: `Une touche à la fin.`,',
+        },
+      ],
+      falls: [W_LAST],
+    },
+    {
+      name: '« Suivant » saute une carte',
+      edits: [
+        {
+          file: WELCOME,
+          from: '            onClick={() => (last ? onDone() : go(index + 1))}',
+          to: '            onClick={() => (last ? onDone() : go(index + 2))}',
+        },
+      ],
+      falls: [W_NEXT],
+    },
+    {
+      name: 'les points ne gardent pas les cartes vues',
+      edits: [
+        {
+          file: WELCOME,
+          from: "              i < index ? 'done' : i === index ? 'now' : 'todo'",
+          to: "              i === index ? 'now' : 'todo'",
+        },
+      ],
+      falls: [W_NEXT],
+    },
+    {
+      name: 'glisser ne revient pas en arrière',
+      edits: [
+        {
+          file: WELCOME,
+          from: '          else if (moved >= SWIPE) go(index - 1);\n',
+          to: '',
+        },
+      ],
+      falls: [W_SWIPE],
+    },
+    {
+      name: '« Passer » ne fait rien',
+      edits: [
+        {
+          file: WELCOME,
+          from: '            onClick={onDone}',
+          to: '            onClick={() => undefined}',
+        },
+      ],
+      falls: [W_SKIP],
+    },
+    {
+      name: 'la carte s’élargit sur grand écran',
+      edits: [
+        {
+          file: WELCOME,
+          from: '        maxW="480px"',
+          to: '        maxW="560px"',
+        },
+      ],
+      falls: [W_WIDE],
+    },
+    {
+      name: 'les cartes reviennent à chaque visite',
+      edits: [
+        {
+          file: WELCOME_HOOK,
+          from: "    storage.setItem(WELCOME_SEEN_KEY, '1');\n",
+          to: '',
+        },
+      ],
+      falls: [W_START],
+    },
+    {
+      name: 'un client qui s’entraîne déjà les revoit',
+      edits: [
+        {
+          file: WELCOME_HOOK,
+          from: '(program.data?.coaches.length ?? 0) > 0 && history.data?.length === 0',
+          to: '(program.data?.coaches.length ?? 0) > 0',
+        },
+      ],
+      falls: [W_REGULAR],
+    },
+    {
+      name: 'un client sans coach les voit',
+      edits: [
+        {
+          file: WELCOME_HOOK,
+          from: '(program.data?.coaches.length ?? 0) > 0 && history.data?.length === 0',
+          to: 'history.data?.length === 0',
+        },
+      ],
+      falls: [W_NO_COACH],
+    },
+    {
+      name: 'les cartes s’ouvrent sur « Mon compte »',
+      edits: [
+        {
+          file: WELCOME_HOOK,
+          from: '  const asking = !seen && onToday;',
+          to: '  const asking = !seen || !onToday;',
+        },
+      ],
+      falls: [W_ACCOUNT],
     },
   ],
 };

@@ -1,6 +1,10 @@
 /**
- * Les premiers pas d'un client (F8) : la question du partage de ses données
- * de santé, posée devant tout son espace tant qu'elle n'a pas de réponse.
+ * Les premiers pas d'un client (F8) : trois cartes de bienvenue, une fois
+ * par appareil, puis la question du partage de ses données de santé, posée
+ * devant tout son espace tant qu'elle n'a pas de réponse.
+ *
+ * Les autres suites se connectent avec les cartes déjà vues ; celle-ci les
+ * rouvre (`signIn(ctx, { welcomed: false })`) pour un client sans séance.
  *
  * Le serveur d'essai sert un client qui a déjà répondu ; la suite lui fait
  * dire le contraire (`needsHealthConsent`) et reçoit elle-même la réponse,
@@ -34,16 +38,27 @@ const text = (locator) =>
     .catch(() => '');
 
 /** Un client qui n'a pas encore répondu ; les réponses envoyées, dans l'ordre. */
-const unanswered = async (browser, { coaches, healthDataCount } = {}) => {
-  const ctx = await browser.newContext(MOBILE);
+const unanswered = async (
+  browser,
+  {
+    coaches,
+    healthDataCount,
+    newcomer = false,
+    context = MOBILE,
+    path = '/client',
+    answered = false,
+  } = {}
+) => {
+  const ctx = await browser.newContext(context);
   const answers = [];
-  await ctx.route(/\/api\/auth\/me$/, (r) =>
-    r.fulfill({
-      json: {
-        user: { ...user, needsHealthConsent: true, healthConsent: null },
-      },
-    })
-  );
+  if (!answered)
+    await ctx.route(/\/api\/auth\/me$/, (r) =>
+      r.fulfill({
+        json: {
+          user: { ...user, needsHealthConsent: true, healthConsent: null },
+        },
+      })
+    );
   await ctx.route(/\/api\/client\/health-consent$/, (r) => {
     const { granted } = r.request().postDataJSON();
     answers.push(granted);
@@ -70,12 +85,44 @@ const unanswered = async (browser, { coaches, healthDataCount } = {}) => {
         },
       })
     );
-  const p = await signIn(ctx);
-  await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
+  // Un nouveau client : aucune séance faite, et les cartes jamais vues sur
+  // cet appareil.
+  if (newcomer)
+    await ctx.route(/\/api\/client\/history(\?|$)/, (r) =>
+      r.fulfill({ json: { history: [] } })
+    );
+  const p = await signIn(ctx, { welcomed: !newcomer });
+  await p.goto(`${BASE}${path}`, { waitUntil: 'domcontentloaded' });
   await settle(p);
   return { ctx, p, answers };
 };
 const question = (p) => p.locator('[data-consent-question]');
+const card = (p) => p.locator('[data-welcome]');
+const cardNumber = (p) =>
+  card(p)
+    .getAttribute('data-welcome')
+    .catch(() => '');
+const marks = (p) =>
+  card(p)
+    .locator('[data-mark]')
+    .evaluateAll((els) => els.map((el) => el.getAttribute('data-mark')))
+    .catch(() => []);
+/** Glisser sur la carte, d'un bord à l'autre : négatif vers la gauche. */
+const swipe = async (p, distance) => {
+  // `boundingBox` attend l'élément : sans carte, il lèverait au lieu de
+  // rendre `null`, et la suite s'arrêterait au lieu de tomber.
+  const box = await card(p)
+    .boundingBox({ timeout: 2000 })
+    .catch(() => null);
+  if (!box) return;
+  const y = box.y + box.height / 2;
+  const x = box.x + box.width / 2 - distance / 2;
+  await p.mouse.move(x, y);
+  await p.mouse.down();
+  await p.mouse.move(x + distance, y, { steps: 6 });
+  await p.mouse.up();
+  await settle(p);
+};
 /** L'accueil, une fois la question passée : la barre d'onglets est revenue. */
 const atHome = async (p) =>
   (await question(p).count()) === 0 &&
@@ -200,6 +247,145 @@ const browser = await launch();
       answers.join() === 'false' &&
       (await atHome(p)),
     answers.join()
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── les cartes de bienvenue');
+  const { ctx, p, answers } = await unanswered(browser, { newcomer: true });
+  ok(
+    'un nouveau client voit trois cartes, et la première nomme son coach',
+    (await cardNumber(p)) === '1' &&
+      (await text(card(p).locator('h1'))) === 'Julie prépare ton programme' &&
+      (await text(card(p))).includes(
+        'Tes séances arrivent ici, dans l’ordre choisi pour toi.'
+      ) &&
+      (await marks(p)).join() === 'now,todo,todo' &&
+      (await question(p).count()) === 0,
+    `${await cardNumber(p)} · ${await text(card(p).locator('h1'))}`
+  );
+  await p
+    .getByRole('button', { name: 'Suivant' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '« Suivant » avance, et les points suivent',
+    (await cardNumber(p)) === '2' &&
+      (await text(card(p).locator('h1'))) === 'Tu suis la séance, pas à pas' &&
+      (await marks(p)).join() === 'done,now,todo',
+    `${await cardNumber(p)} · ${(await marks(p)).join()}`
+  );
+  await swipe(p, -220);
+  const forward = await cardNumber(p);
+  await swipe(p, 220);
+  const back = await cardNumber(p);
+  await swipe(p, -220);
+  ok(
+    'glisser change de carte, dans les deux sens',
+    forward === '3' && back === '2' && (await cardNumber(p)) === '3',
+    `${forward} · ${back} · ${await cardNumber(p)}`
+  );
+  ok(
+    '  → la dernière dit ce qu’on demande à la fin, et propose de commencer',
+    (await text(card(p).locator('h1'))) === 'Tu dis comment c’était' &&
+      (await text(card(p))).includes(
+        'Une touche à la fin. Julie s’en sert pour régler la suite.'
+      ) &&
+      (await p.getByRole('button', { name: 'Commencer' }).count()) === 1
+  );
+  await p
+    .getByRole('button', { name: 'Commencer' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const asked = (await question(p).count()) === 1;
+  await p
+    .getByRole('button', { name: "J'accepte" })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const home = await atHome(p);
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await settle(p);
+  ok(
+    '« Commencer » mène à la question puis à l’accueil, et les cartes ne reviennent plus',
+    asked && answers.join() === 'true' && home && (await card(p).count()) === 0,
+    `${asked} · ${answers.join()} · ${home}`
+  );
+  await ctx.close();
+}
+
+{
+  const { ctx, p } = await unanswered(browser, { newcomer: true });
+  await p
+    .getByRole('button', { name: 'Passer' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '« Passer » mène droit à la question',
+    (await card(p).count()) === 0 && (await question(p).count()) === 1
+  );
+  await ctx.close();
+}
+
+{
+  const { ctx, p } = await unanswered(browser, {
+    newcomer: true,
+    context: { viewport: { width: 1440, height: 900 } },
+  });
+  const box = await card(p)
+    .boundingBox({ timeout: 2000 })
+    .catch(() => null);
+  ok(
+    'sur grand écran, la carte tient dans 480 px, au centre',
+    !!box &&
+      Math.round(box.width) === 480 &&
+      Math.abs(box.x + box.width / 2 - 720) <= 1,
+    box ? `${Math.round(box.width)} px à ${Math.round(box.x)}` : 'aucune carte'
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── à qui elles ne se montrent pas');
+  // Le décor : un client qui s'entraîne déjà, les cartes jamais vues ici.
+  const ctx = await browser.newContext(MOBILE);
+  const p = await signIn(ctx, { welcomed: false });
+  await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
+  await settle(p);
+  ok(
+    'un client qui s’entraîne déjà ne les voit pas, même sur un nouvel appareil',
+    (await card(p).count()) === 0 && (await atHome(p))
+  );
+  await ctx.close();
+}
+
+{
+  const { ctx, p } = await unanswered(browser, {
+    newcomer: true,
+    coaches: [],
+  });
+  ok(
+    'sans coach, pas de cartes : la question vient seule',
+    (await card(p).count()) === 0 && (await question(p).count()) === 1
+  );
+  await ctx.close();
+}
+
+{
+  // La question déjà répondue : sinon c'est elle qui couvre « Mon compte ».
+  const { ctx, p } = await unanswered(browser, {
+    newcomer: true,
+    path: '/client/account',
+    answered: true,
+  });
+  ok(
+    'elles n’arrêtent pas « Mon compte »',
+    (await card(p).count()) === 0 &&
+      (await p.getByRole('heading', { name: 'Mon compte' }).count()) === 1
   );
   await ctx.close();
 }

@@ -23,6 +23,7 @@ export const Dots = ({ marks }: { marks: DotMark[] }) => (
         h="14px"
         borderRadius="full"
         flexShrink={0}
+        data-mark={mark}
         bg={
           mark === 'done'
             ? 'session.rest'

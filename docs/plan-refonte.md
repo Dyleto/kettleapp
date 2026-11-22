@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 22 novembre : 913 tests unitaires, 54 suites de banc et 989
-assertions, 5 min 12 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 22 novembre : 913 tests unitaires, 54 suites de banc et 999
+assertions, 5 min 14 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -628,7 +628,7 @@ banc actuel, inchangé, qui le prouve.
         à zéro rend les exercices modifiés. Le rejeu a trouvé un compte
         d'envois partagé entre deux refus : le nom parti par erreur faisait
         tomber le lien.
-- [ ] **F8** Premiers pas : trois cartes, la question en une phrase. En
+- [x] **F8** Premiers pas : trois cartes, la question en une phrase. En
       deux temps.
   - [x] **F8a** La question du partage, en une phrase qui nomme celui qui
         lira — « acceptes-tu que Julie les lise ? », « ton coach » quand il
@@ -643,8 +643,21 @@ banc actuel, inchangé, qui le prouve.
         faisait demander le programme à « Mon compte », que `verify_states`
         veut joignable pendant une panne. Le rejeu a trouvé un focus lu
         après un geste qui l'avait pris.
-  - [ ] **F8b** Les trois cartes de bienvenue, une seule fois par appareil,
-        avant la question.
+  - [x] **F8b** Les trois cartes de bienvenue, avant la question : ce que
+        prépare le coach, ce que fait la séance guidée, ce qu'on demande à
+        la fin. « Suivant » ou glisser, dans les deux sens ; « Passer » et
+        « Commencer » mènent à la question, et les cartes ne reviennent plus
+        sur l'appareil. Sur grand écran, la même carte dans 480 px. Elles ne
+        se montrent qu'à un client qui a un coach et n'a encore fait aucune
+        séance, et seulement sur « Aujourd'hui » : la marque est locale, et
+        un client de longue date les aurait vues sur chaque nouveau
+        téléphone ; « Mon compte » reste joignable sans le programme.
+        « dans l'ordre qu'elle a choisi » accordait le coach : « dans
+        l'ordre choisi pour toi ». Le banc se connecte avec les cartes déjà
+        vues (`signIn`, `markWelcomed`), et seule `verify_firststeps` les
+        rouvre : le client sans séance de `verify_home` les avait trouvées
+        devant son accueil. Le rejeu a trouvé une mesure qui attendait une
+        carte absente au lieu de rendre rien.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
       déjà client.
 - [ ] **F10** Mon compte et Administration aux composants du kit ;

@@ -250,6 +250,22 @@ export const failureCount = () => failures;
 export const clean = (t) => (t ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
 
 /**
+ * Les cartes de bienvenue, déjà vues sur cet appareil (F8b).
+ *
+ * À part de `signIn` pour les suites qui se connectent elles-mêmes — celle
+ * de l'accueil installe son horloge avant : son client sans séance est
+ * exactement celui à qui les cartes se montrent.
+ */
+export const markWelcomed = (ctx) =>
+  ctx.addInitScript(() => {
+    try {
+      localStorage.setItem('kettle:welcome-seen', '1');
+    } catch {
+      // Sans stockage, les cartes s'affichent : la suite le dira.
+    }
+  });
+
+/**
  * Se connecter, par la porte de développement du serveur d'essai.
  *
  * La connexion passe par Google en production : la rejouer demanderait un
@@ -259,8 +275,15 @@ export const clean = (t) => (t ?? '').replace(/[\u00A0\u202F\u2009]/g, ' ');
  *
  * Les erreurs de page sont relayées dans la sortie : sans cela, une exception
  * React rend l'écran vide et les assertions tombent en accusant l'assertion.
+ *
+ * Le client du décor a déjà vu les cartes de bienvenue (F8b) : elles ne
+ * s'affichent qu'une fois par appareil, et sans cette marque, toute suite
+ * qui sert un historique vide les trouverait devant son écran. Seule
+ * `verify_firststeps` les rouvre, avec `{ welcomed: false }`. La marque est
+ * posée avant chaque chargement, donc aussi après un `localStorage.clear()`.
  */
-export const signIn = async (ctx) => {
+export const signIn = async (ctx, { welcomed = true } = {}) => {
+  if (welcomed) await markWelcomed(ctx);
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('[pageerror]', e.message));
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });

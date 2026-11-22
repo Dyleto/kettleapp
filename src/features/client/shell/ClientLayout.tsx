@@ -6,17 +6,32 @@ import { MobileTopBar } from '@/shared/components/MobileTopBar';
 import { HealthConsentGate } from '@/features/account';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { useProgramCoach } from '@/features/client/common/useProgramCoach';
+import { useWelcome } from '@/features/client/shell/useWelcome';
+import { Welcome } from '@/features/client/shell/Welcome';
 import { Box, Flex } from '@chakra-ui/react';
 
 /**
  * L'espace du client : le rail ou la barre d'onglets, et la page.
  *
- * Devant lui, ce qu'un nouveau client voit avant son accueil : la question
- * du partage des données de santé, tant qu'elle n'a pas reçu de réponse.
+ * Devant lui, ce qu'un nouveau client voit avant son accueil : les trois
+ * cartes de bienvenue, une fois, puis la question du partage des données
+ * de santé, tant qu'elle n'a pas reçu de réponse.
  */
 const ClientLayout = () => {
   const { user } = useAuth();
-  const { voice } = useProgramCoach(!!user?.needsHealthConsent);
+  const welcome = useWelcome();
+  const { voice } = useProgramCoach(
+    !!user?.needsHealthConsent || welcome.state !== 'skip'
+  );
+
+  // Les cartes de bienvenue d'abord, puis la question : on explique le
+  // principe avant de demander ce qu'on fera des réponses. Pendant qu'on
+  // sait s'il faut les montrer, un fond nu plutôt que la question, qu'elles
+  // viendraient recouvrir.
+  if (welcome.state === 'waiting')
+    return <Box minH="100dvh" bg="bg.canvas" aria-busy="true" />;
+  if (welcome.state === 'show')
+    return <Welcome coach={voice} onDone={welcome.done} />;
 
   // Ce que le client dit après une séance est une donnée de santé : on
   // demande avant de collecter, pas après. La question se pose devant tout
