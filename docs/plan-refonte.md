@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 22 novembre : 913 tests unitaires, 53 suites de banc et 981
-assertions, 4 min 56 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 22 novembre : 913 tests unitaires, 54 suites de banc et 989
+assertions, 5 min 12 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -628,7 +628,23 @@ banc actuel, inchangé, qui le prouve.
         à zéro rend les exercices modifiés. Le rejeu a trouvé un compte
         d'envois partagé entre deux refus : le nom parti par erreur faisait
         tomber le lien.
-- [ ] **F8** Premiers pas : trois cartes, la question en une phrase.
+- [ ] **F8** Premiers pas : trois cartes, la question en une phrase. En
+      deux temps.
+  - [x] **F8a** La question du partage, en une phrase qui nomme celui qui
+        lira — « acceptes-tu que Julie les lise ? », « ton coach » quand il
+        y en a plusieurs. Le détail de ce qu'un refus change se déplie, avec
+        la politique de confidentialité ; son contenu n'a pas bougé.
+        « J'accepte » et « Je refuse » ont la même taille et aucun n'a le
+        focus ; refuser demande d'abord s'il y a des ressentis à effacer,
+        et tient en un geste sinon. L'ancienne phrase accordait le coach au
+        masculin (« c'est avec elles qu'il adapte la suite ») : partie. Le
+        consentement n'avait aucune suite de banc ; il a la sienne. Le nom
+        du coach n'est lu que lorsque la question se pose : lu partout, il
+        faisait demander le programme à « Mon compte », que `verify_states`
+        veut joignable pendant une panne. Le rejeu a trouvé un focus lu
+        après un geste qui l'avait pris.
+  - [ ] **F8b** Les trois cartes de bienvenue, une seule fois par appareil,
+        avant la question.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
       déjà client.
 - [ ] **F10** Mon compte et Administration aux composants du kit ;

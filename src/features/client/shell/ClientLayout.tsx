@@ -5,16 +5,25 @@ import { Header } from '@/shared/components/Header';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
 import { HealthConsentGate } from '@/features/account';
 import { useAuth } from '@/shared/contexts/useAuth';
+import { useProgramCoach } from '@/features/client/common/useProgramCoach';
 import { Box, Flex } from '@chakra-ui/react';
 
+/**
+ * L'espace du client : le rail ou la barre d'onglets, et la page.
+ *
+ * Devant lui, ce qu'un nouveau client voit avant son accueil : la question
+ * du partage des données de santé, tant qu'elle n'a pas reçu de réponse.
+ */
 const ClientLayout = () => {
   const { user } = useAuth();
+  const { voice } = useProgramCoach(!!user?.needsHealthConsent);
 
-  // L'effort de fin de séance est une donnée de santé : on demande avant de
-  // collecter, pas après. La question se pose devant tout l'espace client —
-  // barre d'onglets comprise — sinon elle se contourne, et un consentement
-  // qu'on peut contourner n'en est pas un.
-  if (user?.needsHealthConsent) return <HealthConsentGate />;
+  // Ce que le client dit après une séance est une donnée de santé : on
+  // demande avant de collecter, pas après. La question se pose devant tout
+  // l'espace client — barre d'onglets comprise — sinon elle se contourne, et
+  // un consentement qu'on peut contourner n'en est pas un.
+  if (user?.needsHealthConsent)
+    return <HealthConsentGate coach={voice.inline} />;
 
   return (
     <Flex minH="100vh">

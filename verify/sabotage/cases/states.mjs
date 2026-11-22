@@ -208,5 +208,18 @@ export default {
       ],
       falls: ['→ et son bouton mène au programme'],
     },
+    {
+      // Le nom du coach de la question du partage, lu partout : « Mon
+      // compte » demande le programme qu'il doit pouvoir ignorer (F8a).
+      name: 'l’espace client lit le programme même sans question à poser',
+      edits: [
+        {
+          file: 'src/features/client/shell/ClientLayout.tsx',
+          from: '  const { voice } = useProgramCoach(!!user?.needsHealthConsent);',
+          to: '  const { voice } = useProgramCoach();',
+        },
+      ],
+      falls: ['→ sans même demander le programme'],
+    },
   ],
 };
