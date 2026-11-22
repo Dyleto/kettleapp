@@ -3,7 +3,8 @@ const DOMAIN = 'src/domain/clients/roster.ts';
 const PAGE = 'src/features/coach/pages/Clients.tsx';
 const ROW = 'src/features/coach/clients/ClientRow.tsx';
 const TILES_FILE = 'src/features/coach/clients/ClientTiles.tsx';
-const SEARCH_FILE = 'src/features/coach/clients/ClientSearch.tsx';
+// Le tri vit dans le kit, que la bibliothèque d'exercices partage (F7a).
+const SEARCH_FILE = 'src/kit/SortMenu.tsx';
 
 const TILES =
   'trois chiffres en tête : six à lire chez trois clients, un à relancer, deux mal réglées';
@@ -310,7 +311,7 @@ export default {
       edits: [
         {
           file: SEARCH_FILE,
-          from: '      onSelect={({ value }) => onSort(value as ClientSort)}',
+          from: '      onSelect={(details) => onChange(details.value as T)}',
           to: '      onSelect={() => undefined}',
         },
       ],

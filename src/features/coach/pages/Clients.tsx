@@ -39,7 +39,10 @@ import { useTags } from '@/features/coach/hooks/useTags';
 import { hasAnyTag } from '@/domain/clients/tags';
 import { ClientTiles } from '@/features/coach/clients/ClientTiles';
 import { ClientRow } from '@/features/coach/clients/ClientRow';
-import { ClientSearch, SortMenu } from '@/features/coach/clients/ClientSearch';
+import {
+  ClientSearch,
+  ClientSortMenu,
+} from '@/features/coach/clients/ClientSearch';
 import {
   matchesQuery,
   passesFilter,
@@ -212,7 +215,7 @@ const Clients = () => {
       <ClientTiles counts={counts} filter={filter} onFilter={setFilter} />
       <HStack gap="8px">
         <ClientSearch value={query} onChange={setQuery} />
-        <SortMenu sort={sort} onSort={setSort} />
+        <ClientSortMenu sort={sort} onSort={setSort} />
       </HStack>
       <TagBar
         tags={tags}

@@ -43,8 +43,8 @@ export default {
       edits: [
         {
           file: 'src/features/exercise/pages/Exercises.tsx',
-          from: '                Exercices\n              </Text>',
-          to: '                Bibliothèque\n              </Text>',
+          from: '              Exercices\n            </Text>',
+          to: '              Bibliothèque\n            </Text>',
         },
       ],
       falls: ["l'entrée « Exercices » ouvre l'écran « Exercices »"],

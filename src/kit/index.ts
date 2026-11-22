@@ -33,6 +33,8 @@ export { PillButton, type PillButtonProps } from './PillButton';
 export { NavRail, TabBar, type NavEntry } from './Navigation';
 export { LANDSCAPE, WIDE } from './media';
 export { Ring } from './Ring';
+export { SearchField } from './SearchField';
 export { Segments } from './Segments';
 export { Sheet } from './Sheet';
+export { SortMenu } from './SortMenu';
 export { Strokes, type StrokeShape } from './Strokes';

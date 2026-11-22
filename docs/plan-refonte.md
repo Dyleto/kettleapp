@@ -33,7 +33,7 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 22 novembre : 901 tests unitaires, 52 suites de banc et 957
+Mesures au 22 novembre : 908 tests unitaires, 53 suites de banc et 973
 assertions, 5 min 8 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -599,7 +599,23 @@ banc actuel, inchangé, qui le prouve.
         appris deux choses : une mutation est reprise deux fois, donc une
         panne s'éprouve sur toutes les tentatives ; et un message de
         réussite ne reste que deux secondes, il se lit dès le geste.
-- [ ] **F7** Exercices : vignettes, panneau, tri.
+- [ ] **F7** Exercices : vignettes, panneau, tri. En deux temps.
+  - [x] **F7a** La liste. Une vignette par ligne — noire avec la lecture
+        quand l'exercice a une vidéo, grise sinon —, le nom, la consigne sur
+        une ligne, l'usage. Par nom, ou « Les plus utilisés » dans un menu ;
+        les ex æquo par nom. Un seul champ en tête, qui cherche sans accent
+        ni casse et propose « Créer “…” » pour un nom neuf : Entrée crée et
+        ouvre la fiche. La fiche s'ouvre dans un panneau à partir de
+        1 024 px — sans choix, il montre le premier de la liste —, dans une
+        feuille basse en dessous. Le champ et le menu de tri passent au kit,
+        partagés avec les clients. L'index alphabétique part : il
+        n'apparaissait qu'à vingt-cinq exercices, ne suivait pas l'autre
+        tri, et le champ fait mieux dès la première lettre. « Nouvel
+        exercice » part aussi, le champ dit qu'il crée.
+  - [ ] **F7b** La fiche : la vignette en tête, le lien qui accepte autre
+        chose que YouTube (« Ouvrir la vidéo »), « Ce que tu changes ici
+        change partout », et la suppression avec « Annuler » pour un
+        exercice jamais utilisé, inactive et expliquée sinon.
 - [ ] **F8** Premiers pas : trois cartes, la question en une phrase.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
       déjà client.
