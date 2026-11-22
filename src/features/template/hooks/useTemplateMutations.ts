@@ -54,6 +54,24 @@ export const useRenameTemplate = () => {
 };
 
 /**
+ * Dupliquer un modèle, depuis le menu de sa carte.
+ *
+ * La liste se recharge : la copie y entre en tête, la plus récemment
+ * modifiée, et c'est l'API qui a choisi son nom (« … (copie) », raccourci
+ * s'il le faut pour tenir).
+ */
+export const useDuplicateTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (templateId: string) => templateService.duplicate(templateId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.templates.all(),
+      }),
+  });
+};
+
+/**
  * Supprimer un modèle.
  *
  * Sans filet d'annulation, et c'est le seul endroit de l'atelier où je n'en

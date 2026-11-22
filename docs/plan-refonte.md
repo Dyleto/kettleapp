@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 21 novembre : 895 tests unitaires, 51 suites de banc et 940
-assertions, 4 min 46 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 22 novembre : 899 tests unitaires, 51 suites de banc et 946
+assertions, 4 min 57 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -570,7 +570,25 @@ banc actuel, inchangé, qui le prouve.
         confirmation dit ce qui reste au client ; un retrait raté laisse la
         feuille ouverte et le dit.
 - [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
-      dupliquer.
+      dupliquer. En deux temps.
+  - [x] **F6a** Les cartes. L'API envoie l'aperçu des quatre premières
+        séances, rang, nom et formats (`f70a7e2`) : chaque carte les montre
+        avec leur barre de composition, puis « + 2 séances » s'il en reste,
+        et dit sous son nom « 2 séances · utilisé chez 3 clients » ou
+        « vide · jamais utilisé ». Une, deux ou trois colonnes selon la
+        largeur ; le menu de la carte — renommer, dupliquer, supprimer —
+        reprend celui d'une séance de l'atelier ; « Renommer » part du nom
+        actuel, « Dupliquer » fait entrer la copie en tête. « Nouveau »
+        demande un nom dans une feuille puis ouvre l'atelier sur le modèle
+        créé ; l'état vide propose de créer, ou d'enregistrer depuis le
+        programme d'un client. Le rejeu a trouvé une suite qui s'arrêtait
+        au lieu de tomber, sur une copie absente. Et la CI était rouge
+        depuis F5b sur deux libellés d'assertion sans sabotage, que le lint
+        voyait inutilisés : ils ont désormais leur cas.
+  - [ ] **F6b** « Utiliser pour un client » : la feuille des clients,
+        « Importer » pour un programme vide, « Remplacer… » avec
+        l'avertissement de l'atelier, puis l'atelier du client ouvert sur
+        « Programme importé depuis “X” ». Éteint pour un modèle vide.
 - [ ] **F7** Exercices : vignettes, panneau, tri.
 - [ ] **F8** Premiers pas : trois cartes, la question en une phrase.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
@@ -604,7 +622,8 @@ banc actuel, inchangé, qui le prouve.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
 - [ ] **H4** Mise en production, dans l'ordre : `npm run verify:copy` depuis
       une machine en réseau, `npm run migrate:ladder` sur la base, l'API
-      (jusqu'à `8070f94`, que « Retirer » appelle), puis le front. Ensuite seulement, retirer de l'API
+      (jusqu'à `f70a7e2`, dont les cartes des modèles lisent l'aperçu),
+      puis le front. Ensuite seulement, retirer de l'API
       `PATCH /coach/clients/:id/history/mark-viewed`, que le front n'appelle
       plus depuis E11b.
 
@@ -634,6 +653,11 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 - **La tuile « à relancer » dit sa règle** — « 14 jours sans séance » — et
   non « rien depuis 3 sem. », qui ne vaut que pour un client du décor
   (F4a).
+- **La carte d'un modèle ne dit pas sa durée** (« ~3 h 10 au total »
+  dans la maquette) : la liste resterait légère si elle ne relit pas toutes
+  les séances de chaque modèle, et la durée d'une séance se calcule depuis
+  ses blocs complets. L'aperçu n'envoie que les formats (F6a). Un choix, à
+  confirmer.
 - **Une ligne des ressentis n'a pas de durée** (« dim. 30 août · 41 min »
   dans la maquette) : aucun bilan ne l'enregistre. Elle demanderait un
   champ côté API.

@@ -655,6 +655,31 @@ export default {
       falls: [ROW_TAGS, UNCHECK],
     },
     {
+      // Lue par leur nom partout ailleurs, les étiquettes ne disent leur
+      // ordre que dans la barre.
+      name: 'la barre range les étiquettes à rebours',
+      edits: [
+        {
+          file: TAGS_UI,
+          from: '    {tags.map((tag) => {\n      const on = selected.has(tag._id);',
+          to: '    {[...tags].reverse().map((tag) => {\n      const on = selected.has(tag._id);',
+        },
+      ],
+      falls: [BAR],
+    },
+    {
+      name: 'la feuille d’un client ne dit plus ce qui est coché',
+      edits: [
+        {
+          file: TAGS_UI,
+          from: '                aria-checked={on}',
+          to: '                aria-checked={false}',
+        },
+      ],
+      // Entrée coche l'étiquette créée : la case le dit de la même façon.
+      falls: [CHECKED, ENTER],
+    },
+    {
       name: '« + 1 » ne se dit plus',
       edits: [
         {

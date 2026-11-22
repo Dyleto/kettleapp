@@ -1,31 +1,31 @@
 import { useState } from 'react';
 import {
-  Box,
   Container,
   Dialog,
+  Grid,
   HStack,
-  Input,
   Portal,
+  Skeleton,
   Text,
   VStack,
 } from '@chakra-ui/react';
 import { LuPlus, LuTrash2 } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { COACH_CONTENT_MAX_W } from '@/features/coach';
+import { COACH_GRID_MAX_W } from '@/features/coach';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { ActionButton, EmptyState, LoadFailure, touchHitArea } from '@/kit';
+import { ActionButton, EmptyState, LoadFailure } from '@/kit';
 import { useTemplates } from '@/features/template/hooks/useTemplates';
 import { isUnavailable } from '@/shared/utils/queryState';
 import {
   useCreateTemplate,
   useDeleteTemplate,
+  useDuplicateTemplate,
+  useRenameTemplate,
 } from '@/features/template/hooks/useTemplateMutations';
+import { TemplateCard } from '@/features/template/components/TemplateCard';
+import { NameSheet } from '@/features/template/components/NameSheet';
 import type { TemplateRow } from '@/shared/types';
-
-/** « 3 séances », et « 1 séance » au singulier. */
-const sessionCount = (count: number) =>
-  `${count} séance${count > 1 ? 's' : ''}`;
 
 /**
  * La bibliothèque de programmes préfaits du coach.
@@ -35,9 +35,10 @@ const sessionCount = (count: number) =>
  * relie ensuite les deux — corriger un modèle ne touche aucun programme déjà
  * importé, et c'est ce qui le rend sans danger.
  *
- * On crée en tapant un nom, comme un exercice dans la bibliothèque : un
- * modèle vide n'a rien à régler avant d'exister, et son contenu se compose
- * dans l'atelier.
+ * Des cartes qui montrent le contenu, sur une, deux ou trois colonnes selon
+ * la largeur ; « Nouveau » demande un nom puis ouvre l'atelier sur le modèle
+ * créé : on le nomme pour le composer, pas pour le voir apparaître dans une
+ * liste.
  */
 const Templates = () => {
   useDocumentTitle('Modèles');
@@ -45,10 +46,12 @@ const Templates = () => {
   const templatesQuery = useTemplates();
   const { data: templates = [], isLoading } = templatesQuery;
   const isDown = isUnavailable(templatesQuery);
-  const { mutate: create, isPending: isCreating } = useCreateTemplate();
+  const create = useCreateTemplate();
+  const rename = useRenameTemplate();
+  const duplicate = useDuplicateTemplate();
   const { mutate: remove } = useDeleteTemplate();
-
-  const [name, setName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [renaming, setRenaming] = useState<TemplateRow | null>(null);
   /**
    * Le modèle dont on demande la suppression.
    *
@@ -61,68 +64,59 @@ const Templates = () => {
   const [pendingDeletion, setPendingDeletion] = useState<TemplateRow | null>(
     null
   );
-
-  const trimmed = name.trim();
-
-  const submit = () => {
-    if (!trimmed || isCreating) return;
-    create(trimmed, {
-      onSuccess: (template) => {
-        setName('');
-        // On ouvre le modèle créé : on le nomme pour le composer, pas pour
-        // le voir apparaître dans une liste.
-        navigate(COACH_ROUTES.templateSession(template._id, 1));
-      },
-    });
-  };
+  const openTemplate = (template: { _id: string }) =>
+    navigate(COACH_ROUTES.templateSession(template._id, 1));
 
   return (
-    <Container maxW={COACH_CONTENT_MAX_W} py={6}>
-      <VStack align="stretch" gap={5}>
-        <Box>
+    <Container maxW={COACH_GRID_MAX_W} py={{ base: 6, md: 8 }} px={4}>
+      <VStack align="stretch" gap="16px">
+        <HStack gap="12px" align="center">
           {/* Le nom de l'onglet, et un vrai titre : l'écran s'appelait
               « Modèles de programme » sous un onglet « Modèles », dans un
               simple paragraphe — il n'avait donc aucun nom pour un lecteur
               d'écran. */}
-          <Text as="h1" fontSize="lg" fontWeight="bold">
+          <Text
+            as="h1"
+            fontWeight="800"
+            fontSize={{ base: '26px', md: '32px' }}
+            lineHeight="1.05"
+          >
             Modèles
           </Text>
-          <Text fontSize="sm" color="fg.muted" mt={1}>
-            Des programmes tout faits, à importer chez un client pour lui servir
-            de base. Les modifier ensuite chez le client ne touche pas le
-            modèle.
-          </Text>
-        </Box>
-
-        <HStack gap={2}>
-          <Input
-            aria-label="Nom du nouveau modèle"
-            placeholder="Nommer un nouveau modèle…"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                submit();
-              }
-            }}
-          />
-          {/* Il était bleu, seul de son espèce dans toute l'application : la
-              palette par défaut du composant, que personne n'avait choisie. */}
-          <ActionButton
-            size="md"
-            onClick={submit}
-            disabled={!trimmed || isCreating}
-            flexShrink={0}
-          >
-            <LuPlus size={16} /> Créer
+          {templates.length > 0 && (
+            <Text color="fg.muted" data-template-count>
+              {templates.length} modèle{templates.length > 1 ? 's' : ''}
+            </Text>
+          )}
+          {/* Ambre, comme toute action principale : il était bleu, seul de
+              son espèce, la palette par défaut que personne n'avait
+              choisie. */}
+          <ActionButton ml="auto" size="sm" onClick={() => setCreating(true)}>
+            <LuPlus size={16} />
+            <span>
+              Nouveau
+              <Text as="span" display={{ base: 'none', md: 'inline' }}>
+                {' modèle'}
+              </Text>
+            </span>
           </ActionButton>
         </HStack>
 
         {isLoading && (
-          <Text fontSize="sm" color="fg.muted">
-            Chargement…
-          </Text>
+          <Grid
+            templateColumns={{
+              base: '1fr',
+              md: 'repeat(2, minmax(0, 1fr))',
+              xl: 'repeat(3, minmax(0, 1fr))',
+            }}
+            gap="16px"
+            aria-busy="true"
+            aria-label="Chargement de tes modèles"
+          >
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} h="200px" borderRadius="card" />
+            ))}
+          </Grid>
         )}
 
         {isDown && (
@@ -132,61 +126,83 @@ const Templates = () => {
           />
         )}
 
-        {/* L'état vide dit à quoi sert un modèle, pas seulement qu'il n'y
-            en a pas : c'est le premier écran de la fonctionnalité, et « Aucun
-            modèle pour l'instant » ne donnait aucune raison d'en créer un. */}
+        {/* L'état vide dit à quoi sert un modèle, et propose de le faire :
+            c'est le premier écran de la fonctionnalité. */}
         {!isLoading && !isDown && templates.length === 0 && (
           <EmptyState
             mood="hello"
             title="Écris-le une fois"
             line="Un modèle est un programme tout fait. Tu l'importes chez un client, puis tu l'ajustes pour lui : le modèle, lui, ne bouge pas."
+            action={
+              <VStack gap="8px">
+                <ActionButton size="md" onClick={() => setCreating(true)}>
+                  <LuPlus size={18} />
+                  Créer un modèle
+                </ActionButton>
+                <Text fontSize="sm" color="fg.muted" textAlign="center">
+                  ou « Enregistrer comme modèle » depuis le programme d’un
+                  client
+                </Text>
+              </VStack>
+            }
           />
         )}
 
-        <VStack align="stretch" gap={1}>
-          {templates.map((template) => (
-            <HStack
-              key={template._id}
-              gap={2}
-              borderWidth="1px"
-              borderColor="whiteAlpha.100"
-              borderRadius="md"
-              px={3}
-              py={2}
-            >
-              <Box
-                as="button"
-                aria-label={`Ouvrir le modèle ${template.name}`}
-                onClick={() =>
-                  navigate(COACH_ROUTES.templateSession(template._id, 1))
-                }
-                textAlign="left"
-                flex={1}
-                minW={0}
-                css={touchHitArea}
-              >
-                <Text fontSize="sm" fontWeight="bold" lineClamp={1}>
-                  {template.name}
-                </Text>
-                <Text fontSize="xs" color="fg.muted">
-                  {sessionCount(template.sessionCount)}
-                </Text>
-              </Box>
-              <Box
-                as="button"
-                aria-label={`Supprimer le modèle ${template.name}`}
-                onClick={() => setPendingDeletion(template)}
-                color="fg.muted"
-                _hover={{ color: 'app.error' }}
-                px={2}
-                css={touchHitArea}
-              >
-                <LuTrash2 size={14} />
-              </Box>
-            </HStack>
-          ))}
-        </VStack>
+        {templates.length > 0 && (
+          <Grid
+            templateColumns={{
+              base: '1fr',
+              md: 'repeat(2, minmax(0, 1fr))',
+              xl: 'repeat(3, minmax(0, 1fr))',
+            }}
+            gap="16px"
+            alignItems="stretch"
+            data-template-grid
+          >
+            {templates.map((template) => (
+              <TemplateCard
+                key={template._id}
+                template={template}
+                onOpen={() => openTemplate(template)}
+                onRename={() => setRenaming(template)}
+                onDuplicate={() => duplicate.mutate(template._id)}
+                onDelete={() => setPendingDeletion(template)}
+              />
+            ))}
+          </Grid>
+        )}
       </VStack>
+
+      {creating && (
+        <NameSheet
+          title="Nouveau modèle"
+          line="Tu composeras ses séances juste après, dans l’atelier."
+          submitLabel="Créer et composer"
+          pending={create.isPending}
+          failed={
+            create.isError
+              ? 'Le modèle n’a pas pu être créé. Réessaie.'
+              : undefined
+          }
+          onClose={() => setCreating(false)}
+          onSubmit={(name) => create.mutate(name, { onSuccess: openTemplate })}
+        />
+      )}
+      {renaming && (
+        <NameSheet
+          title="Renommer le modèle"
+          submitLabel="Renommer"
+          initial={renaming.name}
+          pending={rename.isPending}
+          onClose={() => setRenaming(null)}
+          onSubmit={(name) =>
+            rename.mutate(
+              { id: renaming._id, name },
+              { onSuccess: () => setRenaming(null) }
+            )
+          }
+        />
+      )}
 
       <Dialog.Root
         role="alertdialog"

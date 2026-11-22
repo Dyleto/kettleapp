@@ -1,4 +1,15 @@
 /** Les sabotages de `verify_template.mjs`. Voir `../run.mjs`. */
+const CARD = 'src/features/template/components/TemplateCard.tsx';
+const PAGE = 'src/features/template/pages/Templates.tsx';
+const CARDS =
+  'une carte montre ses séances : rang, nom, et un segment par bloc';
+const DUPLICATED =
+  '« Dupliquer » : la copie entre en tête, avec les mêmes séances';
+const RENAMED = '« Renommer » part du nom actuel, et la carte prend le nouveau';
+const MORE = 'au-delà de quatre séances, la carte dit combien il en reste';
+const USED = 'un modèle importé chez un client le dit sur sa carte';
+const CREATE_EMPTY = '→ et de quoi en créer un';
+
 export default {
   suite: 'verify_template.mjs',
   cases: [
@@ -7,8 +18,8 @@ export default {
       edits: [
         {
           file: 'src/features/template/pages/Templates.tsx',
-          from: '<Text as="h1" fontSize="lg" fontWeight="bold">',
-          to: '<Text fontSize="lg" fontWeight="bold">',
+          from: '            as="h1"\n            fontWeight="800"',
+          to: '            fontWeight="800"',
         },
       ],
       falls: ["l'écran porte le nom de son onglet"],
@@ -25,15 +36,15 @@ export default {
       falls: ["l'écran porte le nom de son onglet"],
     },
     {
-      name: '« Créer » redevient bleu',
+      name: '« Nouveau » redevient bleu',
       edits: [
         {
           file: 'src/features/template/pages/Templates.tsx',
-          from: '            size="md"\n            onClick={submit}',
-          to: '            size="md"\n            bg="blue.500"\n            onClick={submit}',
+          from: '          <ActionButton ml="auto" size="sm" onClick={() => setCreating(true)}>',
+          to: '          <ActionButton ml="auto" size="sm" bg="blue.500" onClick={() => setCreating(true)}>',
         },
       ],
-      falls: ["« Créer » est à la couleur de l'application"],
+      falls: ["« Nouveau » est à la couleur de l'application"],
     },
     {
       name: "le rail d'un modèle reparle d'un client",
@@ -103,6 +114,106 @@ export default {
         },
       ],
       falls: ['sans modèle, la liste dit à quoi ils servent'],
+    },
+    {
+      name: 'une carte montre ses séances à rebours',
+      edits: [
+        {
+          file: CARD,
+          from: '          {template.preview.map((session) => (',
+          to: '          {[...template.preview].reverse().map((session) => (',
+        },
+      ],
+      falls: [CARDS],
+    },
+    {
+      name: 'la barre d’une séance ne compte qu’un bloc',
+      edits: [
+        {
+          file: CARD,
+          from: '                  blocks={session.blockTypes.map((type, index) => ({',
+          to: '                  blocks={session.blockTypes.slice(0, 1).map((type, index) => ({',
+        },
+      ],
+      falls: [CARDS],
+    },
+    {
+      name: '« + 2 séances » ne se dit plus',
+      edits: [
+        {
+          file: 'src/domain/template/card.ts',
+          from: '  const rest =\n    template.sessionCount - Math.min(PREVIEW_SESSIONS, template.preview.length);',
+          to: '  const rest = 0;',
+        },
+      ],
+      falls: [MORE],
+    },
+    {
+      name: 'un modèle importé se dit jamais utilisé',
+      edits: [
+        {
+          file: 'src/domain/template/card.ts',
+          from: '    template.usageCount === 0',
+          to: '    true',
+        },
+      ],
+      falls: [USED],
+    },
+    {
+      // Sans copie, rien à renommer ensuite.
+      name: '« Dupliquer » ne fait rien',
+      edits: [
+        {
+          file: CARD,
+          from: '              onSelect: onDuplicate,',
+          to: '              onSelect: () => undefined,',
+        },
+      ],
+      falls: [DUPLICATED, RENAMED, MORE],
+    },
+    {
+      name: 'la copie n’apparaît qu’au rechargement',
+      edits: [
+        {
+          file: 'src/features/template/hooks/useTemplateMutations.ts',
+          from: '    mutationFn: (templateId: string) => templateService.duplicate(templateId),\n    onSuccess: () =>\n      queryClient.invalidateQueries({\n        queryKey: queryKeys.coach.templates.all(),\n      }),',
+          to: '    mutationFn: (templateId: string) => templateService.duplicate(templateId),\n    onSuccess: () => undefined,',
+        },
+      ],
+      falls: [DUPLICATED, RENAMED],
+    },
+    {
+      name: '« Renommer » part d’un champ vide',
+      edits: [
+        {
+          file: PAGE,
+          from: '          initial={renaming.name}\n',
+          to: '',
+        },
+      ],
+      falls: [RENAMED],
+    },
+    {
+      name: '« Renommer » renvoie l’ancien nom',
+      edits: [
+        {
+          file: PAGE,
+          from: '              { id: renaming._id, name },',
+          to: '              { id: renaming._id, name: renaming.name },',
+        },
+      ],
+      falls: [RENAMED],
+    },
+    {
+      name: 'la liste vide ne propose plus de créer',
+      edits: [
+        {
+          file: PAGE,
+          from: '                <ActionButton size="md" onClick={() => setCreating(true)}>\n                  <LuPlus size={18} />\n                  Créer un modèle\n                </ActionButton>\n',
+          to: '',
+        },
+      ],
+      falls: [CREATE_EMPTY],
     },
   ],
 };

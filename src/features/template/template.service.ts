@@ -4,10 +4,10 @@ import type { Session, Template, TemplateRow } from '@/shared/types';
 /**
  * Les modèles de programme, vus du front.
  *
- * Deux formes, et c'est voulu : une ligne de liste ne porte que le nom et le
- * nombre de séances, un modèle ouvert porte tout. Envoyer les séances de tous
- * les modèles pour afficher trois titres aurait chargé la page du poids de
- * tous les programmes du coach.
+ * Deux formes, et c'est voulu : une ligne de liste porte le nom, les comptes
+ * et l'aperçu des premières séances, un modèle ouvert porte tout. Envoyer
+ * les séances de tous les modèles pour trois cartes aurait chargé la page du
+ * poids de tous les programmes du coach.
  */
 export const templateService = {
   list: async () => {
@@ -53,6 +53,15 @@ export const templateService = {
     const { data } = await api.patch<{ template: Template }>(
       `/api/coach/templates/${templateId}`,
       { name }
+    );
+    return data.template;
+  },
+
+  /** Une copie du modèle, « Prise de masse (copie) » : l'API relit les
+   * séances chez elle, rien de l'écran ne voyage. */
+  duplicate: async (templateId: string) => {
+    const { data } = await api.post<{ template: Template }>(
+      `/api/coach/templates/${templateId}/duplicate`
     );
     return data.template;
   },

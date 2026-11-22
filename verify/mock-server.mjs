@@ -27,6 +27,11 @@ import http from 'node:http';
  * @typedef {import('../src/shared/types/contract.js').TemplateRowPayload} TemplateRowPayload
  * @typedef {import('../src/shared/types/contract.js').CompletedSessionPayload} CompletedSessionPayload
  * @typedef {import('../src/shared/types/contract.js').UserPayload} UserPayload
+ *
+ * Un modèle tel que la base le garde : le contrat, plus les clients chez qui
+ * il a été importé, que l'API retient sans les envoyer — seul leur nombre
+ * sort, dans la liste.
+ * @typedef {TemplatePayload & { importedFor?: string[] }} StoredTemplate
  */
 
 const COACH_ID = '507f1f77bcf86cd799439011';
@@ -385,7 +390,7 @@ const shaped = (sessions, idPrefix) =>
  * remplace vraiment le programme du client — qui en compte davantage — plutôt
  * que de s'y ajouter.
  */
-/** @returns {TemplatePayload[]} */
+/** @returns {StoredTemplate[]} */
 const initialTemplates = () => [
   {
     _id: 'tpl1',
@@ -398,14 +403,23 @@ const initialTemplates = () => [
 
 let TEMPLATES = initialTemplates();
 
-/** Ce qu'une ligne de liste porte : le nom et le compte, pas les séances. */
+/** Ce qu'une ligne de liste porte : le nom, les comptes, et l'aperçu des
+ * quatre premières séances par rang — comme `templateRow` côté API. */
 /** @returns {TemplateRowPayload} */
 const templateRow = (template) => ({
   _id: template._id,
   name: template.name,
   sessionCount: template.sessions.length,
-  // Le banc n'importe aucun modèle chez un client : chez personne, donc.
   usageCount: (template.importedFor ?? []).length,
+  preview: [...template.sessions]
+    .sort((a, b) => a.order - b.order)
+    .slice(0, 4)
+    .map((session) => ({
+      _id: session._id,
+      order: session.order,
+      ...(session.name ? { name: session.name } : {}),
+      blockTypes: (session.blocks ?? []).map((block) => block.type),
+    })),
   updatedAt: template.updatedAt,
 });
 
@@ -863,13 +877,41 @@ const server = http.createServer(async (req, res) => {
       })),
       'imported'
     );
+    // Comme l'API : le client est retenu une fois, sans dater le modèle.
+    template.importedFor = [
+      ...new Set([...(template.importedFor ?? []), importMatch[1]]),
+    ];
     PUT_COUNT += 1;
     return sendJson(res, 200, COACH_SESSIONS);
   }
 
   // ── Les modèles de programme ─────────────────────────────────────────────
+  // La plus récemment modifiée d'abord, comme l'API.
   if (pathname === '/api/coach/templates' && method === 'GET')
-    return sendJson(res, 200, { templates: TEMPLATES.map(templateRow) });
+    return sendJson(res, 200, {
+      templates: [...TEMPLATES]
+        .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+        .map(templateRow),
+    });
+
+  // Dupliquer : « Prise de masse (copie) », mêmes séances, aucun usage.
+  const duplicateMatch = pathname.match(
+    /^\/api\/coach\/templates\/([^/]+)\/duplicate$/
+  );
+  if (duplicateMatch && method === 'POST') {
+    const source = TEMPLATES.find((t) => t._id === duplicateMatch[1]);
+    if (!source) return sendJson(res, 404, { message: 'Modèle introuvable' });
+    const now = new Date().toISOString();
+    const copy = {
+      _id: `tpl-copy-${TEMPLATES.length + 1}`,
+      name: `${source.name} (copie)`,
+      sessions: JSON.parse(JSON.stringify(source.sessions)),
+      createdAt: now,
+      updatedAt: now,
+    };
+    TEMPLATES.push(copy);
+    return sendJson(res, 201, { template: copy });
+  }
 
   // « Enregistrer comme modèle » : les séances du client, relues chez le
   // serveur — toutes, ou celles qu'on nomme. Rien à copier répond 404,

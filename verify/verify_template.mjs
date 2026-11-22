@@ -14,7 +14,7 @@
  * Cette suite vérifie donc, dans cet ordre :
  *
  * 1. la liste montre les modèles du coach avec leur nombre de séances ;
- * 2. on crée en tapant un nom, et l'atelier s'ouvre sur le modèle créé ;
+ * 2. « Nouveau » demande un nom, et l'atelier s'ouvre sur le modèle créé ;
  * 3. ce qu'on y écrit arrive dans le modèle — et nulle part ailleurs ;
  * 4. le nom du modèle s'édite là où il se lit ;
  * 5. l'atelier d'un modèle ne propose pas « copier vers un client », la seule
@@ -23,7 +23,9 @@
  * 7. l'écran porte le nom de son onglet, son bouton la couleur de
  *    l'application, et une liste vide dit à quoi sert un modèle ;
  * 8. le rail d'un modèle ne dit rien de ce qu'un client aurait fait — il
- *    écrivait « jamais faite » sous chaque séance, sur un écran sans client.
+ *    écrivait « jamais faite » sous chaque séance, sur un écran sans client ;
+ * 9. une carte montre ses séances et son usage, et son menu duplique et
+ *    renomme (F6a).
  */
 import {
   BASE,
@@ -87,27 +89,42 @@ const main = async () => {
   );
   ok("l'écran porte le nom de son onglet", title === 'Modèles', title);
 
+  const meta = clean(
+    await p
+      .locator('[data-template-card="tpl1"] [data-template-meta]')
+      .innerText({ timeout: 3000 })
+      .catch(() => '')
+  );
   ok(
     '  → avec son nombre de séances',
-    clean(await seeded.innerText()).includes('2 séances'),
-    clean(await seeded.innerText()).replace(/\n/g, ' · ')
+    meta === '2 séances · jamais utilisé',
+    meta
   );
 
-  // ── 2. On crée en tapant un nom ──────────────────────────────────────────
-  const field = p.getByRole('textbox', { name: 'Nom du nouveau modèle' });
-  await field.fill('Hypertrophie haut du corps');
+  // ── 2. « Nouveau » demande un nom ────────────────────────────────────────
   // L'ambre de la marque, lu sur le bouton lui-même. Il était bleu : la
   // palette par défaut du composant, que personne n'avait choisie.
   const createColor = await p
-    .getByRole('button', { name: 'Créer' })
+    .getByRole('button', { name: /^Nouveau/ })
     .evaluate((button) => getComputedStyle(button).backgroundColor)
     .catch(() => '');
   ok(
-    "« Créer » est à la couleur de l'application",
+    "« Nouveau » est à la couleur de l'application",
     createColor === 'rgb(207, 159, 63)',
     createColor
   );
-  await field.press('Enter');
+  await p
+    .getByRole('button', { name: /^Nouveau/ })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const field = p
+    .getByRole('dialog', { name: 'Nouveau modèle' })
+    .getByRole('textbox', { name: 'Nom du modèle' });
+  await field
+    .fill('Hypertrophie haut du corps', { timeout: 2000 })
+    .catch(() => {});
+  await field.press('Enter').catch(() => {});
+  await p.waitForURL(/\/s\/1$/, { timeout: 4000 }).catch(() => {});
   await settle(p);
 
   ok(
@@ -235,9 +252,15 @@ const main = async () => {
   await p.goto(`${BASE}/coach/templates`, { waitUntil: 'domcontentloaded' });
   await settle(p);
 
+  // Par le menu de sa carte.
   await p
-    .getByRole('button', { name: /Supprimer le modèle Haut du corps/ })
-    .click();
+    .getByRole('button', { name: 'Menu du modèle Haut du corps' })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await p
+    .getByRole('menuitem', { name: 'Supprimer' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
   await settle(p);
 
   const asked = (await body()).includes('Supprimer « Haut du corps » ?');
@@ -266,7 +289,141 @@ const main = async () => {
     left.map((t) => t.name).join(', ')
   );
 
-  // ── 7. Une liste vide dit à quoi sert un modèle ──────────────────────────
+  // ── 7. Les cartes : l'aperçu, et ce que fait leur menu ───────────────────
+  const card = (id) => p.locator(`[data-template-card="${id}"]`);
+  const preview = (id) =>
+    card(id)
+      .locator('[data-preview-session]')
+      .evaluateAll((rows) =>
+        rows.map(
+          (r) =>
+            `${r.innerText.trim()} (${r.querySelectorAll('[data-composition] > *').length})`
+        )
+      )
+      .catch(() => []);
+  const seededServer = await serverTemplate('tpl1');
+  const expected = [...seededServer.sessions]
+    .sort((a, b) => a.order - b.order)
+    .map((s) => `${s.order} · ${s.name} (${s.blocks.length})`);
+  ok(
+    'une carte montre ses séances : rang, nom, et un segment par bloc',
+    (await preview('tpl1')).join(' | ') === expected.join(' | '),
+    `${(await preview('tpl1')).join(' | ')} ≠ ${expected.join(' | ')}`
+  );
+
+  await p
+    .getByRole('button', { name: 'Menu du modèle Prise de masse' })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await p
+    .getByRole('menuitem', { name: 'Dupliquer' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await p
+    .locator('[data-template-card]', { hasText: 'Prise de masse (copie)' })
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  const copies = (await serverTemplates()).filter((t) =>
+    t.name.startsWith('Prise de masse')
+  );
+  const firstCard = clean(
+    await p
+      .locator('[data-template-card] h2')
+      .first()
+      .innerText({ timeout: 2000 })
+      .catch(() => '')
+  );
+  ok(
+    '« Dupliquer » : la copie entre en tête, avec les mêmes séances',
+    copies.length === 2 &&
+      firstCard === 'Prise de masse (copie)' &&
+      copies.every((t) => t.sessionCount === 2),
+    `${firstCard} · ${copies.map((t) => `${t.name} ${t.sessionCount}`).join(', ')}`
+  );
+  const copyId = copies.find((t) => t.name.endsWith('(copie)'))?._id ?? '';
+
+  await p
+    .getByRole('button', { name: 'Menu du modèle Prise de masse (copie)' })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await p
+    .getByRole('menuitem', { name: 'Renommer' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const renameField = p
+    .getByRole('dialog', { name: 'Renommer le modèle' })
+    .getByRole('textbox', { name: 'Nom du modèle' });
+  const prefilled = await renameField
+    .inputValue({ timeout: 2000 })
+    .catch(() => '');
+  await renameField.fill('Prépa compétition').catch(() => {});
+  await renameField.press('Enter').catch(() => {});
+  await p
+    .getByRole('dialog', { name: 'Renommer le modèle' })
+    .waitFor({ state: 'detached', timeout: 4000 })
+    .catch(() => {});
+  await settle(p);
+  ok(
+    '« Renommer » part du nom actuel, et la carte prend le nouveau',
+    prefilled === 'Prise de masse (copie)' &&
+      (await serverTemplate(copyId))?.name === 'Prépa compétition' &&
+      (await card(copyId)
+        .locator('h2')
+        .innerText()
+        .catch(() => '')) === 'Prépa compétition',
+    prefilled
+  );
+
+  // Six séances dans la copie : la carte en montre quatre, puis le reste.
+  // Sans copie — « Dupliquer » cassé —, rien à allonger : l'assertion qui
+  // suit tombe, et la suite continue plutôt que de s'arrêter sur une lecture
+  // vide.
+  const copy = copyId ? await serverTemplate(copyId) : null;
+  if (copy) {
+    const six = Array.from({ length: 6 }, (_, i) => ({
+      ...copy.sessions[i % copy.sessions.length],
+      _id: undefined,
+      order: i + 1,
+      name: `Séance ${i + 1}`,
+    }));
+    await fetch(`${API}/api/coach/templates/${copyId}/sessions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessions: six }),
+    });
+  }
+  // Et le modèle d'origine importé chez un client : son usage le compte.
+  await fetch(`${API}/api/coach/clients/${CLIENT}/program/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ templateId: 'tpl1' }),
+  });
+  await p.reload({ waitUntil: 'domcontentloaded' });
+  await settle(p);
+  await card(copyId)
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  ok(
+    'au-delà de quatre séances, la carte dit combien il en reste',
+    (await preview(copyId)).length === 4 &&
+      (
+        await card(copyId)
+          .innerText()
+          .catch(() => '')
+      ).includes('+ 2 séances'),
+    (await preview(copyId)).join(' | ')
+  );
+  ok(
+    'un modèle importé chez un client le dit sur sa carte',
+    clean(
+      await card('tpl1')
+        .locator('[data-template-meta]')
+        .innerText()
+        .catch(() => '')
+    ) === '2 séances · utilisé chez 1 client'
+  );
+
+  // ── 8. Une liste vide dit à quoi sert un modèle ──────────────────────────
   {
     const ctx = await browser.newContext();
     await ctx.route(/\/api\/coach\/templates(\?|$)/, (r) =>
@@ -287,6 +444,13 @@ const main = async () => {
       '  → avec le personnage',
       // Dans la page : le rail porte le même personnage en logo.
       (await empty.locator('main [data-mascot="hello"]').count()) === 1
+    );
+    ok(
+      '  → et de quoi en créer un',
+      (await empty
+        .locator('main')
+        .getByRole('button', { name: 'Créer un modèle' })
+        .count()) === 1 && text.includes('Enregistrer comme modèle')
     );
     await ctx.close();
   }
