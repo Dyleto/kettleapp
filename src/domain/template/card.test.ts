@@ -1,7 +1,13 @@
 /** La carte d'un modèle : sa ligne de repères, ses séances, ce qui reste. */
 import { describe, expect, it } from 'vitest';
 import type { TemplateRow } from '@/shared/types';
-import { moreSessions, previewLabel, templateMeta } from './card';
+import {
+  clientProgramLine,
+  importChoice,
+  moreSessions,
+  previewLabel,
+  templateMeta,
+} from './card';
 
 const row = (overrides: Partial<TemplateRow> = {}): TemplateRow => ({
   _id: 'tpl',
@@ -47,5 +53,18 @@ describe('les séances de la carte', () => {
     expect(moreSessions(row({ sessionCount: 6, preview }))).toBe('+ 2 séances');
     expect(moreSessions(row({ sessionCount: 5, preview }))).toBe('+ 1 séance');
     expect(moreSessions(row())).toBeNull();
+  });
+});
+
+describe('le programme d’un client, au moment d’importer', () => {
+  it('vide, il s’importe d’une touche', () => {
+    expect(clientProgramLine(0)).toBe('programme vide');
+    expect(importChoice(0)).toBe('import');
+  });
+
+  it('rempli, il se remplace après une question', () => {
+    expect(clientProgramLine(1)).toBe('a déjà 1 séance');
+    expect(clientProgramLine(6)).toBe('a déjà 6 séances');
+    expect(importChoice(1)).toBe('replace');
   });
 });

@@ -136,26 +136,39 @@ export const useUpdateTemplateSessions = (templateId: string) => {
 /**
  * Écrire un modèle dans le programme d'un client.
  *
+ * Le client se nomme à l'appel, et non à la création du hook : l'atelier
+ * importe chez celui qu'il montre, l'écran des modèles chez celui qu'on
+ * choisit dans sa feuille.
+ *
  * Invalide la fiche du client et son programme : les deux portent les séances
  * qui viennent d'être remplacées, et le client les lit de son côté. Le
  * message est à l'écran qui importe : lui seul connaît le prénom du client
  * et le nom du modèle — « Erreur · Impossible d'importer le modèle » ne
  * disait ni lequel, ni ce qui restait.
  */
-export const useImportTemplate = (clientId: string) => {
+export const useImportTemplate = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (templateId: string) =>
-      templateService.importInto(clientId, templateId),
-    onSuccess: () => {
+    mutationFn: ({
+      clientId,
+      templateId,
+    }: {
+      clientId: string;
+      templateId: string;
+    }) => templateService.importInto(clientId, templateId),
+    onSuccess: (_sessions, { clientId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.clients.detail(clientId),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.client.program.get(),
       });
-      // La liste des modèles porte leur usage : il vient de changer.
+      // La liste des clients dit combien de séances porte chaque programme,
+      // et celle des modèles leur usage : les deux viennent de changer.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coach.clients.lists(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.templates.lists(),
       });

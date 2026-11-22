@@ -25,6 +25,7 @@ import {
 } from '@/features/template/hooks/useTemplateMutations';
 import { TemplateCard } from '@/features/template/components/TemplateCard';
 import { NameSheet } from '@/features/template/components/NameSheet';
+import { UseTemplateSheet } from '@/features/template/components/UseTemplateSheet';
 import type { TemplateRow } from '@/shared/types';
 
 /**
@@ -52,6 +53,7 @@ const Templates = () => {
   const { mutate: remove } = useDeleteTemplate();
   const [creating, setCreating] = useState(false);
   const [renaming, setRenaming] = useState<TemplateRow | null>(null);
+  const [using, setUsing] = useState<TemplateRow | null>(null);
   /**
    * Le modèle dont on demande la suppression.
    *
@@ -164,6 +166,7 @@ const Templates = () => {
                 key={template._id}
                 template={template}
                 onOpen={() => openTemplate(template)}
+                onUse={() => setUsing(template)}
                 onRename={() => setRenaming(template)}
                 onDuplicate={() => duplicate.mutate(template._id)}
                 onDelete={() => setPendingDeletion(template)}
@@ -187,6 +190,9 @@ const Templates = () => {
           onClose={() => setCreating(false)}
           onSubmit={(name) => create.mutate(name, { onSuccess: openTemplate })}
         />
+      )}
+      {using && (
+        <UseTemplateSheet template={using} onClose={() => setUsing(null)} />
       )}
       {renaming && (
         <NameSheet

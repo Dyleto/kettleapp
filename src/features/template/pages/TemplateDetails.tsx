@@ -25,6 +25,7 @@ import {
   useSessionMenu,
 } from '@/features/coach';
 import { ActionButton, BackLink, EmptyState, LoadFailure } from '@/kit';
+import { UseTemplateSheet } from '@/features/template/components/UseTemplateSheet';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { useTemplate } from '@/features/template/hooks/useTemplates';
@@ -147,6 +148,7 @@ const TemplateDetails = () => {
   // client : il suit le bloc que le coach touche, le premier sinon.
   const isWide = useBreakpointValue({ base: false, xl: true });
   const [previewBlockId, setPreviewBlockId] = useState<string | null>(null);
+  const [using, setUsing] = useState(false);
 
   const {
     program,
@@ -237,10 +239,18 @@ const TemplateDetails = () => {
             Modèle
           </Heading>
           <TemplateName key={template._id} template={template} />
+          <ActionButton
+            ml="auto"
+            size="sm"
+            alignSelf="center"
+            disabled={sessions.length === 0}
+            onClick={() => setUsing(true)}
+          >
+            Utiliser pour un client
+          </ActionButton>
         </HStack>
         <Text fontSize="sm" color="fg.muted">
-          {sessions.length} séance{sessions.length > 1 ? 's' : ''} · s'importe
-          chez un client depuis sa fiche
+          {sessions.length} séance{sessions.length > 1 ? 's' : ''}
         </Text>
       </VStack>
 
@@ -331,6 +341,28 @@ const TemplateDetails = () => {
           </Box>
         )}
       </Stack>
+
+      {/* Le serveur importe le modèle qu'il a : tant que ce qu'on vient d'y
+          écrire n'est pas arrivé, l'import donnerait la version d'avant.
+          La feuille le dit et attend ; elle compte les séances de l'écran,
+          celles qui seront importées une fois l'enregistrement passé. */}
+      {using && (
+        <UseTemplateSheet
+          template={{
+            _id: template._id,
+            name: template.name,
+            sessionCount: sessions.length,
+          }}
+          blocked={
+            saveState === 'error'
+              ? 'Ton modèle n’est pas enregistré : réessaie depuis l’atelier avant de l’importer.'
+              : saveState !== 'idle'
+                ? 'Ton modèle finit de s’enregistrer…'
+                : undefined
+          }
+          onClose={() => setUsing(false)}
+        />
+      )}
 
       {/* L'en-tête de la séance dit l'état à partir de `md` ; sans séance
           ouverte, cette ligne le dit seule. */}

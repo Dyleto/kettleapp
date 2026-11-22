@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Box,
   chakra,
   Dialog,
   HStack,
@@ -9,11 +8,10 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { LuCheck, LuX } from 'react-icons/lu';
 import type { TemplateRow } from '@/shared/types';
 import { ActionButton, hitArea } from '@/kit';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
-import { useTemplates } from '@/features/template';
+import { ReplaceOutcome, useTemplates } from '@/features/template';
 
 /** « 3 séances », « 1 séance ». */
 const sessions = (count: number) => `${count} séance${count > 1 ? 's' : ''}`;
@@ -97,60 +95,10 @@ export const ImportTemplateDialog = ({
                       Le modèle « {chosen.name} » va prendre la place de ce que{' '}
                       {who} a aujourd’hui.
                     </Text>
-                    <VStack
-                      align="stretch"
-                      gap="10px"
-                      bg="bg.surface"
-                      borderRadius="16px"
-                      p="16px"
-                      data-import-outcome
-                    >
-                      <HStack gap="10px" align="start">
-                        <Box color="session.work" pt="2px" aria-hidden>
-                          <LuX size={18} />
-                        </Box>
-                        <Text>
-                          {currentCount > 1 ? 'Ses ' : 'Sa '}
-                          <chakra.b>
-                            {currentCount > 1
-                              ? `${currentCount} séances actuelles`
-                              : 'séance actuelle'}
-                          </chakra.b>{' '}
-                          {currentCount > 1
-                            ? 'seront retirées du programme.'
-                            : 'sera retirée du programme.'}
-                        </Text>
-                      </HStack>
-                      <HStack gap="10px" align="start">
-                        <Box color="session.rest" pt="2px" aria-hidden>
-                          <LuCheck size={18} />
-                        </Box>
-                        <Text>
-                          {chosen.sessionCount > 1 ? 'Les ' : 'La '}
-                          <chakra.b>
-                            {chosen.sessionCount > 1
-                              ? `${chosen.sessionCount} séances du modèle`
-                              : 'séance du modèle'}
-                          </chakra.b>{' '}
-                          {currentCount > 1
-                            ? chosen.sessionCount > 1
-                              ? 'les remplacent.'
-                              : 'les remplace.'
-                            : chosen.sessionCount > 1
-                              ? 'la remplacent.'
-                              : 'la remplace.'}
-                        </Text>
-                      </HStack>
-                      <HStack gap="10px" align="start">
-                        <Box color="session.rest" pt="2px" aria-hidden>
-                          <LuCheck size={18} />
-                        </Box>
-                        <Text>
-                          Son <chakra.b>historique</chakra.b> et ses charges
-                          restent.
-                        </Text>
-                      </HStack>
-                    </VStack>
+                    <ReplaceOutcome
+                      currentCount={currentCount}
+                      incomingCount={chosen.sessionCount}
+                    />
                     <Text fontSize="sm" color="fg.muted">
                       Tu pourras ensuite modifier ce programme comme tu veux :
                       le modèle, lui, ne bouge pas.

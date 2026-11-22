@@ -7,3 +7,7 @@ export { SessionPreview } from './preview/SessionPreview';
 // Le menu d'une chose qu'on ne fait pas ouvrir : une séance du rail, une
 // carte de modèle.
 export { SessionMenu } from './components/SessionMenu';
+// La liste des clients et son champ de recherche, pour la feuille « Utiliser
+// pour un client » d'un modèle : le même champ, la même règle.
+export { useClients } from './hooks/useClients';
+export { ClientSearch } from './clients/ClientSearch';

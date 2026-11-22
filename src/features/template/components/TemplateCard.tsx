@@ -20,17 +20,20 @@ import {
  *
  * Le menu (renommer, dupliquer, supprimer) reprend celui d'une séance de
  * l'atelier : un seul composant pour « ce qu'on fait d'une chose sans
- * l'ouvrir ».
+ * l'ouvrir ». « Utiliser pour un client » est hors du menu, en bouton
+ * principal : c'est la raison d'être d'un modèle.
  */
 export const TemplateCard = ({
   template,
   onOpen,
+  onUse,
   onRename,
   onDuplicate,
   onDelete,
 }: {
   template: TemplateRow;
   onOpen: () => void;
+  onUse: () => void;
   onRename: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -111,6 +114,16 @@ export const TemplateCard = ({
         </VStack>
       )}
       <HStack gap="8px" mt="auto" pt="4px">
+        {/* Un modèle vide n'a rien à donner : l'importer viderait le
+            programme du client. */}
+        <ActionButton
+          size="sm"
+          flex={1}
+          disabled={template.sessionCount === 0}
+          onClick={onUse}
+        >
+          Utiliser pour un client
+        </ActionButton>
         <ActionButton tone="ghost" size="sm" onClick={onOpen}>
           Modifier
         </ActionButton>

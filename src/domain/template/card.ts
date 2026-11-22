@@ -43,3 +43,23 @@ export const moreSessions = (template: TemplateRow): string | null => {
     template.sessionCount - Math.min(PREVIEW_SESSIONS, template.preview.length);
   return rest > 0 ? `+ ${plural(rest, 'séance')}` : null;
 };
+
+/**
+ * Le programme d'un client, dans la feuille « Utiliser pour un client » :
+ * « programme vide », ou « a déjà 6 séances ».
+ *
+ * La ligne annonce le bouton d'à côté : le coach voit ce qu'il s'apprête à
+ * remplacer avant de le toucher, et non après, dans la question.
+ */
+export const clientProgramLine = (sessionCount: number): string =>
+  sessionCount === 0
+    ? 'programme vide'
+    : `a déjà ${plural(sessionCount, 'séance')}`;
+
+/**
+ * Importer d'une touche, ou demander d'abord. Un programme vide n'a rien à
+ * perdre ; un programme rempli perd tout, puisque l'import remplace et
+ * n'ajoute pas.
+ */
+export const importChoice = (sessionCount: number): 'import' | 'replace' =>
+  sessionCount === 0 ? 'import' : 'replace';

@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 22 novembre : 899 tests unitaires, 51 suites de banc et 946
-assertions, 4 min 57 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 22 novembre : 901 tests unitaires, 52 suites de banc et 957
+assertions, 5 min 8 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -569,7 +569,7 @@ banc actuel, inchangé, qui le prouve.
         l'appui long, avec le composant du rail de l'atelier. La
         confirmation dit ce qui reste au client ; un retrait raté laisse la
         feuille ouverte et le dit.
-- [ ] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
+- [x] **F6** Modèles : cartes, usage, « Utiliser pour un client »,
       dupliquer. En deux temps.
   - [x] **F6a** Les cartes. L'API envoie l'aperçu des quatre premières
         séances, rang, nom et formats (`f70a7e2`) : chaque carte les montre
@@ -585,10 +585,20 @@ banc actuel, inchangé, qui le prouve.
         au lieu de tomber, sur une copie absente. Et la CI était rouge
         depuis F5b sur deux libellés d'assertion sans sabotage, que le lint
         voyait inutilisés : ils ont désormais leur cas.
-  - [ ] **F6b** « Utiliser pour un client » : la feuille des clients,
-        « Importer » pour un programme vide, « Remplacer… » avec
-        l'avertissement de l'atelier, puis l'atelier du client ouvert sur
-        « Programme importé depuis “X” ». Éteint pour un modèle vide.
+  - [x] **F6b** « Utiliser pour un client », sur la carte et dans
+        l'en-tête de l'atelier d'un modèle, éteint pour un modèle vide. La
+        feuille liste les clients avec leur programme en une ligne :
+        « programme vide » s'importe d'une touche, « a déjà 6 séances »
+        passe par « Remplacer… » et la boîte de l'atelier, désormais
+        partagée. Un import réussi ouvre l'atelier du client sur
+        « Programme importé depuis “X” » ; raté, la feuille reste et dit que
+        le programme du client n'a pas bougé. Depuis l'atelier d'un modèle,
+        l'import attend que ce qu'on vient d'y écrire soit enregistré : le
+        serveur importerait la version d'avant. Aucune API nouvelle, la
+        liste des clients portait déjà le nombre de séances. Le banc a
+        appris deux choses : une mutation est reprise deux fois, donc une
+        panne s'éprouve sur toutes les tentatives ; et un message de
+        réussite ne reste que deux secondes, il se lit dès le geste.
 - [ ] **F7** Exercices : vignettes, panneau, tri.
 - [ ] **F8** Premiers pas : trois cartes, la question en une phrase.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,

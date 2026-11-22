@@ -149,7 +149,7 @@ const ClientDetails = () => {
   const [asideView, setAsideView] = useState<'preview' | 'feedback'>('preview');
   const [previewBlockId, setPreviewBlockId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const importTemplate = useImportTemplate(clientId!);
+  const importTemplate = useImportTemplate();
   const [sessionSheet, setSessionSheet] = useState<{
     focusName: boolean;
   } | null>(null);
@@ -542,7 +542,10 @@ const ClientDetails = () => {
               const who = client.firstName ?? 'ton client';
               try {
                 await replaceProgram(() =>
-                  importTemplate.mutateAsync(template._id)
+                  importTemplate.mutateAsync({
+                    clientId: clientId!,
+                    templateId: template._id,
+                  })
                 );
               } catch {
                 // Rien n'est parti, ou le serveur a refusé : dans les deux

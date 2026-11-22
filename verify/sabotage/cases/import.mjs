@@ -50,7 +50,8 @@ export default {
       name: 'la question ne dit plus ce qui reste',
       edits: [
         {
-          file: DIALOG,
+          // La boîte est partagée avec l'écran des modèles (F6b).
+          file: 'src/features/template/components/ReplaceOutcome.tsx',
           from: '<chakra.b>historique</chakra.b>',
           to: '<chakra.b>programme</chakra.b>',
         },
