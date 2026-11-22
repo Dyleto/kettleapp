@@ -1,13 +1,11 @@
 /**
- * La lecture du lien vidéo d'un exercice.
+ * La lecture d'une URL YouTube.
  *
- * Seul YouTube est lu. Vimeo était accepté à la saisie par une fonction et
- * refusé à l'affichage par une autre : le coach enregistrait son lien, la
- * validation le laissait passer, puis la carte affichait « Lien YouTube non
- * reconnu ». Deux analyseurs pour la même URL, et ils n'étaient pas
- * d'accord.
- *
- * Il n'y en a plus qu'un. Ce qui est accepté est exactement ce qui est lu.
+ * Elle ne décide pas seule de ce qu'un lien vaut : `readVideoLink`
+ * (domaine des exercices) l'appelle en premier, puis accepte toute autre
+ * adresse, qui s'ouvre ailleurs. C'est cette fonction-là que la saisie et
+ * l'affichage partagent — deux analyseurs pour la même URL avaient laissé
+ * Vimeo accepté à la saisie et refusé à l'affichage.
  */
 export interface YouTubeVideo {
   id: string;

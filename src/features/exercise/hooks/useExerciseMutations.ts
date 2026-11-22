@@ -41,6 +41,10 @@ export const useCreateExercise = () => {
  * Deux invalidations et non une : la liste porte le nom et le compteur, la
  * fiche porte la consigne et la vidéo. Ne rafraîchir que la liste laissait la
  * fiche ouverte afficher la valeur d'avant.
+ *
+ * Silencieux quand il réussit : la fiche s'enregistre à chaque champ
+ * quitté, comme le programme, et « Exercice modifié » sortait pour chaque
+ * frappe validée (F7b). Un échec, lui, se dit.
  */
 export const useUpdateExercise = () => {
   const queryClient = useQueryClient();
@@ -56,13 +60,12 @@ export const useUpdateExercise = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.exercises.detail(variables.id),
       });
-      toaster.create({ title: 'Exercice modifié', type: 'success' });
     },
 
     onError: () => {
       toaster.create({
-        title: 'Erreur',
-        description: "Impossible de modifier l'exercice",
+        title: 'La fiche n’a pas été enregistrée',
+        description: 'L’exercice garde sa valeur d’avant. Réessaie.',
         type: 'error',
       });
     },
@@ -73,8 +76,11 @@ export const useUpdateExercise = () => {
  * Supprimer un exercice.
  *
  * Le serveur refuse tant que l'exercice est placé dans un programme : c'est
- * lui qui décide, pas la fiche. Le message d'erreur qu'il renvoie explique
- * pourquoi, et il remonte tel quel.
+ * lui qui décide, pas la fiche, qui ne fait que ne pas le proposer.
+ *
+ * Rien n'est dit quand il réussit : la bibliothèque offre « Annuler », et
+ * c'est elle qui l'annonce — un « Succès » de plus aurait fait deux
+ * bandeaux pour un geste.
  */
 export const useDeleteExercise = () => {
   const queryClient = useQueryClient();
@@ -86,18 +92,12 @@ export const useDeleteExercise = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.coach.exercises.all(),
       });
-
-      toaster.create({
-        title: 'Succès',
-        description: 'Exercice supprimé avec succès',
-        type: 'success',
-      });
     },
 
     onError: () => {
       toaster.create({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la suppression',
+        title: 'L’exercice n’a pas été supprimé',
+        description: 'Il est toujours dans ta bibliothèque. Réessaie.',
         type: 'error',
       });
     },

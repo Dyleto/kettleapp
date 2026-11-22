@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import {
   Box,
-  Button,
   chakra,
   Container,
-  Dialog,
   Grid,
   HStack,
   Portal,
@@ -23,6 +21,7 @@ import {
 } from '@/features/exercise/hooks/useExerciseMutations';
 import { EmptyState, LoadFailure, SearchField, Sheet, SortMenu } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
+import { undoable } from '@/shared/components/undoable';
 import type { Exercise } from '@/shared/types';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { COACH_CONTENT_MAX_W } from '@/features/coach';
@@ -77,7 +76,6 @@ const Exercises = () => {
 
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<LibrarySort>('name');
-  const [pendingDeletion, setPendingDeletion] = useState<Exercise | null>(null);
 
   const openSheet = (id: string) => navigate(COACH_ROUTES.exerciseDetails(id));
   const closeSheet = () => navigate(COACH_ROUTES.exercises);
@@ -105,22 +103,42 @@ const Exercises = () => {
     );
   };
 
-  const confirmDeletion = () => {
-    if (!pendingDeletion) return;
-    deleteMutation.mutate(pendingDeletion._id, {
+  /**
+   * Supprimer un exercice jamais utilisé : aussitôt, et « Annuler » le
+   * remet.
+   *
+   * Une question précédait la suppression ; la maquette veut le filet du
+   * reste de l'application. Le remettre, c'est le recréer avec son nom, sa
+   * consigne et sa vidéo : il change d'identifiant, et c'est sans
+   * conséquence, puisque rien ne le portait — un exercice utilisé ne se
+   * supprime pas. Les modèles, eux, gardent leur question : leurs séances
+   * ne se recréeraient pas à l'identique.
+   */
+  const remove = (exercise: Exercise) =>
+    deleteMutation.mutate(exercise._id, {
       onSuccess: () => {
-        if (exerciseId === pendingDeletion._id) closeSheet();
-        setPendingDeletion(null);
+        if (exerciseId === exercise._id) closeSheet();
+        undoable({
+          title: `«${NBSP}${exercise.name}${NBSP}» supprimé`,
+          undo: () =>
+            createMutation.mutate(
+              {
+                name: exercise.name,
+                description: exercise.description,
+                videoUrl: exercise.videoUrl,
+              },
+              { onSuccess: (restored) => openSheet(restored._id) }
+            ),
+        });
       },
     });
-  };
 
   const sheetFor = (exercise: Exercise, onClose?: () => void) => (
     <ExerciseSheet
       key={exercise._id}
       exercise={exercise}
       onClose={onClose}
-      onDelete={() => setPendingDeletion(exercise)}
+      onDelete={() => remove(exercise)}
     />
   );
 
@@ -270,52 +288,6 @@ const Exercises = () => {
           </Sheet>
         </Portal>
       )}
-
-      <Dialog.Root
-        role="alertdialog"
-        open={!!pendingDeletion}
-        onOpenChange={(e) => !e.open && setPendingDeletion(null)}
-      >
-        <Portal>
-          <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content
-              bg="bg.canvas"
-              borderColor="whiteAlpha.100"
-              borderWidth="1px"
-              maxW="sm"
-            >
-              <Dialog.Header>
-                <Dialog.Title>Supprimer cet exercice ?</Dialog.Title>
-              </Dialog.Header>
-              <Dialog.Body>
-                <Text color="fg.muted" fontSize="sm">
-                  «&nbsp;{pendingDeletion?.name}&nbsp;» sera retiré de tes
-                  exercices. Cette action est définitive.
-                </Text>
-              </Dialog.Body>
-              <Dialog.Footer gap={2} flexWrap="wrap">
-                <Button
-                  variant="ghost"
-                  color="fg.muted"
-                  onClick={() => setPendingDeletion(null)}
-                >
-                  Conserver
-                </Button>
-                <Button
-                  bg="app.error"
-                  color="bg.canvas"
-                  fontWeight="bold"
-                  onClick={confirmDeletion}
-                  loading={deleteMutation.isPending}
-                >
-                  Supprimer
-                </Button>
-              </Dialog.Footer>
-            </Dialog.Content>
-          </Dialog.Positioner>
-        </Portal>
-      </Dialog.Root>
     </Container>
   );
 };

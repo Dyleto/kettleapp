@@ -58,8 +58,8 @@ const ex = (
   clientCount,
 });
 
-/** @type {ExercisePayload[]} */
-const EXERCISES = [
+/** @returns {ExercisePayload[]} */
+const initialExercises = () => [
   // Deux exercices portent une description de bibliothèque : c'est le seul
   // moyen de vérifier que la consigne d'une séance et la technique générale du
   // mouvement se lisent bien comme distinctes. « Pompes » n'en a pas.
@@ -89,6 +89,14 @@ const EXERCISES = [
   ex('ex9', 'Turkish Get-Up', '', 5),
   ex('ex10', 'Planche', '', 0),
 ];
+
+/**
+ * La bibliothèque du serveur d'essai. La remise à zéro la reconstruit sur
+ * place, sans changer de tableau : les séances du décor ont été bâties
+ * depuis lui. Elle ne retirait que les exercices créés, et une fiche
+ * modifiée ou supprimée par une partie le restait pour la suivante.
+ */
+const EXERCISES = initialExercises();
 
 /**
  * Un exercice tel qu'un programme le porte : sans ses compteurs.
@@ -1006,6 +1014,20 @@ const server = http.createServer(async (req, res) => {
   }
 
   const exerciseMatch = pathname.match(/^\/api\/coach\/exercises\/([^/]+)$/);
+  // Comme l'API : un exercice placé dans une séance ne se supprime pas.
+  // 200 et non le 204 de l'API : `sendJson` porte les en-têtes CORS, et le
+  // front ne lit pas le corps.
+  if (exerciseMatch && method === 'DELETE') {
+    const at = EXERCISES.findIndex((e) => e._id === exerciseMatch[1]);
+    if (at < 0) return sendJson(res, 404, { message: 'Exercice non trouvé' });
+    if ((EXERCISES[at].usageCount ?? 0) > 0)
+      return sendJson(res, 400, {
+        message:
+          'Cet exercice est utilisé dans une séance, impossible de le supprimer',
+      });
+    EXERCISES.splice(at, 1);
+    return sendJson(res, 200, {});
+  }
   if (exerciseMatch && method === 'PUT') {
     const target = EXERCISES.find((e) => e._id === exerciseMatch[1]);
     if (!target) return sendJson(res, 404, { message: 'Exercice introuvable' });
@@ -1025,10 +1047,8 @@ const server = http.createServer(async (req, res) => {
     TAG_SEQ = 0;
     // Les exercices créés repartent aussi : la bibliothèque doit retrouver sa
     // taille, sinon une assertion qui la compte dérive d'un tour à l'autre.
-    CREATED_EXERCISES.splice(0).forEach((created) => {
-      const at = EXERCISES.indexOf(created);
-      if (at >= 0) EXERCISES.splice(at, 1);
-    });
+    CREATED_EXERCISES.splice(0);
+    EXERCISES.splice(0, EXERCISES.length, ...initialExercises());
     return sendJson(res, 200, { reset: true });
   }
 

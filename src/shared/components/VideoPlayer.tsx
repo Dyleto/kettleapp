@@ -1,7 +1,7 @@
-import { Box, Image, Text, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Image, Link, Text, useBreakpointValue } from '@chakra-ui/react';
 import { useState } from 'react';
-import { LuPlay } from 'react-icons/lu';
-import { parseYouTubeUrl } from '@/shared/utils/videoUtils';
+import { LuExternalLink, LuPlay } from 'react-icons/lu';
+import { readVideoLink } from '@/domain/exercise/video';
 
 interface VideoPlayerProps {
   url: string;
@@ -26,31 +26,57 @@ const VideoPlayer = ({ url }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [thumbFailed, setThumbFailed] = useState(false);
 
-  if (!url) return null;
-  const parsed = parseYouTubeUrl(url);
+  const link = readVideoLink(url);
+  // Un lien illisible ne montre rien : c'est à la fiche du coach de le
+  // refuser, et le client n'a rien à en faire.
+  if (!link) return null;
 
-  if (!parsed) {
+  // Une autre adresse que YouTube ne se joue pas ici : elle s'ouvre
+  // ailleurs, dans un cadre de la même taille, pour que la fiche ne change
+  // pas de forme d'un exercice à l'autre.
+  if (link.kind === 'link') {
     return (
       <Box
-        p={4}
-        bg="app.error/10"
+        position="relative"
+        w="100%"
+        paddingBottom="56.25%"
+        height={0}
         borderRadius="md"
-        borderWidth="1px"
-        borderColor="app.error"
-        color="app.error"
-        fontSize="sm"
+        bg="black"
+        data-video-link
       >
-        Lien YouTube non reconnu. Formats acceptés&nbsp;:
-        <Box as="ul" mt={2} ml={4}>
-          <li>youtube.com/watch?v=…</li>
-          <li>youtu.be/…</li>
-          <li>youtube.com/shorts/…</li>
+        <Box
+          position="absolute"
+          inset={0}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Link
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            display="flex"
+            alignItems="center"
+            gap={2}
+            px={4}
+            py={2.5}
+            borderRadius="full"
+            bg="whiteAlpha.200"
+            color="fg"
+            fontWeight="bold"
+            fontSize="sm"
+            _hover={{ bg: 'whiteAlpha.300', textDecoration: 'none' }}
+          >
+            <LuExternalLink size={16} aria-hidden />
+            Ouvrir la vidéo
+          </Link>
         </Box>
       </Box>
     );
   }
 
-  const { id, isShort } = parsed;
+  const { id, isShort } = link;
   // Format vertical pour les Shorts, sur mobile seulement.
   const ratio = isShort && isMobile ? '177.78%' : '56.25%';
   const maxW = isShort && isMobile ? '400px' : undefined;

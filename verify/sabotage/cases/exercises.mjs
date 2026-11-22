@@ -20,6 +20,20 @@ const PHONE_NONE = 'sans choix, aucune fiche ne s’ouvre';
 const PHONE_SHEET = 'toucher une ligne monte sa fiche dans une feuille';
 const PHONE_BACK = '→ et le retour du téléphone la referme';
 const EMPTY = 'une bibliothèque vide dit comment la remplir';
+const SHEET = 'src/features/exercise/components/ExerciseSheet.tsx';
+const MUTATIONS = 'src/features/exercise/hooks/useExerciseMutations.ts';
+const REACH =
+  'un exercice utilisé dit sa portée, et pourquoi il ne se supprime pas';
+const LINKS =
+  'un lien YouTube se joue dans la fiche, un autre s’ouvre ailleurs';
+const EMPTY_NAME = 'un nom vidé reprend l’ancien, sans rien envoyer';
+const BAD_LINK = 'un lien illisible est refusé, et la fiche dit pourquoi';
+const SILENT = 'une consigne s’enregistre seule, sans message';
+const DELETES =
+  'un exercice jamais utilisé se supprime d’une touche, et la bannière offre « Annuler »';
+const UNDO =
+  '→ « Annuler » le remet, consigne et vidéo comprises, et rouvre sa fiche';
+const REFUSED = 'une suppression refusée le dit, et l’exercice reste';
 
 export default {
   suite: 'verify_exercises.mjs',
@@ -192,6 +206,131 @@ export default {
         },
       ],
       falls: [EMPTY],
+    },
+    {
+      name: 'la fiche ne dit plus pourquoi elle ne supprime pas',
+      edits: [
+        {
+          file: SHEET,
+          from: '                Retire-le de ces séances avant de le supprimer.\n',
+          to: '',
+        },
+      ],
+      falls: [REACH],
+    },
+    {
+      name: 'un exercice utilisé s’offre à la suppression',
+      edits: [{ file: SHEET, from: '              disabled={used}\n', to: '' }],
+      falls: [REACH],
+    },
+    {
+      // Le lien passe par le lecteur YouTube, qui ne sait pas l'ouvrir.
+      name: 'une autre adresse se prend pour YouTube',
+      edits: [
+        {
+          file: 'src/shared/components/VideoPlayer.tsx',
+          from: "  if (link.kind === 'link') {",
+          to: "  if (link.kind === 'aucun') {",
+        },
+      ],
+      falls: [LINKS],
+    },
+    {
+      name: 'seul YouTube se lit encore',
+      edits: [
+        {
+          file: 'src/domain/exercise/video.ts',
+          from: "  return WEB_ADDRESS.test(value) ? { kind: 'link', url: value } : null;",
+          to: '  return null;',
+        },
+      ],
+      falls: [LINKS],
+    },
+    {
+      name: 'un nom vidé part au serveur',
+      edits: [
+        {
+          file: SHEET,
+          from: "    if (required && next === '') return cancel();\n",
+          to: '',
+        },
+      ],
+      falls: [EMPTY_NAME],
+    },
+    {
+      // Le lien illisible est enregistré : « Annuler » le remet ensuite,
+      // à la place de la vidéo.
+      name: 'un lien illisible s’enregistre',
+      edits: [
+        { file: SHEET, from: '          validate={videoLinkError}\n', to: '' },
+      ],
+      falls: [BAD_LINK, UNDO],
+    },
+    {
+      name: '« Exercice modifié » revient à chaque champ',
+      edits: [
+        {
+          file: MUTATIONS,
+          from: '        queryKey: queryKeys.coach.exercises.detail(variables.id),\n      });\n    },',
+          to: "        queryKey: queryKeys.coach.exercises.detail(variables.id),\n      });\n      toaster.create({ title: 'Exercice modifié', type: 'success' });\n    },",
+        },
+      ],
+      falls: [SILENT],
+    },
+    {
+      name: 'la suppression ne propose pas « Annuler »',
+      edits: [
+        {
+          file: PAGE,
+          from: '        undoable({\n',
+          to: '        void ({\n',
+        },
+      ],
+      falls: [DELETES, UNDO],
+    },
+    {
+      name: 'la fiche supprimée reste dans l’adresse',
+      edits: [
+        {
+          file: PAGE,
+          from: '        if (exerciseId === exercise._id) closeSheet();\n',
+          to: '',
+        },
+      ],
+      falls: [DELETES],
+    },
+    {
+      name: '« Annuler » remet un exercice nu',
+      edits: [
+        {
+          file: PAGE,
+          from: '                description: exercise.description,\n                videoUrl: exercise.videoUrl,\n',
+          to: '',
+        },
+      ],
+      falls: [UNDO],
+    },
+    {
+      name: '« Annuler » ne rouvre pas la fiche',
+      edits: [
+        {
+          file: PAGE,
+          from: '              { onSuccess: (restored) => openSheet(restored._id) }',
+          to: '              {}',
+        },
+      ],
+      falls: [UNDO],
+    },
+    {
+      name: 'une suppression refusée ne dit pas ce qui reste',
+      edits: [
+        {
+          file: MUTATIONS,
+          from: "        description: 'Il est toujours dans ta bibliothèque. Réessaie.',",
+          to: "        description: 'Réessaie.',",
+        },
+      ],
+      falls: [REFUSED],
     },
   ],
 };

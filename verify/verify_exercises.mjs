@@ -7,6 +7,10 @@
  * recalculés depuis ce qu'il sert, et non écrits en dur : un décor qui gagne
  * un exercice ne fait pas tomber une assertion qui ne parle pas de lui.
  *
+ * La fiche (F7b) : sa portée, ses deux sortes de liens, les refus de la
+ * saisie, l'enregistrement sans message, et la suppression avec
+ * « Annuler ».
+ *
  * Aucun nom du décor ne commence par un accent, et ses deux ex æquo sont
  * déjà dans l'ordre alphabétique chez l'API : l'accent et les ex æquo se
  * vérifient dans `library.test.ts`, pas ici.
@@ -234,6 +238,188 @@ const browser = await launch();
     '  → et le retour du téléphone la referme',
     (await sheet.count()) === 0 && p.url().endsWith('/coach/exercises'),
     p.url().split('/').at(-1)
+  );
+  await ctx.close();
+}
+
+{
+  console.log('\n── la fiche');
+  // « Corde à sauter », jamais utilisé, reçoit une consigne et un lien
+  // Vimeo : de quoi éprouver l'autre sorte de lien, et ce qu'« Annuler »
+  // doit remettre.
+  await fetch(`${API}/api/coach/exercises/ex8`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      description: 'Poignets souples.',
+      videoUrl: 'https://vimeo.com/123456',
+    }),
+  });
+  const serverExercise = async (id) =>
+    (await (await fetch(`${API}/api/coach/exercises`)).json()).find(
+      (e) => e._id === id
+    );
+  const ctx = await browser.newContext(WIDE);
+  const p = await open(ctx, '/coach/exercises/ex1');
+  const panel = p.locator('[data-exercise-panel]');
+  const reach = await text(panel.locator('[data-exercise-reach]'));
+  ok(
+    'un exercice utilisé dit sa portée, et pourquoi il ne se supprime pas',
+    reach.includes(
+      'Utilisé dans 12 séances, chez 4 clients. Ce que tu changes ici change partout.'
+    ) &&
+      reach.includes('Retire-le de ces séances avant de le supprimer.') &&
+      (await panel
+        .getByRole('button', { name: 'Supprimer Kettlebell Swing' })
+        .isDisabled()
+        .catch(() => false)),
+    reach.replace(/\n/g, ' | ')
+  );
+  const plays =
+    (await panel
+      .getByRole('button', { name: "Lire la vidéo de l'exercice" })
+      .count()) === 1;
+
+  await row(p, 'ex8')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const opens = panel.getByRole('link', { name: 'Ouvrir la vidéo' });
+  ok(
+    'un lien YouTube se joue dans la fiche, un autre s’ouvre ailleurs',
+    plays &&
+      (await opens.getAttribute('href').catch(() => '')) ===
+        'https://vimeo.com/123456' &&
+      (await opens.getAttribute('target').catch(() => '')) === '_blank',
+    `${plays} · ${await opens.getAttribute('href').catch(() => 'aucun lien')}`
+  );
+
+  // Ce qui part vers le serveur pour cet exercice.
+  const puts = [];
+  p.on('request', (r) => {
+    if (r.method() === 'PUT' && r.url().endsWith('/api/coach/exercises/ex8'))
+      puts.push(r.postDataJSON());
+  });
+  const edit = async (label, value) => {
+    await panel
+      .getByRole('button', { name: label, exact: true })
+      .click({ timeout: 2000 })
+      .catch(() => {});
+    const input = panel.getByRole('textbox', { name: label, exact: true });
+    await input.fill(value).catch(() => {});
+    await input.press('Enter').catch(() => {});
+    await settle(p);
+  };
+  await edit("Nom de l'exercice", '');
+  ok(
+    'un nom vidé reprend l’ancien, sans rien envoyer',
+    (await text(
+      panel.getByRole('button', { name: "Nom de l'exercice", exact: true })
+    )) === 'Corde à sauter' &&
+      puts.length === 0 &&
+      (await serverExercise('ex8'))?.name === 'Corde à sauter',
+    JSON.stringify(puts)
+  );
+  // Chaque refus se juge sur ses propres envois : un nom parti par erreur
+  // ne doit pas faire tomber le lien.
+  puts.length = 0;
+  await edit('Lien vidéo — Corde à sauter', 'pas un lien');
+  ok(
+    'un lien illisible est refusé, et la fiche dit pourquoi',
+    (await text(panel.getByRole('alert'))) ===
+      'Ce lien ne ressemble pas à une adresse.' && puts.length === 0,
+    JSON.stringify(puts)
+  );
+  await panel
+    .getByRole('textbox', { name: 'Lien vidéo — Corde à sauter' })
+    .press('Escape')
+    .catch(() => {});
+
+  await panel
+    .getByRole('button', { name: 'Consigne — Corde à sauter', exact: true })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await panel
+    .getByRole('textbox', { name: 'Consigne — Corde à sauter' })
+    .fill('Poignets souples, sauts courts.')
+    .catch(() => {});
+  await p
+    .locator('h1')
+    .click()
+    .catch(() => {});
+  await settle(p);
+  ok(
+    'une consigne s’enregistre seule, sans message',
+    (await serverExercise('ex8'))?.description ===
+      'Poignets souples, sauts courts.' &&
+      (await p.locator('[data-scope="toast"][data-part="root"]').count()) === 0,
+    (await serverExercise('ex8'))?.description
+  );
+
+  await panel
+    .getByRole('button', { name: 'Supprimer Corde à sauter' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const banner = p
+    .locator('[data-scope="toast"][data-part="root"]')
+    .filter({ hasText: 'supprimé' });
+  await banner.waitFor({ timeout: 4000 }).catch(() => {});
+  ok(
+    'un exercice jamais utilisé se supprime d’une touche, et la bannière offre « Annuler »',
+    (await row(p, 'ex8').count()) === 0 &&
+      !(await serverExercise('ex8')) &&
+      p.url().endsWith('/coach/exercises') &&
+      (await text(banner.locator('[data-part="title"]'))) ===
+        '« Corde à sauter » supprimé' &&
+      (await banner.getByRole('button', { name: 'Annuler' }).count()) === 1,
+    await text(banner)
+  );
+  await banner
+    .getByRole('button', { name: 'Annuler' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  const restored = (
+    await (await fetch(`${API}/api/coach/exercises`)).json()
+  ).find((e) => e.name === 'Corde à sauter');
+  ok(
+    '  → « Annuler » le remet, consigne et vidéo comprises, et rouvre sa fiche',
+    !!restored &&
+      restored.description === 'Poignets souples, sauts courts.' &&
+      restored.videoUrl === 'https://vimeo.com/123456' &&
+      p.url().endsWith(`/coach/exercises/${restored._id}`) &&
+      (await panel.getAttribute('data-exercise-panel').catch(() => '')) ===
+        restored._id,
+    `${restored?._id} · ${p.url().split('/').at(-1)}`
+  );
+
+  // Toutes les tentatives échouent : une mutation est reprise deux fois.
+  await ctx.route(/\/api\/coach\/exercises\/ex10$/, (r) =>
+    r.request().method() === 'DELETE'
+      ? r.fulfill({ status: 500, json: { message: 'Panne' } })
+      : r.fallback()
+  );
+  await row(p, 'ex10')
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  await settle(p);
+  await panel
+    .getByRole('button', { name: 'Supprimer Planche' })
+    .click({ timeout: 2000 })
+    .catch(() => {});
+  const refused = p
+    .locator('[data-scope="toast"][data-part="root"]')
+    .filter({ hasText: 'n’a pas été supprimé' });
+  await refused.waitFor({ timeout: 8000 }).catch(() => {});
+  ok(
+    'une suppression refusée le dit, et l’exercice reste',
+    (await text(refused)).includes(
+      'Il est toujours dans ta bibliothèque. Réessaie.'
+    ) &&
+      (await row(p, 'ex10').count()) === 1 &&
+      (await panel.getAttribute('data-exercise-panel').catch(() => '')) ===
+        'ex10',
+    await text(refused)
   );
   await ctx.close();
 }

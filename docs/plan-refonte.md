@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 22 novembre : 908 tests unitaires, 53 suites de banc et 973
-assertions, 5 min 8 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 22 novembre : 913 tests unitaires, 53 suites de banc et 981
+assertions, 4 min 56 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -599,7 +599,7 @@ banc actuel, inchangé, qui le prouve.
         appris deux choses : une mutation est reprise deux fois, donc une
         panne s'éprouve sur toutes les tentatives ; et un message de
         réussite ne reste que deux secondes, il se lit dès le geste.
-- [ ] **F7** Exercices : vignettes, panneau, tri. En deux temps.
+- [x] **F7** Exercices : vignettes, panneau, tri. En deux temps.
   - [x] **F7a** La liste. Une vignette par ligne — noire avec la lecture
         quand l'exercice a une vidéo, grise sinon —, le nom, la consigne sur
         une ligne, l'usage. Par nom, ou « Les plus utilisés » dans un menu ;
@@ -612,10 +612,22 @@ banc actuel, inchangé, qui le prouve.
         n'apparaissait qu'à vingt-cinq exercices, ne suivait pas l'autre
         tri, et le champ fait mieux dès la première lettre. « Nouvel
         exercice » part aussi, le champ dit qu'il crée.
-  - [ ] **F7b** La fiche : la vignette en tête, le lien qui accepte autre
-        chose que YouTube (« Ouvrir la vidéo »), « Ce que tu changes ici
-        change partout », et la suppression avec « Annuler » pour un
-        exercice jamais utilisé, inactive et expliquée sinon.
+  - [x] **F7b** La fiche. La vidéo en tête : YouTube se joue dans la
+        fiche, toute autre adresse s'ouvre ailleurs par « Ouvrir la vidéo »
+        — chez le client aussi, le lecteur est le même —, un lien illisible
+        est refusé à la saisie (« Ce lien ne ressemble pas à une adresse »).
+        Une seule lecture du lien sert encore la saisie et l'affichage
+        (`domain/exercise/video`). Les champs ont la forme de ceux de la
+        maquette ; un nom vidé reprend l'ancien sans rien envoyer. Le pied
+        dit la portée — « Ce que tu changes ici change partout » — et
+        « Supprimer » : inactif et expliqué pour un exercice utilisé,
+        immédiat pour un autre, avec « Annuler », qui le recrée avec sa
+        consigne et sa vidéo. La boîte de confirmation part. « Exercice
+        modifié » ne sort plus à chaque champ quitté ; un échec, lui, dit
+        ce qui reste. Le serveur d'essai supprime comme l'API, et sa remise
+        à zéro rend les exercices modifiés. Le rejeu a trouvé un compte
+        d'envois partagé entre deux refus : le nom parti par erreur faisait
+        tomber le lien.
 - [ ] **F8** Premiers pas : trois cartes, la question en une phrase.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
       déjà client.
