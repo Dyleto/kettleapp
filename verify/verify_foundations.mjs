@@ -147,6 +147,17 @@ const browser = await launch();
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client`, { waitUntil: 'domcontentloaded' });
   await settle(p);
+  // Un navigateur ne demande une police qu'au premier caractère qui s'en
+  // sert : sans titre à l'écran, la police de titre n'est pas encore
+  // chargée, à raison. Sous la charge du banc complet, l'accueil se
+  // dessinait après le calme du réseau, et les deux lectures du titre
+  // tombaient avant lui. On attend le titre, puis sa police.
+  await p
+    .locator('h1, h2, h3')
+    .first()
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
+  await settle(p);
 
   ok('la police de texte est chargée', await loaded(p, BODY_FONT));
   ok('la police de titre est chargée', await loaded(p, HEADING_FONT));

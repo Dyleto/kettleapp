@@ -364,6 +364,10 @@ const browser = await launch();
     .locator('[data-scope="toast"][data-part="root"]')
     .filter({ hasText: 'supprimé' });
   await banner.waitFor({ timeout: 4000 }).catch(() => {});
+  // La bannière paraît au geste, la suppression part derrière elle : le
+  // serveur ne se lit qu'une fois la requête revenue. Lu tout de suite, il
+  // gardait l'exercice quand le banc complet chargeait la machine.
+  await settle(p);
   ok(
     'un exercice jamais utilisé se supprime d’une touche, et la bannière offre « Annuler »',
     (await row(p, 'ex8').count()) === 0 &&
@@ -372,7 +376,7 @@ const browser = await launch();
       (await text(banner.locator('[data-part="title"]'))) ===
         '« Corde à sauter » supprimé' &&
       (await banner.getByRole('button', { name: 'Annuler' }).count()) === 1,
-    await text(banner)
+    `${await text(banner)} · ${(await serverExercise('ex8')) ? 'encore sur le serveur' : 'parti'} · ${p.url()}`
   );
   await banner
     .getByRole('button', { name: 'Annuler' })

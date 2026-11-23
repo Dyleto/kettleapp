@@ -18,6 +18,8 @@
  */
 import type {
   AccountSummaryPayload,
+  AdminCoachPayload,
+  AdminStatsPayload,
   BlockExercisePayload,
   BlockExerciseSnapshotPayload,
   BlockSnapshotPayload,
@@ -37,6 +39,7 @@ import type {
   PerformedSetPayload,
   ProgramPayload,
   ClientProgramPayload,
+  CreatedCoachPayload,
   SessionBlockPayload,
   SessionPayload,
   TemplatePayload,
@@ -212,3 +215,12 @@ export interface ChipperDoneEntry {
   movements: number;
   seconds: number;
 }
+
+/** Les compteurs de l'administration : des nombres, rien de nominatif. */
+export type AdminStats = AdminStatsPayload;
+
+/** Un coach vu depuis l'administration : qui coache combien de personnes. */
+export type AdminCoach = AdminCoachPayload;
+
+/** Ce que rend l'ouverture d'un compte de coach : fait, ou une question. */
+export type CreatedCoach = CreatedCoachPayload;

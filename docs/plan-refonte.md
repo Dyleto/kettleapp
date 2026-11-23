@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 925 tests unitaires, 57 suites de banc et 1 027
-assertions, 5 min 53 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 23 novembre : 938 tests unitaires, 58 suites de banc et 1 039
+assertions, 6 min 3 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -683,7 +683,7 @@ banc actuel, inchangé, qui le prouve.
         titre dit « Ton coach t'invite sur Kettle » au lieu de commencer
         par une espace. Le type de la vérification, écrit à la main, vient
         du contrat.
-- [ ] **F10** Mon compte et Administration aux composants du kit ;
+- [x] **F10** Mon compte et Administration aux composants du kit ;
       déconnexion sur l'écran. En deux temps.
   - [x] **F10a** Mon compte, en une colonne de 640 px : l'identité (« compte
         Google »), puis le bloc de l'espace où l'on est — son coach, depuis
@@ -701,7 +701,20 @@ banc actuel, inchangé, qui le prouve.
         qui se comptent sortent du composant (`domain/account/summary`) ;
         « 1 juin » devient « 1er juin ». L'écran n'avait aucune suite ; il a
         la sienne.
-  - [ ] **F10b** Administration aux composants du kit, « Nouveau coach ».
+  - [x] **F10b** Administration : le rail et la barre du haut des autres
+        espaces au lieu de sa propre coque, quatre tuiles qui s'accordent
+        au nombre (« 1 coach »), et la liste des coachs — en lignes de
+        cinq colonnes sur grand écran, en cartes sur téléphone, les tuiles
+        sur deux colonnes. Un coach sans nom affiche son adresse.
+        « Nouveau coach » : prénom, nom, adresse ; « Créer le compte »
+        s'active quand l'adresse en est une. Une adresse déjà connue ne
+        reçoit plus le rôle en silence : l'API répond par le nom du compte
+        (`status: 'exists'`), la boîte demande « Ce compte existe déjà »,
+        et seul « Donner le rôle de coach » renvoie avec `promote`. L'API
+        n'exige plus que l'adresse, comme son commentaire le disait déjà,
+        et l'ouverture ne se rejoue plus après une panne : une réponse
+        perdue aurait fait répondre « déjà coach » à qui venait de
+        l'ouvrir. Les types écrits à la main viennent du contrat.
 
 ### G. États du système et mouvement
 
@@ -729,8 +742,9 @@ banc actuel, inchangé, qui le prouve.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
 - [ ] **H4** Mise en production, dans l'ordre : `npm run verify:copy` depuis
       une machine en réseau, `npm run migrate:ladder` sur la base, l'API
-      (jusqu'à `7279e19`, dont l'invitation d'un compte connecté se
-      sert), puis le front. Ensuite seulement, retirer de l'API
+      (jusqu'à `887e193` : l'invitation d'un compte connecté et la
+      question avant de donner le rôle de coach s'en servent), puis le
+      front. Ensuite seulement, retirer de l'API
       `PATCH /coach/clients/:id/history/mark-viewed`, que le front n'appelle
       plus depuis E11b.
 
@@ -766,6 +780,9 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
   d'effacer, sans quoi la donnée resterait en base sans plus rien pour la
   justifier, et l'API ne sait pas faire autrement. Une décision juridique,
   à confirmer avant de changer quoi que ce soit (F10a).
+- **« La connexion se fera avec le compte Google de cette adresse »**,
+  et non « Il se connectera… » comme dans la maquette : on ne connaît pas
+  le genre du futur coach (F10b).
 - **La promesse de la connexion finit par « Ton ressenti règle la
   suite »**, et non « Il ajuste » : un accord sur un coach dont on ne
   connaît pas le genre, que Kettle n'écrit plus nulle part (F8a, F9a). Un

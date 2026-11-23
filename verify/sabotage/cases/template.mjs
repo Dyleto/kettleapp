@@ -9,6 +9,8 @@ const RENAMED = '« Renommer » part du nom actuel, et la carte prend le nouveau
 const MORE = 'au-delà de quatre séances, la carte dit combien il en reste';
 const USED = 'un modèle importé chez un client le dit sur sa carte';
 const CREATE_EMPTY = '→ et de quoi en créer un';
+const OPENED_EMPTY = '→ vide, et il le dit';
+const DETAILS = 'src/features/template/pages/TemplateDetails.tsx';
 
 export default {
   suite: 'verify_template.mjs',
@@ -214,6 +216,19 @@ export default {
         },
       ],
       falls: [CREATE_EMPTY],
+    },
+    {
+      // L'assertion attend le texte plutôt que le calme du réseau : sans
+      // lui, elle doit tomber au bout de l'attente, pas passer.
+      name: 'un modèle vide ne le dit plus',
+      edits: [
+        {
+          file: DETAILS,
+          from: '              title="Ce modèle est vide"',
+          to: '              title="Aucune séance"',
+        },
+      ],
+      falls: [OPENED_EMPTY],
     },
   ],
 };

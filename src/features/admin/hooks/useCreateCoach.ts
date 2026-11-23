@@ -1,49 +1,28 @@
-import { useMutation } from '@tanstack/react-query';
-import api from '@/shared/config/api';
-import { toaster } from '@/shared/components/ui/toasterInstance';
-import eventEmitter from '@/shared/utils/eventEmitter';
-import axios from 'axios';
-
-interface CreateCoachData {
-  firstName: string;
-  lastName: string;
-  email: string;
-}
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { adminService, type NewCoach } from '@/features/admin/admin.service';
+import { queryKeys } from '@/shared/config/queryKeys';
 
 /**
- * Créer un coach.
+ * Ouvrir un compte de coach, ou donner ce rôle à un compte existant.
  *
- * La seule écriture de l'administration, et la seule porte d'entrée d'un
- * coach dans Kettle : il n'y a pas d'inscription coach.
+ * Ne réessaie pas, à l'inverse des autres écritures : l'ouverture n'est pas
+ * idempotente. Une réponse perdue après un 201 ferait renvoyer la même
+ * demande, et le serveur répondrait « Ce compte est déjà coach » à
+ * l'administrateur qui vient de l'ouvrir.
+ *
+ * Ni message d'erreur global ni toast ici : la boîte dit elle-même ce qui
+ * n'est pas parti, et l'écran ce qui a réussi — une réponse « exists »
+ * n'est ni l'un ni l'autre, c'est une question.
  */
 export const useCreateCoach = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateCoachData) =>
-      api.post('/api/admin/create-coach', data),
-
-    onSuccess: (response, variables) => {
-      toaster.create({
-        title: 'Coach créé avec succès',
-        description: `${variables.firstName} ${variables.lastName} (${variables.email}) a été ajouté en tant que coach.`,
-        type: 'success',
-        duration: 5000,
-      });
-    },
-
-    onError: (error: unknown) => {
-      const status = axios.isAxiosError(error)
-        ? error.response?.status
-        : undefined;
-
-      if (status !== 403 && status !== 401) {
-        eventEmitter.emit('error', {
-          title: 'Erreur lors de la création du coach',
-          message:
-            axios.isAxiosError(error) && error.response?.data?.message
-              ? error.response.data.message
-              : "Le compte n'a pas été créé. Réessaie dans un instant.",
-        });
-      }
+    mutationFn: (data: NewCoach) => adminService.createCoach(data),
+    retry: 0,
+    onSuccess: (result) => {
+      if (result.status !== 'success') return;
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.coaches() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats() });
     },
   });
 };

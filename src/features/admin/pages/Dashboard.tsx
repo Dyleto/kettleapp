@@ -1,461 +1,259 @@
-import { Header } from '@/shared/components/Header';
-import { useAuth } from '@/shared/contexts/useAuth';
+import { useState } from 'react';
 import {
-  useCreateCoach,
-  useAdminStats,
-  useAdminCoaches,
-} from '@/features/admin';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/shared/config/queryKeys';
-import { AdminCoach } from '@/features/admin/admin.service';
-import {
+  Avatar,
   Box,
-  Button,
-  Container,
-  Drawer,
-  Field,
+  Flex,
   Grid,
-  Heading,
   HStack,
-  Input,
   Skeleton,
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import {
-  LuChartBar,
-  LuDumbbell,
-  LuPlus,
-  LuShield,
-  LuTrendingUp,
-  LuUsers,
-  LuX,
-  LuZap,
-} from 'react-icons/lu';
+import { LuPlus, LuShield } from 'react-icons/lu';
+import { ActionButton, EmptyState, LoadFailure, NavRail } from '@/kit';
+import { Header } from '@/shared/components/Header';
+import { MobileTopBar } from '@/shared/components/MobileTopBar';
+import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
+import type { AdminCoach } from '@/shared/types';
+import { coachFacts, coachName, statTiles } from '@/domain/admin/coaches';
+import { useAdminCoaches } from '../hooks/useAdminCoaches';
+import { useAdminStats } from '../hooks/useAdminStats';
+import { NewCoachDialog } from '../components/NewCoachDialog';
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
+/** La seule destination de l'espace : le rail la nomme, comme l'écran. */
+const ADMIN_NAV = [
+  { to: '/admin', label: 'Administration', icon: LuShield, end: true },
+];
 
-interface StatCardProps {
-  label: string;
-  value: number | undefined;
-  sub?: string;
-  icon: React.ReactNode;
-  color: string;
-}
+/** Les colonnes d'une ligne de coach sur grand écran. */
+const ROW_COLUMNS = '36px minmax(0, 1.4fr) 1fr 1fr 1fr';
 
-const StatCard = ({ label, value, sub, icon, color }: StatCardProps) => (
-  <Box
-    bg="whiteAlpha.50"
-    borderRadius="xl"
-    borderWidth="1px"
-    borderColor="whiteAlpha.100"
-    p={5}
-    position="relative"
-    overflow="hidden"
-  >
-    <Box
-      position="absolute"
-      top={0}
-      left={0}
-      right={0}
-      h="2px"
-      bg={color}
-      opacity={0.7}
-    />
-    <HStack justify="space-between" align="start">
-      <VStack align="start" gap={1}>
-        <Text
-          fontSize="xs"
-          color="fg.muted"
-          fontWeight="medium"
-          textTransform="uppercase"
-          letterSpacing="wider"
-        >
-          {label}
-        </Text>
-        {value === undefined ? (
-          <Skeleton h="32px" w="60px" borderRadius="md" />
-        ) : (
-          <Text fontSize="3xl" fontWeight="bold" lineHeight="1" color="white">
-            {value}
-          </Text>
-        )}
-        {sub && (
-          <Text fontSize="xs" color="fg.muted">
-            {sub}
-          </Text>
-        )}
-      </VStack>
-      <Box p={2.5} bg={`${color}18`} borderRadius="lg" color={color}>
-        {icon}
-      </Box>
-    </HStack>
-  </Box>
-);
-
-// ─── Coach row ────────────────────────────────────────────────────────────────
-
+/** Un coach : une ligne de tableau sur grand écran, une carte sur téléphone. */
 const CoachRow = ({ coach }: { coach: AdminCoach }) => {
-  const initials =
-    `${coach.firstName?.[0] ?? ''}${coach.lastName?.[0] ?? ''}`.toUpperCase();
-  const since = new Date(coach.createdAt).toLocaleDateString('fr-FR', {
-    month: 'short',
-    year: 'numeric',
-  });
-
-  return (
-    <HStack
-      px={4}
-      py={3.5}
-      borderBottomWidth="1px"
-      borderColor="whiteAlpha.100"
-      gap={4}
-      _last={{ borderBottom: 'none' }}
-      _hover={{ bg: 'whiteAlpha.50' }}
-      transition="background 0.15s"
-    >
-      <Box
-        w="36px"
-        h="36px"
-        borderRadius="full"
-        bg="whiteAlpha.100"
-        flexShrink={0}
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        overflow="hidden"
-      >
-        {coach.picture ? (
-          <img
-            src={coach.picture}
-            alt={initials}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <Text fontSize="xs" fontWeight="bold" color="fg.muted">
-            {initials || '?'}
-          </Text>
-        )}
-      </Box>
-
-      {/* Nom + email */}
-      <VStack align="start" gap={0} flex={1} minW={0}>
-        <Text fontWeight="semibold" fontSize="sm" color="white" truncate>
-          {coach.firstName} {coach.lastName}
-        </Text>
-        <Text fontSize="xs" color="fg.muted" truncate>
+  const name = coachName(coach);
+  const facts = coachFacts(coach);
+  const avatar = (
+    <Avatar.Root size="sm" w="36px" h="36px" flexShrink={0} aria-hidden>
+      <Avatar.Fallback name={name} />
+      <Avatar.Image alt="" src={coach.picture} />
+    </Avatar.Root>
+  );
+  const identity = (
+    <VStack align="start" gap="2px" minW={0}>
+      <Text fontWeight="700" truncate maxW="full">
+        {name}
+      </Text>
+      {name !== coach.email && (
+        <Text fontSize="sm" color="fg.muted" truncate maxW="full">
           {coach.email}
         </Text>
-      </VStack>
-
-      <HStack gap={{ base: 3, sm: 5 }} flexShrink={0}>
-        <HStack gap={1.5} color="fg.muted" fontSize="xs">
-          <LuUsers size={13} />
-          <Text>
-            {coach.clientCount} client{coach.clientCount !== 1 ? 's' : ''}
-          </Text>
-        </HStack>
-        <HStack gap={1.5} color="fg.muted" fontSize="xs">
-          <LuDumbbell size={13} />
-          <Text>
-            {coach.exerciseCount} exo{coach.exerciseCount !== 1 ? 's' : ''}
-          </Text>
-        </HStack>
-        <Text
-          fontSize="xs"
-          color="fg.muted"
-          display={{ base: 'none', md: 'block' }}
-        >
-          depuis {since}
-        </Text>
-      </HStack>
-    </HStack>
+      )}
+    </VStack>
   );
-};
-
-// ─── Create coach drawer ──────────────────────────────────────────────────────
-
-interface CreateCoachDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const CreateCoachDrawer = ({ isOpen, onClose }: CreateCoachDrawerProps) => {
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '' });
-  const [errors, setErrors] = useState<Partial<typeof form>>({});
-  const queryClient = useQueryClient();
-  const mutation = useCreateCoach();
-
-  const validate = () => {
-    const e: Partial<typeof form> = {};
-    if (!form.firstName.trim()) e.firstName = 'Requis';
-    if (!form.lastName.trim()) e.lastName = 'Requis';
-    if (!form.email.trim()) e.email = 'Requis';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      e.email = 'Email invalide';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-    mutation.mutate(form, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.admin.coaches() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats() });
-        setForm({ firstName: '', lastName: '', email: '' });
-        onClose();
-      },
-    });
-  };
-
   return (
-    <Drawer.Root
-      open={isOpen}
-      onOpenChange={(e) => !e.open && onClose()}
-      size="sm"
+    <Box
+      as="li"
+      listStyleType="none"
+      data-coach={coach.email}
+      borderTopWidth={{ base: 0, md: '1px' }}
+      borderColor="line"
+      _first={{ borderTopWidth: 0 }}
     >
-      <Drawer.Positioner>
-        <Drawer.Content bg="bg.canvas">
-          <Drawer.Header borderBottomWidth="1px" borderColor="whiteAlpha.100">
-            <HStack justify="space-between">
-              <HStack gap={2}>
-                <LuShield size={18} color="var(--chakra-colors-app-primary)" />
-                <Text fontWeight="bold">Créer un coach</Text>
-              </HStack>
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label="Fermer"
-                onClick={onClose}
-              >
-                <LuX />
-              </Button>
-            </HStack>
-          </Drawer.Header>
-
-          <Drawer.Body p={6}>
-            <form onSubmit={handleSubmit}>
-              <VStack gap={5} align="stretch">
-                <Field.Root invalid={!!errors.firstName}>
-                  <Field.Label fontSize="sm">Prénom</Field.Label>
-                  <Input
-                    value={form.firstName}
-                    onChange={(e) =>
-                      setForm({ ...form, firstName: e.target.value })
-                    }
-                    placeholder="Jean"
-                    autoFocus
-                  />
-                  {errors.firstName && (
-                    <Field.ErrorText>{errors.firstName}</Field.ErrorText>
-                  )}
-                </Field.Root>
-
-                <Field.Root invalid={!!errors.lastName}>
-                  <Field.Label fontSize="sm">Nom</Field.Label>
-                  <Input
-                    value={form.lastName}
-                    onChange={(e) =>
-                      setForm({ ...form, lastName: e.target.value })
-                    }
-                    placeholder="Dupont"
-                  />
-                  {errors.lastName && (
-                    <Field.ErrorText>{errors.lastName}</Field.ErrorText>
-                  )}
-                </Field.Root>
-
-                <Field.Root invalid={!!errors.email}>
-                  <Field.Label fontSize="sm">Email</Field.Label>
-                  <Input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
-                    }
-                    placeholder="jean.dupont@example.com"
-                  />
-                  {errors.email && (
-                    <Field.ErrorText>{errors.email}</Field.ErrorText>
-                  )}
-                </Field.Root>
-
-                <Button
-                  type="submit"
-                  bg="app.primary"
-                  color="bg.canvas"
-                  fontWeight="bold"
-                  loading={mutation.isPending}
-                  mt={2}
-                >
-                  Créer le compte coach
-                </Button>
-              </VStack>
-            </form>
-          </Drawer.Body>
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+      {/* Sur grand écran : les colonnes de la maquette. */}
+      <Grid
+        display={{ base: 'none', md: 'grid' }}
+        templateColumns={ROW_COLUMNS}
+        alignItems="center"
+        gap="14px"
+        minH="64px"
+        px="16px"
+      >
+        {avatar}
+        {identity}
+        <Text>{facts.clients}</Text>
+        <Text>{facts.exercises}</Text>
+        <Text fontSize="sm" color="fg.muted" textAlign="right">
+          {facts.since}
+        </Text>
+      </Grid>
+      {/* Sur téléphone : une carte, les nombres en une ligne. */}
+      <VStack
+        display={{ base: 'flex', md: 'none' }}
+        align="stretch"
+        gap="10px"
+        bg="surface.card"
+        borderRadius="card"
+        p="14px 16px"
+      >
+        <HStack gap="12px" minW={0}>
+          {avatar}
+          {identity}
+        </HStack>
+        <Text fontSize="sm" color="fg.muted">
+          {facts.clients} · {facts.exercises} · {facts.since}
+        </Text>
+      </VStack>
+    </Box>
   );
 };
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
+/**
+ * L'administration : quatre nombres et la liste des coachs. Elle sert à
+ * ouvrir un compte de coach.
+ *
+ * Remise aux composants du kit : le rail et la barre du haut des autres
+ * espaces, les tuiles des clients, des lignes plutôt que des cartes à
+ * liseré. Elle portait sa propre coque — un en-tête « Bonjour, Corentin »
+ * et l'avatar posé à droite —, la seule de l'application.
+ *
+ * Rien de nominatif dans les nombres, et rien du contenu des séances dans
+ * la liste : c'est ce que la politique de confidentialité annonce, et
+ * l'API ne l'envoie pas.
+ *
+ * Sur téléphone, les tuiles passent sur deux colonnes et chaque coach
+ * devient une carte : la ligne de cinq colonnes ne tenait pas.
+ */
 const AdminDashboard = () => {
-  const { user } = useAuth();
-  const { data: stats } = useAdminStats();
-  const { data: coaches = [], isLoading: coachesLoading } = useAdminCoaches();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  useDocumentTitle('Administration');
+  const statsQuery = useAdminStats();
+  const coachesQuery = useAdminCoaches();
+  const [creating, setCreating] = useState(false);
+  const stats = statsQuery.data;
+  const coaches = coachesQuery.data ?? [];
 
   return (
-    <Container as="main" id="contenu" maxW="container.xl" py={8} px={4}>
-      <VStack gap={8} align="stretch">
-        <HStack justify="space-between" align="start">
-          <VStack align="start" gap={0.5}>
-            <HStack gap={2}>
-              <LuShield size={16} color="var(--chakra-colors-app-primary)" />
+    <Flex minH="100vh">
+      <NavRail items={ADMIN_NAV} footer={<Header variant="rail" />} />
+      <Box flex={1} minW={0}>
+        <MobileTopBar />
+        <Box
+          as="main"
+          id="contenu"
+          w="100%"
+          maxW="1180px"
+          px={{ base: 4, md: 8 }}
+          pt={{ base: 4, md: 8 }}
+          pb={{ base: 'calc(env(safe-area-inset-bottom, 0px) + 40px)', md: 10 }}
+        >
+          <VStack align="stretch" gap={{ base: '16px', md: '20px' }}>
+            {/* Le titre et le bouton ne tiennent pas côte à côte sur un
+                téléphone de 390 px : la page débordait de six pixels. Le
+                bouton passe dessous. */}
+            <HStack justify="space-between" gap="12px" flexWrap="wrap">
               <Text
-                fontSize="xs"
-                color="app.primary"
-                fontWeight="bold"
-                textTransform="uppercase"
-                letterSpacing="wider"
+                as="h1"
+                fontWeight="800"
+                fontSize={{ base: '26px', md: '32px' }}
+                lineHeight="1.05"
               >
                 Administration
               </Text>
+              <ActionButton
+                size="md"
+                aria-haspopup="dialog"
+                onClick={() => setCreating(true)}
+              >
+                <LuPlus size={18} aria-hidden />
+                Nouveau coach
+              </ActionButton>
             </HStack>
-            <Heading as="h1" size="xl">
-              Bonjour, {user?.firstName}
-            </Heading>
-          </VStack>
-          <Header />
-        </HStack>
 
-        <Grid
-          templateColumns={{
-            base: '1fr',
-            sm: '1fr 1fr',
-            lg: 'repeat(4, 1fr)',
-          }}
-          gap={4}
-        >
-          <StatCard
-            label="Coachs"
-            value={stats?.coachCount}
-            icon={<LuShield size={18} />}
-            color="app.primary"
-          />
-          <StatCard
-            label="Clients"
-            value={stats?.clientCount}
-            icon={<LuUsers size={18} />}
-            color="app.primary"
-          />
-          <StatCard
-            label="Séances complétées"
-            value={stats?.sessionCount}
-            sub={
-              stats?.sessionTodayCount
-                ? `+${stats.sessionTodayCount} aujourd'hui`
-                : undefined
-            }
-            icon={<LuZap size={18} />}
-            color="app.primary"
-          />
-          <StatCard
-            label="Exercices créés"
-            value={stats?.exerciseCount}
-            icon={<LuDumbbell size={18} />}
-            color="app.primary"
-          />
-        </Grid>
+            {statsQuery.isError ? (
+              <LoadFailure
+                query={statsQuery}
+                line="Les nombres n’ont pas pu se charger."
+              />
+            ) : (
+              <Grid
+                templateColumns={{
+                  base: 'repeat(2, minmax(0, 1fr))',
+                  lg: 'repeat(4, minmax(0, 1fr))',
+                }}
+                gap={{ base: '8px', md: '14px' }}
+                data-admin-stats
+              >
+                {(stats
+                  ? statTiles(stats)
+                  : Array.from({ length: 4 }, () => null)
+                ).map((tile, index) => (
+                  <VStack
+                    key={tile?.key ?? index}
+                    align="start"
+                    gap="2px"
+                    bg="surface.card"
+                    borderRadius="22px"
+                    px={{ base: '14px', md: '18px' }}
+                    py={{ base: '12px', md: '16px' }}
+                    minW={0}
+                    data-stat={tile?.key}
+                  >
+                    {tile ? (
+                      <>
+                        <Text
+                          fontFamily="heading"
+                          fontWeight="800"
+                          fontSize={{ base: '30px', md: '44px' }}
+                          lineHeight="0.95"
+                          fontVariantNumeric="tabular-nums"
+                        >
+                          {tile.count}
+                        </Text>
+                        <Text fontWeight="700">{tile.label}</Text>
+                        {tile.sub && (
+                          <Text fontSize="xs" color="app.success">
+                            {tile.sub}
+                          </Text>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <Skeleton h="40px" w="64px" borderRadius="10px" />
+                        <Skeleton h="16px" w="90px" borderRadius="8px" />
+                      </>
+                    )}
+                  </VStack>
+                ))}
+              </Grid>
+            )}
 
-        {/* Section coachs */}
-        <VStack align="stretch" gap={0}>
-          <HStack justify="space-between" mb={4} gap={3} flexWrap="wrap">
-            <HStack gap={2}>
-              <LuChartBar size={16} color="var(--chakra-colors-app-primary)" />
-              <Heading size="md">Coachs</Heading>
-              {coaches.length > 0 && (
-                <Box
-                  px={2}
-                  py={0.5}
-                  bg="whiteAlpha.100"
-                  borderRadius="full"
-                  fontSize="xs"
-                  color="fg.muted"
-                >
-                  {coaches.length}
-                </Box>
-              )}
-            </HStack>
-            <Button
-              size="sm"
-              bg="app.primary"
-              color="bg.canvas"
-              fontWeight="bold"
-              _hover={{ bg: 'app.primary.hover' }}
-              onClick={() => setIsDrawerOpen(true)}
-            >
-              <LuPlus />
-              Nouveau coach
-            </Button>
-          </HStack>
-
-          <Box
-            bg="whiteAlpha.50"
-            borderRadius="xl"
-            borderWidth="1px"
-            borderColor="whiteAlpha.100"
-            overflow="hidden"
-          >
-            {coachesLoading ? (
-              <VStack align="stretch" gap={0} p={4}>
-                {[...Array(3)].map((_, i) => (
-                  <HStack key={i} px={0} py={3} gap={4}>
-                    <Skeleton
-                      w="36px"
-                      h="36px"
-                      borderRadius="full"
-                      flexShrink={0}
-                    />
-                    <VStack align="start" gap={1} flex={1}>
-                      <Skeleton h="14px" w="140px" borderRadius="md" />
-                      <Skeleton h="12px" w="180px" borderRadius="md" />
-                    </VStack>
-                    <Skeleton h="12px" w="80px" borderRadius="md" />
-                  </HStack>
+            {coachesQuery.isError ? (
+              <LoadFailure
+                query={coachesQuery}
+                line="La liste des coachs n’a pas pu se charger."
+              />
+            ) : coachesQuery.isLoading ? (
+              <VStack align="stretch" gap="8px" aria-busy="true">
+                {[0, 1, 2].map((i) => (
+                  <Skeleton key={i} h="64px" borderRadius="card" />
                 ))}
               </VStack>
             ) : coaches.length === 0 ? (
-              <Box py={12} textAlign="center">
-                <LuTrendingUp
-                  size={28}
-                  color="var(--chakra-colors-fg-muted)"
-                  style={{ margin: '0 auto 8px' }}
-                />
-                <Text color="fg.muted" fontSize="sm">
-                  Aucun coach pour l'instant
-                </Text>
-                <Text color="fg.muted" fontSize="xs" mt={1}>
-                  Crée le premier compte coach pour commencer
-                </Text>
-              </Box>
+              <EmptyState
+                title="Aucun coach pour l’instant"
+                line="« Nouveau coach » ouvre le premier compte."
+              />
             ) : (
-              coaches.map((coach) => <CoachRow key={coach._id} coach={coach} />)
+              <Box
+                as="ul"
+                aria-label="Coachs"
+                display="flex"
+                flexDirection="column"
+                gap={{ base: '8px', md: 0 }}
+                bg={{ base: 'transparent', md: 'surface.card' }}
+                borderRadius="card"
+                overflow="hidden"
+                data-admin-coaches
+              >
+                {coaches.map((coach) => (
+                  <CoachRow key={coach._id} coach={coach} />
+                ))}
+              </Box>
             )}
-          </Box>
-        </VStack>
-      </VStack>
-
-      <CreateCoachDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
-    </Container>
+          </VStack>
+        </Box>
+      </Box>
+      <NewCoachDialog open={creating} onClose={() => setCreating(false)} />
+    </Flex>
   );
 };
 

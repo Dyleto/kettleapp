@@ -34,6 +34,14 @@ const statusOf = (error: unknown): number | undefined =>
 export const isNotFound = (error: unknown): boolean => statusOf(error) === 404;
 
 /**
+ * Le serveur refuse parce que la chose existe déjà — un 409.
+ *
+ * Lu par son statut et non par son message : une phrase du serveur peut
+ * changer sans que rien ne casse, et l'écran a la sienne.
+ */
+export const isConflict = (error: unknown): boolean => statusOf(error) === 409;
+
+/**
  * Le serveur a répondu non — 400 à 499.
  *
  * Redemander ne changera pas sa réponse. React Query retentait pourtant

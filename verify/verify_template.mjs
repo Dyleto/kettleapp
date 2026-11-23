@@ -136,6 +136,13 @@ const main = async () => {
   const createdId = p.url().match(/templates\/([^/]+)\/s\//)?.[1] ?? '';
   const body = () => p.locator('body').innerText().then(clean);
 
+  // L'état attendu, et non le calme du réseau : sous la charge du banc
+  // complet, l'atelier se dessinait plus de 150 ms après la dernière
+  // réponse, et la lecture tombait entre les deux.
+  await p
+    .getByText('Ce modèle est vide')
+    .waitFor({ timeout: 4000 })
+    .catch(() => {});
   ok(
     '  → vide, et il le dit',
     (await body()).includes('Ce modèle est vide'),
