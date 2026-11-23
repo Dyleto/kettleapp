@@ -173,19 +173,19 @@ export const ProgramSaveStatus = ({
       >
         {signal === 'offline' ? (
           <>
-            <Box color="app.error" display="flex">
+            <Box color="app.error.fg" display="flex">
               <LuTriangleAlert size={14} />
             </Box>
-            <Text fontSize="sm" color="app.error" mr="auto">
+            <Text fontSize="sm" color="app.error.fg" mr="auto">
               Non enregistré · envoi au retour du réseau
             </Text>
           </>
         ) : failed ? (
           <>
-            <Box color="app.error" display="flex">
+            <Box color="app.error.fg" display="flex">
               <LuTriangleAlert size={14} />
             </Box>
-            <Text fontSize="sm" color="app.error" mr="auto">
+            <Text fontSize="sm" color="app.error.fg" mr="auto">
               Non enregistré
             </Text>
             <Box

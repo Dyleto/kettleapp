@@ -73,7 +73,9 @@ const Templates = () => {
   return (
     <Container maxW={COACH_GRID_MAX_W} py={{ base: 6, md: 8 }} px={4}>
       <VStack align="stretch" gap="16px">
-        <HStack gap="12px" align="center">
+        {/* « Nouveau » passe sous le titre quand la ligne ne le tient pas :
+            à 320 px, il dépassait l'écran (H1b). */}
+        <HStack gap="12px" align="center" flexWrap="wrap">
           {/* Le nom de l'onglet, et un vrai titre : l'écran s'appelait
               « Modèles de programme » sous un onglet « Modèles », dans un
               simple paragraphe — il n'avait donc aucun nom pour un lecteur

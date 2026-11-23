@@ -149,8 +149,8 @@ export default {
       edits: [
         {
           file: BLOCK,
-          from: '            <Menu.Item value="remove" color="app.error" onClick={onRemove}>',
-          to: '            <Menu.Item value="remove" color="app.error">',
+          from: '            <Menu.Item value="remove" color="app.error.fg" onClick={onRemove}>',
+          to: '            <Menu.Item value="remove" color="app.error.fg">',
         },
       ],
       falls: [

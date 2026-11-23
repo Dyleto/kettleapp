@@ -129,7 +129,7 @@ const SheetField = ({
           />
         )}
         {error && (
-          <Text fontSize="sm" color="app.error" mt={1} role="alert">
+          <Text fontSize="sm" color="app.error.fg" mt={1} role="alert">
             {error}
           </Text>
         )}
@@ -295,7 +295,7 @@ export const ExerciseSheet = ({
         {/* Un lien enregistré avant que la saisie ne refuse : il ne
             s'affiche pas, et la fiche dit pourquoi. */}
         {storedLinkError && (
-          <Text fontSize="sm" color="app.error" mt={1} data-link-error>
+          <Text fontSize="sm" color="app.error.fg" mt={1} data-link-error>
             {storedLinkError}
           </Text>
         )}

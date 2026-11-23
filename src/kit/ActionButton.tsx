@@ -34,7 +34,7 @@ const TONES: Record<Tone, ButtonProps> = {
   },
   danger: {
     bg: 'transparent',
-    color: 'app.error',
+    color: 'app.error.fg',
     boxShadow: 'inset 0 0 0 1.5px {colors.app.error/45}',
     _hover: { bg: 'app.error/12' },
   },

@@ -95,7 +95,7 @@ const AccountSheet = ({
               minH="52px"
               px="16px"
               textAlign="left"
-              color={entry.danger ? 'app.error' : 'fg'}
+              color={entry.danger ? 'app.error.fg' : 'fg'}
               borderTopWidth="1px"
               borderColor="line"
               _first={{ borderTopWidth: 0 }}
@@ -297,9 +297,9 @@ export const Header = ({
                   value={entry.key}
                   cursor="pointer"
                   onClick={entry.onSelect}
-                  color={entry.danger ? 'app.error' : 'fg.muted'}
+                  color={entry.danger ? 'app.error.fg' : 'fg.muted'}
                   _hover={{
-                    color: entry.danger ? 'app.error' : 'fg',
+                    color: entry.danger ? 'app.error.fg' : 'fg',
                     bg: 'whiteAlpha.100',
                   }}
                   borderRadius="md"

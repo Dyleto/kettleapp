@@ -380,7 +380,7 @@ const Account = ({ space }: { space: 'client' | 'coach' }) => {
             alignSelf="center"
             minH="44px"
             px="12px"
-            color="app.error"
+            color="app.error.fg"
             fontSize="sm"
             fontWeight="600"
             _hover={{ textDecoration: 'underline' }}

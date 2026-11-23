@@ -228,9 +228,11 @@ const ClientJournal = () => {
               <Avatar.Fallback name={name} />
               {client.picture && <Avatar.Image alt="" src={client.picture} />}
             </Avatar.Root>
-            {/* Le h1 est celui de la barre du téléphone : un seul des deux
-                en-têtes s'affiche à la fois. */}
-            <Heading as="p" size="2xl" fontWeight="800" flex={1} minW={0}>
+            {/* Un h1 ici comme dans la barre du téléphone : un seul des deux
+                en-têtes s'affiche à la fois, et celui qui est caché n'existe
+                pas pour un lecteur d'écran. Réservé au téléphone, il
+                laissait le grand écran sans titre (H1b). */}
+            <Heading as="h1" size="2xl" fontWeight="800" flex={1} minW={0}>
               {name}
             </Heading>
             <ClientTabs clientId={clientId!} current="journal" />

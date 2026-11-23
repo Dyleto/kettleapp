@@ -4,6 +4,7 @@ import { Box, Heading, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuArrowLeft } from 'react-icons/lu';
 import { TO_FILL, LEGAL } from '@/shared/config/legal';
 import { hitArea } from '@/kit';
+import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
 /**
  * Un document légal se lit d'un bout à l'autre, souvent sur un téléphone, et
@@ -21,9 +22,15 @@ export const LegalLayout = ({
   children: ReactNode;
 }) => {
   const navigate = useNavigate();
+  // Les deux documents s'appelaient « Kettle » dans l'onglet : on ne savait
+  // pas lequel on avait ouvert, ni lequel on gardait en favori (H1b).
+  useDocumentTitle(title);
 
   return (
-    <Box bg="bg.canvas" minH="100dvh" color="fg">
+    // Le repère principal, et la cible du lien « Aller au contenu » : les
+    // espaces client et coach posent le leur, ces pages publiques n'en
+    // avaient aucun — le lien d'évitement menait nulle part (H1b).
+    <Box as="main" id="contenu" bg="bg.canvas" minH="100dvh" color="fg">
       <Box
         maxW="720px"
         mx="auto"
@@ -152,7 +159,8 @@ export const BulletList = ({ items }: { items: ReactNode[] }) => (
   </VStack>
 );
 
-/** A "what we do / why / on what legal basis" block. */
+/** Un traitement en trois lignes : ce qu'on fait, pourquoi, et sur quelle
+ * base légale. */
 export const Base = ({
   what,
   why,
@@ -191,7 +199,7 @@ export const LegalValue = ({ value }: { value: string }) =>
     <Text
       as="span"
       bg="app.error/16"
-      color="app.error"
+      color="app.error.fg"
       px={1.5}
       py={0.5}
       borderRadius="sm"

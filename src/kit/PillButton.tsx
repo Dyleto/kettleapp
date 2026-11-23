@@ -41,7 +41,7 @@ export const PillButton = forwardRef<HTMLButtonElement, PillButtonProps>(
         lineHeight="1.2"
         whiteSpace="nowrap"
         bg={on ? 'app.primary' : 'transparent'}
-        color={on ? 'bg.canvas' : tone === 'danger' ? 'app.error' : 'fg'}
+        color={on ? 'bg.canvas' : tone === 'danger' ? 'app.error.fg' : 'fg'}
         boxShadow={
           on
             ? undefined

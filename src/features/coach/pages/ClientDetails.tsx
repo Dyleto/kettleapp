@@ -342,10 +342,11 @@ const ClientDetails = () => {
               <Avatar.Image alt="" src={client.picture} />
             </Avatar.Root>
             <VStack align="start" gap={0} flex={1} minW={0}>
-              {/* Le h1 de cet écran est celui de la barre mobile : un seul
-                  des deux en-têtes s'affiche à la fois, mais tous deux étaient
-                  balisés h1. */}
-              <Heading as="p" size="lg" fontWeight="bold">
+              {/* Un h1 ici comme dans la barre du téléphone : un seul des
+                  deux en-têtes s'affiche à la fois, et celui qui est caché
+                  n'existe pas pour un lecteur d'écran. Réservé au téléphone,
+                  il laissait le grand écran sans titre (H1b). */}
+              <Heading as="h1" size="lg" fontWeight="bold">
                 {client.firstName} {client.lastName}
               </Heading>
               <Text fontSize="sm" color="fg.muted">

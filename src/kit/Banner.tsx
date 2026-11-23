@@ -38,7 +38,7 @@ export const Banner = ({
     data-banner={tone}
   >
     <Box
-      color={tone === 'coral' ? 'app.error' : 'app.primary.fg'}
+      color={tone === 'coral' ? 'app.error.fg' : 'app.primary.fg'}
       flexShrink={0}
       aria-hidden
     >

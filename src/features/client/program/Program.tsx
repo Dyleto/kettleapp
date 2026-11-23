@@ -81,8 +81,18 @@ const ProgramCard = ({
       data-program-card={session._id}
       data-state={state.tone}
     >
-      <HStack align="start" gap="8px">
-        <Text fontWeight="800" fontSize="18px" lineClamp={2} flex={1} minW={0}>
+      {/* La pastille passe sous le nom quand les deux ne tiennent pas
+          côte à côte. Ils restaient sur une ligne quoi qu'il arrive :
+          « Modifiée depuis ta dernière fois » ne se coupe pas, et à 320 px
+          la carte dépassait l'écran de dix pixels (H1b). */}
+      <HStack align="start" gap="8px" flexWrap="wrap">
+        <Text
+          fontWeight="800"
+          fontSize="18px"
+          lineClamp={2}
+          flex="1 1 auto"
+          minW={0}
+        >
           {sessionName(session)}
         </Text>
         <Chip tone={TONE[state.tone]}>{state.label}</Chip>

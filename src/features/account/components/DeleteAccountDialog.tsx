@@ -78,7 +78,7 @@ export const DeleteAccountDialog = ({
                 >
                   {consequences.map((line) => (
                     <HStack as="li" key={line} gap="10px" align="start">
-                      <Box color="app.error" pt="3px" aria-hidden>
+                      <Box color="app.error.fg" pt="3px" aria-hidden>
                         <LuX size={18} />
                       </Box>
                       <Text>{line}</Text>

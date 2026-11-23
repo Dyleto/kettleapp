@@ -64,7 +64,7 @@ export const Toaster = () => {
               <Toast.Indicator
                 color={
                   toast.type === 'error'
-                    ? 'app.error'
+                    ? 'app.error.fg'
                     : toast.type === 'success'
                       ? 'app.success'
                       : 'app.primary'

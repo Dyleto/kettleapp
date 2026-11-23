@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 975 tests unitaires, 67 suites de banc et 1 116
-assertions, 8 min 19 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 975 tests unitaires, 68 suites de banc et 1 124
+assertions, 8 min 46 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -836,7 +836,22 @@ banc actuel, inchangé, qui le prouve.
 ### H. Avant `main`
 
 - [ ] **H1** Passe complète des sabotages, sur l'application finie.
-- [ ] **H1b** Relecture d'accessibilité de chaque écran.
+- [x] **H1b** Relecture d'accessibilité de chaque écran. axe-core sur
+      les quinze écrans et les scènes de la séance guidée, au téléphone et
+      sur grand écran (WCAG 2.2 A et AA, et les bonnes pratiques), puis à
+      la main : le focus à chaque arrêt de tabulation, le titre du
+      document, la largeur de 320 px. Quatre défauts :
+      « Se déconnecter » et « Supprimer » en corail tenaient 4,0 à 4,4:1
+      — le corail a désormais sa teinte de texte, `app.error.fg`, à 5,9:1
+      dans un menu ; l'atelier et les ressentis d'un client n'avaient
+      aucun titre de niveau 1 sur grand écran ; les pages légales
+      n'avaient ni repère principal — « Aller au contenu » menait nulle
+      part — ni titre d'onglet ; le programme et les modèles débordaient
+      à 320 px. Reste un écart assumé : le menu du compte sur grand écran
+      s'ouvre hors des repères, à la racine du document, comme tout menu
+      surgissant de Chakra ; il est passager, et un lecteur d'écran y
+      entre par son bouton. axe n'est pas dans le banc — il demanderait
+      une dépendance — : `verify_a11y` tient les propriétés réparées.
 - [ ] **H2** Une planche de captures de tous les cadres, à poser à côté de
       la maquette.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.

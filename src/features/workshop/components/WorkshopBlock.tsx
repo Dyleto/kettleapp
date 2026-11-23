@@ -316,7 +316,7 @@ export const WorkshopBlock = ({
             <Menu.Item value="duplicate" onClick={onDuplicate}>
               Dupliquer le bloc
             </Menu.Item>
-            <Menu.Item value="remove" color="app.error" onClick={onRemove}>
+            <Menu.Item value="remove" color="app.error.fg" onClick={onRemove}>
               Supprimer le bloc
             </Menu.Item>
           </Menu.Content>

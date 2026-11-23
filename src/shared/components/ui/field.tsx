@@ -21,7 +21,7 @@ export const Field = ({ label, required, children, flex }: FieldProps) => {
       <Text fontSize="sm" fontWeight="medium">
         {label}
         {required && (
-          <Text as="span" color="app.error">
+          <Text as="span" color="app.error.fg">
             {' '}
             *
           </Text>

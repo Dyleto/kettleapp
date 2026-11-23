@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const PRODUIT = 'Kettle';
+const PRODUCT = 'Kettle';
 
 /**
  * Ce que dit l'onglet du navigateur.
@@ -17,8 +17,10 @@ const PRODUIT = 'Kettle';
  * nom charge, l'onglet garde le nom du produit plutôt que d'afficher un blanc
  * puis de sauter.
  */
-export const useDocumentTitle = (sujet?: string) => {
+export const useDocumentTitle = (subject?: string) => {
   useEffect(() => {
-    document.title = sujet?.trim() ? `${sujet.trim()} · ${PRODUIT}` : PRODUIT;
-  }, [sujet]);
+    document.title = subject?.trim()
+      ? `${subject.trim()} · ${PRODUCT}`
+      : PRODUCT;
+  }, [subject]);
 };

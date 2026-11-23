@@ -28,7 +28,7 @@ const Items = ({ actions }: { actions: SessionMenuAction[] }) => (
             key={action.value}
             value={action.value}
             cursor="pointer"
-            color={action.danger ? 'app.error' : 'fg'}
+            color={action.danger ? 'app.error.fg' : 'fg'}
             _hover={{ bg: action.danger ? 'app.error/12' : 'whiteAlpha.100' }}
             borderRadius="md"
           >

@@ -116,7 +116,16 @@ const customConfig = defineConfig({
             hover: { value: '#55BBB3' },
             active: { value: '#33908A' },
           },
-          error: { value: '#E2574C' },
+          error: {
+            DEFAULT: { value: '#E2574C' },
+            // Le corail en texte ou en icône. Le corail du fond tenait
+            // 4,43:1 sur une carte, 4,0:1 dans un menu et 3,4:1 sur une
+            // surface surélevée : « Se déconnecter » ne se lisait pas aux
+            // seuils, relevé par la relecture d'accessibilité (H1b). Celui-ci
+            // tient 6,5:1 sur une carte, 5,9:1 dans un menu, 5,0:1 sur une
+            // surface surélevée, et 5,1:1 sur un fond teinté de corail.
+            fg: { value: '#F2847B' },
+          },
         },
 
         /**

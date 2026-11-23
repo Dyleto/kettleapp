@@ -140,7 +140,7 @@ const AuthCallback = () => {
         </VStack>
       ) : (
         <VStack gap={5} maxW="380px" textAlign="center">
-          <Box color="app.error">
+          <Box color="app.error.fg">
             <LuTriangleAlert size={28} />
           </Box>
           <VStack gap={2}>

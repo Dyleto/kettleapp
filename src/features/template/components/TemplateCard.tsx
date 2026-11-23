@@ -113,7 +113,9 @@ export const TemplateCard = ({
           )}
         </VStack>
       )}
-      <HStack gap="8px" mt="auto" pt="4px">
+      {/* « Modifier » passe sous l'autre quand les deux ne tiennent pas :
+          à 320 px, la carte dépassait sa colonne (H1b). */}
+      <HStack gap="8px" mt="auto" pt="4px" flexWrap="wrap">
         {/* Un modèle vide n'a rien à donner : l'importer viderait le
             programme du client. */}
         <ActionButton
