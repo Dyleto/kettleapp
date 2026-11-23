@@ -1,7 +1,6 @@
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuCheck } from 'react-icons/lu';
 import type { SessionBlock } from '@/shared/types';
-import { Chip, LANDSCAPE, Ring, WIDE } from '@/kit';
+import { Chip, DrawnCheck, LANDSCAPE, Ring, WIDE } from '@/kit';
 import { blockMarker, blockTitle } from '@/domain/session/measure';
 import { exerciseDose } from '@/domain/session/dose';
 import { sortByOrder } from '@/domain/session/sets';
@@ -103,7 +102,7 @@ export const NextBlock = ({
       >
         <VStack align="stretch" gap={4} css={{ [LANDSCAPE]: { gap: '10px' } }}>
           <HStack gap={2.5} color="session.rest">
-            <LuCheck size={22} aria-hidden />
+            <DrawnCheck size={22} />
             <Text fontWeight="bold" data-block-outcome>
               {outcome}
             </Text>

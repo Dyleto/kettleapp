@@ -3,6 +3,9 @@ import {
   countWord,
   daysDone,
   doneInWeek,
+  parseSeenRing,
+  ringStart,
+  weekKey,
   weekStreak,
   weekTarget,
 } from './ring';
@@ -72,5 +75,66 @@ describe('daysDone', () => {
     expect([...daysDone([at(7), at(10), at(6)], THURSDAY)].sort()).toEqual([
       0, 3,
     ]);
+  });
+});
+
+describe('ringStart', () => {
+  const week = weekKey(THURSDAY);
+
+  it('part de ce qui était vu cette semaine quand ça a changé', () => {
+    expect(ringStart({ week, part: 1 / 3 }, { week, part: 2 / 3 })).toBe(1 / 3);
+  });
+
+  it('ne bouge pas quand rien n’a changé', () => {
+    expect(
+      ringStart({ week, part: 2 / 3 }, { week, part: 2 / 3 })
+    ).toBeUndefined();
+  });
+
+  it('ne bouge pas la première fois : il n’y a rien à raconter', () => {
+    expect(ringStart(null, { week, part: 2 / 3 })).toBeUndefined();
+  });
+
+  it('une autre semaine repart de son compte, sans se vider sous les yeux', () => {
+    const before = weekKey(new Date(2026, 8, 3, 9));
+    expect(before).not.toBe(week);
+    expect(
+      ringStart({ week: before, part: 1 }, { week, part: 0 })
+    ).toBeUndefined();
+  });
+
+  it('redescend quand un jour conseillé s’ajoute', () => {
+    expect(ringStart({ week, part: 1 }, { week, part: 0.75 })).toBe(1);
+  });
+
+  it('une mémoire hors de l’anneau est ramenée dedans', () => {
+    expect(ringStart({ week, part: 1.5 }, { week, part: 0.5 })).toBe(1);
+  });
+});
+
+describe('weekKey', () => {
+  it('est la même du lundi au dimanche, et change le lundi suivant', () => {
+    expect(weekKey(new Date(2026, 8, 7, 0, 5))).toBe(weekKey(THURSDAY));
+    expect(weekKey(new Date(2026, 8, 13, 23, 55))).toBe(weekKey(THURSDAY));
+    expect(weekKey(new Date(2026, 8, 14, 0, 5))).not.toBe(weekKey(THURSDAY));
+  });
+});
+
+describe('parseSeenRing', () => {
+  it('relit ce qui a été écrit', () => {
+    expect(
+      parseSeenRing(JSON.stringify({ week: '2026-09-07', part: 0.5 }))
+    ).toEqual({ week: '2026-09-07', part: 0.5 });
+  });
+
+  it('ce qui n’a pas la forme attendue vaut l’absence', () => {
+    expect(parseSeenRing(null)).toBeNull();
+    expect(parseSeenRing('')).toBeNull();
+    expect(parseSeenRing('{')).toBeNull();
+    expect(parseSeenRing('3')).toBeNull();
+    expect(parseSeenRing('null')).toBeNull();
+    expect(parseSeenRing(JSON.stringify({ week: 1, part: 0.5 }))).toBeNull();
+    expect(parseSeenRing(JSON.stringify({ week: 'x', part: 'a' }))).toBeNull();
+    expect(parseSeenRing(JSON.stringify({ week: 'x', part: null }))).toBeNull();
   });
 });

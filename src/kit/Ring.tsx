@@ -12,6 +12,11 @@ interface RingProps {
   landscapeSize?: number;
   /** La taille sur grand écran, lu à trois mètres. */
   wideSize?: number;
+  /**
+   * La part d'où l'anneau part en arrivant : il s'y montre, puis rejoint
+   * `part` d'un geste. Sans elle, il est simplement à sa place.
+   */
+  from?: number;
   children?: ReactNode;
 }
 
@@ -29,11 +34,14 @@ export const Ring = ({
   color,
   landscapeSize,
   wideSize,
+  from,
   children,
 }: RingProps) => {
   const radius = 50 - stroke / 2 - 1;
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(0, Math.min(1, part));
+  const clamp = (value: number) => Math.max(0, Math.min(1, value));
+  const clamped = clamp(part);
+  const offset = (value: number) => circumference * (1 - value);
   return (
     <Box
       position="relative"
@@ -79,9 +87,24 @@ export const Ring = ({
           strokeLinecap="round"
           stroke={color}
           strokeDasharray={circumference}
-          strokeDashoffset={circumference * (1 - clamped)}
+          strokeDashoffset={offset(clamped)}
           transition="stroke-dashoffset 1s linear"
-          _motionReduce={{ transition: 'none' }}
+          // Le départ est une animation et non une transition. Une
+          // transition demande que l'ancienne valeur ait été dessinée avant
+          // la nouvelle : posée puis changée une image plus tard, elle
+          // manquait parfois son départ — le banc l'a vu une fois sur deux.
+          // Une animation part de `from` dès que l'anneau est à l'écran,
+          // quel que soit le moment où il y arrive.
+          animation={from === undefined ? undefined : 'ringFill 1s ease-out'}
+          style={
+            from === undefined
+              ? undefined
+              : ({
+                  '--ring-from': offset(clamp(from)),
+                  '--ring-to': offset(clamped),
+                } as React.CSSProperties)
+          }
+          _motionReduce={{ transition: 'none', animation: 'none' }}
         />
       </svg>
       <Box

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Box } from '@chakra-ui/react';
+import { useReplay } from '@/kit';
 import type { BlockExercise, PerformedValues, Session } from '@/shared/types';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { blockMarker, blockTitle } from '@/domain/session/measure';
@@ -109,6 +111,16 @@ export const GuidedScene = ({
     : undefined;
   const rank = `Bloc ${segmentIndex + 1} sur ${segments.length}`;
   const outline = <SessionOutline session={session} current={segmentIndex} />;
+  // Ce qui fait une scène : un bloc, un repos entre deux blocs, l'écran
+  // « Bloc suivant ». Une série cochée, un tour qui passe ne changent pas
+  // de scène : ils n'entrent pas.
+  const sceneId =
+    leftBlock && state.interlude && step.type !== 'rest'
+      ? `next-${state.index}`
+      : step.type === 'rest'
+        ? `rest-${state.index}`
+        : `block-${step.block.order}`;
+  const enter = useReplay(sceneId, 'sceneEnter', { initial: true });
 
   return (
     <PauseContext.Provider value={state.pause !== 'closed'}>
@@ -123,138 +135,152 @@ export const GuidedScene = ({
         notice={state.resumed ? `Reprise au bloc ${resumedBlock}` : undefined}
         quietHeading={!!leftBlock}
       >
-        {leftBlock && state.interlude && step.type !== 'rest' ? (
-          <NextBlock
-            key={state.index}
-            outcome={blockOutcome(
-              session,
-              leftBlock,
-              state.interlude.ending,
-              state.done,
-              state.rounds[String(leftBlock.order)] ?? 0
-            )}
-            rank={rank}
-            block={step.block}
-            lastPerformance={lastPerformance}
-            onDone={() => act({ type: 'interludeDone' })}
-          />
-        ) : step.type === 'block' && step.block.type === 'ladder' ? (
-          // L'échelle a sa propre scène : ses paliers se cochent entiers, un
-          // par geste, et ne passent jamais par la liste.
-          <LadderBlock
-            key={step.block.order}
-            step={step}
-            done={state.done}
-            onDoneChange={(done) => act({ type: 'setDone', done })}
-            onResult={(result) =>
-              writeProgress(session._id, {
-                ladder: {
-                  ...(readProgress(session._id)?.ladder ?? {}),
-                  [String(step.block.order)]: result,
-                },
-              })
-            }
-            onFinish={() => act({ type: 'next' })}
-            isLastBlock={isLastStep(state)}
-            armed={state.armedBlock === step.block.order}
-            onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
-            onPrevious={onPrevious}
-            headerSlot={headerSlot}
-            lastPerformance={lastPerformance}
-            onOpenDetail={openDetail}
-          />
-        ) : step.type === 'block' &&
-          step.shape === 'list' &&
-          isCappedList(step.block) ? (
-          <ChipperBlock
-            key={step.block.order}
-            step={step}
-            state={state}
-            act={act}
-            armed={state.armedBlock === step.block.order}
-            onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
-            onResult={(result) =>
-              writeProgress(session._id, {
-                chipper: {
-                  ...(readProgress(session._id)?.chipper ?? {}),
-                  [String(step.block.order)]: result,
-                },
-              })
-            }
-            headerSlot={headerSlot}
-            lastPerformance={lastPerformance}
-            performed={performed}
-            onPerformedChange={onPerformedChange}
-            nextBlock={blockAfter(session, step.block.order)}
-            outline={outline}
-          />
-        ) : step.type === 'block' && step.shape === 'list' ? (
-          <ListScene
-            step={step}
-            state={state}
-            act={act}
-            nextBlock={blockAfter(session, step.block.order)}
-            outline={outline}
-            lastPerformance={lastPerformance}
-            performed={performed}
-            onPerformedChange={onPerformedChange}
-          />
-        ) : step.type === 'block' ? (
-          <AmrapBlock
-            key={step.block.order}
-            step={step}
-            armed={state.armedBlock === step.block.order}
-            onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
-            rounds={state.rounds[String(step.block.order)] ?? 0}
-            onRoundsChange={(next) =>
-              act({
-                type: 'countRound',
-                blockOrder: step.block.order,
-                delta: next - (state.rounds[String(step.block.order)] ?? 0),
-              })
-            }
-            onDone={() => act({ type: 'next' })}
-            onPrevious={onPrevious}
-            headerSlot={headerSlot}
-            lastPerformance={lastPerformance}
-            onOpenDetail={openDetail}
-          />
-        ) : step.type === 'round' ? (
-          <TimedBlock
-            key={step.block.order}
-            step={step}
-            armed={state.armedBlock === step.block.order}
-            onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
-            onRound={(round) =>
-              act({ type: 'round', blockOrder: step.block.order, round })
-            }
-            onFinish={() =>
-              act({ type: 'finishTimedBlock', blockOrder: step.block.order })
-            }
-            onPause={() => act({ type: 'pause' })}
-            onPrevious={
-              firstRoundIndex(state, step.block.order) > 0
-                ? () =>
-                    act({
-                      type: 'goTo',
-                      index: firstRoundIndex(state, step.block.order) - 1,
-                    })
-                : undefined
-            }
-            nextBlock={nextBlockLine(session, step.block.order)}
-            lastPerformance={lastPerformance}
-            onOpenDetail={openDetail}
-          />
-        ) : (
-          <BetweenBlocks
-            key={state.index}
-            step={step}
-            nextBlock={
-              titled ? blockAfter(session, titled.block.order) : undefined
-            }
-            onDone={() => act({ type: 'next' })}
-          />
-        )}
+        {/* La scène entre ; le haut et la barre restent où ils sont. Le
+            cadre est en colonne, et la scène y prenait toute la place :
+            celui-ci la prend à sa suite, sans rien changer à sa mise en
+            page. */}
+        <Box
+          flex={1}
+          minH={0}
+          display="flex"
+          flexDirection="column"
+          animation={enter}
+          _motionReduce={{ animation: 'none' }}
+          data-scene={sceneId}
+        >
+          {leftBlock && state.interlude && step.type !== 'rest' ? (
+            <NextBlock
+              key={state.index}
+              outcome={blockOutcome(
+                session,
+                leftBlock,
+                state.interlude.ending,
+                state.done,
+                state.rounds[String(leftBlock.order)] ?? 0
+              )}
+              rank={rank}
+              block={step.block}
+              lastPerformance={lastPerformance}
+              onDone={() => act({ type: 'interludeDone' })}
+            />
+          ) : step.type === 'block' && step.block.type === 'ladder' ? (
+            // L'échelle a sa propre scène : ses paliers se cochent entiers, un
+            // par geste, et ne passent jamais par la liste.
+            <LadderBlock
+              key={step.block.order}
+              step={step}
+              done={state.done}
+              onDoneChange={(done) => act({ type: 'setDone', done })}
+              onResult={(result) =>
+                writeProgress(session._id, {
+                  ladder: {
+                    ...(readProgress(session._id)?.ladder ?? {}),
+                    [String(step.block.order)]: result,
+                  },
+                })
+              }
+              onFinish={() => act({ type: 'next' })}
+              isLastBlock={isLastStep(state)}
+              armed={state.armedBlock === step.block.order}
+              onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
+              onPrevious={onPrevious}
+              headerSlot={headerSlot}
+              lastPerformance={lastPerformance}
+              onOpenDetail={openDetail}
+            />
+          ) : step.type === 'block' &&
+            step.shape === 'list' &&
+            isCappedList(step.block) ? (
+            <ChipperBlock
+              key={step.block.order}
+              step={step}
+              state={state}
+              act={act}
+              armed={state.armedBlock === step.block.order}
+              onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
+              onResult={(result) =>
+                writeProgress(session._id, {
+                  chipper: {
+                    ...(readProgress(session._id)?.chipper ?? {}),
+                    [String(step.block.order)]: result,
+                  },
+                })
+              }
+              headerSlot={headerSlot}
+              lastPerformance={lastPerformance}
+              performed={performed}
+              onPerformedChange={onPerformedChange}
+              nextBlock={blockAfter(session, step.block.order)}
+              outline={outline}
+            />
+          ) : step.type === 'block' && step.shape === 'list' ? (
+            <ListScene
+              step={step}
+              state={state}
+              act={act}
+              nextBlock={blockAfter(session, step.block.order)}
+              outline={outline}
+              lastPerformance={lastPerformance}
+              performed={performed}
+              onPerformedChange={onPerformedChange}
+            />
+          ) : step.type === 'block' ? (
+            <AmrapBlock
+              key={step.block.order}
+              step={step}
+              armed={state.armedBlock === step.block.order}
+              onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
+              rounds={state.rounds[String(step.block.order)] ?? 0}
+              onRoundsChange={(next) =>
+                act({
+                  type: 'countRound',
+                  blockOrder: step.block.order,
+                  delta: next - (state.rounds[String(step.block.order)] ?? 0),
+                })
+              }
+              onDone={() => act({ type: 'next' })}
+              onPrevious={onPrevious}
+              headerSlot={headerSlot}
+              lastPerformance={lastPerformance}
+              onOpenDetail={openDetail}
+            />
+          ) : step.type === 'round' ? (
+            <TimedBlock
+              key={step.block.order}
+              step={step}
+              armed={state.armedBlock === step.block.order}
+              onArm={() => act({ type: 'arm', blockOrder: step.block.order })}
+              onRound={(round) =>
+                act({ type: 'round', blockOrder: step.block.order, round })
+              }
+              onFinish={() =>
+                act({ type: 'finishTimedBlock', blockOrder: step.block.order })
+              }
+              onPause={() => act({ type: 'pause' })}
+              onPrevious={
+                firstRoundIndex(state, step.block.order) > 0
+                  ? () =>
+                      act({
+                        type: 'goTo',
+                        index: firstRoundIndex(state, step.block.order) - 1,
+                      })
+                  : undefined
+              }
+              nextBlock={nextBlockLine(session, step.block.order)}
+              lastPerformance={lastPerformance}
+              onOpenDetail={openDetail}
+            />
+          ) : (
+            <BetweenBlocks
+              key={state.index}
+              step={step}
+              nextBlock={
+                titled ? blockAfter(session, titled.block.order) : undefined
+              }
+              onDone={() => act({ type: 'next' })}
+            />
+          )}
+        </Box>
 
         {/* La consigne du coach est écrite pour ce moment précis — en plein
             effort, les mains occupées. Elle s'ouvrait en plein écran par

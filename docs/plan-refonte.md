@@ -14,7 +14,7 @@ le rangement (B12) et avant `main` (H1).
 
 | Chapitre de la maquette   | Écrans | Fait | Partiel | À faire |
 | ------------------------- | ------ | ---- | ------- | ------- |
-| Fondations                | 5      | 3    | 2       | 0       |
+| Fondations                | 5      | 4    | 1       | 0       |
 | Séance guidée             | 5      | 3    | 2       | 0       |
 | Client (hors séance)      | 6      | 4    | 2       | 0       |
 | Coach                     | 7      | 5    | 1       | 1       |
@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 948 tests unitaires, 64 suites de banc et 1 074
-assertions, 7 min 35 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 957 tests unitaires, 65 suites de banc et 1 092
+assertions, 7 min 50 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -42,13 +42,13 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ### Fondations
 
-| Écran                         | État     | Ce qui manque                                                                                                                                                                                                                                                     |
-| ----------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Les quatre règles             | **fait** | Appliquées ; elles se revérifient écran par écran (§4).                                                                                                                                                                                                           |
-| Couleurs, typographie, formes | **fait** | —                                                                                                                                                                                                                                                                 |
-| Composants                    | partiel  | Les pièces existent mais sont dispersées : trois `Chip` différents, la bulle du coach écrite cinq fois, `HomeCard` et `Eyebrow` rangés dans l'accueil, l'ancien `Card` encore lu par quatre écrans. Pas de menu ni de bannière « Annuler » au kit.                |
-| Mouvement, son, vibration     | partiel  | Son : fait. Mouvement : l'appui, la feuille, les dernières secondes, les confettis et les chiffres de fin sont là ; manquent le saut d'une valeur qui change, l'entrée d'une scène, la coche qui se dessine. Vibration : quatre motifs nommés et un réglage (B8). |
-| Navigation, largeurs, voix    | **fait** | Quatre onglets pour le coach, « À lire » d'abord avec son compteur ; rail de 76 puis 232 px, replié dans l'atelier. Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                              |
+| Écran                         | État     | Ce qui manque                                                                                                                                                                                                                                                                                                 |
+| ----------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Les quatre règles             | **fait** | Appliquées ; elles se revérifient écran par écran (§4).                                                                                                                                                                                                                                                       |
+| Couleurs, typographie, formes | **fait** | —                                                                                                                                                                                                                                                                                                             |
+| Composants                    | partiel  | Les pièces existent mais sont dispersées : trois `Chip` différents, la bulle du coach écrite cinq fois, `HomeCard` et `Eyebrow` rangés dans l'accueil, l'ancien `Card` encore lu par quatre écrans. Pas de menu ni de bannière « Annuler » au kit.                                                            |
+| Mouvement, son, vibration     | **fait** | Son : fait. Mouvement : l'appui, la feuille, les dernières secondes, les confettis, les chiffres de fin, et depuis G5 le saut d'une valeur qui change, l'entrée d'une scène, la coche qui se dessine, l'anneau qui se remplit quand la semaine a changé. Vibration : quatre motifs nommés et un réglage (B8). |
+| Navigation, largeurs, voix    | **fait** | Quatre onglets pour le coach, « À lire » d'abord avec son compteur ; rail de 76 puis 232 px, replié dans l'atelier. Voix : tenue et vérifiée ; le client lit le prénom de son coach.                                                                                                                          |
 
 ### Séance guidée
 
@@ -782,8 +782,26 @@ banc actuel, inchangé, qui le prouve.
         Client », « Vue Coach », « Vue Admin », l'espace courant compris,
         et « Déconnexion ». `useSheetDismiss` passe de l'atelier à `shared`,
         où le menu le lit.
-- [ ] **G5** Mouvement : la valeur qui saute, l'entrée d'une scène, la coche
-      qui se dessine, l'anneau de l'accueil quand il a changé.
+- [x] **G5** Mouvement : la valeur qui saute, l'entrée d'une scène, la coche
+      qui se dessine, l'anneau de l'accueil quand il a changé. Les keyframes
+      vivent au thème et leur tempo au kit (`motion.ts`), chacune sous un
+      tiers de seconde ; sous « réduire les animations », rien ne bouge. Le
+      nombre d'une série et le compte des tours d'un AMRAP sautent à chaque
+      pas qui les change — pas à la frappe, ni contre une butée. Une scène
+      (un bloc, un repos entre deux blocs, « Bloc suivant ») entre d'un peu
+      plus bas ; une série cochée n'en change pas. Une animation se rejoue
+      sans démonter l'élément, en alternant deux noms (`useReplay`) : un
+      champ démonté perdait sa sélection, une scène son état. La coche
+      d'une série se dessine quand on vient de la cocher, pas à la reprise
+      (`useJustDone`), et celle du bloc fini sur « Bloc suivant ». L'anneau
+      de l'accueil part de ce qu'on avait vu cette semaine quand ça a
+      changé, et seulement alors ; l'écran de fin retient ce qu'il vient de
+      montrer, pour que l'accueil ne remplisse pas l'anneau une seconde
+      fois. Le départ est une animation et non une transition : posée puis
+      changée une image plus tard, la transition manquait son départ une
+      fois sur deux au banc — l'écran de fin, qui en dépendait, l'a
+      quittée aussi. Défaut réparé en route : une série refaite revenait
+      en carte ouverte, « Refaire » la referme désormais.
 - [ ] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.
 - [ ] **G7** Déplacer sans glisser, et le dire en français. Les trois
       `DndContext` (rail, bande, blocs) annoncent en anglais aux lecteurs

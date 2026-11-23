@@ -3,7 +3,7 @@ import { type GuidedSet } from '@/domain/session/sets';
 import { blockDefinesOwnMetrics } from '@/domain/session/blocks';
 import { performedKey } from '@/domain/history/lastPerformance';
 import { Box, HStack, Input, VStack, Text } from '@chakra-ui/react';
-import { hitArea } from '@/kit';
+import { DrawnCheck, hitArea, useJustDone } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';
 import { Fragment, useState } from 'react';
 import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
@@ -112,6 +112,12 @@ export const BlockSets = ({
    * un formulaire à chaque ligne.
    */
   const [opened, setOpened] = useState<string | null>(null);
+  // Les séries cochées sous les yeux : leur coche se dessine. Celles qui
+  // l'étaient déjà — une séance reprise, un bloc rouvert — sont là, tracées.
+  const justDone = useJustDone(
+    sets.map((set) => set.key),
+    done
+  );
 
   /** Si ce mouvement a quelque chose à montrer au-delà de sa dose. */
   const hasDetailOf = (e: GuidedSet) =>
@@ -263,9 +269,15 @@ export const BlockSets = ({
                   {/* Défaire n'est pas corriger : celui qui répare une faute de
                       frappe ne veut pas retrouver la série devant lui, celui
                       qui la refait si. Deux gestes, deux boutons. */}
+                  {/* La carte se referme : la série redevient à faire, et
+                      refaite, elle revenait ouverte — une carte de
+                      correction, là où l'on attendait sa ligne cochée. */}
                   <Box
                     as="button"
-                    onClick={() => onUndo(e.key)}
+                    onClick={() => {
+                      setOpened(null);
+                      onUndo(e.key);
+                    }}
                     color="app.primary"
                     fontSize="sm"
                     fontWeight="bold"
@@ -331,7 +343,11 @@ export const BlockSets = ({
                 flexShrink={0}
               >
                 {isDone ? (
-                  <LuCheck size={16} strokeWidth={3} />
+                  <DrawnCheck
+                    size={16}
+                    strokeWidth={3}
+                    draw={justDone.has(e.key)}
+                  />
                 ) : (
                   <Box
                     w="16px"

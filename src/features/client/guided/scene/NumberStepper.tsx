@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, Input, Text } from '@chakra-ui/react';
+import { useReplay } from '@/kit';
 import { useNumberDraft } from '@/shared/hooks/useNumberDraft';
 
 interface NumberStepperProps {
@@ -133,9 +134,16 @@ export const NumberStepper = ({
     onChange,
     decimals,
   });
+  // Le nombre saute à chaque pas qui le change — pas à la frappe, où il
+  // sauterait sous les doigts à chaque chiffre, ni contre une butée, où il
+  // dirait un changement qui n'a pas eu lieu.
+  const [steps, setSteps] = useState(0);
+  const jump = useReplay(steps, 'valueJump');
   const step = (delta: number) => {
     onLeave();
-    onChange(stepValue(value, delta));
+    const next = stepValue(value, delta);
+    if (next !== value) setSteps((count) => count + 1);
+    onChange(next);
   };
   // Le champ vient de prendre le focus : le relâchement du doigt qui suit
   // ne doit pas défaire la sélection.
@@ -158,6 +166,9 @@ export const NumberStepper = ({
           alignItems="baseline"
           justifyContent="center"
           gap={1.5}
+          animation={jump}
+          _motionReduce={{ animation: 'none' }}
+          data-jump="stepper"
         >
           <Input
             aria-label={label}

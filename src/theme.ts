@@ -1,5 +1,32 @@
 import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react';
 
+/**
+ * Une valeur qui change sous le pouce saute : elle monte de quelques pixels
+ * en grossissant, et retombe. C'est ce qui dit qu'un appui sur « + » a été
+ * pris, sans avoir à relire le chiffre — en plein effort, on ne relit pas.
+ */
+const VALUE_JUMP = {
+  '0%': { transform: 'translateY(0) scale(1)' },
+  '35%': { transform: 'translateY(-6px) scale(1.12)' },
+  '100%': { transform: 'translateY(0) scale(1)' },
+};
+
+/**
+ * Une scène arrive d'un peu plus bas, en s'éclairant. Huit pixels et non
+ * une page entière : on change d'étape, pas d'écran, et le haut — le bloc,
+ * la barre — ne bouge pas.
+ */
+const SCENE_ENTER = {
+  from: { opacity: 0, transform: 'translateY(8px)' },
+  to: { opacity: 1, transform: 'translateY(0)' },
+};
+
+/** Une animation sous deux noms : `name` et `nameAgain`. */
+const twins = <T>(name: string, frames: T) => ({
+  [name]: frames,
+  [`${name}Again`]: frames,
+});
+
 const customConfig = defineConfig({
   theme: {
     /**
@@ -49,6 +76,22 @@ const customConfig = defineConfig({
         '0%': { transform: 'translateY(-60px) rotate(0deg)', opacity: 1 },
         '80%': { opacity: 1 },
         '100%': { transform: 'translateY(420px) rotate(540deg)', opacity: 0 },
+      },
+      // Les trois mouvements de G5, chacun en double : `replay` (kit) passe
+      // d'un nom à son jumeau pour rejouer l'animation sans démonter
+      // l'élément — un champ de saisie démonté perdrait sa sélection, une
+      // scène démontée son état. Voir `src/kit/motion.ts`.
+      ...twins('valueJump', VALUE_JUMP),
+      ...twins('sceneEnter', SCENE_ENTER),
+      // L'anneau qui part de ce qu'on avait vu : ses deux bouts sont posés
+      // sur le cercle par `Ring`, qui seul connaît sa circonférence.
+      ringFill: {
+        from: { strokeDashoffset: 'var(--ring-from)' },
+        to: { strokeDashoffset: 'var(--ring-to)' },
+      },
+      checkDraw: {
+        from: { strokeDashoffset: 1 },
+        to: { strokeDashoffset: 0 },
       },
     },
     semanticTokens: {

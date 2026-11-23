@@ -24,6 +24,64 @@ export const weekTarget = (sessions: readonly Session[]): number =>
 
 const weekOf = (date: Date): string => dayKey(startOfWeek(date));
 
+/**
+ * L'anneau de l'accueil tel que la personne l'a vu la dernière fois : sa
+ * semaine — le lundi — et sa part remplie.
+ */
+export interface SeenRing {
+  week: string;
+  part: number;
+}
+
+/** La semaine de `date`, telle que `SeenRing` la retient. */
+export const weekKey = (date: Date): string => weekOf(date);
+
+/**
+ * D'où l'anneau de l'accueil part : de ce qu'il montrait la dernière fois,
+ * si c'était cette semaine et que ça a changé depuis.
+ *
+ * Il ne se remplit qu'en ce cas. À chaque ouverture, il aurait raconté la
+ * même séance — une animation qui se répète ne dit plus rien. Une autre
+ * semaine repart de son propre compte, sans rien animer : un anneau qui se
+ * viderait le lundi raconterait une perte qui n'en est pas une.
+ *
+ * Il peut aussi redescendre, si le coach a ajouté un jour conseillé : c'est
+ * ce qui a changé, et l'anneau le montre plutôt que de sauter.
+ */
+export const ringStart = (
+  seen: SeenRing | null,
+  now: SeenRing
+): number | undefined =>
+  seen && seen.week === now.week && Math.abs(seen.part - now.part) > 1e-6
+    ? Math.max(0, Math.min(1, seen.part))
+    : undefined;
+
+/**
+ * Relire la mémoire de l'anneau. Elle vient du stockage de l'appareil : une
+ * version passée, une main qui l'a modifiée — ce qui n'a pas la forme
+ * attendue vaut l'absence, et l'anneau ne s'anime pas.
+ */
+export const parseSeenRing = (raw: string | null): SeenRing | null => {
+  if (!raw) return null;
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      typeof (value as SeenRing).week === 'string' &&
+      typeof (value as SeenRing).part === 'number' &&
+      Number.isFinite((value as SeenRing).part)
+    )
+      return {
+        week: (value as SeenRing).week,
+        part: (value as SeenRing).part,
+      };
+  } catch {
+    // Illisible : comme s'il n'y avait rien.
+  }
+  return null;
+};
+
 /** Les séances faites dans la semaine de `today`, lundi compris. */
 export const doneInWeek = (
   history: readonly Pick<CompletedSession, 'completedAt'>[],

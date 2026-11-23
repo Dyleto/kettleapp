@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuFlame } from 'react-icons/lu';
 import { ActionButton, Bubble, Ring } from '@/kit';
 import { mondayIndex, startOfWeek, WEEKDAY_LETTERS } from '@/domain/week/dates';
 import { WeekBubbles } from '@/features/client/home/WeekBubbles';
+import { rememberRing } from '@/features/client/home/ringMemory';
 import { countWord } from '@/domain/week/ring';
 import { useCoachVoice } from '@/features/client/common/coach';
 
@@ -45,13 +46,9 @@ export const Week = ({
   onFinish,
 }: WeekProps) => {
   const coach = useCoachVoice();
-  const [part, setPart] = useState(target > 0 ? before / target : 0);
+  // L'accueil, juste derrière, ne remplira pas l'anneau une seconde fois.
   useEffect(() => {
-    if (target === 0) return;
-    // Un rendu à la valeur d'avant, puis la nouvelle : c'est la transition
-    // de l'anneau qui fait le reste.
-    const frame = requestAnimationFrame(() => setPart(after / target));
-    return () => cancelAnimationFrame(frame);
+    if (target > 0) rememberRing(Math.min(1, after / target));
   }, [after, target]);
 
   // La semaine qu'on affiche est celle d'aujourd'hui, même quand la séance
@@ -98,9 +95,15 @@ export const Week = ({
             <Box
               role="img"
               aria-label={`${after} séance${after > 1 ? 's' : ''} sur ${target}`}
+              data-week-ring="end"
             >
               <Ring
-                part={part}
+                // L'anneau part de la semaine d'avant la séance, et monte.
+                // Il passait par un état et une image d'attente, pour qu'une
+                // transition ait de quoi partir : elle manquait parfois son
+                // départ (voir `Ring`).
+                part={after / target}
+                from={before !== after ? before / target : undefined}
                 size={112}
                 stroke={13}
                 color="var(--chakra-colors-session-rest)"

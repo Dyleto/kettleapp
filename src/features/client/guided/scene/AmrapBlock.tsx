@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuMinus, LuPlay, LuPlus } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
-import { ActionButton, LANDSCAPE, Sheet } from '@/kit';
+import { ActionButton, LANDSCAPE, Sheet, useReplay } from '@/kit';
 import type { GuidedStep } from '@/features/client/guided/steps';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { playCue } from '@/shared/feedback/sound';
@@ -171,6 +171,9 @@ export const AmrapBlock = ({
   };
 
   const marks = markCount(target, rounds);
+  // Le compte saute à chaque tour ajouté ou retiré : on le voit du coin de
+  // l'œil, sans lire le chiffre.
+  const jump = useReplay(rounds, 'valueJump');
 
   return (
     <VStack flex={1} minH={0} align="stretch" gap={0}>
@@ -336,6 +339,9 @@ export const AmrapBlock = ({
               lineHeight="0.9"
               fontVariantNumeric="tabular-nums"
               css={{ [LANDSCAPE]: { fontSize: '64px' } }}
+              animation={jump}
+              _motionReduce={{ animation: 'none' }}
+              data-jump="rounds"
             >
               {rounds}
             </Text>
@@ -465,6 +471,9 @@ export const AmrapBlock = ({
                 fontVariantNumeric="tabular-nums"
                 aria-live="polite"
                 aria-label={roundsLabel(rounds)}
+                animation={jump}
+                _motionReduce={{ animation: 'none' }}
+                data-jump="rounds-sheet"
               >
                 {rounds}
               </Text>
