@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 957 tests unitaires, 65 suites de banc et 1 092
-assertions, 7 min 50 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 966 tests unitaires, 66 suites de banc et 1 105
+assertions, 8 min 8 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -64,7 +64,7 @@ tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 | Écran           | État     | Ce qui manque                                                                                                                                                |
 | --------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Restent « Ensuite dans ton programme » sur grand écran et tirer pour recharger.                                  |
+| Accueil         | **fait** | Tous les cadres, réponse du coach comprise. Reste « Ensuite dans ton programme » sur grand écran.                                                            |
 | Programme       | **fait** | Là : la durée, la barre de composition, les jours en pastilles, l'état en pastille dont « En cours » et « Modifiée depuis ta dernière fois », le chargement. |
 | Fiche de séance | **fait** | « Reprendre » mène droit à la série (C1).                                                                                                                    |
 | Progrès         | **fait** | Là : les records, les mouvements en courbes, la feuille d'un mouvement, le calendrier à pastilles, la liste et ses mentions, le détail et « Corriger ».      |
@@ -802,7 +802,20 @@ banc actuel, inchangé, qui le prouve.
       fois sur deux au banc — l'écran de fin, qui en dépendait, l'a
       quittée aussi. Défaut réparé en route : une série refaite revenait
       en carte ouverte, « Refaire » la referme désormais.
-- [ ] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.
+- [x] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.
+      La maquette perdue avec le conteneur, les quatre sont ceux dont le
+      contenu change par l'autre : l'accueil et le programme du client, que
+      le coach modifie ; « À lire » et la liste des clients, que les
+      clients remplissent. La donnée est tenue pour fraîche cinq minutes :
+      sans ce geste, rien ne faisait venir plus tôt ce qui avait changé,
+      sinon recharger toute l'application. Le doigt mène un indicateur —
+      « Tire pour actualiser », « Relâche pour actualiser »,
+      « Actualisation… » — qui tourne au moins 600 ms ; hors connexion, il
+      le dit dès la traction et ne tente rien ; une panne le dit, « Ce qui
+      est affiché n'a pas bougé ». Seules les lectures de l'écran
+      repartent. Au milieu de la page le geste fait défiler, de côté il
+      reste au glisser d'« À lire », dans une feuille il ne tire pas
+      l'écran derrière.
 - [ ] **G7** Déplacer sans glisser, et le dire en français. Les trois
       `DndContext` (rail, bande, blocs) annoncent en anglais aux lecteurs
       d'écran, et leur consigne promet Espace et les flèches à un clavier
@@ -827,10 +840,13 @@ banc actuel, inchangé, qui le prouve.
 
 ## 6. Écarts avec la maquette
 
-Aucun n'est un choix : celui qui reste attend sa ligne du plan.
+Plus aucun n'attend sa ligne du plan : ceux qui restent sont des choix,
+dits comme tels, ou des points que la maquette perdue n'a pas pu trancher.
 
-- **« À lire » ne se recharge pas en tirant vers le bas** : le geste est
-  à faire pour tout l'espace, avec les autres états (G).
+- **Les quatre écrans où l'on tire pour recharger** ont été choisis sans
+  la maquette, perdue avec le conteneur : ceux dont le contenu change par
+  l'autre (G6). À confronter à la maquette en H2. De même pour les durées
+  et les courbes des mouvements de G5.
 - **Changer d'unité prévient après coup**, par la bannière « Annuler », et
   non avant comme le dit la maquette (« après avoir prévenu si elle était
   remplie ») : c'est la règle du reste de l'atelier, jamais de question

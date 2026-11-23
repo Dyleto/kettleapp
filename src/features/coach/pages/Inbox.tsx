@@ -27,6 +27,7 @@ import { QuietFold } from '@/features/coach/inbox/QuietFold';
 import { ReplyComposer } from '@/features/coach/inbox/ReplyComposer';
 import { Swipeable } from '@/features/coach/inbox/Swipeable';
 import type { Inbox as InboxData, InboxItem } from '@/shared/types';
+import { PullToRefresh } from '@/shared/components/PullToRefresh';
 
 /** « 3 séances », « 1 séance » : le compte du titre. */
 const sessionsWord = (n: number): string => `${n} séance${n > 1 ? 's' : ''}`;
@@ -246,9 +247,13 @@ const Inbox = () => {
     />
   );
 
+  // Les séances que les clients viennent d'envoyer, lues ou non.
+  const pull = <PullToRefresh queries={[[...queryKeys.coach.all, 'inbox']]} />;
+
   if (wide)
     return (
       <Container maxW="1200px" py={8} px={6}>
+        {pull}
         <Grid templateColumns="minmax(0, 1fr) 372px" gap={8} alignItems="start">
           {list}
           <Box
@@ -274,6 +279,7 @@ const Inbox = () => {
 
   return (
     <Container maxW={COACH_CONTENT_MAX_W} py={8} px={4}>
+      {pull}
       {list}
       {opened && (
         <Sheet label="La séance ouverte" onDismiss={() => setOpenItem(null)}>

@@ -31,6 +31,8 @@ import {
   type CardState,
   type CardTone,
 } from '@/domain/session/programCard';
+import { PullToRefresh } from '@/shared/components/PullToRefresh';
+import { CLIENT_SCREEN } from '@/features/client/common/useClientSessions';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -141,6 +143,8 @@ const Program = () => {
   const count = sessions.length;
   return (
     <Container maxW={CLIENT_GRID_MAX_W} py={6} px={4}>
+      {/* Le programme que le coach vient de modifier. */}
+      <PullToRefresh queries={CLIENT_SCREEN} />
       <VStack align="stretch" gap="16px">
         <HStack gap="12px">
           <Text

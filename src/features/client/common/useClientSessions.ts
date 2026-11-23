@@ -23,6 +23,15 @@ import {
 } from '@/shared/utils/queryState';
 
 /**
+ * Les deux lectures sur lesquelles reposent les écrans du client : ce que
+ * tirer l'accueil ou le programme vers le bas fait repartir.
+ */
+export const CLIENT_SCREEN = [
+  queryKeys.client.program.get(),
+  queryKeys.client.history.all(),
+] as const;
+
+/**
  * Le programme du client, et laquelle de ses séances vient maintenant.
  *
  * Un seul « à faire » pour toute l'application : l'accueil, la pastille du

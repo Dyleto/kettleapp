@@ -54,6 +54,8 @@ import {
 } from '@/features/client/home/DayCards';
 import { LastSessionCard } from '@/features/client/home/LastSessionCard';
 import { sessionName } from '@/domain/session/name';
+import { PullToRefresh } from '@/shared/components/PullToRefresh';
+import { CLIENT_SCREEN } from '@/features/client/common/useClientSessions';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -338,6 +340,9 @@ const Today = () => {
       py={6}
       px={4}
     >
+      {/* Ce que le coach a changé depuis — une séance, une réponse — sans
+          attendre que la donnée vieillisse de cinq minutes. */}
+      <PullToRefresh queries={CLIENT_SCREEN} />
       <VStack align="stretch" gap={4}>
         {header}
         {/* Au téléphone, la semaine d'abord : c'est le contexte dans lequel
