@@ -82,7 +82,18 @@ export const launch = async () => {
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async (options) => {
     const ctx = await newContext(options);
-    await track(ctx);
+    track(ctx);
+    // Fermer un contexte pendant qu'une navigation s'engage — une
+    // déconnexion qui recharge la page, juste avant `ctx.close()` — prenait
+    // quatre-vingt-dix secondes à Chromium, et une suite entière restait
+    // pendue. La fermeture est donc bornée : un contexte qui tarde finit
+    // en arrière-plan, et `browser.close()`, lui rapide, le ramasse.
+    const close = ctx.close.bind(ctx);
+    ctx.close = (closeOptions) =>
+      Promise.race([
+        close(closeOptions),
+        new Promise((resolve) => setTimeout(resolve, 5_000)),
+      ]);
     if (CPU_THROTTLE > 1)
       ctx.on('page', (page) =>
         ctx
@@ -120,25 +131,9 @@ export const launch = async () => {
  * ne signale pas toujours sa fin : compté, il restait « en vol » pour
  * toujours, et chaque attente butait sur son plafond.
  */
-const track = async (ctx) => {
+const track = (ctx) => {
   const open = new Set();
   ctx.__open = open;
-  // Chaque changement du DOM, compté dans la page : `settle` le lit pour
-  // savoir si la page bouge encore, une fois le réseau calme. Attendu avant
-  // de rendre le contexte : laissé en vol, il croisait la création de la
-  // page suivante, et `newPage` ne revenait plus — deux fois sur trois dans
-  // `verify_account`, qui ouvre six contextes.
-  await ctx.addInitScript(() => {
-    window.__kettleMutations = 0;
-    new MutationObserver(() => {
-      window.__kettleMutations += 1;
-    }).observe(document, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      characterData: true,
-    });
-  });
   ctx.on('request', (request) => open.add(request));
   ctx.on('requestfinished', (request) => open.delete(request));
   ctx.on('requestfailed', (request) => open.delete(request));
@@ -216,6 +211,23 @@ const pageTurn = (p) =>
     .evaluate(
       () =>
         new Promise((resolve) => {
+          // Le compteur s'installe au premier tour, dans le document : posé
+          // dans chaque contexte par `addInitScript`, il faisait durer la
+          // fermeture d'un contexte quatre-vingt-dix secondes quand elle
+          // tombait pendant une navigation — après une déconnexion, deux
+          // suites sur cinquante-huit. Seuls des tours successifs se
+          // comparent : ce qui a changé avant lui ne compte pas.
+          if (window.__kettleMutations === undefined) {
+            window.__kettleMutations = 0;
+            new MutationObserver(() => {
+              window.__kettleMutations += 1;
+            }).observe(document, {
+              subtree: true,
+              childList: true,
+              attributes: true,
+              characterData: true,
+            });
+          }
           const channel = new MessageChannel();
           channel.port1.onmessage = () => resolve(window.__kettleMutations);
           channel.port2.postMessage(null);
