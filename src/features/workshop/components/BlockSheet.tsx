@@ -13,6 +13,9 @@ interface BlockSheetProps {
   onUpdate: (updates: Partial<SessionBlock>) => void;
   onChangeFormat: (type: BlockType) => void;
   onDuplicate: () => void;
+  /** Un cran plus haut, un cran plus bas : absents au bout de la séance. */
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   onRemove: () => void;
   onClose: () => void;
 }
@@ -39,6 +42,8 @@ export const BlockSheet = ({
   onUpdate,
   onChangeFormat,
   onDuplicate,
+  onMoveUp,
+  onMoveDown,
   onRemove,
   onClose,
 }: BlockSheetProps) => {
@@ -97,6 +102,35 @@ export const BlockSheet = ({
                 multiline
               />
             </Field>
+            {/* Sur téléphone, l'appui long déplace déjà : ces deux-là sont
+                pour qui ne glisse pas. La feuille reste ouverte, sur le
+                bloc qu'on vient de déplacer. */}
+            {(onMoveUp || onMoveDown) && (
+              <HStack gap="10px">
+                {onMoveUp && (
+                  <ActionButton
+                    tone="ghost"
+                    size="md"
+                    flex={1}
+                    aria-label={`Monter le bloc ${label}`}
+                    onClick={onMoveUp}
+                  >
+                    Monter
+                  </ActionButton>
+                )}
+                {onMoveDown && (
+                  <ActionButton
+                    tone="ghost"
+                    size="md"
+                    flex={1}
+                    aria-label={`Descendre le bloc ${label}`}
+                    onClick={onMoveDown}
+                  >
+                    Descendre
+                  </ActionButton>
+                )}
+              </HStack>
+            )}
             <HStack gap="10px">
               <ActionButton
                 tone="ghost"

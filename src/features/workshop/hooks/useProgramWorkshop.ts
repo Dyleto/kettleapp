@@ -7,6 +7,7 @@ import {
 import { getBlockLabel } from '@/domain/session/blocks';
 import { formatName } from '@/domain/session/dose';
 import { withFormat } from '@/domain/session/format';
+import { moveBy } from '@/domain/session/order';
 import { undoable } from '@/shared/components/undoable';
 import type {
   BlockExercise,
@@ -152,6 +153,26 @@ export const useProgramWorkshop = ({
   };
 
   /**
+   * « Monter », « Descendre » : une séance d'un cran, depuis son menu — la
+   * voie de qui ne glisse pas.
+   *
+   * L'adresse dit un rang (`/s/2`) : sans rien faire, la page aurait montré
+   * la séance qui prend la place de celle qu'on lisait. Celle qu'on lisait
+   * reste ouverte, à son nouveau rang.
+   */
+  const moveSession = (sessionId: string, delta: -1 | 1) => {
+    const next = moveBy(
+      program?.sessions.map((s) => s._id) ?? [],
+      sessionId,
+      delta
+    );
+    if (!next) return;
+    actions.reorderSessions(next);
+    const open = activeSession ? next.indexOf(activeSession._id) : -1;
+    if (open >= 0 && open !== currentIndex) goToSession(open + 1);
+  };
+
+  /**
    * Supprimer un bloc, avec de quoi le remettre.
    *
    * Il avait une confirmation, et elle part avec ce filet : garder les deux
@@ -279,6 +300,7 @@ export const useProgramWorkshop = ({
     addSession,
     removeSession,
     duplicateSession,
+    moveSession,
     /** Ouvre le nom d'une séance à l'écriture : « Renommer », depuis le menu
      * d'une séance du rail qui n'est pas celle qu'on lit. */
     renameSession: (sessionId: string) => setRenamingId(sessionId),

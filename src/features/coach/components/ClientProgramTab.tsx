@@ -45,6 +45,9 @@ import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
 import { SessionHeader } from './SessionHeader';
 import type { SessionMenuAction } from './SessionMenu';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
+import { moveBy } from '@/domain/session/order';
+import { blockTitle } from '@/domain/session/measure';
+import { dragSpeech } from './dragSpeech';
 
 interface Props {
   session: Session;
@@ -271,6 +274,19 @@ export const ClientProgramTab = ({
     })
   );
 
+  const blockIds = session.blocks.map((b) => b._id);
+  // « Bloc 2 — Échauffement » : le rang, que la liste ne dit nulle part
+  // ailleurs à l'oreille, puis le nom ou le format.
+  const speech = dragSpeech('block', blockIds, (id) => {
+    const index = blockIds.indexOf(id);
+    const block = session.blocks[index];
+    return block ? `Bloc ${index + 1} — ${blockTitle(block)}` : 'Le bloc';
+  });
+  const moveBlock = (blockId: string, delta: -1 | 1) => {
+    const next = moveBy(blockIds, blockId, delta);
+    if (next) onReorderBlocks(next);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -348,13 +364,14 @@ export const ClientProgramTab = ({
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
+          accessibility={speech}
         >
           <SortableContext
-            items={session.blocks.map((b) => b._id)}
+            items={blockIds}
             strategy={verticalListSortingStrategy}
           >
             <VStack align="stretch" gap={5}>
-              {session.blocks.map((block) => (
+              {session.blocks.map((block, index) => (
                 <SortableBlock key={block._id} id={block._id}>
                   {(dragHandleProps) => (
                     // Le bloc qu'on touche — un clic, un focus, où que ce
@@ -372,6 +389,14 @@ export const ClientProgramTab = ({
                         }
                         onRemove={() => onRemoveBlock(block._id)}
                         onDuplicate={() => onDuplicateBlock(block._id)}
+                        onMoveUp={
+                          index > 0 ? () => moveBlock(block._id, -1) : undefined
+                        }
+                        onMoveDown={
+                          index < session.blocks.length - 1
+                            ? () => moveBlock(block._id, 1)
+                            : undefined
+                        }
                         onChangeFormat={(type) =>
                           onChangeBlockFormat(block._id, type)
                         }

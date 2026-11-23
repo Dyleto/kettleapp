@@ -1,4 +1,6 @@
 import {
+  LuArrowDown,
+  LuArrowUp,
   LuCopy,
   LuLayoutGrid,
   LuPencil,
@@ -16,6 +18,10 @@ interface Params {
    * modèle. */
   onCopy?: (sessionId: string) => void;
   onSaveAsTemplate?: (sessionId: string) => void;
+  /** Les séances dans leur ordre, et le cran qui en déplace une : « Monter »
+   * et « Descendre », absents au bout du programme. */
+  sessions?: readonly Pick<Session, '_id'>[];
+  onMove?: (sessionId: string, delta: -1 | 1) => void;
 }
 
 /**
@@ -34,13 +40,17 @@ export const useSessionMenu = ({
   onRemove,
   onCopy,
   onSaveAsTemplate,
+  sessions = [],
+  onMove,
 }: Params) => {
   const actionsFor = (
     session: Session,
     { rename = true }: { rename?: boolean } = {}
   ): SessionMenuAction[] => {
     // Les entrées absentes — renommer depuis l'en-tête qui le fait déjà,
-    // copier et enregistrer dans un modèle — valent `false` et partent.
+    // copier et enregistrer dans un modèle, monter la première — valent
+    // `false` et partent.
+    const index = sessions.findIndex((s) => s._id === session._id);
     const all: (SessionMenuAction | false | undefined)[] = [
       rename && {
         value: 'rename',
@@ -48,6 +58,23 @@ export const useSessionMenu = ({
         icon: <LuPencil size={14} />,
         onSelect: () => onRename(session._id),
       },
+      // Déplacer sans glisser : au clavier, c'est la seule voie, et la
+      // consigne lue sur une séance du rail le dit.
+      onMove &&
+        index > 0 && {
+          value: 'up',
+          label: 'Monter',
+          icon: <LuArrowUp size={14} />,
+          onSelect: () => onMove(session._id, -1),
+        },
+      onMove &&
+        index >= 0 &&
+        index < sessions.length - 1 && {
+          value: 'down',
+          label: 'Descendre',
+          icon: <LuArrowDown size={14} />,
+          onSelect: () => onMove(session._id, 1),
+        },
       {
         value: 'duplicate',
         label: 'Dupliquer',

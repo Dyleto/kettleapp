@@ -29,6 +29,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { sessionName, sessionRank } from '@/domain/session/name';
 import { EffortDots } from './EffortDots';
+import { dragSpeech } from './dragSpeech';
 import { SessionContextMenu, type SessionMenuAction } from './SessionMenu';
 
 interface SessionRailProps {
@@ -114,6 +115,11 @@ const RailRow = ({
       }}
       {...attributes}
       {...listeners}
+      // Un bouton, qui ouvre sa séance : la bibliothèque l'annonçait
+      // « sortable », en anglais, et « désactivé » quand le programme ne se
+      // réordonne pas — alors qu'il s'ouvre toujours.
+      aria-roledescription={undefined}
+      aria-disabled={undefined}
       as="button"
       onClick={onSelect}
       // Le rang d'abord, pour un lecteur d'écran comme pour le banc :
@@ -213,6 +219,11 @@ const BandCard = ({
       }}
       {...attributes}
       {...listeners}
+      // Un bouton, qui ouvre sa séance : la bibliothèque l'annonçait
+      // « sortable », en anglais, et « désactivé » quand le programme ne se
+      // réordonne pas — alors qu'il s'ouvre toujours.
+      aria-roledescription={undefined}
+      aria-disabled={undefined}
       as="button"
       onClick={onSelect}
       // Le même nom que la ligne du rail : un lecteur d'écran entend la
@@ -296,6 +307,19 @@ export const SessionRail = ({
     })
   );
 
+  // Le même nom que la ligne et la carte : « Séance 3 — Full body A ».
+  const speech = dragSpeech(
+    'session',
+    sessions.map((s) => s._id),
+    (id) => {
+      const session = sessions.find((s) => s._id === id);
+      if (!session) return 'La séance';
+      const rank = sessionRank(session.order);
+      const name = sessionName(session);
+      return name === rank ? rank : `${rank} — ${name}`;
+    }
+  );
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!onReorder || !over || active.id === over.id) return;
@@ -312,6 +336,7 @@ export const SessionRail = ({
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
+          accessibility={speech}
         >
           <SortableContext
             items={sessions.map((s) => s._id)}
@@ -377,6 +402,7 @@ export const SessionRail = ({
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
+        accessibility={speech}
         // La bande défile d'elle-même quand le doigt approche d'un bord :
         // par défaut, dans le dernier cinquième — 63 px sur 318, là même où
         // se pose le doigt pour échanger une carte avec sa voisine. La

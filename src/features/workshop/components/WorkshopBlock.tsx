@@ -33,6 +33,9 @@ interface WorkshopBlockProps {
   onRemove: () => void;
   /** Place une copie du bloc juste sous lui. */
   onDuplicate: () => void;
+  /** Un cran plus haut, un cran plus bas : absents au bout de la séance. */
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   onChangeFormat: (type: BlockType) => void;
   onAddExercise: (exercise: Exercise) => void;
   onRemoveExercise: (index: number) => void;
@@ -111,6 +114,8 @@ export const WorkshopBlock = ({
   onUpdate,
   onRemove,
   onDuplicate,
+  onMoveUp,
+  onMoveDown,
   onChangeFormat,
   onAddExercise,
   onRemoveExercise,
@@ -246,6 +251,11 @@ export const WorkshopBlock = ({
       touchAction="none"
       ml="-6px"
       {...dragHandleProps}
+      // Hors de la tabulation : au clavier, elle ne fait rien — c'est le
+      // menu qui déplace. Un lecteur d'écran la trouve encore, et y lit la
+      // consigne qui l'y renvoie.
+      tabIndex={-1}
+      aria-roledescription={undefined}
     >
       <LuGripVertical size={14} />
     </IconButton>
@@ -291,6 +301,18 @@ export const WorkshopBlock = ({
             <Menu.Item value="format" onClick={() => setPickingFormat(true)}>
               Changer de format
             </Menu.Item>
+            {/* Déplacer sans glisser : le clavier n'a pas d'autre voie, et
+                la poignée le dit à qui la trouve. */}
+            {onMoveUp && (
+              <Menu.Item value="up" onClick={onMoveUp}>
+                Monter
+              </Menu.Item>
+            )}
+            {onMoveDown && (
+              <Menu.Item value="down" onClick={onMoveDown}>
+                Descendre
+              </Menu.Item>
+            )}
             <Menu.Item value="duplicate" onClick={onDuplicate}>
               Dupliquer le bloc
             </Menu.Item>
@@ -406,6 +428,8 @@ export const WorkshopBlock = ({
           onUpdate={onUpdate}
           onChangeFormat={onChangeFormat}
           onDuplicate={onDuplicate}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
           onRemove={onRemove}
           onClose={() => setSheetOpen(false)}
         />

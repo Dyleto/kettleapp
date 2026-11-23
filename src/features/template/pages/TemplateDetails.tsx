@@ -164,6 +164,7 @@ const TemplateDetails = () => {
     addSession,
     removeSession,
     duplicateSession,
+    moveSession,
     renameSession,
     saveState,
     savedAt,
@@ -186,6 +187,8 @@ const TemplateDetails = () => {
     },
     onDuplicate: duplicateSession,
     onRemove: removeSession,
+    sessions: templateSessions,
+    onMove: moveSession,
   });
 
   if (isLoading) {

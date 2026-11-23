@@ -76,8 +76,8 @@ export default {
       edits: [
         {
           file: RAIL,
-          from: "        onDragEnd={handleDragEnd}\n        // La bande défile d'elle-même",
-          to: "        onDragEnd={() => undefined}\n        // La bande défile d'elle-même",
+          from: "        onDragEnd={handleDragEnd}\n        accessibility={speech}\n        // La bande défile d'elle-même",
+          to: "        onDragEnd={() => undefined}\n        accessibility={speech}\n        // La bande défile d'elle-même",
         },
       ],
       falls: [

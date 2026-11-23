@@ -116,6 +116,7 @@ const ClientDetails = () => {
     addSession,
     removeSession,
     duplicateSession,
+    moveSession,
     renameSession,
     saveState,
     savedAt,
@@ -182,6 +183,8 @@ const ClientDetails = () => {
     },
     onDuplicate: duplicateSession,
     onRemove: removeSession,
+    sessions: sessions,
+    onMove: moveSession,
   });
 
   if (isLoading) {

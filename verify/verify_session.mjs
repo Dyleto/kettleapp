@@ -178,7 +178,7 @@ const open = async (n) => {
   ok(
     'le clic droit sur une séance ouvre son menu entier',
     entries.join(' | ') ===
-      'Renommer | Dupliquer | Copier vers un client… | Enregistrer comme modèle | Supprimer la séance 3',
+      'Renommer | Monter | Descendre | Dupliquer | Copier vers un client… | Enregistrer comme modèle | Supprimer la séance 3',
     entries.join(' | ')
   );
 
@@ -263,7 +263,7 @@ const open = async (n) => {
   ok(
     'le « ⋯ » de la séance porte tout le reste',
     entries.join(' | ') ===
-      'Renommer | Ajouter un mot d’avant séance | Dupliquer | Copier vers un client… | Enregistrer comme modèle | Supprimer la séance 1',
+      'Renommer | Ajouter un mot d’avant séance | Descendre | Dupliquer | Copier vers un client… | Enregistrer comme modèle | Supprimer la séance 1',
     entries.join(' | ')
   );
 

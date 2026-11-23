@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 966 tests unitaires, 66 suites de banc et 1 105
-assertions, 8 min 8 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 975 tests unitaires, 67 suites de banc et 1 116
+assertions, 8 min 19 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -816,12 +816,22 @@ banc actuel, inchangé, qui le prouve.
       repartent. Au milieu de la page le geste fait défiler, de côté il
       reste au glisser d'« À lire », dans une feuille il ne tire pas
       l'écran derrière.
-- [ ] **G7** Déplacer sans glisser, et le dire en français. Les trois
-      `DndContext` (rail, bande, blocs) annoncent en anglais aux lecteurs
-      d'écran, et leur consigne promet Espace et les flèches à un clavier
-      qu'aucun capteur n'écoute — relevé en E7b. Des annonces et une
-      consigne françaises, vraies, et « Monter / Descendre » dans le menu
-      d'une séance et d'un bloc.
+- [x] **G7** Déplacer sans glisser, et le dire en français. Les trois
+      `DndContext` (rail, bande, blocs) annonçaient en anglais aux lecteurs
+      d'écran, et leur consigne promettait Espace et les flèches à un
+      clavier qu'aucun capteur n'écoutait — relevé en E7b. Un capteur
+      clavier aurait tenu la promesse, mais pris Entrée et Espace à une
+      ligne du rail, qui est d'abord un bouton : elle ouvre sa séance. La
+      voie du clavier est donc le menu : « Monter », « Descendre » dans
+      celui d'une séance (l'en-tête, le clic droit sur le rail) et d'un
+      bloc (son « ⋯ », sa feuille sur téléphone), absents au bout de la
+      liste. La séance qu'on lisait reste ouverte à son nouveau rang :
+      l'adresse dit un rang, et la page aurait montré celle qui prenait sa
+      place. La consigne le dit, en français ; les annonces disent la
+      position, « désormais en position 2 sur 6 », sans rien accorder. Une
+      ligne du rail se dit bouton, et non « sortable » ni « désactivée »
+      quand le programme ne se réordonne pas ; la poignée d'un bloc sort de
+      la tabulation, où elle ne faisait rien.
 
 ### H. Avant `main`
 
