@@ -2,8 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
 
 /**
- * Ce qui ferme une feuille basse de l'atelier, en plus de toucher le fond :
- * le bouton retour du téléphone, et Échap.
+ * Ce qui ferme une feuille basse, en plus de toucher le fond : le bouton
+ * retour du téléphone, et Échap.
+ *
+ * Il vivait dans l'atelier, qui l'avait eu en premier ; le menu du compte,
+ * dans `shared`, en a besoin aussi, et `shared` n'importe aucune
+ * fonctionnalité. L'atelier le prête toujours, sous le même nom.
  *
  * La feuille du kit ne connaît ni l'un ni l'autre : elle sert aussi des
  * questions qui doivent recevoir une réponse. Les feuilles de réglage, elles,

@@ -78,8 +78,17 @@ const browser = await launch();
   await settle(p);
   // L'horloge figée : l'envoi programmé à 800 ms ne part jamais de
   // lui-même. Seul « Maintenant » peut le faire partir.
-  const now = await p.evaluate(() => Date.now());
-  await p.clock.pauseAt(now + 50);
+  // Cinquante millisecondes d'avance, et on recommence si la page les a
+  // déjà dépassées : sous la charge, `pauseAt` refusait de revenir en
+  // arrière.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const now = await p.evaluate(() => Date.now());
+    const paused = await p.clock
+      .pauseAt(now + 50)
+      .then(() => true)
+      .catch(() => false);
+    if (paused) break;
+  }
   await p
     .getByRole('button', { name: 'Nom de la séance 1' })
     .click({ timeout: 2000 })

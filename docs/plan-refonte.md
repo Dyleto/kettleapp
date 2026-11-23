@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 940 tests unitaires, 63 suites de banc et 1 067
-assertions, 7 min 53 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 948 tests unitaires, 64 suites de banc et 1 074
+assertions, 7 min 35 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -759,7 +759,7 @@ banc actuel, inchangé, qui le prouve.
       huit pour « Annuler ». Le dernier message d'enregistrement
       automatique, « Programme sauvegardé », vivait dans une branche que
       plus aucun écran n'empruntait : partie, avec son option.
-- [ ] **G4** Menu du compte, bandeau de nouvelle version, au kit. En deux
+- [x] **G4** Menu du compte, bandeau de nouvelle version, au kit. En deux
       temps.
   - [x] **G4a** Le bandeau de nouvelle version prend la pièce du kit
         (`Banner`, à l'ambre) et la phrase de la maquette : « Nouvelle
@@ -774,9 +774,14 @@ banc actuel, inchangé, qui le prouve.
         bandeau par-dessus l'effort. En développement,
         `window.__kettleNewVersion()` simule une version : sans service
         worker, le banc n'avait rien à éprouver.
-  - [ ] **G4b** Le menu du compte : une feuille sur téléphone, un menu
-        au-dessus de l'avatar sur grand écran ; « Passer à l'espace coach »
-        pour un compte à deux rôles seulement.
+  - [x] **G4b** Le menu du compte : une feuille du kit sur téléphone, sous
+        le pouce, avec l'identité ; un menu qui monte de l'avatar sur grand
+        écran. Les mêmes entrées : « Mon compte », un passage vers chaque
+        autre espace du compte — « Passer à l'espace coach », avec ce qui
+        l'y attend, « 1 à lire » —, « Se déconnecter ». Il disait « Vue
+        Client », « Vue Coach », « Vue Admin », l'espace courant compris,
+        et « Déconnexion ». `useSheetDismiss` passe de l'atelier à `shared`,
+        où le menu le lit.
 - [ ] **G5** Mouvement : la valeur qui saute, l'entrée d'une scène, la coche
       qui se dessine, l'anneau de l'accueil quand il a changé.
 - [ ] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.

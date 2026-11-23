@@ -1,5 +1,6 @@
 import { Box, HStack, Text } from '@chakra-ui/react';
 import { Header } from './Header';
+import type { Space } from '@/shared/config/routes';
 
 /**
  * La barre du haut, en dessous de 768 px.
@@ -9,7 +10,12 @@ import { Header } from './Header';
  * la structure du rail de bureau — le nom à gauche, le compte à droite — et
  * l'avatar cesse de flotter.
  */
-export const MobileTopBar = () => (
+export const MobileTopBar = ({
+  waiting,
+}: {
+  /** Ce qui attend dans un autre espace, transmis au menu du compte. */
+  waiting?: Partial<Record<Space, string>>;
+}) => (
   <Box
     as="header"
     display={{ base: 'block', md: 'none' }}
@@ -20,7 +26,7 @@ export const MobileTopBar = () => (
       <Text fontSize="sm" fontWeight="900" letterSpacing="wider">
         KETTLE
       </Text>
-      <Header />
+      <Header waiting={waiting} />
     </HStack>
   </Box>
 );

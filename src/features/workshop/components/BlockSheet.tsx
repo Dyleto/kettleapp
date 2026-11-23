@@ -3,7 +3,7 @@ import { Box, chakra, HStack, Portal, Text } from '@chakra-ui/react';
 import type { BlockType, SessionBlock } from '@/shared/types';
 import { formatName } from '@/domain/session/dose';
 import { ActionButton, Sheet } from '@/kit';
-import { useSheetDismiss } from '@/features/workshop/hooks/useSheetDismiss';
+import { useSheetDismiss } from '@/shared/hooks/useSheetDismiss';
 import { BlockSettings } from './BlockSettings';
 import { FormatPalette } from './FormatPalette';
 import { InlineText } from './InlineValue';

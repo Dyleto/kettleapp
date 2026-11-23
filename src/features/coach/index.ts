@@ -11,3 +11,6 @@ export { SessionMenu } from './components/SessionMenu';
 // pour un client » d'un modèle : le même champ, la même règle.
 export { useClients } from './hooks/useClients';
 export { ClientSearch } from './clients/ClientSearch';
+// Le compteur « À lire », pour le menu du compte côté client : un compte à
+// deux rôles y voit ce qui l'attend de l'autre côté.
+export { useInbox } from './hooks/useInbox';

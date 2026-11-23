@@ -36,8 +36,18 @@ const open = (p) =>
  * trois — un sabotage l'a dit.
  */
 const freeze = async (p) => {
-  const now = await p.evaluate(() => Date.now());
-  await p.clock.pauseAt(now + 50);
+  // Cinquante millisecondes d'avance, et on recommence si la page les a
+  // déjà dépassées : sous la charge du banc complet, l'heure lue était
+  // passée quand la pause arrivait, et `pauseAt` refusait de revenir en
+  // arrière. Une marge plus large ferait dériver les durées mesurées.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const now = await p.evaluate(() => Date.now());
+    const paused = await p.clock
+      .pauseAt(now + 50)
+      .then(() => true)
+      .catch(() => false);
+    if (paused) return;
+  }
 };
 const titles = (p) =>
   p

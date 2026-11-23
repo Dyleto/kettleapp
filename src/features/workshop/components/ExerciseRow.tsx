@@ -7,7 +7,7 @@ import { coachDose } from '@/domain/session/dose';
 import type { ExerciseTrace } from '@/domain/history/exerciseTrace';
 import { Sheet } from '@/kit';
 import { useOutsideDismiss } from '@/shared/hooks/useOutsideDismiss';
-import { useSheetDismiss } from '@/features/workshop/hooks/useSheetDismiss';
+import { useSheetDismiss } from '@/shared/hooks/useSheetDismiss';
 import { ExerciseSettings, type ExerciseUpdate } from './ExerciseSettings';
 
 interface ExerciseRowProps {

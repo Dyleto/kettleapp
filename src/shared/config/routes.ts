@@ -103,6 +103,47 @@ export const getAccountRoute = (
   return null;
 };
 
+/** Un espace de l'application : celui où l'on est, ou un autre. */
+export type Space = 'client' | 'coach' | 'admin';
+
+/** L'espace d'une adresse ; aucun hors des trois. */
+export const spaceOf = (pathname: string): Space | null => {
+  if (pathname.startsWith('/coach')) return 'coach';
+  if (pathname.startsWith('/client')) return 'client';
+  if (pathname.startsWith('/admin')) return 'admin';
+  return null;
+};
+
+const SPACE_ENTRIES: { space: Space; label: string; to: string }[] = [
+  { space: 'client', label: 'Passer à l’espace client', to: '/client' },
+  { space: 'coach', label: 'Passer à l’espace coach', to: '/coach' },
+  { space: 'admin', label: 'Passer à l’administration', to: '/admin' },
+];
+
+/**
+ * Les espaces où le menu du compte propose de passer : ceux du compte, sauf
+ * celui où l'on est.
+ *
+ * Le menu disait « Vue Client », « Vue Coach », « Vue Admin », et les
+ * proposait tous, l'espace courant compris : toucher celui où l'on était
+ * rechargeait l'écran sans rien changer. Un compte à un seul rôle n'a nulle
+ * part où passer — la liste est vide, et le menu n'en dit rien.
+ */
+export const otherSpaces = (
+  user: Pick<User, 'isClient' | 'isCoach' | 'isAdmin'> | null,
+  pathname: string
+): { space: Space; label: string; to: string }[] => {
+  const here = spaceOf(pathname);
+  const held: Record<Space, boolean> = {
+    client: !!user?.isClient,
+    coach: !!user?.isCoach,
+    admin: !!user?.isAdmin,
+  };
+  return SPACE_ENTRIES.filter(
+    (entry) => held[entry.space] && entry.space !== here
+  );
+};
+
 /** L'écran d'un compte qui n'a encore aucun rôle : il n'a qu'une adresse,
  * mais elle se nomme comme les autres. */
 export const NO_ROLE_ROUTES = {

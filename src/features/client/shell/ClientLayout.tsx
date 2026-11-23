@@ -6,6 +6,7 @@ import { MobileTopBar } from '@/shared/components/MobileTopBar';
 import { OfflineBanner } from '@/shared/components/OfflineBanner';
 import { HealthConsentGate } from '@/features/account';
 import { useAuth } from '@/shared/contexts/useAuth';
+import { useInbox } from '@/features/coach';
 import { useProgramCoach } from '@/features/client/common/useProgramCoach';
 import { useWelcome } from '@/features/client/shell/useWelcome';
 import { Welcome } from '@/features/client/shell/Welcome';
@@ -20,6 +21,11 @@ import { Box, Flex } from '@chakra-ui/react';
  */
 const ClientLayout = () => {
   const { user } = useAuth();
+  // Un compte à deux rôles voit, dans le menu du compte, ce qui l'attend
+  // côté coach : « 6 à lire ». La lecture n'a lieu que pour un coach, et
+  // c'est la même entrée en cache que l'onglet « À lire ».
+  const unread = useInbox('unread', !!user?.isCoach).data?.total ?? 0;
+  const waiting = unread > 0 ? { coach: `${unread} à lire` } : undefined;
   const welcome = useWelcome();
   const { voice } = useProgramCoach(
     !!user?.needsHealthConsent || welcome.state !== 'skip'
@@ -45,9 +51,12 @@ const ClientLayout = () => {
     <Flex minH="100vh">
       {/* Le même rail que le coach : un compte qui porte les deux rôles
           change d'espace sans changer de repères. */}
-      <NavRail items={CLIENT_NAV_ITEMS} footer={<Header variant="rail" />} />
+      <NavRail
+        items={CLIENT_NAV_ITEMS}
+        footer={<Header variant="rail" waiting={waiting} />}
+      />
       <Box flex={1} minW={0} pb={{ base: '76px', md: 0 }}>
-        <MobileTopBar />
+        <MobileTopBar waiting={waiting} />
         <Box as="main" id="contenu" minW={0}>
           <OfflineBanner line="Tu peux faire ta séance : elle s’enverra au retour du réseau." />
           <Outlet />
