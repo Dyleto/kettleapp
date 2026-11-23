@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 22 novembre : 913 tests unitaires, 54 suites de banc et 999
-assertions, 5 min 14 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 23 novembre : 916 tests unitaires, 55 suites de banc et 1 008
+assertions, 5 min 24 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -659,7 +659,21 @@ banc actuel, inchangé, qui le prouve.
         devant son accueil. Le rejeu a trouvé une mesure qui attendait une
         carte absente au lieu de rendre rien.
 - [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
-      déjà client.
+      déjà client. En deux temps.
+  - [x] **F9a** La connexion. La mascotte, le nom du produit, et une phrase
+        à la place des trois puces ; « Continuer avec Google », puis les
+        deux chemins de qui n'a pas de compte, chacun dans sa feuille :
+        « J'ai reçu une invitation » dit d'ouvrir le lien et accepte qu'on
+        le colle — « Continuer » s'active quand le texte en a l'air
+        (`domain/invitation/link`) et mène à l'invitation de son jeton ;
+        « Je suis coach » donne l'adresse, qui se copie d'une touche, et
+        « J'ai déjà un compte coach » part chez Google. Sur grand écran,
+        deux volets : la promesse à gauche, l'action dans 480 px à droite.
+        L'écran n'avait aucune suite de banc ; il a la sienne.
+  - [ ] **F9b** L'invitation ouverte avec un compte déjà connecté :
+        « Rejoindre Julie avec ce compte ? », et « Tu es déjà avec Julie »
+        pour un client qui l'est. L'API est prête (`7279e19`) :
+        `POST /auth/join`, et `alreadyLinked` sur la vérification du lien.
 - [ ] **F10** Mon compte et Administration aux composants du kit ;
       déconnexion sur l'écran.
 
@@ -720,6 +734,10 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 - **La tuile « à relancer » dit sa règle** — « 14 jours sans séance » — et
   non « rien depuis 3 sem. », qui ne vaut que pour un client du décor
   (F4a).
+- **La promesse de la connexion finit par « Ton ressenti règle la
+  suite »**, et non « Il ajuste » : un accord sur un coach dont on ne
+  connaît pas le genre, que Kettle n'écrit plus nulle part (F8a, F9a). Un
+  choix, à confirmer.
 - **La carte d'un modèle ne dit pas sa durée** (« ~3 h 10 au total »
   dans la maquette) : la liste resterait légère si elle ne relit pas toutes
   les séances de chaque modèle, et la durée d'une séance se calcule depuis

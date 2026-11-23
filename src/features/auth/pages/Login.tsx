@@ -1,111 +1,235 @@
+import { useEffect, useState } from 'react';
 import {
   Box,
-  Container,
-  Heading,
+  chakra,
   HStack,
-  Link,
+  Portal,
   Spinner,
   Text,
+  useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { useAuth } from '@/shared/contexts/useAuth';
+import { LuCheck, LuChevronRight, LuCopy } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
+import { useAuth } from '@/shared/contexts/useAuth';
 import { LegalFooter } from '@/shared/components/LegalFooter';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
-import { useEffect, useState } from 'react';
 import GoogleLoginButton from '@/features/auth/components/GoogleLoginButton';
-import {
-  LuListChecks,
-  LuActivity,
-  LuLibrary,
-  LuChevronRight,
-} from 'react-icons/lu';
+import { useGoogleOAuth } from '@/features/auth/hooks/useGoogleOAuth';
+import { useSheetDismiss } from '@/features/workshop';
+import { ActionButton, hitArea, Mascot, Sheet } from '@/kit';
 import { LEGAL } from '@/shared/config/legal';
-
-const FEATURES = [
-  { label: 'Programmes sur mesure', icon: LuListChecks },
-  { label: 'Suivi séance par séance', icon: LuActivity },
-  { label: "Bibliothèque d'exercices partagée", icon: LuLibrary },
-];
+import { invitationTokenFrom } from '@/domain/invitation/link';
 
 /**
- * Un chemin nommé, replié.
+ * La promesse, en une phrase.
  *
- * Ni l'un ni l'autre ne mène à un bouton : dans les deux cas, ce qu'il y a à
- * faire se passe ailleurs — ouvrir le lien de son coach, ou nous écrire. Les
- * habiller en actions promettrait une seconde fois ce que la page ne peut
- * pas tenir.
+ * Elle remplace trois puces — « Programmes sur mesure », « Suivi séance par
+ * séance », « Bibliothèque d'exercices partagée » — qui décrivaient des
+ * fonctions et non ce qui se passe. La maquette finit par « Il ajuste » :
+ * un accord sur un coach dont on ne connaît pas le genre, que Kettle
+ * n'écrit plus nulle part (F8a). C'est le ressenti qui règle la suite, et
+ * c'est ce que la phrase dit.
  */
-const PathChoice = ({
-  id,
-  title,
-  open,
-  onToggle,
-  children,
-}: {
-  id: string;
-  title: string;
-  open: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}) => (
-  <Box
-    w="100%"
-    bg="bg.surface"
-    borderWidth="1px"
-    borderColor="whiteAlpha.100"
-    borderRadius="lg"
-    overflow="hidden"
+const PROMISE =
+  'Ton coach écrit ta séance. Tu la suis pas à pas. Ton ressenti règle la suite.';
+
+/** Une rangée de la carte des deux chemins : un nom et son chevron. */
+const PathRow = ({ label, onOpen }: { label: string; onOpen: () => void }) => (
+  <chakra.button
+    type="button"
+    aria-haspopup="dialog"
+    onClick={onOpen}
+    display="flex"
+    alignItems="center"
+    gap="12px"
+    w="full"
+    minH="56px"
+    px="16px"
+    textAlign="left"
+    borderTopWidth="1px"
+    borderColor="line"
+    _first={{ borderTopWidth: 0 }}
+    _hover={{ bg: 'bg.raised' }}
+    _focusVisible={{ outlineOffset: '-2px' }}
   >
-    <Box
-      as="button"
-      w="100%"
-      aria-expanded={open}
-      aria-controls={id}
-      onClick={onToggle}
-      px={3.5}
-      minH="48px"
-      display="flex"
-      alignItems="center"
-      justifyContent="space-between"
-      gap={3}
-      color="fg"
-      _hover={{ bg: 'whiteAlpha.50' }}
-      _focusVisible={{
-        outlineOffset: '-2px',
-      }}
-    >
-      <Text fontSize="sm" fontWeight="medium" textAlign="left">
-        {title}
-      </Text>
-      <Box
-        color="fg.muted"
-        display="flex"
-        flexShrink={0}
-        transform={open ? 'rotate(90deg)' : 'none'}
-        transition="transform 0.15s"
-      >
-        <LuChevronRight size={15} />
-      </Box>
+    <Text as="span" flex={1} fontWeight="600">
+      {label}
+    </Text>
+    <Box color="fg.muted" aria-hidden>
+      <LuChevronRight size={18} />
     </Box>
-    {open && (
-      <Box id={id} px={3.5} pb={3.5} pt={0.5}>
-        {children}
-      </Box>
-    )}
-  </Box>
+  </chakra.button>
 );
 
-const Login: React.FC = () => {
+/**
+ * « J'ai reçu une invitation » : quoi faire, et de quoi coller le lien.
+ *
+ * Se connecter ici sans lien crée un compte rattaché à personne : le client
+ * n'y voit aucune séance, et c'était la boucle de l'entrée A1. La feuille
+ * renvoie donc au lien du coach — l'ouvrir suffit — et accepte qu'on le
+ * colle, pour qui ne le retrouve que sous forme de texte. « Continuer »
+ * s'active quand le texte en a l'air, et mène à l'écran d'invitation, qui
+ * vérifie le jeton.
+ */
+const InviteSheet = ({ onClose }: { onClose: () => void }) => {
+  useSheetDismiss(true, onClose);
+  const navigate = useNavigate();
+  const [pasted, setPasted] = useState('');
+  const token = invitationTokenFrom(pasted);
+  const title = 'Tu as reçu un lien ?';
+  return (
+    <Portal>
+      <Sheet label={title} onDismiss={onClose}>
+        <Text as="h2" fontWeight="800" fontSize="22px">
+          {title}
+        </Text>
+        <Text color="fg.muted">
+          Ouvre-le : il te rattache à ton coach et crée ton compte en même
+          temps. Si tu l'as perdu, demande-lui de te le renvoyer.
+        </Text>
+        <chakra.input
+          type="url"
+          inputMode="url"
+          aria-label="Ton lien d'invitation"
+          placeholder="Ou colle ton lien ici"
+          value={pasted}
+          onChange={(e) => setPasted(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && token) navigate(`/join?token=${token}`);
+          }}
+          minH="50px"
+          px="16px"
+          borderRadius="17px"
+          bg="surface.card"
+          border="none"
+          outline="none"
+          boxShadow="inset 0 0 0 1.5px {colors.line}"
+          _focus={{ boxShadow: 'inset 0 0 0 2px {colors.app.primary}' }}
+          color="fg"
+          _placeholder={{ color: 'fg.muted' }}
+        />
+        {pasted.trim() && !token && (
+          <Text fontSize="sm" color="fg.muted" data-paste-hint>
+            Ce n'est pas encore un lien d'invitation : il contient
+            «&nbsp;join?token=&nbsp;».
+          </Text>
+        )}
+        <ActionButton
+          w="full"
+          disabled={!token}
+          onClick={() => token && navigate(`/join?token=${token}`)}
+        >
+          Continuer
+        </ActionButton>
+      </Sheet>
+    </Portal>
+  );
+};
+
+/**
+ * « Je suis coach » : comment obtenir un compte, et l'adresse à copier.
+ *
+ * L'espace coach ne s'ouvre pas tout seul à l'inscription. L'adresse se
+ * copie d'une touche ; une copie refusée la sélectionne et le dit, comme le
+ * lien d'invitation du coach (F5a). « J'ai déjà un compte coach » mène à la
+ * connexion Google : c'est ce qu'un coach venu par ce chemin cherchait.
+ */
+const CoachSheet = ({ onClose }: { onClose: () => void }) => {
+  useSheetDismiss(true, onClose);
+  const { loginWithGoogle } = useGoogleOAuth();
+  const [copy, setCopy] = useState<'idle' | 'copied' | 'refused'>('idle');
+  const address = LEGAL.publisher.contactEmail;
+  const title = 'Tu es coach ?';
+
+  useEffect(() => {
+    if (copy !== 'copied') return;
+    const timer = setTimeout(() => setCopy('idle'), 2000);
+    return () => clearTimeout(timer);
+  }, [copy]);
+
+  const copyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopy('copied');
+    } catch {
+      const field = document.getElementById('coach-address');
+      if (field) window.getSelection()?.selectAllChildren(field);
+      setCopy('refused');
+    }
+  };
+
+  return (
+    <Portal>
+      <Sheet label={title} onDismiss={onClose}>
+        <Text as="h2" fontWeight="800" fontSize="22px">
+          {title}
+        </Text>
+        <Text color="fg.muted">
+          Les comptes de coach sont ouverts à la main, le temps que Kettle
+          grandisse. Écris-nous, on te répond vite.
+        </Text>
+        <HStack
+          minH="50px"
+          pl="16px"
+          pr="6px"
+          borderRadius="17px"
+          bg="surface.card"
+          boxShadow="inset 0 0 0 1.5px {colors.line}"
+        >
+          <Text id="coach-address" flex={1} minW={0} truncate>
+            {address}
+          </Text>
+          <chakra.button
+            type="button"
+            aria-label="Copier l'adresse"
+            onClick={() => void copyAddress()}
+            color={copy === 'copied' ? 'app.primary' : 'fg.muted'}
+            p="8px"
+            css={hitArea(44)}
+          >
+            {copy === 'copied' ? <LuCheck size={18} /> : <LuCopy size={18} />}
+          </chakra.button>
+        </HStack>
+        {copy !== 'idle' && (
+          <Text role="status" fontSize="sm" color="fg.muted">
+            {copy === 'copied'
+              ? 'Adresse copiée.'
+              : 'La copie n’est pas permise ici : l’adresse est sélectionnée, copie-la à la main.'}
+          </Text>
+        )}
+        <ActionButton
+          tone="ghost"
+          size="md"
+          w="full"
+          onClick={() => loginWithGoogle()}
+        >
+          J'ai déjà un compte coach
+        </ActionButton>
+      </Sheet>
+    </Portal>
+  );
+};
+
+/**
+ * L'entrée dans Kettle quand on n'a pas de lien. Un client arrive presque
+ * toujours par celui de son coach ; cet écran sert à ceux qui reviennent.
+ *
+ * Sur téléphone, la promesse au milieu et l'action sous le pouce ; sur
+ * grand écran, deux volets — la promesse à gauche, l'action à droite. Les
+ * deux chemins de qui n'a pas encore de compte, « J'ai reçu une
+ * invitation » et « Je suis coach », s'ouvrent dans une feuille : le
+ * bouton Google ne sert vraiment qu'à qui en a déjà un.
+ */
+const Login = () => {
   useDocumentTitle('Connexion');
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
-  const [path, setPath] = useState<'client' | 'coach' | null>(null);
+  const wide = useBreakpointValue({ base: false, lg: true }) ?? false;
+  const [path, setPath] = useState<'invite' | 'coach' | null>(null);
 
   useEffect(() => {
-    if (!isLoading && user) {
-      navigate('/');
-    }
+    if (!isLoading && user) navigate('/');
   }, [isLoading, user, navigate]);
 
   if (isLoading) {
@@ -114,118 +238,109 @@ const Login: React.FC = () => {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        minH="100vh"
+        minH="100dvh"
       >
         <Spinner size="xl" color="app.primary" />
       </Box>
     );
   }
 
-  return (
-    <Box
-      as="main"
-      id="contenu"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      minH="100vh"
+  const promise = (
+    <VStack
+      gap={{ base: '18px', lg: '20px' }}
+      align={{ base: 'center', lg: 'flex-start' }}
+      textAlign={{ base: 'center', lg: 'left' }}
+      data-login-promise
     >
-      <Container centerContent py={12}>
-        <VStack gap={7} w="100%" maxW="380px">
-          <VStack gap={1} textAlign="center">
-            {/* Pas de `h1` sur cet écran : un lecteur d'écran n'avait rien
-                pour l'annoncer, ni pour s'y repérer. Le nom du produit le
-                titre — et c'est bien ce que la page dit. */}
-            <Heading
-              as="h1"
-              fontSize="42px"
-              fontWeight="800"
-              letterSpacing="9px"
-              style={{
-                background:
-                  'linear-gradient(180deg, #fff, rgba(255,255,255,0.72))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              KETTLE
-            </Heading>
-            <Text fontSize="13.5px" color="fg.muted" mt={1}>
-              Plateforme de coaching sportif personnalisé
-            </Text>
+      <Mascot mood="hello" size={wide ? 140 : 110} />
+      {/* Le nom du produit titre l'écran : sans `h1`, un lecteur d'écran
+          n'avait rien pour l'annoncer. */}
+      <Text
+        as="h1"
+        fontWeight="800"
+        fontSize={{ base: '46px', lg: '72px' }}
+        letterSpacing="0.02em"
+        lineHeight="1"
+      >
+        KETTLE
+      </Text>
+      <Text
+        color="fg.muted"
+        fontSize={{ base: '18px', lg: '24px' }}
+        maxW={{ base: '300px', lg: '440px' }}
+      >
+        {PROMISE}
+      </Text>
+    </VStack>
+  );
+
+  const action = (
+    <VStack align="stretch" gap="12px" w="full" data-login-action>
+      {wide && (
+        <Text as="h2" fontWeight="800" fontSize="24px" mb="4px">
+          Connexion
+        </Text>
+      )}
+      <GoogleLoginButton text="Continuer avec Google" />
+      <Box bg="surface.card" borderRadius="card" overflow="hidden">
+        <PathRow
+          label="J'ai reçu une invitation"
+          onOpen={() => setPath('invite')}
+        />
+        <PathRow label="Je suis coach" onOpen={() => setPath('coach')} />
+      </Box>
+      <Box pt="4px">
+        <LegalFooter />
+      </Box>
+    </VStack>
+  );
+
+  return (
+    <Box as="main" id="contenu" minH="100dvh" bg="bg.canvas">
+      {wide ? (
+        <HStack align="stretch" gap={0} minH="100dvh">
+          <VStack
+            flex={1}
+            justify="center"
+            align="flex-start"
+            p="80px"
+            bgGradient="to-br"
+            gradientFrom="#2B2415"
+            gradientVia="bg.canvas"
+            gradientTo="bg.canvas"
+          >
+            {promise}
           </VStack>
-
-          {/* Ce que fait le produit — une liste, pas trois boutons. Ces
-              trois lignes portaient un fond, une bordure et le même rayon que
-              le bouton Google juste en dessous, à la même largeur : trois
-              fausses cibles au-dessus de la seule vraie, donc trois occasions
-              de croire que l'application ne répond pas. Sans fond ni cadre,
-              elles se lisent pour ce qu'elles sont. L'icône garde l'accent :
-              c'est une puce, elle ne promet rien. */}
-          <VStack gap={2} w="100%" as="ul" listStyleType="none">
-            {FEATURES.map(({ label, icon: FeatureIcon }) => (
-              <HStack key={label} as="li" gap={3} w="100%" px={1}>
-                <Box color="app.primary" flexShrink={0} display="flex">
-                  <FeatureIcon size={16} />
-                </Box>
-                <Text fontSize="xs" color="fg.muted" textAlign="left">
-                  {label}
-                </Text>
-              </HStack>
-            ))}
+          <VStack
+            w="480px"
+            flexShrink={0}
+            justify="center"
+            p="60px"
+            bg="bg.surface"
+            borderLeftWidth="1px"
+            borderColor="line"
+          >
+            {action}
           </VStack>
-
-          <VStack gap={3} w="100%">
-            <GoogleLoginButton text="Continuer avec Google" />
-
-            {/* Deux chemins nommés, parce que le bouton ne sert vraiment
-                qu'à l'un des trois cas — quelqu'un qui a déjà un compte. Un
-                client sans invitation et un coach sans espace finissent tous
-                deux avec un compte rattaché à personne. Autant le dire
-                ici. */}
-            <Text fontSize="xs" color="fg.muted" textAlign="center" pt={1}>
-              Première fois ici&nbsp;?
-            </Text>
-
-            <PathChoice
-              id="chemin-client"
-              title="J'ai reçu une invitation"
-              open={path === 'client'}
-              onToggle={() => setPath(path === 'client' ? null : 'client')}
-            >
-              <Text fontSize="xs" color="fg.muted" lineHeight="1.7">
-                Ouvre le lien que ton coach t'a envoyé : c'est lui qui te
-                rattache à son programme. Te connecter directement ici crée un
-                compte qui n'est rattaché à personne, et tu ne verras aucune
-                séance.
-              </Text>
-            </PathChoice>
-
-            <PathChoice
-              id="chemin-coach"
-              title="Je suis coach"
-              open={path === 'coach'}
-              onToggle={() => setPath(path === 'coach' ? null : 'coach')}
-            >
-              <Text fontSize="xs" color="fg.muted" lineHeight="1.7">
-                L'espace coach ne s'ouvre pas tout seul à l'inscription.
-                Écris-nous à{' '}
-                <Link
-                  href={`mailto:${LEGAL.publisher.contactEmail}`}
-                  color="app.primary"
-                  textDecoration="underline"
-                >
-                  {LEGAL.publisher.contactEmail}
-                </Link>{' '}
-                et on l'ouvre pour ton compte.
-              </Text>
-            </PathChoice>
+        </HStack>
+      ) : (
+        <VStack
+          minH="100dvh"
+          maxW="440px"
+          mx="auto"
+          px={5}
+          pt={8}
+          pb="calc(env(safe-area-inset-bottom, 0px) + 20px)"
+          gap={6}
+        >
+          <VStack flex={1} justify="center">
+            {promise}
           </VStack>
-
-          <LegalFooter />
+          {action}
         </VStack>
-      </Container>
+      )}
+      {path === 'invite' && <InviteSheet onClose={() => setPath(null)} />}
+      {path === 'coach' && <CoachSheet onClose={() => setPath(null)} />}
     </Box>
   );
 };
