@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuPlay } from 'react-icons/lu';
+import { LuPlay, LuWifiOff } from 'react-icons/lu';
 import {
   ActionButton,
   AutoResizeTextarea,
+  Banner,
   Bubble,
   Card,
   Chip,
@@ -205,6 +206,12 @@ const KitBoard = () => {
           line="Julie prépare tes séances. Tu n’as rien à faire : elles apparaîtront ici."
         />
         <ErrorState onRetry={() => {}} line="Ton programme n’a pas bougé." />
+        <Banner
+          tone="coral"
+          icon={<LuWifiOff size={20} />}
+          title="Hors connexion"
+          line="Tu peux faire ta séance : elle s’enverra au retour du réseau."
+        />
       </Piece>
 
       <Piece name="Saisie">

@@ -10,6 +10,7 @@
 export { ActionButton, type ActionButtonProps } from './ActionButton';
 export { AutoResizeTextarea } from './AutoResizeTextarea';
 export { BackLink } from './BackLink';
+export { Banner } from './Banner';
 export { Bubble } from './Bubble';
 export { Card, HeroCard } from './Card';
 export { Chip, type ChipTone } from './Chip';

@@ -3,6 +3,7 @@ import { Box, chakra, HStack, Spinner, Text } from '@chakra-ui/react';
 import { LuCheck, LuTriangleAlert } from 'react-icons/lu';
 import type { SaveState } from '@/features/workshop/hooks/useProgramAutoSave';
 import { useClaimBottomBar } from '@/shared/hooks/useBottomBar';
+import { useOnline } from '@/shared/hooks/useOnline';
 
 interface Props {
   state: SaveState;
@@ -27,7 +28,8 @@ const CONFIRMATION_DURATION = 3000;
 const useSaveSignal = (
   state: SaveState,
   savedAt: Date | null
-): 'saving' | 'saved' | 'failed' | null => {
+): 'saving' | 'saved' | 'failed' | 'offline' | null => {
+  const online = useOnline();
   // On retient le dernier enregistrement *expiré* plutôt qu'un booléen :
   // l'état n'est alors écrit que depuis le minuteur, jamais pendant un rendu
   // ni au montage de l'effet.
@@ -39,6 +41,12 @@ const useSaveSignal = (
     return () => clearTimeout(timer);
   }, [savedAt]);
 
+  // Sans réseau, l'envoi n'échoue pas : TanStack Query le met en pause et
+  // le reprend au retour. La ligne disait « Enregistrement… » sans fin, ce
+  // qui ressemblait à une application figée. Elle dit ce qui est vrai — ce
+  // n'est pas enregistré — et ne propose pas de réessayer, puisque l'envoi
+  // repartira seul.
+  if (!online && state !== 'idle') return 'offline';
   if (state === 'error') return 'failed';
   // « En attente » et « en vol » sont un seul état pour qui regarde : les
   // distinguer ferait clignoter la ligne à chaque frappe.
@@ -67,7 +75,7 @@ export const SaveStatus = ({ state, savedAt, onRetry }: Props) => {
       fontSize="13px"
       fontWeight="600"
       color={
-        signal === 'failed'
+        signal === 'failed' || signal === 'offline'
           ? 'session.work.fg'
           : signal === 'saved'
             ? 'session.rest.fg'
@@ -75,7 +83,12 @@ export const SaveStatus = ({ state, savedAt, onRetry }: Props) => {
       }
       data-save-status={signal}
     >
-      {signal === 'failed' ? (
+      {signal === 'offline' ? (
+        <>
+          <LuTriangleAlert size={16} aria-hidden />
+          Non enregistré · envoi au retour du réseau
+        </>
+      ) : signal === 'failed' ? (
         <>
           <LuTriangleAlert size={16} aria-hidden />
           Non enregistré ·
@@ -158,7 +171,16 @@ export const ProgramSaveStatus = ({
         justify="flex-end"
         role="status"
       >
-        {failed ? (
+        {signal === 'offline' ? (
+          <>
+            <Box color="app.error" display="flex">
+              <LuTriangleAlert size={14} />
+            </Box>
+            <Text fontSize="sm" color="app.error" mr="auto">
+              Non enregistré · envoi au retour du réseau
+            </Text>
+          </>
+        ) : failed ? (
           <>
             <Box color="app.error" display="flex">
               <LuTriangleAlert size={14} />

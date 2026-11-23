@@ -258,6 +258,20 @@ export const useProgramAutoSave = ({
     [adopt, initialize]
   );
 
+  // ── Le retour du réseau ──────────────────────────────────────────────────
+  //
+  // Un envoi lancé sans réseau attend en pause et repart seul. Mais un envoi
+  // qui a échoué avant — un serveur qui a répondu 500, puis le réseau parti
+  // — restait en échec jusqu'à ce que le coach touche « Réessayer ». Au
+  // retour du réseau, on réessaie pour lui : c'est le moment où l'envoi a
+  // une chance d'aboutir.
+  useEffect(() => {
+    if (state !== 'error') return;
+    const retry = () => flush();
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, [state, flush]);
+
   // ── Le filet à la fermeture ──────────────────────────────────────────────
   const atRisk = isDirty || state === 'saving' || state === 'error';
 

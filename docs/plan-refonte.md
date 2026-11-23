@@ -33,8 +33,9 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 938 tests unitaires, 58 suites de banc et 1 039
-assertions, 6 min 3 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 23 novembre : 938 tests unitaires, 59 suites de banc et 1 045
+assertions, 7 min 20 s pour le banc complet sur une machine plus lente
+que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -718,7 +719,17 @@ banc actuel, inchangé, qui le prouve.
 
 ### G. États du système et mouvement
 
-- [ ] **G1** Hors connexion : le bandeau, l'atelier qui réessaie seul.
+- [x] **G1** Hors connexion : le bandeau, l'atelier qui réessaie seul.
+      « Hors connexion » en tête de l'espace tant que le réseau manque,
+      avec ce qui est sauf — la séance pour le client, ce qu'il écrit pour
+      le coach —, et il part au retour. Le bandeau est une pièce du kit
+      (`Banner`), que le bandeau de nouvelle version reprendra (G4).
+      L'atelier disait « Enregistrement… » sans fin : sans réseau, TanStack
+      Query met l'envoi en pause au lieu de le faire échouer. Il dit
+      « Non enregistré · envoi au retour du réseau », sans « Réessayer »
+      inutile, et l'envoi repart seul. Un envoi qui avait échoué avant la
+      coupure attendait un geste : il repart lui aussi au retour du réseau.
+      La séance guidée, calque plein écran, garde tout son écran.
 - [ ] **G2** Chargement de plus de dix secondes ; panne par zone.
 - [ ] **G3** Un seul message à la fois, jamais pour un enregistrement
       automatique ; bannière « Annuler » unique, huit secondes.

@@ -3,6 +3,7 @@ import { NavRail, TabBar } from '@/kit';
 import { CLIENT_NAV_ITEMS } from '@/features/client/shell/navItems';
 import { Header } from '@/shared/components/Header';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
+import { OfflineBanner } from '@/shared/components/OfflineBanner';
 import { HealthConsentGate } from '@/features/account';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { useProgramCoach } from '@/features/client/common/useProgramCoach';
@@ -48,6 +49,7 @@ const ClientLayout = () => {
       <Box flex={1} minW={0} pb={{ base: '76px', md: 0 }}>
         <MobileTopBar />
         <Box as="main" id="contenu" minW={0}>
+          <OfflineBanner line="Tu peux faire ta séance : elle s’enverra au retour du réseau." />
           <Outlet />
         </Box>
         <TabBar items={CLIENT_NAV_ITEMS} />

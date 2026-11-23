@@ -3,6 +3,7 @@ import { Box, Flex } from '@chakra-ui/react';
 import { NavRail, TabBar } from '@/kit';
 import { Header } from '@/shared/components/Header';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
+import { OfflineBanner } from '@/shared/components/OfflineBanner';
 import { useBottomBarClaimed } from '@/shared/hooks/useBottomBar';
 import { coachNavItems } from '@/features/coach/navItems';
 import { useInbox } from '@/features/coach/hooks/useInbox';
@@ -51,6 +52,7 @@ const CoachLayout = () => {
       <Box flex={1} minW={0} pb={{ base: bottomTaken ? 0 : '76px', md: 0 }}>
         {!pageOwnsTopBar && <MobileTopBar />}
         <Box as="main" id="contenu" minW={0}>
+          <OfflineBanner line="Ce que tu écris reste sur cet appareil, et s’enregistre au retour du réseau." />
           <Outlet />
         </Box>
         {!bottomTaken && <TabBar items={items} />}
