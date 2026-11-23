@@ -41,6 +41,7 @@ import {
   LoadFailure,
   MonthCalendar,
   Sheet,
+  LoadingShapes,
 } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import {
@@ -95,14 +96,16 @@ const ClientJournal = () => {
   const bounds = useMemo(() => calendarBounds(history), [history]);
 
   if (isLoading) {
+    // Les formes de l'écran plutôt qu'une roue seule au milieu d'une page
+    // vide : la maquette des états, et la même règle partout (LoadingShapes).
     return (
       <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minH="60vh"
+        px={{ base: 4, md: 8 }}
+        pt={{ base: 4, md: 6 }}
+        pb={8}
+        maxW={'760px'}
       >
-        <Spinner size="xl" />
+        <LoadingShapes layout="column" />
       </Box>
     );
   }

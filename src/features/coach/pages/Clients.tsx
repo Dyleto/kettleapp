@@ -51,7 +51,7 @@ import {
   type ClientFilter,
   type ClientSort,
 } from '@/domain/clients/roster';
-import { ActionButton, EmptyState, LoadFailure } from '@/kit';
+import { ActionButton, EmptyState, LoadFailure, SlowNotice } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { COACH_ROUTES } from '@/shared/config/routes';
 
@@ -189,6 +189,9 @@ const Clients = () => {
           <Skeleton h="14px" w="40%" />
         </HStack>
       ))}
+      <Box py="10px">
+        <SlowNotice />
+      </Box>
     </VStack>
   ) : isUnavailable(clientsQuery) ? (
     // L'écran dit la panne, et lui seul : un toast l'annonçait en même

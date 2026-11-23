@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 938 tests unitaires, 59 suites de banc et 1 045
-assertions, 7 min 20 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 938 tests unitaires, 60 suites de banc et 1 051
+assertions, 7 min 23 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -730,7 +730,17 @@ banc actuel, inchangé, qui le prouve.
       inutile, et l'envoi repart seul. Un envoi qui avait échoué avant la
       coupure attendait un geste : il repart lui aussi au retour du réseau.
       La séance guidée, calque plein écran, garde tout son écran.
-- [ ] **G2** Chargement de plus de dix secondes ; panne par zone.
+- [ ] **G2** Chargement de plus de dix secondes ; panne par zone. En deux
+      temps.
+  - [x] **G2a** Des formes, jamais une roue seule : « Mon compte »,
+        l'atelier d'un client, son journal, un modèle et la coque de
+        l'application chargeaient derrière une roue au milieu d'une page
+        vide. Le kit gagne `LoadingShapes` — une colonne de cartes, ou
+        l'atelier avec ses séances et ses blocs — et `SlowNotice` :
+        « C'est plus long que d'habitude » au bout de dix secondes, dans
+        les formes et sur chaque écran qui avait déjà les siennes.
+  - [ ] **G2b** La panne d'une zone dans sa zone, avec « Réessayer », et
+        le reste de l'écran à sa place.
 - [ ] **G3** Un seul message à la fois, jamais pour un enregistrement
       automatique ; bannière « Annuler » unique, huit secondes.
 - [ ] **G4** Menu du compte, bandeau de nouvelle version, au kit.

@@ -5,7 +5,6 @@ import {
   Button,
   Heading,
   HStack,
-  Spinner,
   Stack,
   Text,
   useBreakpointValue,
@@ -24,7 +23,13 @@ import {
   SessionRail,
   useSessionMenu,
 } from '@/features/coach';
-import { ActionButton, BackLink, EmptyState, LoadFailure } from '@/kit';
+import {
+  ActionButton,
+  BackLink,
+  EmptyState,
+  LoadFailure,
+  LoadingShapes,
+} from '@/kit';
 import { UseTemplateSheet } from '@/features/template/components/UseTemplateSheet';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { isUnavailable } from '@/shared/utils/queryState';
@@ -184,14 +189,11 @@ const TemplateDetails = () => {
   });
 
   if (isLoading) {
+    // Les formes de l'écran plutôt qu'une roue seule au milieu d'une page
+    // vide : la maquette des états, et la même règle partout (LoadingShapes).
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minH="60vh"
-      >
-        <Spinner size="xl" />
+      <Box px={{ base: 4, md: 8 }} pt={{ base: 4, md: 6 }} pb={8}>
+        <LoadingShapes layout="workshop" />
       </Box>
     );
   }

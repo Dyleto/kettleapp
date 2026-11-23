@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { LegalFooter } from '@/shared/components/LegalFooter';
-import { ActionButton, EmptyState, ErrorState } from '@/kit';
+import { ActionButton, EmptyState, ErrorState, SlowNotice } from '@/kit';
 import { isRefusal } from '@/shared/utils/queryState';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 
@@ -56,6 +56,7 @@ const Waiting = () => (
     <Skeleton w="60%" h="24px" borderRadius="md" />
     <Skeleton w="90%" h="34px" borderRadius="md" mt={2} />
     <Skeleton w="100%" h="44px" borderRadius="md" mt={2} />
+    <SlowNotice />
   </VStack>
 );
 

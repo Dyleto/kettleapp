@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
-import { Box, Grid, Link, Spinner, VStack } from '@chakra-ui/react';
+import { Box, Grid, Link } from '@chakra-ui/react';
+import { LoadingShapes } from '@/kit';
 import { useAuth } from '@/shared/contexts/useAuth';
 import {
   getDefaultRoleRoute,
@@ -8,15 +9,16 @@ import {
 } from '@/shared/config/routes';
 import { Suspense } from 'react';
 
-const PageLoader = () => {
-  return (
-    <Box display="flex" justifyContent="center" alignItems="center" minH="50vh">
-      <VStack gap={4}>
-        <Spinner size="xl" color="app.primary" />
-      </VStack>
-    </Box>
-  );
-};
+/**
+ * Ce que montre l'application avant de savoir qui est là, et pendant qu'un
+ * écran se charge à la demande : des formes, et non une roue ambre seule au
+ * milieu de l'écran — la maquette des états n'en veut nulle part.
+ */
+const PageLoader = () => (
+  <Box w="100%" maxW="704px" mx="auto" px={{ base: 4, md: 8 }} pt={6}>
+    <LoadingShapes />
+  </Box>
+);
 
 const RootLayout: React.FC = () => {
   const location = useLocation();

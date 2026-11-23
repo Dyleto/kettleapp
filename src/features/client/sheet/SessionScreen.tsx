@@ -4,7 +4,7 @@ import { Container, Skeleton, VStack } from '@chakra-ui/react';
 import type { PerformedValues } from '@/shared/types';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { ActionButton, EmptyState } from '@/kit';
+import { ActionButton, EmptyState, SlowNotice } from '@/kit';
 import { CLIENT_CONTENT_MAX_W } from '@/features/client/shell/layout';
 import type { useClientSessions } from '@/features/client/common/useClientSessions';
 import { GuidedSession } from '@/features/client/guided/GuidedSession';
@@ -121,6 +121,7 @@ const SessionScreen = () => {
           <Skeleton h="20px" w="120px" borderRadius="md" />
           <Skeleton h="80px" borderRadius="lg" />
           <Skeleton h="200px" borderRadius="lg" />
+          <SlowNotice />
         </VStack>
       </Container>
     );

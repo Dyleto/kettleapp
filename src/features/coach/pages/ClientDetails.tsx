@@ -6,7 +6,6 @@ import {
   Button,
   Heading,
   HStack,
-  Spinner,
   Stack,
   Text,
   useBreakpointValue,
@@ -54,6 +53,7 @@ import {
   LoadFailure,
   PillButton,
   TOUCH,
+  LoadingShapes,
 } from '@/kit';
 import { Header } from '@/shared/components/Header';
 import { COACH_ROUTES } from '@/shared/config/routes';
@@ -177,14 +177,11 @@ const ClientDetails = () => {
   });
 
   if (isLoading) {
+    // Les formes de l'écran plutôt qu'une roue seule au milieu d'une page
+    // vide : la maquette des états, et la même règle partout (LoadingShapes).
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minH="60vh"
-      >
-        <Spinner size="xl" />
+      <Box px={{ base: 4, md: 8 }} pt={{ base: 4, md: 6 }} pb={8}>
+        <LoadingShapes layout="workshop" />
       </Box>
     );
   }

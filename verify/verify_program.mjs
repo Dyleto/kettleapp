@@ -168,7 +168,9 @@ const stateOf = async (p, id) => {
   });
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/program`, { waitUntil: 'domcontentloaded' });
-  const busy = p.locator('[aria-busy="true"]');
+  // Dans `main` : la coque montre ses propres formes le temps de vérifier
+  // la session, et elles portent aussi `aria-busy` depuis G2a.
+  const busy = p.locator('main [aria-busy="true"]');
   await busy
     .first()
     .waitFor({ timeout: 5000 })

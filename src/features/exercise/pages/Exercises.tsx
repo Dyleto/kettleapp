@@ -19,7 +19,14 @@ import {
   useCreateExercise,
   useDeleteExercise,
 } from '@/features/exercise/hooks/useExerciseMutations';
-import { EmptyState, LoadFailure, SearchField, Sheet, SortMenu } from '@/kit';
+import {
+  EmptyState,
+  LoadFailure,
+  SearchField,
+  Sheet,
+  SortMenu,
+  SlowNotice,
+} from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { undoable } from '@/shared/components/undoable';
 import type { Exercise } from '@/shared/types';
@@ -191,7 +198,10 @@ const Exercises = () => {
           </HStack>
 
           {isLoading && (
-            <ExerciseSectionSkeleton titleWidth="250px" count={8} />
+            <>
+              <ExerciseSectionSkeleton titleWidth="250px" count={8} />
+              <SlowNotice />
+            </>
           )}
 
           {/* Une panne affichait la bibliothèque vide, avec l'invitation à

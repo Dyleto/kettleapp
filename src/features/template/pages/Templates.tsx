@@ -3,6 +3,7 @@ import {
   Container,
   Dialog,
   Grid,
+  GridItem,
   HStack,
   Portal,
   Skeleton,
@@ -14,7 +15,7 @@ import { useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { COACH_GRID_MAX_W } from '@/features/coach';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { ActionButton, EmptyState, LoadFailure } from '@/kit';
+import { ActionButton, EmptyState, LoadFailure, SlowNotice } from '@/kit';
 import { useTemplates } from '@/features/template/hooks/useTemplates';
 import { isUnavailable } from '@/shared/utils/queryState';
 import {
@@ -118,6 +119,9 @@ const Templates = () => {
             {[0, 1, 2].map((i) => (
               <Skeleton key={i} h="200px" borderRadius="card" />
             ))}
+            <GridItem colSpan={999}>
+              <SlowNotice />
+            </GridItem>
           </Grid>
         )}
 

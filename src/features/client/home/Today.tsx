@@ -39,6 +39,7 @@ import {
   Mascot,
   Segments,
   Sheet,
+  SlowNotice,
 } from '@/kit';
 import { estimatedMinutes } from '@/domain/session/measure';
 import { getBlockLabel } from '@/domain/session/blocks';
@@ -144,6 +145,7 @@ const Today = () => {
           <Skeleton h="184px" borderRadius="card" />
           <Skeleton h="300px" borderRadius="card" />
           <Skeleton h="120px" borderRadius="card" />
+          <SlowNotice />
         </VStack>
       </Container>
     );

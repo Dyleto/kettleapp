@@ -10,7 +10,13 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { LuPlus, LuShield } from 'react-icons/lu';
-import { ActionButton, EmptyState, LoadFailure, NavRail } from '@/kit';
+import {
+  ActionButton,
+  EmptyState,
+  LoadFailure,
+  NavRail,
+  SlowNotice,
+} from '@/kit';
 import { Header } from '@/shared/components/Header';
 import { MobileTopBar } from '@/shared/components/MobileTopBar';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
@@ -226,6 +232,7 @@ const AdminDashboard = () => {
                 {[0, 1, 2].map((i) => (
                   <Skeleton key={i} h="64px" borderRadius="card" />
                 ))}
+                <SlowNotice />
               </VStack>
             ) : coaches.length === 0 ? (
               <EmptyState

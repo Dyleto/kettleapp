@@ -4,6 +4,7 @@ import {
   chakra,
   Container,
   Grid,
+  GridItem,
   HStack,
   Skeleton,
   Text,
@@ -16,7 +17,13 @@ import { SuggestedDays } from '@/features/client/program/SuggestedDays';
 import { useClientSessions } from '@/features/client/common/useClientSessions';
 import { unfinishedSession } from '@/features/client/home/unfinished';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
-import { Chip, type ChipTone, Composition, EmptyState } from '@/kit';
+import {
+  Chip,
+  type ChipTone,
+  Composition,
+  EmptyState,
+  SlowNotice,
+} from '@/kit';
 import { sessionName } from '@/domain/session/name';
 import {
   programLine,
@@ -160,6 +167,9 @@ const Program = () => {
             {Array.from({ length: 6 }, (_, i) => (
               <Skeleton key={i} h="128px" borderRadius="card" />
             ))}
+            <GridItem colSpan={999}>
+              <SlowNotice />
+            </GridItem>
           </Grid>
         ) : count === 0 ? (
           <EmptyState

@@ -6,7 +6,6 @@ import {
   chakra,
   HStack,
   Portal,
-  Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react';
@@ -20,7 +19,14 @@ import { DeviceSettings } from '@/features/account/components/DeviceSettings';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
 import { InviteSheet } from '@/features/auth';
 import { useSheetDismiss } from '@/features/workshop';
-import { ActionButton, BackLink, CopyField, Eyebrow, Sheet } from '@/kit';
+import {
+  ActionButton,
+  BackLink,
+  CopyField,
+  Eyebrow,
+  Sheet,
+  LoadingShapes,
+} from '@/kit';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
 import { CLIENT_ROUTES, COACH_ROUTES } from '@/shared/config/routes';
 import {
@@ -161,14 +167,11 @@ const Account = ({ space }: { space: 'client' | 'coach' }) => {
   );
 
   if (isLoading) {
+    // Les formes de l'écran plutôt qu'une roue seule au milieu d'une page
+    // vide : la maquette des états, et la même règle partout (LoadingShapes).
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minH="60vh"
-      >
-        <Spinner size="xl" />
+      <Box px={{ base: 4, md: 8 }} pt={{ base: 4, md: 6 }} pb={8} maxW="704px">
+        <LoadingShapes layout="column" />
       </Box>
     );
   }

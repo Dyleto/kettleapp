@@ -1,4 +1,5 @@
 import { Navigate, useOutletContext } from 'react-router';
+import { SlowNotice } from '@/kit';
 import { Container, Skeleton, VStack } from '@chakra-ui/react';
 import { CLIENT_CONTENT_MAX_W } from '@/features/client/shell/layout';
 import { useClientSessions } from '@/features/client/common/useClientSessions';
@@ -25,6 +26,7 @@ const SessionRedirect = () => {
           <Skeleton h="20px" w="120px" borderRadius="md" />
           <Skeleton h="80px" borderRadius="lg" />
           <Skeleton h="200px" borderRadius="lg" />
+          <SlowNotice />
         </VStack>
       </Container>
     );
