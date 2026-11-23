@@ -1,17 +1,7 @@
-import { toaster } from '@/shared/components/ui/toasterInstance';
 import api from '@/shared/config/api';
 import { queryKeys } from '@/shared/config/queryKeys';
 import { Session } from '@/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-
-interface Options {
-  /**
-   * L'atelier s'enregistre lui-même : il possède son propre état et n'a que
-   * faire d'un message de confirmation à chaque frappe, ni d'une requête
-   * d'arrière-plan qui remplacerait ce que le coach est en train d'écrire.
-   */
-  silent?: boolean;
-}
 
 /**
  * Envoie le programme entier au serveur.
@@ -21,10 +11,7 @@ interface Options {
  * donnent le même résultat — et c'est ce dont l'enregistrement automatique a
  * besoin, lui qui peut partir deux fois avant la première réponse.
  */
-export const useUpdateProgramSessions = (
-  clientId: string,
-  { silent = false }: Options = {}
-) => {
+export const useUpdateProgramSessions = (clientId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -79,55 +66,44 @@ export const useUpdateProgramSessions = (
       return data;
     },
     onSuccess: (saved) => {
-      // En mode silencieux, l'appelant adopte lui-même la réponse :
-      // invalider la fiche du client déclencherait une requête dont le seul
-      // effet serait de réécrire l'atelier par-dessus la frappe en cours.
-      if (!silent) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.coach.clients.detail(clientId),
-        });
-        toaster.create({ title: 'Programme sauvegardé', type: 'success' });
-      } else {
-        // Ne pas invalider ne dispense pas de tenir le cache à jour, et
-        // c'est ce qui manquait : il gardait le programme tel qu'il était au
-        // chargement de la page, pendant que l'atelier et le serveur
-        // avançaient sans lui.
-        //
-        // Retour du terrain : « quand ça me marque "enregistré", que je
-        // quitte la page — par exemple pour aller dans la bibliothèque — et
-        // que je reviens, tout ce que j'ai écrit dans les 5 min a disparu ».
-        // Les 5 minutes sont le `staleTime` : en deçà, React Query ne relit
-        // pas au montage, donc l'atelier se réinitialisait sur le cache
-        // périmé. L'écran revenait en arrière, et comme l'envoi remplace le
-        // programme entier, la modification suivante écrasait sur le serveur
-        // ce que le coach croyait enregistré.
-        //
-        // `setQueryData` et non `invalidateQueries` : il met le cache au
-        // niveau sans déclencher de requête, donc sans le défaut que la
-        // branche ci-dessus évite. La réponse du serveur fait foi — c'est
-        // elle qui porte les rangs et les identifiants définitifs.
-        queryClient.setQueryData(
-          queryKeys.coach.clients.detail(clientId),
-          (previous: { program?: { sessions: Session[] } } | undefined) =>
-            previous
-              ? {
-                  ...previous,
-                  program: { ...previous.program, sessions: saved },
-                }
-              : previous
-        );
-      }
+      // L'atelier s'enregistre seul, à chaque modification : il adopte
+      // lui-même la réponse, et aucun message ne l'annonce — c'est la règle
+      // des enregistrements automatiques. Une option `silent` laissait
+      // ouverte une autre branche, qui invalidait la fiche et disait
+      // « Programme sauvegardé » ; aucun écran ne s'en servait plus.
+      //
+      // Ne pas invalider ne dispense pas de tenir le cache à jour, et
+      // c'est ce qui manquait : il gardait le programme tel qu'il était au
+      // chargement de la page, pendant que l'atelier et le serveur
+      // avançaient sans lui.
+      //
+      // Retour du terrain : « quand ça me marque "enregistré", que je
+      // quitte la page — par exemple pour aller dans la bibliothèque — et
+      // que je reviens, tout ce que j'ai écrit dans les 5 min a disparu ».
+      // Les 5 minutes sont le `staleTime` : en deçà, React Query ne relit
+      // pas au montage, donc l'atelier se réinitialisait sur le cache
+      // périmé. L'écran revenait en arrière, et comme l'envoi remplace le
+      // programme entier, la modification suivante écrasait sur le serveur
+      // ce que le coach croyait enregistré.
+      //
+      // `setQueryData` et non `invalidateQueries` : il met le cache au
+      // niveau sans déclencher de requête, qui réécrirait l'atelier
+      // par-dessus la frappe en cours. La réponse du serveur fait foi —
+      // c'est elle qui porte les rangs et les identifiants définitifs.
+      queryClient.setQueryData(
+        queryKeys.coach.clients.detail(clientId),
+        (previous: { program?: { sessions: Session[] } } | undefined) =>
+          previous
+            ? {
+                ...previous,
+                program: { ...previous.program, sessions: saved },
+              }
+            : previous
+      );
 
       // Le programme tel que le client le voit, en revanche, a bien changé.
       queryClient.invalidateQueries({
         queryKey: queryKeys.client.program.get(),
-      });
-    },
-    onError: () => {
-      if (silent) return;
-      toaster.create({
-        title: 'Erreur lors de la sauvegarde du programme',
-        type: 'error',
       });
     },
   });

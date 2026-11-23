@@ -93,7 +93,7 @@ const open = async (n = 1) => {
   );
 
   await press(p, /Prise de masse/, dialog);
-  // Le message ne dure que deux secondes : on le guette dès le geste. Lu
+  // Le message ne dure que trois secondes : on le guette dès le geste. Lu
   // après la fermeture de la boîte et le calme de la page, il était
   // parfois déjà parti quand le banc complet chargeait la machine.
   const announced = p

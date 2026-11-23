@@ -88,9 +88,7 @@ const ClientDetails = () => {
   useDocumentTitle(
     client ? `${client.firstName} ${client.lastName}` : undefined
   );
-  const updateProgramMutation = useUpdateProgramSessions(clientId!, {
-    silent: true,
-  });
+  const updateProgramMutation = useUpdateProgramSessions(clientId!);
 
   // `mutateAsync` est stable, mais la mutation ne l'est pas : passer
   // l'objet entier au hook relancerait sa programmation d'envoi à chaque

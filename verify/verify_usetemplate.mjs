@@ -125,7 +125,7 @@ const rowText = (id) =>
     .allInnerTexts()
     .then((parts) => clean(parts.map((t) => t.trim()).join(' / ')))
     .catch(() => '');
-/** Un message de réussite ne reste que deux secondes : on l'attend dès le
+/** Un message de réussite ne reste que trois secondes : on l'attend dès le
  * geste, avant que l'écran suivant ait fini de charger. */
 const toastSaying = (words) =>
   p

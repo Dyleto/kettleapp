@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 938 tests unitaires, 61 suites de banc et 1 057
-assertions, 7 min 18 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 938 tests unitaires, 62 suites de banc et 1 062
+assertions, 7 min 9 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -749,8 +749,16 @@ banc actuel, inchangé, qui le prouve.
         boîte ne saurait pas dire ce qui part. L'espace client garde sa
         garde entière — sans l'historique, l'accueil désignerait la
         mauvaise séance —, et c'est un choix, écrit dans le code.
-- [ ] **G3** Un seul message à la fois, jamais pour un enregistrement
-      automatique ; bannière « Annuler » unique, huit secondes.
+- [x] **G3** Un seul message à la fois, jamais pour un enregistrement
+      automatique ; bannière « Annuler » unique, huit secondes. Les
+      messages s'empilaient jusqu'à cacher les onglets ; un nouveau
+      remplace désormais celui qui est là — l'option `max` de Chakra les
+      mettait en file, et un message arrivait des secondes après son
+      geste. Une bannière « Annuler » chassée devient définitive : l'action
+      a déjà eu lieu. Trois secondes pour un message, six pour une panne,
+      huit pour « Annuler ». Le dernier message d'enregistrement
+      automatique, « Programme sauvegardé », vivait dans une branche que
+      plus aucun écran n'empruntait : partie, avec son option.
 - [ ] **G4** Menu du compte, bandeau de nouvelle version, au kit.
 - [ ] **G5** Mouvement : la valeur qui saute, l'entrée d'une scène, la coche
       qui se dessine, l'anneau de l'accueil quand il a changé.
