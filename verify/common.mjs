@@ -63,6 +63,18 @@ export const API = `http://localhost:${MOCK_PORT}`;
  * celle-ci ; si elle laisse passer la requête, c'est par `fallback()` et non
  * `continue()`, qui l'enverrait au port d'origine sans passer par ici.
  */
+/**
+ * Brider le processeur de chaque page : `KETTLE_CPU_THROTTLE=4` la rend
+ * quatre fois plus lente.
+ *
+ * La CI est plus lente que la machine où l'on écrit les suites — 8 min
+ * contre 6 —, et c'est là seulement que tombaient les lectures faites
+ * avant l'état qu'elles vérifiaient : un focus lu avant que la feuille ne
+ * le prenne, une liste lue avant d'être dessinée. Bridé, le banc les
+ * montre ici, avant la poussée.
+ */
+const CPU_THROTTLE = Number(process.env.KETTLE_CPU_THROTTLE ?? 1);
+
 export const launch = async () => {
   const browser = await chromium.launch(
     CHROME ? { executablePath: CHROME } : {}
@@ -70,7 +82,16 @@ export const launch = async () => {
   const newContext = browser.newContext.bind(browser);
   browser.newContext = async (options) => {
     const ctx = await newContext(options);
-    track(ctx);
+    await track(ctx);
+    if (CPU_THROTTLE > 1)
+      ctx.on('page', (page) =>
+        ctx
+          .newCDPSession(page)
+          .then((cdp) =>
+            cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU_THROTTLE })
+          )
+          .catch(() => {})
+      );
     if (MOCK_PORT !== 3001)
       await ctx.route(/^http:\/\/localhost:3001\//, (route) =>
         route.continue({
@@ -99,9 +120,25 @@ export const launch = async () => {
  * ne signale pas toujours sa fin : compté, il restait « en vol » pour
  * toujours, et chaque attente butait sur son plafond.
  */
-const track = (ctx) => {
+const track = async (ctx) => {
   const open = new Set();
   ctx.__open = open;
+  // Chaque changement du DOM, compté dans la page : `settle` le lit pour
+  // savoir si la page bouge encore, une fois le réseau calme. Attendu avant
+  // de rendre le contexte : laissé en vol, il croisait la création de la
+  // page suivante, et `newPage` ne revenait plus — deux fois sur trois dans
+  // `verify_account`, qui ouvre six contextes.
+  await ctx.addInitScript(() => {
+    window.__kettleMutations = 0;
+    new MutationObserver(() => {
+      window.__kettleMutations += 1;
+    }).observe(document, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      characterData: true,
+    });
+  });
   ctx.on('request', (request) => open.add(request));
   ctx.on('requestfinished', (request) => open.delete(request));
   ctx.on('requestfailed', (request) => open.delete(request));
@@ -147,7 +184,17 @@ export const settle = async (p, { quiet = 150, timeout = 8_000 } = {}) => {
   let calmSince = Date.now();
   while (Date.now() < until) {
     if (open.size > 0) calmSince = Date.now();
-    else if (Date.now() - calmSince >= quiet) return animationsDone(p);
+    else if (Date.now() - calmSince >= quiet) {
+      // Le réseau calme ne dit pas que la page a fini : la réponse est
+      // arrivée, mais la lire, la décoder, la notifier et la rendre sont
+      // autant de tâches qui attendent leur tour — et le rendu demandera
+      // peut-être le morceau de l'écran suivant. Sur la CI, plus lente,
+      // les lectures tombaient au milieu. Si une requête part entre-temps,
+      // le calme recommence.
+      if ((await pageStill(p, open)) && open.size === 0)
+        return animationsDone(p);
+      calmSince = Date.now();
+    }
     await new Promise((resolve) => setTimeout(resolve, 20));
   }
   console.log(
@@ -155,6 +202,53 @@ export const settle = async (p, { quiet = 150, timeout = 8_000 } = {}) => {
       .map((request) => request.url())
       .join(', ')}`
   );
+};
+
+/**
+ * Un tour de la page : un message posté à soi-même, qui ne revient
+ * qu'après les tâches déjà en file — dont le rendu que React a programmé
+ * par le même moyen —, avec le nombre de changements du DOM. Ni minuteur
+ * ni image d'animation : certaines suites figent l'horloge de la page, et
+ * les deux s'y arrêteraient.
+ */
+const pageTurn = (p) =>
+  p
+    .evaluate(
+      () =>
+        new Promise((resolve) => {
+          const channel = new MessageChannel();
+          channel.port1.onmessage = () => resolve(window.__kettleMutations);
+          channel.port2.postMessage(null);
+        })
+    )
+    .catch(() => -1);
+
+/**
+ * La page est immobile : trois tours de suite sans que le DOM change ni
+ * qu'une requête parte. Un seul tour ne suffisait pas —
+ * mesuré avec le processeur bridé, la liste des modèles se dessinait deux
+ * tâches après le premier : TanStack Query notifie par un minuteur à zéro,
+ * et React rend ensuite.
+ *
+ * Plafonné à 400 ms : une page qui ne s'arrête jamais — un chronomètre, un
+ * anneau qui avance — ne doit pas faire attendre chaque lecture jusqu'au
+ * plafond de `settle`. Au-delà, on se contente du calme du réseau, comme
+ * avant.
+ */
+const pageStill = async (p, open, cap = 400) => {
+  const until = Date.now() + cap;
+  let last = await pageTurn(p);
+  let still = 0;
+  while (Date.now() < until) {
+    await new Promise((resolve) => setTimeout(resolve, 15));
+    const now = await pageTurn(p);
+    if (open.size > 0) return false;
+    if (now !== last) {
+      last = now;
+      still = 0;
+    } else if (++still >= 3) return true;
+  }
+  return true;
 };
 
 /** Les animations et transitions en cours de moins d'une seconde,

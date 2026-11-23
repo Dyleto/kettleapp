@@ -165,6 +165,13 @@ const lines = (text) =>
     .click({ timeout: 3000 })
     .catch(() => {});
   await settle(p);
+  // La séance guidée est le plus gros morceau de l'application : sur la CI,
+  // plus lente, elle se dessinait après le calme du réseau. On attend son
+  // ouverture — absente, l'assertion tombe au bout de l'attente.
+  await p
+    .getByRole('button', { name: /C'est parti/ })
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
   ok(
     '« Démarrer » ouvre la séance guidée sur son ouverture',
     new URL(p.url()).pathname === '/client/session/sess1' &&
@@ -173,6 +180,10 @@ const lines = (text) =>
   );
   await p.reload({ waitUntil: 'domcontentloaded' });
   await settle(p);
+  await p
+    .getByRole('button', { name: START })
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
   ok(
     '  → recharger la fiche ne relance pas la séance',
     (await p.getByRole('button', { name: /C'est parti/ }).count()) === 0 &&
@@ -396,6 +407,10 @@ const lines = (text) =>
     .click({ timeout: 3000 })
     .catch(() => {});
   await settle(p);
+  await p
+    .locator('[aria-label="Séance guidée"] [role="progressbar"]')
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
   ok(
     '« Reprendre » rouvre la séance au même endroit, sans redemander',
     (await p
@@ -448,6 +463,10 @@ const lines = (text) =>
     .click({ timeout: 3000 })
     .catch(() => {});
   await settle(p);
+  await p
+    .getByRole('button', { name: /C'est parti/ })
+    .waitFor({ timeout: 5000 })
+    .catch(() => {});
   const record = await p.evaluate(() =>
     JSON.parse(localStorage.getItem('kettle-seance-sess2') ?? 'null')
   );

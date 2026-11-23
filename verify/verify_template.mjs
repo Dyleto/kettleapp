@@ -78,6 +78,9 @@ const main = async () => {
   const seeded = p.getByRole('button', {
     name: /Ouvrir le modèle Prise de masse/,
   });
+  // La carte, et non le calme du réseau : sur la CI, la liste se dessinait
+  // après lui.
+  await seeded.waitFor({ timeout: 5000 }).catch(() => {});
   ok('la liste montre le modèle du coach', (await seeded.count()) === 1);
 
   const title = clean(
@@ -441,6 +444,12 @@ const main = async () => {
       waitUntil: 'domcontentloaded',
     });
     await settle(empty);
+    // Un contexte neuf charge tout l'espace coach : sur la CI, la page
+    // n'avait encore que sa navigation quand la lecture passait.
+    await empty
+      .getByText('Écris-le une fois', { exact: false })
+      .waitFor({ timeout: 5000 })
+      .catch(() => {});
     const text = clean(await empty.locator('body').innerText());
     ok(
       'sans modèle, la liste dit à quoi ils servent',

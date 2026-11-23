@@ -323,11 +323,17 @@ const pauseOpen = (p) =>
   await p.clock.install();
   await start(p, 'sess-open');
   await freeze(p);
+  const frozen = (await timerLabel(p)) ?? '';
   ok(
     'il tourne, et ne dit pas « sur »',
-    /^Tour 1 — \d+ secondes restantes$/.test((await timerLabel(p)) ?? ''),
-    await timerLabel(p)
+    /^Tour 1 — \d+ secondes restantes$/.test(frozen),
+    frozen
   );
+  // Ce qui restait au tour 1 quand l'horloge s'est figée : 60 s d'ordinaire,
+  // 59 sur une machine lente, où plus d'une seconde réelle sépare le
+  // départ du bloc de l'arrêt de l'horloge. L'attendu du tour 26 en part,
+  // au lieu de supposer la machine rapide.
+  const leftAtFreeze = Number(frozen.match(/— (\d+) secondes/)?.[1] ?? 60);
   const track = await p.evaluate(
     () => document.querySelector('[data-round-track]')?.dataset.roundTrack
   );
@@ -340,8 +346,9 @@ const pauseOpen = (p) =>
   await settle(p);
   ok(
     'vingt-cinq minutes plus tard, le tour 26',
-    (await timerLabel(p)) === 'Tour 26 — 42 secondes restantes',
-    await timerLabel(p)
+    (await timerLabel(p)) ===
+      `Tour 26 — ${leftAtFreeze - 18} secondes restantes` && leftAtFreeze > 18,
+    `${await timerLabel(p)} · ${leftAtFreeze} s au gel`
   );
   ok(
     '  → et la séance le sait',

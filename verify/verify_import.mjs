@@ -93,6 +93,16 @@ const open = async (n = 1) => {
   );
 
   await press(p, /Prise de masse/, dialog);
+  // Le message ne dure que deux secondes : on le guette dès le geste. Lu
+  // après la fermeture de la boîte et le calme de la page, il était
+  // parfois déjà parti quand le banc complet chargeait la machine.
+  const announced = p
+    .locator('[data-scope="toast"]')
+    .filter({ hasText: /« Prise de masse » importé chez Sarah/ })
+    .first()
+    .waitFor({ timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
   await press(p, 'Remplacer le programme', dialog);
   await gone(dialog);
   await settle(p);
@@ -102,9 +112,7 @@ const open = async (n = 1) => {
     after.length === 2 &&
       p.url().endsWith('/s/1') &&
       (await p.locator('[data-session-row]').count()) === 2 &&
-      /« Prise de masse » importé chez Sarah/.test(
-        await text(p.locator('[data-scope="toast"]').first())
-      ),
+      (await announced),
     `${before.length} → ${after.length} séances · ${p.url().split('/').slice(-2).join('/')}`
   );
 

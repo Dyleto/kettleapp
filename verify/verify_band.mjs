@@ -281,6 +281,15 @@ const open = async (n) => {
     .click({ timeout: 2000 })
     .catch(() => {});
   await settle(p);
+  // Le focus passe au champ une fois la feuille montée : sur la CI, il
+  // était encore sur le titre de la séance 1 quand la lecture passait.
+  await p
+    .waitForFunction(
+      (name) => document.activeElement?.getAttribute('aria-label') === name,
+      `Nom de la séance ${n}`,
+      { timeout: 4000 }
+    )
+    .catch(() => {});
   ok(
     '« + » ouvre la feuille de la séance neuve, son nom prêt à la frappe',
     p.url().endsWith(`/s/${n}`) &&

@@ -48,6 +48,14 @@ route posée par une suite qui laisse passer une requête le fait par
 `route.fallback()`, jamais `route.continue()` : ce dernier l'enverrait au
 port 3001 sans passer par le détour.
 
+La CI est plus lente que la machine où l'on écrit : 8 min au lieu de 6. Une
+lecture faite avant l'état qu'elle vérifie y tombe, et seulement là. Pour la
+voir avant de pousser, brider le processeur des pages :
+
+```sh
+KETTLE_CPU_THROTTLE=2 node runner.mjs --all   # deux fois plus lent
+```
+
 Nommez les suites explicitement, ou passez `--all`. Sans argument, le lanceur
 ne lance rien du tout, et le dit plutôt que d'annoncer un vert qui ne couvre
 aucune assertion.
@@ -70,9 +78,14 @@ guidée, lire l'écran. Quatre pièges méritent d'être connus :
   `runFor` laisse battre la page, `fastForward` saute d'un coup, comme un
   téléphone verrouillé.
 - **Attendre un état, pas une durée.** Après un geste ou une navigation,
-  `settle(page)` attend que plus aucune requête ne soit en vol, puis que les
-  mouvements de moins d'une seconde — une feuille qui monte, une couleur qui
-  glisse — soient finis : c'est ce que la page attend elle aussi. Le banc attendait 258 fois une durée fixe,
+  `settle(page)` attend que plus aucune requête ne soit en vol, puis que la
+  page ne bouge plus — trois tours sans que le DOM change, plafonnés à
+  400 ms —, puis que les mouvements de moins d'une seconde — une feuille qui
+  monte, une couleur qui glisse — soient finis : c'est ce que la page attend
+  elle aussi. Le réseau calme ne suffisait pas : la réponse arrivée, son
+  rendu attend encore son tour, et la CI lisait entre les deux. Ce qui ne
+  dépend que de l'écran — un focus, une carte, l'ouverture d'une séance — se
+  guette en plus par son élément, `waitFor` avec un plafond. Le banc attendait 258 fois une durée fixe,
   choisie un jour où la machine allait vite. Trois choses tardent sans
   requête, et ont leur propre attente : l'enregistrement de l'atelier, 800 ms
   après la dernière frappe (`autosaved`) ; une couche qui glisse hors de

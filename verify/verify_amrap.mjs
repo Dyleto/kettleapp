@@ -249,7 +249,13 @@ const roundsOf = (p, id) =>
     '  → sans objectif, aucun repère encadré',
     (await p.locator('[data-target]').count()) === 0
   );
-  await p.clock.runFor(192_400);
+  // Le passage à 00:01 cale l'horloge sur l'origine du bloc, au pas près.
+  // Le gel tombe 300 ms après une lecture faite une fois le bloc lancé : sur
+  // une machine lente, plus de 700 ms séparaient le départ du gel, et le
+  // chrono affichait une seconde de plus que l'attendu.
+  for (let i = 0; i < 15 && (await chip(p)) === 'Temps passé — 00:00'; i++)
+    await p.clock.runFor(100);
+  await p.clock.runFor(191_400);
   await settle(p);
   ok('il monte', (await chip(p)) === 'Temps passé — 03:12', await chip(p));
   const finish = p.getByRole('button', { name: 'Terminer le bloc' });

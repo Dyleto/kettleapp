@@ -176,6 +176,9 @@ try {
   process.exit(2);
 }
 
+/** Le plafond d'une suite : trois fois la plus longue sur la CI. */
+const SUITE_CAP = 6 * 60_000;
+
 /** Lance une suite contre son serveur d'essai, et rend ce qu'elle a dit. */
 const runSuite = async (suite, port) => {
   const suiteStart = Date.now();
@@ -188,7 +191,17 @@ const runSuite = async (suite, port) => {
     });
     c.stdout.on('data', (d) => (buf += d));
     c.stderr.on('data', (d) => (buf += d));
-    c.on('close', (code) => resolve({ buf, code }));
+    // Une suite qui ne rend plus la main est arrêtée : la plus longue prend
+    // une minute et demie ici, deux sur la CI. Sans plafond, un `newPage`
+    // qui ne revenait pas a tenu le banc vingt minutes.
+    const cap = setTimeout(() => {
+      buf += `\nArrêtée au bout de ${SUITE_CAP / 60_000} min sans rendre la main.\n`;
+      c.kill('SIGKILL');
+    }, SUITE_CAP);
+    c.on('close', (code) => {
+      clearTimeout(cap);
+      resolve({ buf, code });
+    });
   });
   await stopMock(mock, port);
 

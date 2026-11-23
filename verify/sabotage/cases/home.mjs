@@ -106,8 +106,12 @@ export default {
           to: '      state: null,',
         },
       ],
+      // « Reprendre » passe par la même porte : il mène à la fiche, lui
+      // aussi. La liste n'en avait que deux, d'avant que les deux gestes
+      // ne partagent leur chemin.
       falls: [
         '« Démarrer » ouvre la séance guidée sur son ouverture',
+        '« Reprendre » rouvre la séance au même endroit, sans redemander',
         '→ puis repart de l’ouverture, rien de coché',
       ],
     },
