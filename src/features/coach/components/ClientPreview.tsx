@@ -14,9 +14,17 @@ import { LuPencil } from 'react-icons/lu';
 import { TagChip } from '@/features/coach/clients/Tags';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { useClientHistory } from '@/features/coach/hooks/useClientHistory';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { HISTORY_PAGE_SIZE } from '@/features/coach/coach.service';
 import { CompletedSheet } from '@/features/client';
-import { ActionButton, Chip, type ChipTone, Eyebrow, LinkButton } from '@/kit';
+import {
+  ActionButton,
+  Chip,
+  type ChipTone,
+  Eyebrow,
+  LinkButton,
+  ZoneFailure,
+} from '@/kit';
 import { EFFORT_ZONE_COLOR, getEffortLevel } from '@/domain/history/effort';
 import type { EffortZone } from '@/domain/history/effort';
 import { rowDate } from '@/domain/history/journal';
@@ -219,6 +227,14 @@ export const ClientPreview = ({
             <Skeleton h="58px" borderRadius="14px" />
             <Skeleton h="58px" borderRadius="14px" />
           </VStack>
+        ) : isUnavailable(historyQuery) ? (
+          // Sans elle, une panne tombait sur l'état vide : « Ses séances
+          // terminées apparaîtront ici », pour un client qui en a cinquante.
+          <ZoneFailure
+            line="Ses dernières séances n’ont pas pu se charger."
+            onRetry={() => void historyQuery.refetch()}
+            isRetrying={historyQuery.isRefetching}
+          />
         ) : history.length === 0 ? (
           <Text fontSize="sm" color="fg.muted">
             Ses séances terminées apparaîtront ici, avec ce qui en a été dit.

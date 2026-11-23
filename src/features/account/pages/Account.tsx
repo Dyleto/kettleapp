@@ -14,6 +14,7 @@ import { Link as RouterLink, useNavigate } from 'react-router';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { useAccount } from '@/features/account/hooks/useAccount';
+import { isUnavailable } from '@/shared/utils/queryState';
 import { HealthConsentCard } from '@/features/account/components/HealthConsentCard';
 import { DeviceSettings } from '@/features/account/components/DeviceSettings';
 import { DeleteAccountDialog } from '@/features/account/components/DeleteAccountDialog';
@@ -26,6 +27,7 @@ import {
   Eyebrow,
   Sheet,
   LoadingShapes,
+  ZoneFailure,
 } from '@/kit';
 import { LEGAL, LEGAL_ROUTES } from '@/shared/config/legal';
 import { CLIENT_ROUTES, COACH_ROUTES } from '@/shared/config/routes';
@@ -154,7 +156,13 @@ const Account = ({ space }: { space: 'client' | 'coach' }) => {
   useDocumentTitle('Mon compte');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { data, isLoading } = useAccount();
+  const accountQuery = useAccount();
+  const { data, isLoading } = accountQuery;
+  // Le résumé qui ne répond pas : la panne prend la place du bloc du milieu,
+  // et le reste — l'identité, les réglages, les liens, la déconnexion — ne
+  // dépend pas de lui et reste à sa place. Les deux blocs disparaissaient
+  // sans un mot, comme si le compte n'avait ni coach ni activité.
+  const summaryDown = isUnavailable(accountQuery);
   const [deleting, setDeleting] = useState(false);
   const [sheet, setSheet] = useState<'copy' | 'invite' | null>(null);
 
@@ -229,6 +237,20 @@ const Account = ({ space }: { space: 'client' | 'coach' }) => {
             </Text>
           </VStack>
         </HStack>
+
+        {summaryDown && (
+          <Box pt="8px">
+            <ZoneFailure
+              line={
+                inClientSpace
+                  ? 'Ton coach et tes données de santé n’ont pas pu se charger. Rien n’a changé.'
+                  : 'Ton activité n’a pas pu se charger. Rien n’a changé.'
+              }
+              onRetry={() => void accountQuery.refetch()}
+              isRetrying={accountQuery.isRefetching}
+            />
+          </Box>
+        )}
 
         {inClientSpace && data?.asClient && (
           <>
@@ -349,19 +371,23 @@ const Account = ({ space }: { space: 'client' | 'coach' }) => {
           <LuLogOut size={18} aria-hidden />
           Se déconnecter
         </ActionButton>
-        <chakra.button
-          type="button"
-          onClick={() => setDeleting(true)}
-          alignSelf="center"
-          minH="44px"
-          px="12px"
-          color="app.error"
-          fontSize="sm"
-          fontWeight="600"
-          _hover={{ textDecoration: 'underline' }}
-        >
-          Supprimer mon compte
-        </chakra.button>
+        {/* La suppression dit ce qui disparaît, avec les vrais nombres :
+            sans le résumé, elle ne le peut pas. Elle revient avec lui. */}
+        {data && (
+          <chakra.button
+            type="button"
+            onClick={() => setDeleting(true)}
+            alignSelf="center"
+            minH="44px"
+            px="12px"
+            color="app.error"
+            fontSize="sm"
+            fontWeight="600"
+            _hover={{ textDecoration: 'underline' }}
+          >
+            Supprimer mon compte
+          </chakra.button>
+        )}
       </VStack>
 
       {sheet === 'copy' && <DataCopySheet onClose={() => setSheet(null)} />}

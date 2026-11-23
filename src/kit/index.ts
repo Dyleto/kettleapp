@@ -43,3 +43,4 @@ export { Sheet } from './Sheet';
 export { SortMenu } from './SortMenu';
 export { Strokes, type StrokeShape } from './Strokes';
 export { ToggleRow } from './ToggleRow';
+export { ZoneFailure } from './ZoneFailure';

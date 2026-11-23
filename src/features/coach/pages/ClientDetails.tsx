@@ -54,12 +54,17 @@ import {
   PillButton,
   TOUCH,
   LoadingShapes,
+  ZoneFailure,
 } from '@/kit';
 import { Header } from '@/shared/components/Header';
 import { COACH_ROUTES } from '@/shared/config/routes';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { Exercise, Session } from '@/shared/types';
 import { ExerciseSheet } from '@/features/exercise';
+
+/** Un historique absent, toujours le même : `?? []` en ferait un nouveau à
+ * chaque rendu, et chaque calcul qui en dépend repartirait. */
+const NO_HISTORY: never[] = [];
 
 const ClientDetails = () => {
   const { clientId, sessionIndex } = useParams();
@@ -69,7 +74,12 @@ const ClientDetails = () => {
 
   const clientQuery = useClientDetails(clientId!);
   const { data: client, isLoading } = clientQuery;
-  const { data: history = [] } = useClientHistory(clientId!);
+  const historyQuery = useClientHistory(clientId!);
+  const history = historyQuery.data ?? NO_HISTORY;
+  // L'historique qui ne répond pas n'est pas un historique vide : le rail
+  // aurait dit « jamais faite » sous chaque séance, et la colonne des
+  // ressentis qu'il n'y en a aucun. Le programme, lui, reste éditable.
+  const historyDown = isUnavailable(historyQuery);
 
   // Le nom du client, et non « Séance 1 » : c'est ce qui distingue deux
   // onglets ouverts côte à côte, et c'est le constat qu'on corrige. Pendant le
@@ -378,7 +388,7 @@ const ClientDetails = () => {
               } else addSession();
             }}
             onReorder={actions.reorderSessions}
-            history={history}
+            history={historyDown ? undefined : history}
             menuFor={(session) => actionsFor(session)}
           />
 
@@ -518,6 +528,12 @@ const ClientDetails = () => {
                       session={activeSession}
                       blockId={previewBlockId}
                       viewer={client.firstName ?? 'le client'}
+                    />
+                  ) : historyDown ? (
+                    <ZoneFailure
+                      line="Ses ressentis n’ont pas pu se charger. Son programme, lui, est là."
+                      onRetry={() => void historyQuery.refetch()}
+                      isRetrying={historyQuery.isRefetching}
                     />
                   ) : (
                     <SessionFeedbackPanel history={sessionHistory} />
