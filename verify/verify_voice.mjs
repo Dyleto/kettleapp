@@ -158,6 +158,12 @@ const browser = await launch();
       },
     });
   await ctx.route(INVITE, accept);
+  // Quelqu'un qui n'a pas encore de compte : le serveur d'essai tient tout
+  // le monde pour connecté, et une session ouverte demande « Rejoindre Julie
+  // avec ce compte ? » (F9b, `verify_join`).
+  await ctx.route(/\/api\/auth\/me$/, (r) =>
+    r.fulfill({ status: 401, json: { message: 'Non connecté' } })
+  );
   const p = await ctx.newPage();
   p.on('pageerror', (e) => console.log('[pageerror]', e.message));
   await p.goto(`${BASE}/join?token=abc`, { waitUntil: 'domcontentloaded' });

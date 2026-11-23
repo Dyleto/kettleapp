@@ -44,6 +44,19 @@ export const authService = {
     await api.post('/api/auth/logout');
   },
 
+  /**
+   * Rejoindre le coach d'un lien avec le compte déjà ouvert (F9b).
+   *
+   * Le compte rejoint est celui de la session : seul le jeton part. L'API
+   * rend l'utilisateur à jour, désormais client.
+   */
+  join: async (invitationToken: string): Promise<User> => {
+    const { data } = await api.post<{ user: User }>('/api/auth/join', {
+      invitationToken,
+    });
+    return data.user;
+  },
+
   // Vérifier un lien d'invitation. Publique : on arrive dessus sans compte.
   verifyInviteToken: async (token: string) => {
     const { data } = await api.get(

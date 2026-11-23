@@ -54,8 +54,8 @@ export default {
       edits: [
         {
           file: 'src/features/auth/pages/Join.tsx',
-          from: "{coachFirstName} t'invite sur Kettle",
-          to: '{coachFirstName} vous invite à le rejoindre',
+          from: "            : `${Who} t'invite sur Kettle`}",
+          to: '            : `${Who} vous invite à le rejoindre`}',
         },
       ],
       falls: [

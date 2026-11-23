@@ -1,5 +1,10 @@
+import { useEffect } from 'react';
 import GoogleLoginButton from '@/features/auth/components/GoogleLoginButton';
-import { useVerifyInviteToken } from '@/features/auth';
+import { useJoinCoach, useVerifyInviteToken } from '@/features/auth';
+import { authService } from '@/features/auth/auth.service';
+import { useAuth } from '@/shared/contexts/useAuth';
+import { toaster } from '@/shared/components/ui/toasterInstance';
+import { CLIENT_ROUTES } from '@/shared/config/routes';
 import {
   Avatar,
   Box,
@@ -8,7 +13,7 @@ import {
   Text,
   VStack,
 } from '@chakra-ui/react';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { LegalFooter } from '@/shared/components/LegalFooter';
 import { ActionButton, EmptyState, ErrorState } from '@/kit';
 import { isRefusal } from '@/shared/utils/queryState';
@@ -88,10 +93,28 @@ const DeadLink = () => (
   />
 );
 
+/**
+ * L'écran d'un lien d'invitation : qui invite, et de quoi le rejoindre.
+ *
+ * Sans session, « Rejoindre avec Google » crée le compte et le rattache.
+ * Avec une session (F9b), deux cas que Google ne savait pas distinguer —
+ * le lien renvoyait chez lui pour la même adresse :
+ *
+ * - un client qui suit déjà ce coach va droit à son accueil, avec « Tu es
+ *   déjà avec Julie » : il n'a rien à rejoindre ;
+ * - tout autre compte se voit demander « Rejoindre Julie avec ce compte ? »
+ *   avant d'être rattaché. Rattacher sans demander aurait fait d'un lien
+ *   ouvert par erreur — sur le téléphone d'un autre, dans la session d'un
+ *   coach — un rattachement. « Utiliser un autre compte » ferme la session
+ *   et revient au même lien.
+ */
 const Join = () => {
   useDocumentTitle('Invitation');
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const invitationToken = searchParams.get('token') ?? undefined;
+  const { user, isLoading: authLoading } = useAuth();
+  const join = useJoinCoach();
 
   const { data, isLoading, error, refetch, isRefetching } =
     useVerifyInviteToken(invitationToken);
@@ -100,12 +123,32 @@ const Join = () => {
     ? `${data.coach.firstName ?? ''} ${data.coach.lastName ?? ''}`.trim()
     : '';
   // Le prénom dans le titre, le nom entier dans la précision qui suit : on
-  // est invité par quelqu'un, et rattaché à un compte.
-  const coachFirstName = data?.coach.firstName ?? coachName;
+  // est invité par quelqu'un, et rattaché à un compte. Sans nom du tout, le
+  // titre commençait par une espace : « ton coach ».
+  const coachFirstName = data?.coach.firstName?.trim() || coachName;
+  const who = coachFirstName || 'ton coach';
+  const Who = coachFirstName || 'Ton coach';
+  const alreadyLinked = !!user && !!data?.alreadyLinked;
+
+  useEffect(() => {
+    if (!alreadyLinked) return;
+    toaster.create({ type: 'info', title: `Tu es déjà avec ${who}` });
+    navigate(CLIENT_ROUTES.today, { replace: true });
+  }, [alreadyLinked, who, navigate]);
+
+  const otherAccount = async () => {
+    try {
+      await authService.logout();
+    } finally {
+      window.location.href = `/join?token=${encodeURIComponent(
+        invitationToken ?? ''
+      )}`;
+    }
+  };
 
   const getContent = () => {
     if (!invitationToken) return <IncompleteLink />;
-    if (isLoading) return <Waiting />;
+    if (isLoading || authLoading || alreadyLinked) return <Waiting />;
 
     if (error) {
       // Seul un refus du serveur dit quelque chose du lien. Une coupure de
@@ -150,7 +193,9 @@ const Join = () => {
           fontStretch="88%"
           maxW="14ch"
         >
-          {coachFirstName} t'invite sur Kettle
+          {user
+            ? `Rejoindre ${who} avec ce compte ?`
+            : `${Who} t'invite sur Kettle`}
         </Text>
         <Text
           color="fg.muted"
@@ -159,12 +204,45 @@ const Join = () => {
           maxW="30ch"
           mb={2}
         >
-          Crée ton compte pour recevoir ton programme et suivre tes séances.
+          {user
+            ? `Le compte ouvert ici : ${user.email}.`
+            : 'Crée ton compte pour recevoir ton programme et suivre tes séances.'}
         </Text>
-        <GoogleLoginButton
-          text="Rejoindre avec Google"
-          invitationToken={invitationToken}
-        />
+        {user ? (
+          <VStack w="100%" gap="10px">
+            {join.isError && (
+              <Text role="alert" fontSize="sm" color="fg.muted">
+                Le rattachement n'a pas abouti : rien n'a changé. Réessaie.
+              </Text>
+            )}
+            <ActionButton
+              w="full"
+              loading={join.isPending}
+              onClick={() =>
+                join.mutate(invitationToken, {
+                  onSuccess: () =>
+                    navigate(CLIENT_ROUTES.today, { replace: true }),
+                })
+              }
+            >
+              Rejoindre {who}
+            </ActionButton>
+            <ActionButton
+              tone="ghost"
+              size="md"
+              w="full"
+              disabled={join.isPending}
+              onClick={() => void otherAccount()}
+            >
+              Utiliser un autre compte
+            </ActionButton>
+          </VStack>
+        ) : (
+          <GoogleLoginButton
+            text="Rejoindre avec Google"
+            invitationToken={invitationToken}
+          />
+        )}
       </VStack>
     );
   };
@@ -191,7 +269,9 @@ const Join = () => {
 
           {getContent()}
 
-          {invitationToken && !isLoading && !error && (
+          {/* « Rien d'autre à créer » ne vaut que pour qui n'a pas de
+              compte. */}
+          {invitationToken && !isLoading && !error && !user && (
             <Text fontSize="xs" color="fg.muted" textAlign="center" maxW="32ch">
               Ton compte sera rattaché à {coachName}. Rien d'autre à créer.
             </Text>

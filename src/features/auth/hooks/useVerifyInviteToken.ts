@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/shared/config/api';
-import { InvitedCoach } from '@/shared/types';
+import type { InviteCheck } from '@/shared/types';
 import { queryKeys } from '@/shared/config/queryKeys';
-
-interface VerifyTokenResponse {
-  coach: InvitedCoach;
-}
 
 /**
  * Vérifier un lien d'invitation avant toute connexion.
+ *
+ * La réponse se type par le contrat : une interface écrite ici ne disait
+ * que le coach, et ignorait `alreadyLinked` que l'API envoie désormais.
  *
  * `staleTime: Infinity` et aucune reprise : un jeton ne change pas, et son
  * refus non plus. Réessayer donnerait trois fois la même erreur sur l'écran
@@ -20,7 +19,7 @@ export const useVerifyInviteToken = (token: string | undefined) => {
     queryFn: async () => {
       if (!token) throw new Error('No token provided');
 
-      const response = await api.get<VerifyTokenResponse>(
+      const response = await api.get<InviteCheck>(
         `/api/auth/verify-invite-token?token=${token}`
       );
       return response.data;

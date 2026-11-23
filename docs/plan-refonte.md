@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 916 tests unitaires, 55 suites de banc et 1 008
-assertions, 5 min 24 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 23 novembre : 916 tests unitaires, 56 suites de banc et 1 014
+assertions, 5 min 17 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -658,7 +658,7 @@ banc actuel, inchangé, qui le prouve.
         rouvre : le client sans séance de `verify_home` les avait trouvées
         devant son accueil. Le rejeu a trouvé une mesure qui attendait une
         carte absente au lieu de rendre rien.
-- [ ] **F9** Connexion et invitation : grand écran, compte déjà connecté,
+- [x] **F9** Connexion et invitation : grand écran, compte déjà connecté,
       déjà client. En deux temps.
   - [x] **F9a** La connexion. La mascotte, le nom du produit, et une phrase
         à la place des trois puces ; « Continuer avec Google », puis les
@@ -670,10 +670,19 @@ banc actuel, inchangé, qui le prouve.
         « J'ai déjà un compte coach » part chez Google. Sur grand écran,
         deux volets : la promesse à gauche, l'action dans 480 px à droite.
         L'écran n'avait aucune suite de banc ; il a la sienne.
-  - [ ] **F9b** L'invitation ouverte avec un compte déjà connecté :
-        « Rejoindre Julie avec ce compte ? », et « Tu es déjà avec Julie »
-        pour un client qui l'est. L'API est prête (`7279e19`) :
-        `POST /auth/join`, et `alreadyLinked` sur la vérification du lien.
+  - [x] **F9b** L'invitation ouverte sur un compte déjà connecté. Un
+        client qui suit déjà ce coach va droit à son accueil, avec « Tu es
+        déjà avec Julie » ; tout autre compte se voit demander « Rejoindre
+        Julie avec ce compte ? », avec l'adresse du compte ouvert, avant
+        d'être rattaché — un lien ouvert par erreur, dans la session d'un
+        autre, n'est plus un rattachement. « Utiliser un autre compte »
+        ferme la session et revient au même lien. Avant, le lien renvoyait
+        chez Google pour la même adresse. L'API (`7279e19`) ajoute
+        `POST /auth/join`, qui rattache le compte de la session et lui seul,
+        et `alreadyLinked` sur la vérification du lien. Sans prénom, le
+        titre dit « Ton coach t'invite sur Kettle » au lieu de commencer
+        par une espace. Le type de la vérification, écrit à la main, vient
+        du contrat.
 - [ ] **F10** Mon compte et Administration aux composants du kit ;
       déconnexion sur l'écran.
 
@@ -703,8 +712,8 @@ banc actuel, inchangé, qui le prouve.
 - [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
 - [ ] **H4** Mise en production, dans l'ordre : `npm run verify:copy` depuis
       une machine en réseau, `npm run migrate:ladder` sur la base, l'API
-      (jusqu'à `f70a7e2`, dont les cartes des modèles lisent l'aperçu),
-      puis le front. Ensuite seulement, retirer de l'API
+      (jusqu'à `7279e19`, dont l'invitation d'un compte connecté se
+      sert), puis le front. Ensuite seulement, retirer de l'API
       `PATCH /coach/clients/:id/history/mark-viewed`, que le front n'appelle
       plus depuis E11b.
 

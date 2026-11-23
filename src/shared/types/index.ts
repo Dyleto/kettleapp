@@ -86,6 +86,9 @@ export type InboxItem = InboxItemPayload;
  * que l'écran affiche.
  */
 export type InvitedCoach = InviteCheckPayload['coach'];
+/** Ce que dit la vérification d'un lien d'invitation : qui invite, et si
+ * la session ouverte suit déjà ce coach (F9b). */
+export type InviteCheck = InviteCheckPayload;
 
 /** Un mouvement de la bibliothèque du coach. */
 export type Exercise = ExercisePayload;
