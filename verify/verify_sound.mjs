@@ -290,7 +290,7 @@ const browser = await launch();
   await p.clock.resume();
   await p.goto(`${BASE}/client/account`, { waitUntil: 'domcontentloaded' });
   const setting = p.getByRole('switch', {
-    name: 'Les bips de la séance guidée',
+    name: 'Sons du chronomètre',
   });
   await setting.waitFor({ timeout: 6000 }).catch(() => {});
   const shownMuted =
@@ -444,7 +444,7 @@ const felt = (p) => p.evaluate(() => window.__buzz ?? []);
   await feel(ctx, { none: true });
   const p = await signIn(ctx);
   await p.goto(`${BASE}/client/account`, { waitUntil: 'domcontentloaded' });
-  const bips = p.getByRole('switch', { name: 'Les bips de la séance guidée' });
+  const bips = p.getByRole('switch', { name: 'Sons du chronomètre' });
   await bips.waitFor({ timeout: 6000 }).catch(() => {});
   ok(
     'sans vibreur, « Vibrations » ne s’affiche pas',

@@ -1,5 +1,9 @@
 /** Les sabotages de `verify_login.mjs`. Voir `../run.mjs`. */
 const PAGE = 'src/features/auth/pages/Login.tsx';
+// La feuille de l'invitation et le champ à copier ont quitté la page :
+// « Mon compte » s'en sert aussi (F10a).
+const INVITE_SHEET = 'src/features/auth/components/InviteSheet.tsx';
+const COPY_FIELD = 'src/kit/CopyField.tsx';
 
 const PROMISE = 'une promesse en une phrase, sous le nom du produit';
 const ACTION =
@@ -58,14 +62,16 @@ export default {
     },
     {
       name: '« Continuer » s’active sans lien',
-      edits: [{ file: PAGE, from: '          disabled={!token}\n', to: '' }],
+      edits: [
+        { file: INVITE_SHEET, from: '          disabled={!token}\n', to: '' },
+      ],
       falls: [INVITE],
     },
     {
       name: 'un texte qui n’est pas un lien ne dit rien',
       edits: [
         {
-          file: PAGE,
+          file: INVITE_SHEET,
           from: '        {pasted.trim() && !token && (',
           to: '        {false && (',
         },
@@ -76,7 +82,7 @@ export default {
       name: '« Continuer » oublie le jeton',
       edits: [
         {
-          file: PAGE,
+          file: INVITE_SHEET,
           from: '          onClick={() => token && navigate(`/join?token=${token}`)}',
           to: "          onClick={() => token && navigate('/join')}",
         },
@@ -100,8 +106,8 @@ export default {
       name: 'la copie ne copie rien',
       edits: [
         {
-          file: PAGE,
-          from: '      await navigator.clipboard.writeText(address);',
+          file: COPY_FIELD,
+          from: '      await navigator.clipboard.writeText(value);',
           to: "      await navigator.clipboard.writeText('');",
         },
       ],
@@ -111,7 +117,7 @@ export default {
       name: 'une copie refusée ne sélectionne pas l’adresse',
       edits: [
         {
-          file: PAGE,
+          file: COPY_FIELD,
           from: '      if (field) window.getSelection()?.selectAllChildren(field);\n',
           to: '',
         },

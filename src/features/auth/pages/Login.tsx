@@ -9,17 +9,17 @@ import {
   useBreakpointValue,
   VStack,
 } from '@chakra-ui/react';
-import { LuCheck, LuChevronRight, LuCopy } from 'react-icons/lu';
+import { LuChevronRight } from 'react-icons/lu';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@/shared/contexts/useAuth';
 import { LegalFooter } from '@/shared/components/LegalFooter';
 import { useDocumentTitle } from '@/shared/hooks/useDocumentTitle';
 import GoogleLoginButton from '@/features/auth/components/GoogleLoginButton';
+import { InviteSheet } from '@/features/auth/components/InviteSheet';
 import { useGoogleOAuth } from '@/features/auth/hooks/useGoogleOAuth';
 import { useSheetDismiss } from '@/features/workshop';
-import { ActionButton, hitArea, Mascot, Sheet } from '@/kit';
+import { ActionButton, CopyField, Mascot, Sheet } from '@/kit';
 import { LEGAL } from '@/shared/config/legal';
-import { invitationTokenFrom } from '@/domain/invitation/link';
 
 /**
  * La promesse, en une phrase.
@@ -63,101 +63,16 @@ const PathRow = ({ label, onOpen }: { label: string; onOpen: () => void }) => (
 );
 
 /**
- * « J'ai reçu une invitation » : quoi faire, et de quoi coller le lien.
- *
- * Se connecter ici sans lien crée un compte rattaché à personne : le client
- * n'y voit aucune séance, et c'était la boucle de l'entrée A1. La feuille
- * renvoie donc au lien du coach — l'ouvrir suffit — et accepte qu'on le
- * colle, pour qui ne le retrouve que sous forme de texte. « Continuer »
- * s'active quand le texte en a l'air, et mène à l'écran d'invitation, qui
- * vérifie le jeton.
- */
-const InviteSheet = ({ onClose }: { onClose: () => void }) => {
-  useSheetDismiss(true, onClose);
-  const navigate = useNavigate();
-  const [pasted, setPasted] = useState('');
-  const token = invitationTokenFrom(pasted);
-  const title = 'Tu as reçu un lien ?';
-  return (
-    <Portal>
-      <Sheet label={title} onDismiss={onClose}>
-        <Text as="h2" fontWeight="800" fontSize="22px">
-          {title}
-        </Text>
-        <Text color="fg.muted">
-          Ouvre-le : il te rattache à ton coach et crée ton compte en même
-          temps. Si tu l'as perdu, demande-lui de te le renvoyer.
-        </Text>
-        <chakra.input
-          type="url"
-          inputMode="url"
-          aria-label="Ton lien d'invitation"
-          placeholder="Ou colle ton lien ici"
-          value={pasted}
-          onChange={(e) => setPasted(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && token) navigate(`/join?token=${token}`);
-          }}
-          minH="50px"
-          px="16px"
-          borderRadius="17px"
-          bg="surface.card"
-          border="none"
-          outline="none"
-          boxShadow="inset 0 0 0 1.5px {colors.line}"
-          _focus={{ boxShadow: 'inset 0 0 0 2px {colors.app.primary}' }}
-          color="fg"
-          _placeholder={{ color: 'fg.muted' }}
-        />
-        {pasted.trim() && !token && (
-          <Text fontSize="sm" color="fg.muted" data-paste-hint>
-            Ce n'est pas encore un lien d'invitation : il contient
-            «&nbsp;join?token=&nbsp;».
-          </Text>
-        )}
-        <ActionButton
-          w="full"
-          disabled={!token}
-          onClick={() => token && navigate(`/join?token=${token}`)}
-        >
-          Continuer
-        </ActionButton>
-      </Sheet>
-    </Portal>
-  );
-};
-
-/**
  * « Je suis coach » : comment obtenir un compte, et l'adresse à copier.
  *
  * L'espace coach ne s'ouvre pas tout seul à l'inscription. L'adresse se
- * copie d'une touche ; une copie refusée la sélectionne et le dit, comme le
- * lien d'invitation du coach (F5a). « J'ai déjà un compte coach » mène à la
+ * copie d'une touche (`CopyField`). « J'ai déjà un compte coach » mène à la
  * connexion Google : c'est ce qu'un coach venu par ce chemin cherchait.
  */
 const CoachSheet = ({ onClose }: { onClose: () => void }) => {
   useSheetDismiss(true, onClose);
   const { loginWithGoogle } = useGoogleOAuth();
-  const [copy, setCopy] = useState<'idle' | 'copied' | 'refused'>('idle');
-  const address = LEGAL.publisher.contactEmail;
   const title = 'Tu es coach ?';
-
-  useEffect(() => {
-    if (copy !== 'copied') return;
-    const timer = setTimeout(() => setCopy('idle'), 2000);
-    return () => clearTimeout(timer);
-  }, [copy]);
-
-  const copyAddress = async () => {
-    try {
-      await navigator.clipboard.writeText(address);
-      setCopy('copied');
-    } catch {
-      const field = document.getElementById('coach-address');
-      if (field) window.getSelection()?.selectAllChildren(field);
-      setCopy('refused');
-    }
-  };
 
   return (
     <Portal>
@@ -169,35 +84,7 @@ const CoachSheet = ({ onClose }: { onClose: () => void }) => {
           Les comptes de coach sont ouverts à la main, le temps que Kettle
           grandisse. Écris-nous, on te répond vite.
         </Text>
-        <HStack
-          minH="50px"
-          pl="16px"
-          pr="6px"
-          borderRadius="17px"
-          bg="surface.card"
-          boxShadow="inset 0 0 0 1.5px {colors.line}"
-        >
-          <Text id="coach-address" flex={1} minW={0} truncate>
-            {address}
-          </Text>
-          <chakra.button
-            type="button"
-            aria-label="Copier l'adresse"
-            onClick={() => void copyAddress()}
-            color={copy === 'copied' ? 'app.primary' : 'fg.muted'}
-            p="8px"
-            css={hitArea(44)}
-          >
-            {copy === 'copied' ? <LuCheck size={18} /> : <LuCopy size={18} />}
-          </chakra.button>
-        </HStack>
-        {copy !== 'idle' && (
-          <Text role="status" fontSize="sm" color="fg.muted">
-            {copy === 'copied'
-              ? 'Adresse copiée.'
-              : 'La copie n’est pas permise ici : l’adresse est sélectionnée, copie-la à la main.'}
-          </Text>
-        )}
+        <CopyField value={LEGAL.publisher.contactEmail} />
         <ActionButton
           tone="ghost"
           size="md"

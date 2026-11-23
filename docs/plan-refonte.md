@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 916 tests unitaires, 56 suites de banc et 1 014
-assertions, 5 min 17 s pour le banc complet (14 min 23 s avant qu'il
+Mesures au 23 novembre : 925 tests unitaires, 57 suites de banc et 1 027
+assertions, 5 min 53 s pour le banc complet (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
 ## 2. Le relevé, écran par écran
@@ -684,7 +684,24 @@ banc actuel, inchangé, qui le prouve.
         par une espace. Le type de la vérification, écrit à la main, vient
         du contrat.
 - [ ] **F10** Mon compte et Administration aux composants du kit ;
-      déconnexion sur l'écran.
+      déconnexion sur l'écran. En deux temps.
+  - [x] **F10a** Mon compte, en une colonne de 640 px : l'identité (« compte
+        Google »), puis le bloc de l'espace où l'on est — son coach, depuis
+        quand et combien de séances, et les données de santé côté client ;
+        l'activité côté coach. Un compte à deux rôles lisait les deux blocs
+        l'un sous l'autre. « Pendant la séance » : « Sons du chronomètre »
+        et « Vibrations », sur une ligne à interrupteur que le kit gagne
+        (`ToggleRow`). Les lignes légales, et « Recevoir une copie de mes
+        données », qui donne l'adresse à copier et le délai d'un mois — le
+        champ à copier passe au kit (`CopyField`), partagé avec la
+        connexion. « Se déconnecter » est sur l'écran. « Supprimer mon
+        compte » dit ce qui disparaît, puis attend le mot « SUPPRIMER »
+        avant d'armer le bouton rouge. Sans coach : « Aucun coach pour
+        l'instant », et la feuille qui accepte un lien collé. Les phrases
+        qui se comptent sortent du composant (`domain/account/summary`) ;
+        « 1 juin » devient « 1er juin ». L'écran n'avait aucune suite ; il a
+        la sienne.
+  - [ ] **F10b** Administration aux composants du kit, « Nouveau coach ».
 
 ### G. États du système et mouvement
 
@@ -743,6 +760,12 @@ Aucun n'est un choix : celui qui reste attend sa ligne du plan.
 - **La tuile « à relancer » dit sa règle** — « 14 jours sans séance » — et
   non « rien depuis 3 sem. », qui ne vaut que pour un client du décor
   (F4a).
+- **Arrêter le partage des données de santé efface ce qui a été envoyé**,
+  et ne propose pas de le garder visible du coach comme la maquette
+  (« Arrêter le partage » ou « Arrêter et effacer ») : Kettle a choisi
+  d'effacer, sans quoi la donnée resterait en base sans plus rien pour la
+  justifier, et l'API ne sait pas faire autrement. Une décision juridique,
+  à confirmer avant de changer quoi que ce soit (F10a).
 - **La promesse de la connexion finit par « Ton ressenti règle la
   suite »**, et non « Il ajuste » : un accord sur un coach dont on ne
   connaît pas le genre, que Kettle n'écrit plus nulle part (F8a, F9a). Un

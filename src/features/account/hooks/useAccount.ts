@@ -56,11 +56,6 @@ export const useDeleteAccount = () =>
       // par un rechargement complet : rien en mémoire ne doit survivre.
       window.location.href = '/login';
     },
-    onError: () => {
-      toaster.create({
-        title: 'La suppression a échoué',
-        description: 'Rien n’a été supprimé. Réessaie dans un moment.',
-        type: 'error',
-      });
-    },
+    // L'échec se dit dans la boîte, qui reste ouverte : un bandeau en plus
+    // aurait dit deux fois la même chose (F10a).
   });

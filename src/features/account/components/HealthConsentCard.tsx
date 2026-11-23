@@ -1,49 +1,45 @@
 import { useState } from 'react';
-import { Box, HStack, Spinner, Text, VStack } from '@chakra-ui/react';
-import { HealthConsent } from '@/shared/types';
+import { Box, Text } from '@chakra-ui/react';
+import { ToggleRow } from '@/kit';
+import type { HealthConsent } from '@/shared/types';
 import { useSetHealthConsent } from '../hooks/useAccount';
+import { containedLine, fullDay } from '@/domain/account/summary';
 import { ConfirmHealthOptOut } from './ConfirmHealthOptOut';
 
-interface Props {
+/**
+ * Le partage des données de santé, et la trace de la dernière décision.
+ *
+ * L'intitulé dit avec qui elles sont partagées — « Partagées avec Julie » —
+ * et la ligne ce qu'elles sont et combien de séances en portent : le nombre
+ * réel, au singulier à un, absent à zéro. Il disait « Partager mes
+ * ressentis » à la première personne, pour échapper au vouvoiement du
+ * coach ; Kettle tutoie tout le monde désormais.
+ *
+ * Donner son accord tient en un geste. Le retirer aussi quand rien n'est
+ * enregistré ; sinon une boîte annonce ce qui s'efface, avec le nombre, et
+ * c'est sans retour. La maquette proposait d'arrêter le partage en gardant
+ * ce qui a été envoyé : Kettle efface — sans quoi la donnée resterait en
+ * base sans plus rien pour la justifier —, et l'écart est noté au plan.
+ */
+export const HealthConsentCard = ({
+  consent,
+  healthDataCount,
+  sharedWith,
+}: {
   consent: HealthConsent | null;
   /** Combien de bilans un retrait effacerait. */
   healthDataCount: number;
-}
-
-const DAY_FORMAT = new Intl.DateTimeFormat('fr-FR', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
-
-/**
- * L'interrupteur du partage du ressenti, et la trace de la dernière décision.
- *
- * Retirer son accord doit être aussi simple que le donner : le même geste, au
- * même endroit, sans confirmation. Un consentement qu'on ne peut pas retirer
- * d'un doigt n'en est pas un.
- *
- * Tout y est écrit à la première personne, et non par goût : cette carte
- * apparaît dans les deux espaces, où Kettle n'emploie pas la même adresse —
- * elle tutoie le client et vouvoie le coach. Un compte portant les deux rôles
- * lisait donc « Ton coach voit ce que tu déclares » au milieu d'une page qui
- * vouvoyait partout ailleurs. La première personne échappe au problème sans
- * traîner un booléen dans chaque phrase, et c'est de toute façon la voix d'un
- * consentement : on déclare ce qu'on accepte, on ne se l'entend pas dire.
- */
-export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
+  /** « Julie », « tes coachs », « ton coach ». */
+  sharedWith: string;
+}) => {
   const { mutate, isPending } = useSetHealthConsent();
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const granted = consent?.granted === true;
 
-  // Donner son accord tient en un geste. Le retirer aussi — la boîte ne
-  // demande pas de confirmer une intention, elle annonce une conséquence : ce
-  // qui est déjà enregistré s'efface, et c'est sans retour.
   const toggleConsent = () => {
-    if (isPending) return;
     // Retirer son accord quand rien n'est enregistré n'efface rien : la
-    // boîte n'aurait rien à annoncer, et retirer doit rester aussi simple que
-    // donner.
+    // boîte n'aurait rien à annoncer, et retirer doit rester aussi simple
+    // que donner.
     if (granted && healthDataCount > 0) {
       setIsWithdrawOpen(true);
       return;
@@ -52,72 +48,31 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
   };
 
   return (
-    <VStack
-      align="stretch"
-      gap={3.5}
-      bg="surface.card"
-      borderWidth="1px"
-      borderColor="whiteAlpha.100"
-      borderRadius="xl"
-      p={4}
-    >
-      <HStack align="flex-start" gap={3.5}>
-        <VStack align="start" gap={1.5} flex={1} minW={0}>
-          <Text fontSize="sm" fontWeight="semibold" id="partage-ressenti">
-            Partager mes ressentis
-          </Text>
-          <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-            Mon coach voit ce que je déclare après une séance, y compris une
-            douleur ou une maladie.
-          </Text>
-        </VStack>
-
-        <Box
-          as="button"
-          role="switch"
-          aria-checked={granted}
-          aria-labelledby="partage-ressenti"
-          // `Box as="button"` ne prend pas `disabled` dans Chakra v3 : on
-          // l'annonce et on garde la porte fermée dans le gestionnaire.
-          aria-disabled={isPending}
-          onClick={toggleConsent}
-          flexShrink={0}
-          w="48px"
-          h="28px"
-          p="3px"
-          borderRadius="full"
-          display="flex"
-          alignItems="center"
-          justifyContent={granted ? 'flex-end' : 'flex-start'}
-          bg={granted ? 'app.primary' : 'whiteAlpha.300'}
-          transition="background-color 0.15s"
+    <Box bg="surface.card" borderRadius="card" overflow="hidden">
+      <ToggleRow
+        label={granted ? `Partagées avec ${sharedWith}` : 'Pas partagées'}
+        line={
+          granted
+            ? `Tes étiquettes de ressenti et tes commentaires. ${containedLine(healthDataCount)}`.trim()
+            : consent
+              ? 'Les étiquettes de ressenti et le commentaire ne te sont pas proposés après une séance.'
+              : 'Tu n’as pas encore répondu : choisis ici.'
+        }
+        checked={granted}
+        pending={isPending}
+        onChange={toggleConsent}
+      />
+      {consent && (
+        <Text
+          px="16px"
+          pb="12px"
+          fontSize="sm"
+          color="fg.muted"
+          data-consent-trace
         >
-          {isPending ? (
-            <Spinner size="xs" color="bg.canvas" m="auto" />
-          ) : (
-            <Box w="22px" h="22px" borderRadius="full" bg="bg.canvas" />
-          )}
-        </Box>
-      </HStack>
-
-      <Box h="1px" bg="whiteAlpha.100" />
-
-      <VStack align="start" gap={1.5}>
-        {consent && (
-          <Text fontSize="xs" color="fg.muted">
-            {granted ? 'Accepté' : 'Refusé'} le{' '}
-            <Text as="span" fontVariantNumeric="tabular-nums">
-              {DAY_FORMAT.format(new Date(consent.decidedAt))}
-            </Text>
-          </Text>
-        )}
-        <Text fontSize="xs" color="fg.muted" lineHeight="1.6">
-          En cas de refus, les étiquettes de ressenti et le commentaire libre
-          disparaissent de mon bilan, y compris ceux déjà enregistrés. Mes
-          charges et mes séances restent.
+          {granted ? 'Accepté' : 'Refusé'} le {fullDay(consent.decidedAt)}.
         </Text>
-      </VStack>
-
+      )}
       <ConfirmHealthOptOut
         open={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
@@ -126,10 +81,10 @@ export const HealthConsentCard = ({ consent, healthDataCount }: Props) => {
           setIsWithdrawOpen(false);
         }}
         isPending={isPending}
-        title="Retirer mon accord ?"
-        action="Retirer mon accord"
+        title="Ne plus partager tes données de santé ?"
+        action="Arrêter et effacer"
         count={healthDataCount}
       />
-    </VStack>
+    </Box>
   );
 };
