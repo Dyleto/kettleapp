@@ -42,4 +42,30 @@ describe('decideUpdate', () => {
       decideUpdate({ needRefresh: true, unsaved: true, visible: false })
     ).toBe('ask');
   });
+
+  // Une séance en cours n'a rien à perdre, mais un rechargement au milieu
+  // d'une série la couperait : on attend qu'elle se ferme.
+  it('attend la fin d’une séance en cours, sans rien demander', () => {
+    expect(
+      decideUpdate({
+        needRefresh: true,
+        unsaved: false,
+        busy: true,
+        visible: true,
+      })
+    ).toBe('wait');
+  });
+
+  // Une frappe à enregistrer passe avant la séance : c'est elle qui se
+  // perdrait.
+  it('demande quand une frappe attend, même pendant une séance', () => {
+    expect(
+      decideUpdate({
+        needRefresh: true,
+        unsaved: true,
+        busy: true,
+        visible: true,
+      })
+    ).toBe('ask');
+  });
 });

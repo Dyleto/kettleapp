@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 938 tests unitaires, 62 suites de banc et 1 062
-assertions, 7 min 9 s pour le banc complet sur une machine plus lente
+Mesures au 23 novembre : 940 tests unitaires, 63 suites de banc et 1 067
+assertions, 7 min 53 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -759,7 +759,24 @@ banc actuel, inchangé, qui le prouve.
       huit pour « Annuler ». Le dernier message d'enregistrement
       automatique, « Programme sauvegardé », vivait dans une branche que
       plus aucun écran n'empruntait : partie, avec son option.
-- [ ] **G4** Menu du compte, bandeau de nouvelle version, au kit.
+- [ ] **G4** Menu du compte, bandeau de nouvelle version, au kit. En deux
+      temps.
+  - [x] **G4a** Le bandeau de nouvelle version prend la pièce du kit
+        (`Banner`, à l'ambre) et la phrase de la maquette : « Nouvelle
+        version prête — Elle s'installera dès que ce programme sera
+        enregistré. » Il disait « Recharger », ce qu'il ne fallait
+        justement pas faire avant l'envoi ; « Maintenant » envoie la
+        frappe, et le rechargement suit de lui-même. Deux défauts derrière
+        lui : le registre du travail non enregistré n'était pas observable,
+        et la version attendait le prochain rendu de hasard ; une séance
+        guidée ne s'y déclarait pas, et une version rechargeait la page en
+        pleine série. Elle attend désormais la fin de la séance, sans
+        bandeau par-dessus l'effort. En développement,
+        `window.__kettleNewVersion()` simule une version : sans service
+        worker, le banc n'avait rien à éprouver.
+  - [ ] **G4b** Le menu du compte : une feuille sur téléphone, un menu
+        au-dessus de l'avatar sur grand écran ; « Passer à l'espace coach »
+        pour un compte à deux rôles seulement.
 - [ ] **G5** Mouvement : la valeur qui saute, l'entrée d'une scène, la coche
       qui se dessine, l'anneau de l'accueil quand il a changé.
 - [ ] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.

@@ -291,7 +291,10 @@ export const useProgramAutoSave = ({
   // `state === 'error'` compte comme à risque, alors que l'ancien filet
   // l'ignorait : un envoi qui a échoué est exactement le cas où il reste
   // quelque chose à perdre.
-  useClaimUnsavedWork(atRisk);
+  //
+  // L'envoi est fourni avec : « Maintenant », sur le bandeau de nouvelle
+  // version, fait partir la frappe sans attendre ses 800 ms.
+  useClaimUnsavedWork(atRisk, { flush });
 
   // ── Quitter l'éditeur n'est pas renoncer ─────────────────────────────────
   //

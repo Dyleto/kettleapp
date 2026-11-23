@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { decideUpdate } from '@/shared/updatePolicy';
-import { hasUnsavedWork } from '@/shared/hooks/useUnsavedWork';
+import {
+  flushUnsavedWork,
+  hasUnsavedWork,
+  isBusy,
+  useUnsavedWorkChanges,
+} from '@/shared/hooks/useUnsavedWork';
 
 /**
  * À quelle fréquence demander au serveur s'il y a du neuf.
@@ -17,8 +22,20 @@ const CHECK_INTERVAL = 60 * 1000;
 interface AppUpdate {
   /** Une nouvelle version attend, et quelque chose empêche de la prendre. */
   pending: boolean;
-  /** Prendre la nouvelle version maintenant : la page se recharge. */
-  reload: () => void;
+  /**
+   * « Maintenant » : envoie tout de suite ce qui attend. Le rechargement
+   * suit de lui-même, dès que le registre dit que plus rien n'est à perdre
+   * — recharger avant, ce serait perdre ce qu'on vient d'envoyer.
+   */
+  installNow: () => void;
+}
+
+/** Ce que le banc appelle pour simuler une nouvelle version, en
+ * développement seulement : un service worker ne s'y met pas à jour. */
+declare global {
+  interface Window {
+    __kettleNewVersion?: () => void;
+  }
 }
 
 /**
@@ -48,7 +65,7 @@ export const useAppUpdate = (): AppUpdate => {
     useState<ServiceWorkerRegistration | null>(null);
 
   const {
-    needRefresh: [needRefresh],
+    needRefresh: [swNeedsRefresh],
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_url, r) {
@@ -84,17 +101,41 @@ export const useAppUpdate = (): AppUpdate => {
     return () => clearInterval(timer);
   }, [registration, visible]);
 
-  const reload = useCallback(() => {
-    void updateServiceWorker(true);
-  }, [updateServiceWorker]);
+  // ── Une version simulée, pour le banc ────────────────────────────────────
+  //
+  // En développement, aucun service worker ne s'installe : sans cette porte,
+  // le bandeau et ses règles ne s'éprouveraient que sur la production.
+  // Absente du paquet de production — `import.meta.env.DEV` y vaut `false`.
+  const [simulated, setSimulated] = useState(false);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    window.__kettleNewVersion = () => setSimulated(true);
+    return () => {
+      delete window.__kettleNewVersion;
+    };
+  }, []);
+  const needRefresh = swNeedsRefresh || simulated;
 
-  // `hasUnsavedWork()` se lit ici et non en dépendance : c'est un registre de
-  // module, il ne déclenche pas de rendu. La décision est donc reprise à
-  // chaque rendu, et ce qui la fait changer — une version qui arrive, un
-  // onglet qui revient, une frappe qui part — en provoque un.
+  const reload = useCallback(() => {
+    if (!simulated) {
+      void updateServiceWorker(true);
+      return;
+    }
+    // Un tour plus tard, comme en production, où le rechargement attend que
+    // le nouveau service worker ait pris la main. Immédiat, il était annulé
+    // par le retour d'historique que fait la sortie d'une séance : la
+    // version simulée ne s'installait jamais à la fin d'une séance.
+    setTimeout(() => window.location.reload(), 0);
+  }, [simulated, updateServiceWorker]);
+
+  // Le registre se lit ici, mais son abonnement redessine ce hook à chaque
+  // changement : une frappe qui part, une séance qui se ferme. Sans lui, la
+  // décision n'était reprise qu'au prochain rendu de hasard.
+  useUnsavedWorkChanges();
   const decision = decideUpdate({
     needRefresh,
     unsaved: hasUnsavedWork(),
+    busy: isBusy(),
     visible,
   });
 
@@ -102,5 +143,5 @@ export const useAppUpdate = (): AppUpdate => {
     if (decision === 'reload') reload();
   }, [decision, reload]);
 
-  return { pending: decision === 'ask', reload };
+  return { pending: decision === 'ask', installNow: flushUnsavedWork };
 };

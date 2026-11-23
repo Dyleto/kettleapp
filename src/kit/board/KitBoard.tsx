@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box, HStack, Text, VStack } from '@chakra-ui/react';
-import { LuPlay, LuWifiOff } from 'react-icons/lu';
+import { LuPlay, LuRefreshCw, LuWifiOff } from 'react-icons/lu';
 import {
   ActionButton,
   AutoResizeTextarea,
@@ -211,6 +211,17 @@ const KitBoard = () => {
           icon={<LuWifiOff size={20} />}
           title="Hors connexion"
           line="Tu peux faire ta séance : elle s’enverra au retour du réseau."
+        />
+        <Banner
+          tone="amber"
+          icon={<LuRefreshCw size={20} />}
+          title="Nouvelle version prête"
+          line="Elle s’installera dès que ce programme sera enregistré."
+          action={
+            <ActionButton size="sm" onClick={() => {}}>
+              Maintenant
+            </ActionButton>
+          }
         />
       </Piece>
 

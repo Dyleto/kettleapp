@@ -1,5 +1,6 @@
-import { Box, HStack, Text } from '@chakra-ui/react';
-import { LuArrowDownToLine } from 'react-icons/lu';
+import { Box } from '@chakra-ui/react';
+import { LuRefreshCw } from 'react-icons/lu';
+import { ActionButton, Banner } from '@/kit';
 import { useAppUpdate } from '@/shared/hooks/useAppUpdate';
 
 /**
@@ -10,15 +11,19 @@ import { useAppUpdate } from '@/shared/hooks/useAppUpdate';
  * enregistrée, parce qu'alors recharger coûterait ce que la personne vient
  * d'écrire.
  *
+ * Il prend la pièce du kit (`Banner`, à l'ambre : quelque chose attend) et
+ * la phrase de la maquette. Il disait « Une nouvelle version est prête.
+ * Recharger » : recharger, c'était précisément ce qu'il ne fallait pas
+ * faire tant que la frappe n'était pas partie. « Maintenant » l'envoie, et
+ * le rechargement suit de lui-même une fois qu'elle est enregistrée.
+ *
  * En haut et non en bas : le bas de l'écran est déjà réclamé par la ligne
- * « Modifications non enregistrées » — et c'est précisément la situation dans
+ * d'état de l'enregistrement — et c'est précisément la situation dans
  * laquelle ce bandeau se montre. Les deux se seraient disputé la même place.
  */
 export const AppUpdateBanner = () => {
-  const { pending, reload } = useAppUpdate();
-
+  const { pending, installNow } = useAppUpdate();
   if (!pending) return null;
-
   return (
     <Box
       // Fixe et non collant : le bandeau est monté à la racine, à côté de
@@ -29,34 +34,30 @@ export const AppUpdateBanner = () => {
       left={0}
       right={0}
       zIndex={1500}
-      bg="app.primary/12"
-      borderBottom="1px solid"
-      borderColor="app.primary.border"
-      px={4}
-      py={2}
-      role="status"
+      px={{ base: 4, md: 8 }}
+      pt={3}
+      pointerEvents="none"
+      data-update-banner
     >
-      <HStack gap={2} maxW="container.xl" mx="auto">
-        <Box color="app.primary" display="flex">
-          <LuArrowDownToLine size={14} />
-        </Box>
-        <Text fontSize="sm" mr="auto">
-          Une nouvelle version est prête.
-        </Text>
-        <Box
-          as="button"
-          onClick={reload}
-          fontSize="sm"
-          fontWeight="medium"
-          color="app.primary"
-          px={2}
-          py={1}
-          borderRadius="md"
-          _hover={{ bg: 'app.primary/12' }}
-        >
-          Recharger
-        </Box>
-      </HStack>
+      <Box
+        maxW="720px"
+        mx="auto"
+        pointerEvents="auto"
+        bg="bg.canvas"
+        borderRadius="card"
+      >
+        <Banner
+          tone="amber"
+          icon={<LuRefreshCw size={20} />}
+          title="Nouvelle version prête"
+          line="Elle s’installera dès que ce programme sera enregistré."
+          action={
+            <ActionButton size="sm" onClick={installNow}>
+              Maintenant
+            </ActionButton>
+          }
+        />
+      </Box>
     </Box>
   );
 };

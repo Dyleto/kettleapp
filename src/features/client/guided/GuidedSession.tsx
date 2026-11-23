@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { PerformedValues, Session } from '@/shared/types';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { useBackDismiss } from '@/shared/hooks/useBackDismiss';
+import { useClaimUnsavedWork } from '@/shared/hooks/useUnsavedWork';
 import { buildGuidedSteps } from './steps';
 import { readProgress, writeProgress } from './sessionProgress';
 import { blockSegments, firstGesture } from './outline';
@@ -75,6 +76,14 @@ export const GuidedSession = ({
   useSoundUnlock();
   useInertRoot();
   useWakeLock();
+  // Une nouvelle version attend la fin de la séance. Rien n'est à
+  // enregistrer — la position est déjà sur l'appareil —, mais un
+  // rechargement au milieu d'une série coupait l'horloge et l'écran, sans
+  // un mot : rien ne déclarait qu'une séance était en cours. À l'ouverture,
+  // rien n'a commencé, et rien ne se perdrait.
+  useClaimUnsavedWork(state.phase !== 'opening' && state.phase !== 'empty', {
+    quiet: true,
+  });
 
   // L'heure de départ, posée une fois pour toutes : c'est elle qui dit, à la
   // fin, combien de temps la séance a duré. Elle se pose quand l'ouverture
