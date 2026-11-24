@@ -48,3 +48,6 @@ yarn.lock
 
 # Le banc d'essai a ses propres dépendances.
 verif/node_modules
+
+# La planche (H2) : des captures, refaites par `node verify/board.mjs`.
+verify/board/

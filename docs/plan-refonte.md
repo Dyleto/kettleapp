@@ -867,8 +867,18 @@ banc actuel, inchangé, qui le prouve.
       surgissant de Chakra ; il est passager, et un lecteur d'écran y
       entre par son bouton. axe n'est pas dans le banc — il demanderait
       une dépendance — : `verify_a11y` tient les propriétés réparées.
-- [ ] **H2** Une planche de captures de tous les cadres, à poser à côté de
-      la maquette.
+- [x] **H2** Une planche de captures de tous les cadres, à poser à côté de
+      la maquette. La maquette est revenue — elle est désormais copiée dans
+      `docs/maquette.html`, pour ne plus la perdre avec un conteneur — et
+      `verify/board.mjs` mène l'application dans l'état de chacun de ses
+      121 cadres, sur 20 écrans : une réponse composée, une horloge posée
+      sur un jour, un serveur d'essai neuf par cadre, puisque sa remise à
+      zéro garde l'historique. Huit minutes pour tout ; `board-page.mjs`
+      met en page, la maquette à gauche, l'application à droite, une
+      visionneuse qui bascule de l'une à l'autre au même endroit. La
+      relecture a relevé treize écarts de disposition, et deux qu'aucune
+      capture ne montre : le mouvement de G5 et les écrans de G6. Ils sont
+      au § 6.
 - [x] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
       Celui du front gagne ce que la refonte a fixé — les états, les
       messages, le mouvement, les couleurs du texte, l'accessibilité, les
@@ -890,13 +900,51 @@ banc actuel, inchangé, qui le prouve.
 
 ## 6. Écarts avec la maquette
 
-Plus aucun n'attend sa ligne du plan : ceux qui restent sont des choix,
-dits comme tels, ou des points que la maquette perdue n'a pas pu trancher.
+Ceux qui précèdent la planche (H2) sont des choix, dits comme tels. Ceux
+qu'elle a montrés n'ont pas encore de ligne du plan : ils attendent qu'on
+tranche entre la maquette et l'application.
 
 - **Les quatre écrans où l'on tire pour recharger** ont été choisis sans
   la maquette, perdue avec le conteneur : ceux dont le contenu change par
-  l'autre (G6). À confronter à la maquette en H2. De même pour les durées
-  et les courbes des mouvements de G5.
+  l'autre (G6). Confrontés en H2 : la maquette met Progrès là où G6 a mis
+  Clients. À aligner.
+- **Le mouvement de G5** a été réglé sans elle aussi, et ses valeurs s'en
+  écartent toutes. Le nombre qui change saute à 128 % (G5 : 112 % et
+  6 px de levée) ; une scène entre élément par élément, de 14 px en
+  420 ms, 50 ms entre deux (G5 : d'un bloc, 8 px, 260 ms) ; la coche se
+  dessine en 300 ms, et aussi pour un palier et un jour faits (G5 :
+  360 ms, la série seule) ; l'anneau se remplit en 1,1 s (G5 : 1 s). À
+  aligner.
+
+La planche (H2) a montré le reste, écran par écran :
+
+- **Sur téléphone, une barre « KETTLE »** coiffe chaque écran, avec
+  l'avatar. La maquette n'en a pas : le titre de l'écran porte l'avatar,
+  et sur l'accueil la pastille « 4 sem. ».
+- **L'accueil sans programme** n'a pas les trois pastilles de la maquette
+  — « Tes séances guidées », « Tes progrès », « Le mot de Julie » —, et
+  l'accueil sur grand écran n'a pas « Ensuite dans ton programme », les
+  deux séances suivantes sous la carte du jour.
+- **Une confirmation s'ouvre en haut de l'écran** sur téléphone —
+  supprimer un modèle, supprimer son compte, arrêter le partage —, au
+  milieu ou en feuille basse dans la maquette.
+- **Le repos est une carte en tête de la liste du bloc**, et non un écran
+  entier, un grand anneau sur fond vert. Un choix, à confirmer.
+- **Le chrono d'un exercice à durée attend une touche**, même après le
+  décompte ; la maquette le fait partir avec lui. `verify_set` tient ce
+  choix : à confirmer avant d'y toucher.
+- **Le mot du ressenti tient sur une ligne**, sur plusieurs dans la
+  maquette, et ses étiquettes y sont plus petites.
+- **Téléphone couché**, la barre de progression court sur toute la
+  largeur ; la maquette garde l'en-tête du bloc dans la colonne de droite.
+- **Les ressentis sur grand écran** gardent la navigation dépliée, que la
+  maquette replie en icônes comme dans l'atelier.
+- **L'invitation** met « Rejoindre avec Google » sous son texte, la
+  maquette en bas de l'écran.
+- **Le bandeau de nouvelle version**, sur téléphone, recouvre l'en-tête de
+  l'écran ; la maquette le glisse dessous.
+- **« Cette page n'existe pas »** s'affiche seule ; la maquette garde
+  l'en-tête et la barre d'onglets autour.
 - **Changer d'unité prévient après coup**, par la bannière « Annuler », et
   non avant comme le dit la maquette (« après avoir prévenu si elle était
   remplie ») : c'est la règle du reste de l'atelier, jamais de question

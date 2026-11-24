@@ -78,6 +78,24 @@ Nommez les suites explicitement, ou passez `--all`. Sans argument, le lanceur
 ne lance rien du tout, et le dit plutôt que d'annoncer un vert qui ne couvre
 aucune assertion.
 
+## La planche
+
+`board.mjs` n'est pas une suite : il n'affirme rien, il montre. Il mène
+l'application dans l'état de chacun des 121 cadres de la maquette
+(`docs/maquette.html`) et pose les deux côte à côte dans `board/index.html`,
+que git ignore. Huit minutes ; il faut le front, et un port libre pour le
+serveur d'essai, qu'il relance neuf à chaque cadre.
+
+```sh
+node board.mjs                                  # tout
+node board.mjs ../docs/maquette.html board k-   # le coach seulement
+node board-page.mjs board                       # la page seule, après une relecture
+```
+
+Les écarts relevés vont dans `board/notes.json` — un texte par cadre — et la
+page les montre sous chaque cadre. Ce qui reste vrai d'une planche à l'autre
+va au plan, § 6.
+
 ## Écrire une suite
 
 `common.mjs` porte ce qu'elles refont toutes : se connecter, lancer une séance
