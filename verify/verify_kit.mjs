@@ -126,7 +126,7 @@ const openBoard = async (options) => {
   // Sans quoi l'assertion de « moins d'animations », plus bas, constaterait
   // une absence qui était déjà là.
   const moving = await p.evaluate(() =>
-    [...document.querySelectorAll('[data-mascot] svg')].map(
+    [...document.querySelectorAll('[data-kit-board] [data-mascot] svg')].map(
       (m) => getComputedStyle(m).animationName
     )
   );
@@ -206,7 +206,7 @@ const openBoard = async (options) => {
   });
   ok('la feuille apparaît sans monter', animation === 'none', animation);
   const sway = await p.evaluate(() =>
-    [...document.querySelectorAll('[data-mascot] svg')].map(
+    [...document.querySelectorAll('[data-kit-board] [data-mascot] svg')].map(
       (m) => getComputedStyle(m).animationName
     )
   );

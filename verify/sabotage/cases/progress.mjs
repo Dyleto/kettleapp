@@ -69,6 +69,8 @@ export default {
     {
       // Refaire 20 kg le 30 déplacerait le record du swing au 30 : il
       // passerait devant le goblet, et sa feuille le marquerait au 30.
+      // Le record change de séance : le détail des deux le dit aussi, et
+      // ses lignes se lisent entières (H1).
       name: 'un record se date au dernier passage qui l’égale',
       edits: [
         {
@@ -77,7 +79,7 @@ export default {
           to: '          if (load >= known.best) {',
         },
       ],
-      falls: [RECORDS, RECORD_OPENS],
+      falls: [RECORDS, RECORD_OPENS, DONE, RECORD_ONCE, ARROW],
     },
     {
       name: 'les records ne se rangent plus par date',
@@ -368,6 +370,9 @@ export default {
     {
       // Les lignes du jour à deux séances sont les mêmes : elles tombent
       // avec.
+      // La ligne est la seule porte vers le détail d'une séance : tout ce
+      // qui s'y lit tombe avec elle. La liste n'en comptait que deux, écrite
+      // avant que Progrès ait son détail (F2) ; la passe H1 l'a complétée.
       name: 'une ligne n’ouvre plus sa séance',
       edits: [
         {
@@ -376,7 +381,24 @@ export default {
           to: '        onOpen={() => undefined}',
         },
       ],
-      falls: [EACH, ROW_OPENS],
+      falls: [
+        EACH,
+        ROW_OPENS,
+        SHEET_NAMED,
+        FEELING,
+        REPLY,
+        DONE,
+        RECORD_ONCE,
+        ARROW,
+        LEGACY,
+        LEGACY_LOADS,
+        LEGACY_BACK,
+        PANEL,
+        CURRENT,
+        REOPEN,
+        SENT,
+        CORRECTED,
+      ],
     },
     {
       // La correction attend la feuille par son nom pour la relire : elle
@@ -425,6 +447,7 @@ export default {
       falls: [REPLY],
     },
     {
+      // La flèche se vérifie sur la ligne entière, format compris (H1).
       name: 'une ligne perd le format de son bloc',
       edits: [
         {
@@ -433,7 +456,7 @@ export default {
           to: "              const sub = [line.dose].filter(Boolean).join(' · ');",
         },
       ],
-      falls: [DONE, CORRECTED],
+      falls: [DONE, CORRECTED, ARROW],
     },
     {
       name: 'chaque passage qui égale un record le porte',

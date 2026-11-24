@@ -167,7 +167,13 @@ export default {
           to: '      ladder: {},',
         },
       ],
-      falls: ['le bilan envoie le résultat de l’échelle'],
+      // « Valider » et « Continuer » se vérifient sur ce que la séance a
+      // retenu, relu par la même lecture : elles tombent avec (H1).
+      falls: [
+        'le bilan envoie le résultat de l’échelle',
+        '→ « Valider » retient trois paliers faits et 705 secondes',
+        '→ « Continuer » retient sept paliers en 420 secondes',
+      ],
     },
   ],
 };

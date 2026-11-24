@@ -64,9 +64,19 @@ const jobs = Math.max(
  * Un port par file. Seule, une suite garde 3001 — celui que le front vise :
  * rien n'est détourné, et un script de capture lancé à la main trouve le
  * serveur où il l'attend.
+ *
+ * `KETTLE_PORT_BASE` en fixe la base. Deux lanceurs côte à côte — la passe
+ * complète des sabotages, répartie sur plusieurs copies du dépôt (H1) —
+ * prenaient tous deux 3001, et chacun tuait au départ le serveur de
+ * l'autre, qu'il prenait pour un reste d'une exécution passée.
  */
+const portBase = Number(process.env.KETTLE_PORT_BASE);
 const ports = Array.from({ length: jobs }, (_, i) =>
-  jobs === 1 ? 3001 : 3101 + i
+  Number.isInteger(portBase) && portBase > 0
+    ? portBase + i
+    : jobs === 1
+      ? 3001
+      : 3101 + i
 );
 
 /** Le serveur d'essai répond-il ? Un statut, quel qu'il soit, suffit : on

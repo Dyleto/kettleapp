@@ -81,6 +81,10 @@ const KitBoard = () => {
     <Box
       as="main"
       id="contenu"
+      // Ce que le banc lit de la planche se cherche ici, et non dans toute la
+      // page : la connexion montre aussi le personnage, et une planche
+      // fermée passait pour une planche qui se balance (H1).
+      data-kit-board
       maxW="760px"
       mx="auto"
       px={4}

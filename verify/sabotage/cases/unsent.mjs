@@ -70,9 +70,14 @@ export default {
           to: '            if (true) {',
         },
       ],
+      // Une réponse perdue en route est aussi une coupure : ce qui la suit
+      // tombe avec, la section qui l'éprouve est venue après ce cas (H1).
       falls: [
         'la requête coupée met le ressenti en attente, sans parler d’échec',
         '→ « Envoyer maintenant » l’envoie, une fois',
+        'la réponse perdue met le ressenti en attente, avec la clé de l’envoi',
+        '→ le renvoi porte la même clé, et la séance ne compte qu’une fois',
+        '→ « Séance envoyée », et l’enregistrement s’efface',
       ],
     },
     {
@@ -92,8 +97,11 @@ export default {
         '→ « Séance envoyée », et la carte d’attente s’en va',
         // La coupure en route lit le stockage brut, où le ressenti sans date
         // est bien écrit : c'est la lecture qui l'écarte, et l'accueil qui
-        // n'a plus rien à envoyer.
+        // n'a plus rien à envoyer. Il en va de même après une réponse
+        // perdue : le renvoi n'a plus rien à renvoyer (H1).
         '→ « Envoyer maintenant » l’envoie, une fois',
+        '→ le renvoi porte la même clé, et la séance ne compte qu’une fois',
+        '→ « Séance envoyée », et l’enregistrement s’efface',
       ],
     },
     {

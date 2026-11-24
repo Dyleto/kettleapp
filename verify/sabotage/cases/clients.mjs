@@ -396,7 +396,9 @@ export default {
           to: '              selected={false}',
         },
       ],
-      falls: [SELECT],
+      // Le premier de la liste, montré sans choix, se marque aussi comme
+      // choisi : sans marque, son assertion tombe avec.
+      falls: [SELECT, DEFAULT],
     },
     {
       name: 'le double-clic n’ouvre plus l’atelier',

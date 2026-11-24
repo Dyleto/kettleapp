@@ -186,8 +186,11 @@ export default {
       edits: [
         {
           file: 'src/features/coach/pages/Clients.tsx',
+          // L'écran n'importe plus le toaster depuis F5a : sans cet import,
+          // le toast saboté levait une erreur au lieu de s'afficher, et le
+          // cas cassait la page plutôt que d'y redire la panne.
           from: "import { useState } from 'react';",
-          to: "import { useEffect, useState } from 'react';",
+          to: "import { useEffect, useState } from 'react';\nimport { toaster } from '@/shared/components/ui/toasterInstance';",
         },
         {
           file: 'src/features/coach/pages/Clients.tsx',

@@ -1,6 +1,6 @@
 # Le banc d'essai
 
-Trente-huit suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
+Soixante-huit suites, et toutes ouvrent un navigateur. C'est ce qui le distingue de
 `npm test` à la racine, qui éprouve la logique pure en quelques secondes :
 une suite qui n'a pas besoin d'un navigateur n'a rien à faire ici. Il y en
 avait une — `verify_format.mjs`, qui empaquetait un module avec esbuild faute
@@ -34,8 +34,10 @@ tournerait sur l'état laissé par la précédente ne prouverait rien.
 Il en fait tourner plusieurs à la fois — autant que la machine a de cœurs,
 quatre au plus —, chacune contre son propre serveur d'essai sur son propre
 port. Trente suites l'une après l'autre prenaient 14 min 23 s ; sur quatre
-files, 4 min 12 s ; en attendant des états plutôt que des durées, 2 min 50 s. Chaque ligne du résultat porte la durée de sa suite : un
-banc qui s'allonge dit ainsi où.
+files, 4 min 12 s ; en attendant des états plutôt que des durées, 2 min 50 s.
+Le banc a doublé depuis : soixante-huit suites, 9 min 19 s sur la machine de
+la session à la fin de la refonte. Chaque ligne du résultat porte la durée de
+sa suite : un banc qui s'allonge dit ainsi où.
 
 ```bash
 node runner.mjs --all --jobs 1    # la file d'avant, pour lire dans l'ordre
@@ -47,6 +49,22 @@ depuis Node, c'est `API` (de `common.mjs`) qui donne la bonne adresse. Une
 route posée par une suite qui laisse passer une requête le fait par
 `route.fallback()`, jamais `route.continue()` : ce dernier l'enverrait au
 port 3001 sans passer par le détour.
+
+Deux lanceurs côte à côte — la passe complète des sabotages, répartie sur
+plusieurs copies du dépôt — ne doivent partager ni front ni ports.
+`KETTLE_BASE` dit où est le front de la copie ; `KETTLE_PORT_BASE`, d'où
+partent les ports de ses serveurs d'essai. Le serveur d'essai répond au front
+que nomme `KETTLE_BASE` : fixé à 5173, il refusait toute autre origine, et
+chaque connexion échouait.
+
+```sh
+git worktree add --detach ../copie-1 HEAD
+cp -al node_modules ../copie-1/ && cp -al verify/node_modules ../copie-1/verify/
+rm -rf ../copie-1/node_modules/.vite   # le cache du front, propre à chaque copie
+cp .env ../copie-1/ && (cd ../copie-1 && npx vite --port 5181 &)
+cd ../copie-1 && KETTLE_BASE=http://localhost:5181 KETTLE_PORT_BASE=3210 \
+  node verify/sabotage/run.mjs home
+```
 
 La CI est plus lente que la machine où l'on écrit : 8 min au lieu de 6. Une
 lecture faite avant l'état qu'elle vérifie y tombe, et seulement là. Pour la
@@ -96,6 +114,28 @@ guidée, lire l'écran. Quatre pièges méritent d'être connus :
   fois pendant la conversion, sur « trois secondes d'attente ne mordent pas
   sur le tour ».
 
+Quatre autres pièges sont venus avec les derniers écrans :
+
+- **Une animation ne se lit pas à l'écran** : elle a fini avant qu'on la
+  regarde. `verify_motion` pose dans la page un enregistreur des
+  `animationstart`, avec l'endroit où chacune a lieu, et vérifie que ses
+  images ne sont pas toutes pareilles — un nom qui démarre ne dit pas que
+  quelque chose bouge.
+- **Un doigt est un vrai doigt.** Un geste tactile — un appui long qui
+  soulève une carte, tirer pour recharger — s'envoie au navigateur par
+  `Input.dispatchTouchEvent` (`verify_band`, `verify_pull`) : la souris ne
+  produit pas les mêmes événements.
+- **Figer l'horloge, et la mener.** `pauseAt` refuse de revenir en arrière :
+  sous la charge, l'heure lue est déjà passée quand la pause arrive ; on
+  vise cinquante millisecondes plus loin et on recommence si besoin
+  (`freeze`). Une page figée ne rend plus ce que la bibliothèque des
+  requêtes lui annonce : ses notifications passent par un minuteur, qu'il
+  faut avancer à la main.
+- **Ce qu'entend un lecteur d'écran se lit aussi.** La consigne d'un
+  élément est le texte que désigne `aria-describedby` ; ce que dit un
+  glisser, celui de la région vivante que la bibliothèque pose dans le
+  document (`verify_moves`).
+
 La règle de langue est celle du projet : tout ce qui est technique en anglais
 — identifiants, noms de fichiers, marqueurs `OK` et `FAIL` que le lanceur lit
 —, et tout le reste en français : commentaires, libellés d'assertion, titres
@@ -127,7 +167,8 @@ npm run sabotage:check            # sans navigateur : chaque motif désigne-t-il
 ```
 
 Un cas s'écrit avec le mécanisme qu'il couvre, dans le même commit. Il ne
-se rejoue pas à chaque changement : les 244 demandent deux heures. Ils se
+se rejoue pas à chaque changement : les 868 demanderaient douze heures l'un
+après l'autre, trois sur quatre copies du dépôt (voir plus haut). Ils se
 rejouent tous en une passe, avant une fusion sur `main`.
 `sabotage:check`, lui, ne coûte qu'une seconde et se lance avant chaque
 commit : un motif qui ne correspond plus se répare tout de suite, tant
@@ -148,3 +189,13 @@ avant que son horloge ait relu l'heure, et aucune ne couvrait la pause
 d'un repos. Un cas s'écrivait avec une variable disparue, un autre
 importait le son de son ancienne adresse ; un dernier visait un état
 que Chromium ne produit pas, et s'éprouve sous Vitest.
+
+La deuxième passe (H1), à la fin de la refonte, a rejoué 868 cas : 856
+sont tombés comme prévu. Huit listes attendues étaient incomplètes, pour la
+même raison que la première fois — une section venue après le cas lisait le
+même texte. Un cas injectait un toast dans un écran qui n'importait plus le
+toaster : il cassait la page au lieu de la saboter. Et deux assertions
+étaient creuses : l'une lisait le personnage n'importe où dans la page, et la
+connexion en a un ; l'autre croyait l'horloge figée par `clock.install()`,
+qui la laisse tourner — la frappe qu'elle disait en attente était déjà
+partie. Une horloge se fige par `pauseAt`, jamais par la seule installation.

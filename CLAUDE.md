@@ -123,8 +123,9 @@ laisse croire que l'assertion est creuse alors que rien n'a été cassé.
 
 Les sabotages du banc vivent dans `verify/sabotage/`, un fichier de cas par
 suite. Un cas s'écrit avec le mécanisme qu'il couvre, dans le même commit.
-Il ne se rejoue pas à chaque changement — les rejouer tous prend plusieurs
-heures : ils se rejouent en une passe complète avant une fusion sur `main`
+Il ne se rejoue pas à chaque changement — les 868 prennent trois heures,
+répartis sur quatre copies du dépôt (`verify/README.md`) : ils se rejouent
+en une passe complète avant une fusion sur `main`, suite par suite
 (`npm run sabotage -- <suite>`). `npm run sabotage:check` ne lance aucun
 navigateur et se lance avant chaque commit : il s'assure que chaque motif
 désigne encore un endroit du code, et un seul.
@@ -133,9 +134,12 @@ désigne encore un endroit du code, et un seul.
 
 `npm test` (Vitest) éprouve la logique pure, sans navigateur : quelques
 secondes. `npm run verify` mène l'application dans un vrai navigateur :
-trois minutes, sur quatre files. Il attend des états — plus de requête en
-vol, plus d'animation — et non des durées ; une durée voulue s'écrit
-`hold(page, ms, raison)`.
+soixante-huit suites, neuf minutes environ sur quatre files, et davantage
+en CI. Il attend des états — plus de requête en vol, plus de changement du
+DOM, plus d'animation — et non des durées ; une durée voulue s'écrit
+`hold(page, ms, raison)`. `KETTLE_CPU_THROTTLE=2` bride le processeur des
+pages : c'est ainsi qu'on voit avant de pousser ce que la CI, plus lente,
+verra.
 
 Ils ne se remplacent pas. Le banc attrape ce que l'écran fait — un bouton
 sorti de l'écran, un repos qui cache un bloc, une séance qui cesse
@@ -159,6 +163,40 @@ Les décors de test (`fixtures.ts`) sont déterminés : deux décors par défaut
 sont identiques. Un identifiant engendré par un compteur avait rendu vaines
 des assertions entières — elles constataient un écart d'identifiant, pas
 celui qu'elles visaient, et un sabotage ne les faisait pas tomber.
+
+## Ce que la refonte a fixé
+
+Des règles nées écran par écran (`docs/plan-refonte.md`), qui valent pour
+tous :
+
+- **Les états.** Un chargement montre les formes de l'écran
+  (`LoadingShapes`), jamais une roue seule ; passé dix secondes, il le dit
+  (`SlowNotice`). Une lecture qui échoue le dit dans sa zone
+  (`ZoneFailure`), et le reste de l'écran demeure. Sans réseau, un bandeau
+  (`OfflineBanner`) ; l'atelier réessaie seul au retour.
+- **Les messages.** Un seul à la fois : le nouveau remplace celui qui est
+  là. Trois secondes, six pour une panne, huit pour « Annuler ». Jamais
+  pour un enregistrement automatique, que la ligne d'état de l'atelier dit
+  déjà. Tout passe par `toaster.create`, qui tient la règle.
+- **Le mouvement.** Les keyframes vivent au thème, le tempo au kit
+  (`MOTION`), et chaque animation porte `_motionReduce`. Une animation se
+  rejoue sans démonter son élément (`useReplay`) : démonté, un champ perd sa
+  sélection, une scène son état.
+- **Les couleurs du texte.** Le corail en texte ou en icône prend
+  `app.error.fg` : sa teinte de fond ne tient pas 4,5:1 sur les surfaces
+  sombres, 4,0:1 dans un menu. L'ambre en texte posé sur sa propre teinte —
+  une pastille — prend `app.primary.fg`, pour la même raison.
+- **L'accessibilité.** Un seul titre de niveau 1 visible par écran ; un
+  `main id="contenu"`, que vise le lien « Aller au contenu » ; rien de plus
+  large que 320 px ; ce qui se glisse se déplace aussi par un menu
+  (« Monter », « Descendre »), et le glisser se dit en français
+  (`dragSpeech`). `verify_a11y` tient ces règles ; la relecture, écran par
+  écran avec axe-core, est décrite au plan (H1b).
+- **Les gestes.** Tirer pour recharger relit ce que l'écran montre, et lui
+  seul (`PullToRefresh`) ; il ne vit que sur les écrans dont le contenu
+  change par l'autre.
+- **La nouvelle version** attend ce qui n'est pas encore enregistré
+  (`useUnsavedWork`), et ne coupe jamais une séance en cours.
 
 ## Le banc d'essai
 

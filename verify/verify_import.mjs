@@ -182,33 +182,66 @@ const open = async (n = 1) => {
   // l'import passe pendant ce temps — ce qu'un coach rapide fait sans le
   // savoir. L'écran doit montrer l'import, et rien de l'ancien programme ne
   // doit repartir quand l'horloge reprend.
+  //
+  // Installée seulement, l'horloge tournait au rythme réel : la frappe
+  // partait pendant que la suite ouvrait l'import, et il n'y avait plus rien
+  // en attente quand il passait. Un éditeur qui n'adoptait pas l'import
+  // restait vert, la relecture d'arrière-plan faisant le travail à sa place
+  // (passe H1). Elle avance donc à la main, par pas de 20 ms — de quoi
+  // laisser passer les réponses, jamais les 800 ms de l'envoi.
   await reset();
   const ctx = await browser.newContext(WIDE);
   const p = await signIn(ctx);
+  await p.clock.install();
   await p.goto(`${BASE}/coach/clients/${CLIENT}/s/1`, {
     waitUntil: 'domcontentloaded',
   });
   await settle(p);
-  await p.clock.install();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const now = await p.evaluate(() => Date.now());
+    const paused = await p.clock
+      .pauseAt(now + 50)
+      .then(() => true)
+      .catch(() => false);
+    if (paused) break;
+  }
+  let spent = 0;
+  /** Le temps de la page, avancé de 20 ms, et compté. */
+  const tick = async () => {
+    await p.clock.runFor(20).catch(() => {});
+    spent += 20;
+    await settle(p);
+  };
+  const step = async (name, scope = p) => {
+    await scope
+      .getByRole('button', { name })
+      .first()
+      .click({ timeout: 2000 })
+      .catch(() => {});
+    for (let i = 0; i < 3; i++) await tick();
+  };
   await p
     .getByRole('button', { name: 'Nom de la séance 1' })
     .click({ timeout: 2000 })
     .catch(() => {});
   await p.keyboard.type('Brouillon');
   await p.keyboard.press('Enter');
-  await press(p, 'Importer un modèle…');
+  await tick();
+  await step('Importer un modèle…');
   const dialog = p.getByRole('dialog');
-  await press(p, /Prise de masse/, dialog);
-  await press(p, 'Remplacer le programme', dialog);
-  await settle(p);
+  await step(/Prise de masse/, dialog);
+  await step('Remplacer le programme', dialog);
+  for (let i = 0; i < 4; i++) await tick();
   const shownRows = await p.locator('[data-session-row]').count();
+  const early =
+    spent < 800 && (await serverSessions())[0]?.name !== 'Brouillon';
   await p.clock.runFor(5000);
   await settle(p);
   const stored = await serverSessions();
   ok(
     'une frappe pas encore partie ne repasse pas derrière l’import',
-    shownRows === 2 && stored.length === 2,
-    `${shownRows} séance(s) à l’écran, ${stored.length} chez le serveur`
+    early && shownRows === 2 && stored.length === 2,
+    `${early ? 'frappe encore en attente' : `frappe déjà partie (${spent} ms)`} · ${shownRows} séance(s) à l’écran, ${stored.length} chez le serveur`
   );
   await ctx.close();
 }

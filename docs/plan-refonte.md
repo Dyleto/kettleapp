@@ -33,8 +33,8 @@ le rangement (B12) et avant `main` (H1).
   le banc vivent hors du dépôt. C'est le moment de ranger, avant d'attaquer le
   coach qui doublerait la mise.
 
-Mesures au 23 novembre : 975 tests unitaires, 68 suites de banc et 1 124
-assertions, 8 min 46 s pour le banc complet sur une machine plus lente
+Mesures au 24 novembre : 975 tests unitaires, 68 suites de banc et 1 124
+assertions, 9 min 19 s pour le banc complet sur une machine plus lente
 que les mesures précédentes (14 min 23 s avant qu'il
 tourne sur quatre files, 4 min 23 s avant qu'il attende des états).
 
@@ -835,7 +835,22 @@ banc actuel, inchangé, qui le prouve.
 
 ### H. Avant `main`
 
-- [ ] **H1** Passe complète des sabotages, sur l'application finie.
+- [x] **H1** Passe complète des sabotages, sur l'application finie. Les
+      868 cas, sur quatre copies du dépôt à la fois, chacune avec son front
+      et ses ports (`KETTLE_BASE`, `KETTLE_PORT_BASE`) : trois heures, au
+      lieu de douze l'une après l'autre. 856 sont tombés comme prévu. Sur
+      les douze autres, huit listes attendues étaient incomplètes — une
+      section venue après le cas lisait le même texte, et tombait à raison :
+      le détail d'une séance dans Progrès, la réponse perdue de l'envoi
+      différé, ce que retiennent l'échelle et le chipper. Un cas était
+      cassé : il injectait un toast dans un écran qui n'importait plus le
+      toaster, et faisait planter la page au lieu d'y redire la panne.
+      Trois tombaient pour deux assertions creuses : celle du personnage
+      qui se balance lisait n'importe lequel dans la page — la connexion en
+      a un —, et celle de la frappe en attente pendant un import tournait
+      sous une horloge qui n'était pas figée, la frappe partait avant
+      l'import. Les deux lisent désormais ce qu'elles prétendent ; tous les
+      cas touchés ont été rejoués à froid, un par un.
 - [x] **H1b** Relecture d'accessibilité de chaque écran. axe-core sur
       les quinze écrans et les scènes de la séance guidée, au téléphone et
       sur grand écran (WCAG 2.2 A et AA, et les bonnes pratiques), puis à
@@ -854,7 +869,17 @@ banc actuel, inchangé, qui le prouve.
       une dépendance — : `verify_a11y` tient les propriétés réparées.
 - [ ] **H2** Une planche de captures de tous les cadres, à poser à côté de
       la maquette.
-- [ ] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
+- [x] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
+      Celui du front gagne ce que la refonte a fixé — les états, les
+      messages, le mouvement, les couleurs du texte, l'accessibilité, les
+      gestes, la nouvelle version — et les mesures du banc et de la passe
+      complète. Le README du banc, quatre pièges des derniers écrans
+      (une animation se lit à son départ, un doigt est un vrai doigt, une
+      horloge se fige par `pauseAt`, ce qu'entend un lecteur d'écran se
+      lit) et la passe répartie sur plusieurs copies. Celui de l'API n'avait
+      rien à changer : le dépôt n'a pas bougé depuis F10b, et ses 289 tests
+      sont ceux qu'il cite. `lint:langue` connaît deux mots de plus,
+      « produit » et « sujet », qu'il avait laissés passer.
 - [ ] **H4** Mise en production, dans l'ordre : `npm run verify:copy` depuis
       une machine en réseau, `npm run migrate:ladder` sur la base, l'API
       (jusqu'à `887e193` : l'invitation d'un compte connecté et la

@@ -645,10 +645,19 @@ const USER = {
   needsHealthConsent: false,
 };
 
+/**
+ * Le front que ce serveur sert, pour CORS : celui que vise le banc. Fixé à
+ * 5173, il refusait toute page servie ailleurs — la passe complète des
+ * sabotages fait tourner un front par copie du dépôt, sur ses propres
+ * ports (H1), et chaque connexion y échouait.
+ */
+const FRONT_ORIGIN = new URL(process.env.KETTLE_BASE ?? 'http://localhost:5173')
+  .origin;
+
 const sendJson = (res, code, body) => {
   res.writeHead(code, {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'http://localhost:5173',
+    'Access-Control-Allow-Origin': FRONT_ORIGIN,
     'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,OPTIONS',
