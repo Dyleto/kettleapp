@@ -4,7 +4,7 @@ const RULES = 'src/shared/pull.ts';
 const TODAY = 'src/features/client/home/Today.tsx';
 const PROGRAM = 'src/features/client/program/Program.tsx';
 const INBOX = 'src/features/coach/pages/Inbox.tsx';
-const CLIENTS = 'src/features/coach/pages/Clients.tsx';
+const HISTORY = 'src/features/client/progress/History.tsx';
 
 const SHORT =
   'un geste court dit « Tire pour actualiser », et relâché ne relit rien';
@@ -24,8 +24,8 @@ const MIDWAY =
 const SIDEWAYS = 'de côté, c’est le glisser d’une ligne : il ne tire rien';
 const INBOX_SEEN =
   'tirer « À lire » relit le fil : tout a été lu ailleurs, il le dit';
-const CLIENTS_SEEN =
-  'tirer la liste des clients montre celui qui vient d’arriver';
+const HISTORY_SEEN =
+  'tirer Progrès montre la séance notée sur un autre appareil';
 
 export default {
   suite: 'verify_pull.mjs',
@@ -154,15 +154,15 @@ export default {
       falls: [INBOX_SEEN],
     },
     {
-      name: 'la liste des clients ne relit rien',
+      name: 'Progrès ne relit rien',
       edits: [
         {
-          file: CLIENTS,
-          from: '      <PullToRefresh queries={[queryKeys.coach.clients.lists()]} />',
+          file: HISTORY,
+          from: '      <PullToRefresh queries={[queryKeys.client.history.all()]} />',
           to: '      <PullToRefresh queries={[]} />',
         },
       ],
-      falls: [CLIENTS_SEEN],
+      falls: [HISTORY_SEEN],
     },
   ],
 };

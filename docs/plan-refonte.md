@@ -803,10 +803,14 @@ banc actuel, inchangé, qui le prouve.
       quittée aussi. Défaut réparé en route : une série refaite revenait
       en carte ouverte, « Refaire » la referme désormais.
 - [x] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.
-      La maquette perdue avec le conteneur, les quatre sont ceux dont le
-      contenu change par l'autre : l'accueil et le programme du client, que
-      le coach modifie ; « À lire » et la liste des clients, que les
-      clients remplissent. La donnée est tenue pour fraîche cinq minutes :
+      La maquette perdue avec le conteneur, les quatre ont d'abord été ceux
+      dont le contenu change par l'autre : l'accueil, le programme, « À
+      lire » et la liste des clients. La maquette retrouvée (H2) dit
+      Progrès plutôt que Clients : le geste y relit l'historique seul — une
+      réponse du coach, une séance notée sur un autre appareil —, et la
+      liste des clients ne se tire plus. Le programme relit aussi
+      l'historique, que la maquette ne nomme pas : ses cartes disent « Faite
+      dimanche », qui en vient. La donnée est tenue pour fraîche cinq minutes :
       sans ce geste, rien ne faisait venir plus tôt ce qui avait changé,
       sinon recharger toute l'application. Le doigt mène un indicateur —
       « Tire pour actualiser », « Relâche pour actualiser »,
@@ -904,10 +908,6 @@ Ceux qui précèdent la planche (H2) sont des choix, dits comme tels. Ceux
 qu'elle a montrés n'ont pas encore de ligne du plan : ils attendent qu'on
 tranche entre la maquette et l'application.
 
-- **Les quatre écrans où l'on tire pour recharger** ont été choisis sans
-  la maquette, perdue avec le conteneur : ceux dont le contenu change par
-  l'autre (G6). Confrontés en H2 : la maquette met Progrès là où G6 a mis
-  Clients. À aligner.
 - **Le mouvement de G5** a été réglé sans elle aussi, et ses valeurs s'en
   écartent toutes. Le nombre qui change saute à 128 % (G5 : 112 % et
   6 px de levée) ; une scène entre élément par élément, de 14 px en

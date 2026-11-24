@@ -193,8 +193,9 @@ tous :
   (`dragSpeech`). `verify_a11y` tient ces règles ; la relecture, écran par
   écran avec axe-core, est décrite au plan (H1b).
 - **Les gestes.** Tirer pour recharger relit ce que l'écran montre, et lui
-  seul (`PullToRefresh`) ; il ne vit que sur les écrans dont le contenu
-  change par l'autre.
+  seul (`PullToRefresh`) ; il vit sur les quatre écrans que la maquette
+  prévoit — l'accueil, le programme, Progrès et « À lire » —, ceux dont le
+  contenu change par l'autre.
 - **La nouvelle version** attend ce qui n'est pas encore enregistré
   (`useUnsavedWork`), et ne coupe jamais une séance en cours.
 

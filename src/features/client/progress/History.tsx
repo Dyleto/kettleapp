@@ -35,6 +35,8 @@ import {
 import type { CompletedSession } from '@/shared/types';
 import { ActionButton, Chip, EmptyState, MonthCalendar } from '@/kit';
 import { CLIENT_ROUTES } from '@/shared/config/routes';
+import { queryKeys } from '@/shared/config/queryKeys';
+import { PullToRefresh } from '@/shared/components/PullToRefresh';
 
 type ClientSessionsData = ReturnType<typeof useClientSessions>;
 
@@ -89,6 +91,10 @@ const History = () => {
 
   return (
     <Container maxW={{ base: CLIENT_GRID_MAX_W, xl: '7xl' }} py={6} px={4}>
+      {/* Une réponse du coach, une séance notée sur un autre appareil :
+          l'historique change sans que cet écran le sache. La maquette ne
+          relit que lui ici, le programme n'y paraît pas. */}
+      <PullToRefresh queries={[queryKeys.client.history.all()]} />
       <VStack align="stretch" gap="16px">
         <HStack gap="12px" wrap="wrap">
           <Text

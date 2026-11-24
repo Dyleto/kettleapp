@@ -1,6 +1,7 @@
 /**
- * Tirer pour recharger (G6), sur les quatre écrans qui le prévoient :
- * l'accueil et le programme du client, « À lire » et la liste des clients.
+ * Tirer pour recharger (G6), sur les quatre écrans que la maquette
+ * prévoit : l'accueil, le programme et Progrès du client, « À lire » du
+ * coach.
  *
  * Le doigt est un vrai doigt : des événements tactiles envoyés au
  * navigateur, posés, déplacés, levés. Ce que l'écran relit se voit à ce
@@ -397,44 +398,35 @@ const ringLabel = (p) =>
 }
 
 {
-  console.log('\n── les clients');
-  const row = (o) => ({
-    unseenCount: 0,
-    linkedAt: '2026-08-01T10:00:00.000Z',
-    tagIds: [],
-    weekDone: 1,
-    weekTarget: 3,
-    sessionCount: 3,
-    recentEfforts: [3, 3],
-    lastCompletedAt: '2026-11-20T10:00:00.000Z',
-    ...o,
-  });
-  const LEA = row({ _id: 'lea', firstName: 'Léa', lastName: 'Dubois' });
-  const KARIM = row({ _id: 'karim', firstName: 'Karim', lastName: 'Haddad' });
-  const serve = { roster: [LEA] };
+  console.log('\n── Progrès');
+  // Une séance notée sur un autre appareil : l'historique a grandi sans
+  // que cet écran le sache.
+  const { history } = await (await fetch(`${API}/api/client/history`)).json();
+  const elsewhere = {
+    ...history[0],
+    _id: 'ailleurs',
+    completedAt: new Date().toISOString(),
+  };
+  const serve = { history };
   const ctx = await browser.newContext(MOBILE);
-  await ctx.route(/\/api\/coach\/clients(\?|$)/, (r) =>
-    r.fulfill({ json: serve.roster })
+  await ctx.route(/\/api\/client\/history(\?|$)/, (r) =>
+    r.fulfill({ json: { history: serve.history } })
   );
   const p = await signIn(ctx);
-  await p.goto(`${BASE}/coach/clients`, { waitUntil: 'domcontentloaded' });
+  await p.goto(`${BASE}/client/history`, { waitUntil: 'domcontentloaded' });
   await settle(p);
-  const before = await p.locator('[data-client-list] > *').count();
-  serve.roster = [LEA, KARIM];
+  const rows = () => p.locator('main [data-session-row]').count();
+  const before = await rows();
+  serve.history = [elsewhere, ...history];
   const touch = await finger(p);
   await touch.drag(0, 220);
   await gone(indicator(p), 5000);
   await settle(p);
-  const names = clean(
-    await p
-      .locator('[data-client-list]')
-      .innerText({ timeout: 2000 })
-      .catch(() => '')
-  );
+  const after = await rows();
   ok(
-    'tirer la liste des clients montre celui qui vient d’arriver',
-    before === 1 && names.includes('Karim'),
-    `${before} ligne(s) avant · ${names.replace(/\n+/g, ' | ')}`
+    'tirer Progrès montre la séance notée sur un autre appareil',
+    before === history.length && after === history.length + 1,
+    `${before} séance(s) avant · ${after} après`
   );
   await ctx.close();
 }

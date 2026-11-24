@@ -54,8 +54,6 @@ import {
 import { ActionButton, EmptyState, LoadFailure, SlowNotice } from '@/kit';
 import { isUnavailable } from '@/shared/utils/queryState';
 import { COACH_ROUTES } from '@/shared/config/routes';
-import { PullToRefresh } from '@/shared/components/PullToRefresh';
-import { queryKeys } from '@/shared/config/queryKeys';
 
 /**
  * Clients : la liste, triée par ce qui demande de l'attention, et trois
@@ -282,9 +280,6 @@ const Clients = () => {
       py={{ base: 6, md: 8 }}
       px={4}
     >
-      {/* Ce que les clients ont fait depuis : leurs séances, leurs
-          ressentis, qui arrive. */}
-      <PullToRefresh queries={[queryKeys.coach.clients.lists()]} />
       <VStack align="stretch" gap="16px">
         <HStack gap="12px" align="center">
           <Text
