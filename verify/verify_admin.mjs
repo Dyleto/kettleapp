@@ -117,6 +117,20 @@ const open = async (browser, { context = WIDE, answer } = {}) => {
   const p = await signIn(ctx);
   await p.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
   await settle(p);
+  // Les chiffres et la liste arrivent chacun de leur côté, et les formes du
+  // chargement ne portent pas `data-stat` : la CI, plus lente, lisait les
+  // tuiles avant elles et n'en trouvait aucune. L'écran est prêt quand les
+  // quatre tuiles et la carte de Julie sont là.
+  await p
+    .locator('[data-stat]')
+    .nth(3)
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
+  await p
+    .locator('[data-coach="julie@example.com"]')
+    .first()
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
   return { ctx, p, sent, counts };
 };
 

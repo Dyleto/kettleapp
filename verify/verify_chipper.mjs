@@ -119,8 +119,7 @@ const cappedContext = async () => {
   });
   const p = await signIn(ctx);
   await p.clock.install();
-  await start(p, 'sess-cap');
-  await freeze(p);
+  await start(p, 'sess-cap', { beforeGo: freeze });
   const screen = await guidedScreen(p);
   ok(
     "premier bloc : le décompte de l'ouverture a lancé le chrono",
@@ -208,8 +207,7 @@ const cappedContext = async () => {
   const ctx = await cappedContext();
   const p = await signIn(ctx);
   await p.clock.install();
-  await start(p, 'sess-cap-2');
-  await freeze(p);
+  await start(p, 'sess-cap-2', { beforeGo: freeze });
   for (let i = 0; i < 2; i++) {
     await press(p, 'Fait');
     await skipRest(p);
@@ -265,8 +263,7 @@ const cappedContext = async () => {
   );
   const p = await signIn(ctx);
   await p.clock.install();
-  await start(p, 'sess-cap');
-  await freeze(p);
+  await start(p, 'sess-cap', { beforeGo: freeze });
   const box = await p.evaluate(() => {
     const el = [...document.querySelectorAll('[role="timer"]')].find(
       (e) => e.offsetParent !== null

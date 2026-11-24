@@ -416,6 +416,13 @@ const ringLabel = (p) =>
   await p.goto(`${BASE}/client/history`, { waitUntil: 'domcontentloaded' });
   await settle(p);
   const rows = () => p.locator('main [data-session-row]').count();
+  // La liste se dessine après le calme du réseau : la CI, plus lente, la
+  // comptait vide.
+  await p
+    .locator('main [data-session-row]')
+    .first()
+    .waitFor({ timeout: 8000 })
+    .catch(() => {});
   const before = await rows();
   serve.history = [elsewhere, ...history];
   const touch = await finger(p);

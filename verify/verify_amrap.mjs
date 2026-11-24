@@ -237,9 +237,14 @@ const roundsOf = (p, id) =>
   );
   const p = await signIn(ctx);
   await p.clock.install();
-  await start(p, 'sess-free');
-  const now = await p.evaluate(() => Date.now());
-  await p.clock.pauseAt(now + 300);
+  // L'horloge figée avant le départ, et non après l'entrée de la scène :
+  // voir `start` (common.mjs).
+  await start(p, 'sess-free', {
+    beforeGo: async (page) => {
+      const now = await page.evaluate(() => Date.now());
+      await page.clock.pauseAt(now + 300);
+    },
+  });
   ok(
     "premier bloc : le décompte de l'ouverture l'a lancé, le chrono part de zéro",
     (await chip(p)) === 'Temps passé — 00:00',

@@ -197,8 +197,7 @@ const climb = async (p) => {
   });
   const p = await signIn(ctx);
   await p.clock.install();
-  await start(p, 'sess-ladder');
-  await freeze(p);
+  await start(p, 'sess-ladder', { beforeGo: freeze });
   ok(
     "premier bloc : le décompte de l'ouverture a lancé le chrono",
     (await chip(p)) === 'Temps restant — 12:00' &&
@@ -270,8 +269,7 @@ const climb = async (p) => {
   const ctx = await boundedContext();
   const p = await signIn(ctx);
   await p.clock.install();
-  await start(p, 'sess-ladder');
-  await freeze(p);
+  await start(p, 'sess-ladder', { beforeGo: freeze });
   await launchClock(p);
   await climb(p);
   await p.clock.runFor(95_000);
@@ -288,8 +286,7 @@ const climb = async (p) => {
   const ctx2 = await boundedContext();
   const q = await signIn(ctx2);
   await q.clock.install();
-  await start(q, 'sess-ladder');
-  await freeze(q);
+  await start(q, 'sess-ladder', { beforeGo: freeze });
   await launchClock(q);
   for (let i = 0; i < 7; i++) {
     await q.clock.runFor(60_000);

@@ -482,8 +482,15 @@ export const declareDone = async (p) => {
  * l'apparition d'un sélecteur ferait de chaque changement de maquette une
  * panne du banc. Elles portaient sur des durées — 2,8 s par séance ouverte,
  * quelle que soit la machine ; c'est 1,2 s.
+ *
+ * `beforeGo` passe pendant le décompte, juste avant le départ : c'est là
+ * qu'une suite fige l'horloge, pour que le chrono d'un premier bloc borné
+ * parte d'une seconde connue. Figée après `start`, elle laissait passer
+ * l'entrée de la scène, que `settle` attend : depuis que ses éléments
+ * entrent l'un après l'autre, plus d'une demi-seconde, et sur la CI le
+ * chrono affichait 11:59 au lieu de 12:00.
  */
-export const start = async (p, sess) => {
+export const start = async (p, sess, { beforeGo } = {}) => {
   await p.goto(`${BASE}/client/session/${sess}`, {
     waitUntil: 'domcontentloaded',
   });
@@ -496,6 +503,7 @@ export const start = async (p, sess) => {
   if (await c.count()) {
     await c.click();
     await settle(p);
+    if (beforeGo) await beforeGo(p);
     await skipCountdown(p);
   }
 };
