@@ -137,6 +137,8 @@ export interface WeekSummary {
   streak: number;
   doneDays: Set<number>;
   plannedDays: Set<number>;
+  /** Le jour que cette séance fait passer à « fait », s'il y en a un. */
+  freshDay?: number;
 }
 
 /**
@@ -159,12 +161,15 @@ export const weekAfter = (
   const when = completedAt ? new Date(`${completedAt}T12:00:00`) : now;
   const withThis = [...history, { completedAt: when.toISOString() }];
   const target = weekTarget(sessions);
+  const doneBefore = daysDone(history, now);
+  const doneDays = daysDone(withThis, now);
   return {
     target,
     before: doneInWeek(history, now),
     after: doneInWeek(withThis, now),
     streak: weekStreak(withThis, target, now),
-    doneDays: daysDone(withThis, now),
+    doneDays,
     plannedDays: plannedDays(sessions),
+    freshDay: [...doneDays].find((day) => !doneBefore.has(day)),
   };
 };

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Box, Grid, HStack, Text, VStack } from '@chakra-ui/react';
 import { LuCheck, LuInfo, LuMinus, LuPlay, LuPlus } from 'react-icons/lu';
 import type { BlockExercise } from '@/shared/types';
-import { ActionButton, LANDSCAPE, Ring, Sheet } from '@/kit';
+import { ActionButton, DrawnCheck, LANDSCAPE, Ring, Sheet } from '@/kit';
 import { formatDuration } from '@/shared/utils/duration';
 import type { GuidedStep } from '@/features/client/guided/steps';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
@@ -665,7 +665,8 @@ const LadderEnd = ({
             stroke={16}
             color="var(--chakra-colors-session-rest)"
           >
-            <LuCheck size={22} />
+            {/* « Palier fait » : la maquette dessine cette coche-là. */}
+            <DrawnCheck size={22} />
           </Ring>
           <VStack align="start" gap={1}>
             <Text as="h2" fontSize="24px" fontWeight="750" lineHeight="1.08">

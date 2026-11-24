@@ -1,21 +1,59 @@
 import { useState } from 'react';
 
 /**
- * Les trois mouvements de G5 et leur tempo, au même endroit que la façon de
- * les rejouer.
+ * Les mouvements de G5 et leur tempo, au même endroit que la façon de les
+ * rejouer.
  *
- * Chaque courbe dit son geste : un saut qui dépasse un peu avant de se
- * poser, une entrée qui ralentit en arrivant, un trait tiré d'une main
- * régulière. Moins d'un tiers de seconde pour les trois : une animation
- * qu'on attend est un retard. Sous « réduire les animations », chaque
- * pièce qui les porte pose `_motionReduce={{ animation: 'none' }}` : la
- * valeur change, la scène est là, la coche est tracée — rien ne bouge.
+ * Les durées sont celles du tableau « Mouvement » de la maquette
+ * (`docs/maquette.html`). Elles avaient été choisies sans elle, quand elle
+ * était perdue — 260 ms pour une scène, 360 pour une coche, une seconde
+ * pour l'anneau — et la planche (H2) les a montrées toutes à côté. Les
+ * courbes disent le geste : un saut qui part vite et se pose, une entrée
+ * qui ralentit en arrivant, un trait tiré d'une main régulière, un anneau
+ * qui décélère. Sous « réduire les animations », chaque pièce qui les porte
+ * pose `_motionReduce={{ animation: 'none' }}` : la valeur change, la scène
+ * est là, la coche est tracée — rien ne bouge.
  */
 export const MOTION = {
-  valueJump: '280ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-  sceneEnter: '260ms cubic-bezier(0.22, 1, 0.36, 1)',
-  checkDraw: '360ms cubic-bezier(0.65, 0, 0.35, 1)',
+  valueJump: '280ms cubic-bezier(0.22, 1, 0.36, 1)',
+  sceneEnter: '420ms cubic-bezier(0.22, 1, 0.36, 1)',
+  checkDraw: '300ms cubic-bezier(0.65, 0, 0.35, 1)',
+  ringFill: '1.1s cubic-bezier(0.22, 1, 0.36, 1)',
 } as const;
+
+/** L'écart d'un élément d'une scène au suivant, quand elle entre. */
+export const STAGGER_MS = 50;
+
+/**
+ * Les éléments d'une scène qui entre, chacun à son tour.
+ *
+ * Une scène n'a pas de liste de ses éléments : chacune a sa forme — un
+ * corps et un pied pour une série, une colonne pour le Tabata, des marches
+ * pour l'échelle. Le niveau commun est le troisième sous la scène : celui
+ * de l'en-tête, du chiffre, de la liste, du bouton. C'est lui qui entre, un
+ * élément après l'autre dans son groupe ; le premier part tout de suite.
+ *
+ * `both` tient chaque élément invisible jusqu'à son départ : sans lui, un
+ * élément décalé s'affichait, disparaissait, puis montait.
+ */
+export const staggered = (animation: string | undefined) => {
+  const items = '& > * > * > *';
+  return animation === undefined
+    ? undefined
+    : {
+        [items]: {
+          animation,
+          animationFillMode: 'both',
+          _motionReduce: { animation: 'none' },
+        },
+        ...Object.fromEntries(
+          Array.from({ length: 9 }, (_, i) => [
+            `${items}:nth-child(${i + 2})`,
+            { animationDelay: `${(i + 1) * STAGGER_MS}ms` },
+          ])
+        ),
+      };
+};
 
 type Replayable = 'valueJump' | 'sceneEnter';
 

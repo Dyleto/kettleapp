@@ -1,5 +1,5 @@
 import { Box, Text, VStack } from '@chakra-ui/react';
-import { LuCheck } from 'react-icons/lu';
+import { DrawnCheck } from '@/kit';
 import { WEEKDAY_LETTERS } from '@/domain/week/dates';
 
 /** Un jour de la bande : ce qui s'y est passé, et ce qu'on peut y ouvrir. */
@@ -8,6 +8,8 @@ export interface WeekBubble {
   /** Fait : une séance y a été faite. Conseillé : le coach y en a mis une. */
   state: 'done' | 'planned' | 'free';
   today: boolean;
+  /** Fait à l'instant : sa coche se dessine (« jour fait », maquette). */
+  fresh?: boolean;
   /** Ce que le lecteur d'écran annonce quand le jour s'ouvre. */
   label?: string;
   onOpen?: () => void;
@@ -56,7 +58,7 @@ export const WeekBubbles = ({ days }: { days: WeekBubble[] }) => (
           }
         >
           {day.state === 'done' ? (
-            <LuCheck size={18} strokeWidth={3} aria-hidden />
+            <DrawnCheck size={18} strokeWidth={3} draw={!!day.fresh} />
           ) : (
             day.date.getDate()
           )}

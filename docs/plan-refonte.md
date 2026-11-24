@@ -802,6 +802,20 @@ banc actuel, inchangé, qui le prouve.
       fois sur deux au banc — l'écran de fin, qui en dépendait, l'a
       quittée aussi. Défaut réparé en route : une série refaite revenait
       en carte ouverte, « Refaire » la referme désormais.
+
+      Aligné sur la maquette retrouvée (H2), dont le tableau « Mouvement »
+      donne chaque valeur, et qui les contredisait toutes : le nombre saute
+      à 128 % en 280 ms, sur place (il montait de 6 px à 112 %) ; chaque
+      élément d'une scène monte de 14 px en 420 ms, 50 ms après le
+      précédent (la scène entrait d'un bloc, de 8 px en 260 ms) ; la coche
+      se trace en 300 ms (360), et aussi pour « Échelle bouclée » et pour le
+      jour que la séance vient de faire, sur « Ta semaine » ; l'anneau se
+      remplit en 1,1 s en décélérant (1 s). Les éléments d'une scène sont
+      ceux du troisième niveau sous elle — l'en-tête, le chiffre, la liste,
+      le bouton —, le seul commun à toutes. La règle qui les fait entrer
+      s'en va à la fin de l'entrée : laissée, elle faisait entrer tout ce
+      qui arrivait ensuite, la carte de repos à la série cochée. Le banc lit
+      désormais chaque valeur sur l'animation elle-même.
 - [x] **G6** Tirer pour recharger, sur les quatre écrans qui le prévoient.
       La maquette perdue avec le conteneur, les quatre ont d'abord été ceux
       dont le contenu change par l'autre : l'accueil, le programme, « À
@@ -880,9 +894,9 @@ banc actuel, inchangé, qui le prouve.
       zéro garde l'historique. Huit minutes pour tout ; `board-page.mjs`
       met en page, la maquette à gauche, l'application à droite, une
       visionneuse qui bascule de l'une à l'autre au même endroit. La
-      relecture a relevé treize écarts de disposition, et deux qu'aucune
-      capture ne montre : le mouvement de G5 et les écrans de G6. Ils sont
-      au § 6.
+      relecture a relevé treize écarts de disposition, qui sont au § 6, et
+      deux qu'aucune capture ne montre : le mouvement de G5 et les écrans
+      de G6, alignés depuis — voir leurs lignes.
 - [x] **H3** `CLAUDE.md` des deux dépôts et `verify/README.md` à jour.
       Celui du front gagne ce que la refonte a fixé — les états, les
       messages, le mouvement, les couleurs du texte, l'accessibilité, les
@@ -908,13 +922,6 @@ Ceux qui précèdent la planche (H2) sont des choix, dits comme tels. Ceux
 qu'elle a montrés n'ont pas encore de ligne du plan : ils attendent qu'on
 tranche entre la maquette et l'application.
 
-- **Le mouvement de G5** a été réglé sans elle aussi, et ses valeurs s'en
-  écartent toutes. Le nombre qui change saute à 128 % (G5 : 112 % et
-  6 px de levée) ; une scène entre élément par élément, de 14 px en
-  420 ms, 50 ms entre deux (G5 : d'un bloc, 8 px, 260 ms) ; la coche se
-  dessine en 300 ms, et aussi pour un palier et un jour faits (G5 :
-  360 ms, la série seule) ; l'anneau se remplit en 1,1 s (G5 : 1 s). À
-  aligner.
 
 La planche (H2) a montré le reste, écran par écran :
 

@@ -8,6 +8,12 @@
  * animation qui démarre et chaque transition qui se lance, avec l'endroit
  * où elle a lieu. Il se pose après le chargement, et une navigation complète
  * l'efface : on navigue donc par les onglets quand il doit tout voir.
+ *
+ * Les valeurs sont celles du tableau « Mouvement » de la maquette : le saut
+ * à 128 % en 280 ms, chaque élément d'une scène monté de 14 px en 420 ms,
+ * décalé de 50 ms du précédent, la coche en 300 ms — série, palier, jour —,
+ * l'anneau en 1,1 s qui décélère. L'enregistreur les lit sur l'animation
+ * elle-même : sa durée, son retard, ses images.
  */
 import {
   API,
@@ -50,6 +56,10 @@ const record = (p) =>
         scene: target.closest?.('[data-scene]')?.dataset.scene ?? null,
         check: target.closest?.('[data-check]')?.dataset.check ?? null,
         row: !!target.closest?.('[data-list-side]'),
+        day: !!target.closest?.('[data-day]'),
+        dialog:
+          target.closest?.('[role="dialog"]')?.getAttribute('aria-label') ??
+          null,
         // L'anneau de l'accueil, ou celui de l'écran de fin.
         ring: (() => {
           const ring = target.closest?.('[data-week-ring]');
@@ -80,6 +90,23 @@ const record = (p) =>
             )
           );
         entry.moves = !!frames && new Set(frames).size > 1;
+        const animation = target
+          .getAnimations()
+          .find((a) => a.animationName === event.animationName);
+        const timing = animation?.effect?.getTiming();
+        const images = animation?.effect?.getKeyframes() ?? [];
+        entry.duration = timing ? Math.round(Number(timing.duration)) : null;
+        entry.delay = timing ? Math.round(timing.delay) : null;
+        entry.easing = images[0]?.easing ?? timing?.easing ?? null;
+        const scales = images
+          .map((f) => /scale\(([\d.]+)\)/.exec(f.transform ?? '')?.[1])
+          .filter(Boolean)
+          .map(Number);
+        entry.peak = scales.length ? Math.max(...scales) : null;
+        entry.rise =
+          Number(
+            /translateY\(([\d.]+)px\)/.exec(images[0]?.transform ?? '')?.[1]
+          ) || null;
       }
       if (entry.ring && entry.name === 'ringFill') {
         const style = getComputedStyle(target);
@@ -158,6 +185,19 @@ const browser = await launch();
     enteredNext && enteredBlock,
     `${show(interlude)} | ${show(block)}`
   );
+  const parts = named(block, /^sceneEnter/).filter((m) =>
+    m.scene?.startsWith('block-')
+  );
+  const delays = [...new Set(parts.map((m) => m.delay))].sort((a, b) => a - b);
+  ok(
+    '  → élément par élément : 14 px, 420 ms, 50 ms de l’un au suivant',
+    parts.length >= 3 &&
+      parts.every((m) => m.rise === 14 && m.duration === 420) &&
+      delays.slice(0, 3).join() === '0,50,100',
+    `${parts.length} élément(s) · ${delays.join('/')} ms · ${[
+      ...new Set(parts.map((m) => `${m.rise} px ${m.duration} ms`)),
+    ].join(', ')}`
+  );
   ok(
     '  → la coche du bloc fini s’y dessine',
     named(interlude, /^checkDraw$/).some(
@@ -172,6 +212,12 @@ const browser = await launch();
     '« + » fait sauter la charge',
     named(plus, /^valueJump/).some((m) => m.jump === 'stepper'),
     show(plus)
+  );
+  const jump = named(plus, /^valueJump/).find((m) => m.jump === 'stepper');
+  ok(
+    '  → à 128 %, en 280 ms',
+    jump?.peak === 1.28 && jump?.duration === 280,
+    `${jump?.peak ?? '?'} · ${jump?.duration ?? '?'} ms`
   );
   await press(p, 'Un kilo de plus');
   const again = await moved(p);
@@ -216,6 +262,10 @@ const browser = await launch();
     named(checked, /^checkDraw$/).some((m) => m.row && m.check === 'drawn'),
     show(checked)
   );
+  const drawn = named(checked, /^checkDraw$/).find(
+    (m) => m.row && m.check === 'drawn'
+  );
+  ok('  → en 300 ms', drawn?.duration === 300, `${drawn?.duration ?? '?'} ms`);
   ok(
     '  → sans faire entrer de scène : on est toujours dans le bloc',
     named(checked, /^sceneEnter/).length === 0,
@@ -355,6 +405,64 @@ const visitHome = async (p) => {
   };
 };
 const ringLine = (visit) => `${visit.label} · ${show(visit.ring)}`;
+/** Une courbe qui décélère : elle part plus vite qu'elle n'arrive. */
+const decelerates = (easing) => {
+  if (easing === 'ease-out' || easing === 'ease') return true;
+  const [x1, y1, x2, y2] = (
+    /cubic-bezier\(([^)]+)\)/.exec(easing ?? '')?.[1] ?? ''
+  )
+    .split(',')
+    .map(Number);
+  return y1 > x1 && y2 >= x2;
+};
+
+{
+  console.log('\n── l’échelle bouclée');
+  // Celle de la maquette : deux mouvements, sept paliers, douze minutes —
+  // composée sur l'échelle à deux du décor, comme `verify_ladder`.
+  const base = PROGRAM.sessions.find((s) => s._id === 'sess6');
+  const bounded = {
+    ...base,
+    _id: 'sess-ladder',
+    order: 9,
+    blocks: [
+      {
+        ...base.blocks[0],
+        repsScheme: [2, 4, 6, 8, 6, 4, 2],
+        durationMinutes: 12,
+      },
+    ],
+  };
+  await reset();
+  const ctx = await browser.newContext(MOBILE);
+  await ctx.route(/\/api\/client\/program(\?|$)/, (r) =>
+    r.fulfill({
+      json: {
+        program: { ...PROGRAM, sessions: [...PROGRAM.sessions, bounded] },
+        coaches: COACHES,
+      },
+    })
+  );
+  const p = await signIn(ctx);
+  await start(p, 'sess-ladder');
+  await launchClock(p);
+  for (let i = 0; i < 6; i++) {
+    await press(p, 'Palier fait');
+    await settle(p);
+    await skipRest(p);
+  }
+  await record(p);
+  await press(p, 'Palier fait');
+  const closed = await moved(p);
+  ok(
+    '« Échelle bouclée » dessine sa coche',
+    named(closed, /^checkDraw$/).some(
+      (m) => m.dialog === 'Échelle bouclée' && m.check === 'drawn'
+    ),
+    show(closed)
+  );
+  await ctx.close();
+}
 
 {
   console.log('\n── l’anneau de l’accueil');
@@ -376,6 +484,12 @@ const ringLine = (visit) => `${visit.label} · ${show(visit.ring)}`;
     ringLine(changed)
   );
   const same = await visitHome(p);
+  const fill = changed.ring.find((m) => m.name === 'ringFill');
+  ok(
+    '  → en 1,1 s, en décélérant',
+    fill?.duration === 1100 && decelerates(fill?.easing),
+    `${fill?.duration ?? '?'} ms · ${fill?.easing ?? '?'}`
+  );
   ok(
     '  → la visite suivante, rien n’a changé : il ne bouge plus',
     same.label === '2 séances sur 3' && same.ring.length === 0,
@@ -401,6 +515,14 @@ const ringLine = (visit) => `${visit.label} · ${show(visit.ring)}`;
     .getAttribute('aria-label', { timeout: 1000 })
     .catch(() => null);
   const count = Number(/^(\d+)/.exec(before ?? '')?.[1] ?? NaN);
+  // Relancée seule, la suite peut trouver le jour déjà fait : il n'a alors
+  // rien à gagner, et sa coche ne se redessine pas.
+  const todayDone =
+    (await p
+      .locator('[data-day][data-today]')
+      .first()
+      .getAttribute('data-day', { timeout: 1000 })
+      .catch(() => null)) === 'done';
   await start(p, 'sess3');
   for (let i = 0; i < 4; i++) {
     const done = p.getByRole('button', {
@@ -425,7 +547,8 @@ const ringLine = (visit) => `${visit.label} · ${show(visit.ring)}`;
     .locator('[data-week-ring="end"]')
     .waitFor({ timeout: 5000 })
     .catch(() => {});
-  const end = (await moved(p)).filter((m) => m.ring === 'end');
+  const sent = await moved(p);
+  const end = sent.filter((m) => m.ring === 'end');
   const third = (n) => Math.round((n / 3) * 100) / 100;
   ok(
     '« Ta semaine » remplit son anneau de la séance qu’on vient de faire',
@@ -436,6 +559,14 @@ const ringLine = (visit) => `${visit.label} · ${show(visit.ring)}`;
         m.to === third(count + 1)
     ),
     `${before} · ${show(end)}`
+  );
+  const days = named(sent, /^checkDraw$/).filter(
+    (m) => m.day && m.check === 'drawn'
+  );
+  ok(
+    '  → et la coche du jour se dessine',
+    days.length === (todayDone ? 0 : 1),
+    `${todayDone ? 'jour déjà fait' : 'jour gagné'} · ${show(days)}`
   );
   await p
     .locator('[role="dialog"][aria-label="Ta semaine"]')

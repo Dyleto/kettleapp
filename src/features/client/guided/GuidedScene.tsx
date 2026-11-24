@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box } from '@chakra-ui/react';
-import { useReplay } from '@/kit';
+import { staggered, useReplay } from '@/kit';
 import type { BlockExercise, PerformedValues, Session } from '@/shared/types';
 import type { LastPerformance } from '@/domain/history/lastPerformance';
 import { blockMarker, blockTitle } from '@/domain/session/measure';
@@ -121,6 +121,26 @@ export const GuidedScene = ({
         ? `rest-${state.index}`
         : `block-${step.block.order}`;
   const enter = useReplay(sceneId, 'sceneEnter', { initial: true });
+  // L'entrée finie, la règle qui la porte s'en va. Elle vise les éléments
+  // de la scène par leur place, et non par leur nom : laissée en place,
+  // elle faisait entrer tout ce qui arrivait ensuite — la carte de repos,
+  // à la série cochée, montait comme une scène neuve (vu par le banc). On
+  // la retire à la fin de la dernière animation, et non après une durée :
+  // une horloge figée ne l'aurait jamais retirée.
+  const [entered, setEntered] = useState<string | undefined>(undefined);
+  const entering = enter === entered ? undefined : enter;
+  const onEntered = (event: React.AnimationEvent<HTMLDivElement>) => {
+    if (!event.animationName.startsWith('sceneEnter')) return;
+    const still = event.currentTarget
+      .getAnimations({ subtree: true })
+      .some(
+        (animation) =>
+          animation instanceof CSSAnimation &&
+          animation.animationName.startsWith('sceneEnter') &&
+          animation.playState === 'running'
+      );
+    if (!still) setEntered(enter);
+  };
 
   return (
     <PauseContext.Provider value={state.pause !== 'closed'}>
@@ -135,17 +155,17 @@ export const GuidedScene = ({
         notice={state.resumed ? `Reprise au bloc ${resumedBlock}` : undefined}
         quietHeading={!!leftBlock}
       >
-        {/* La scène entre ; le haut et la barre restent où ils sont. Le
-            cadre est en colonne, et la scène y prenait toute la place :
-            celui-ci la prend à sa suite, sans rien changer à sa mise en
-            page. */}
+        {/* La scène entre, élément par élément ; le haut et la barre
+            restent où ils sont. Le cadre est en colonne, et la scène y
+            prenait toute la place : celui-ci la prend à sa suite, sans rien
+            changer à sa mise en page. */}
         <Box
           flex={1}
           minH={0}
           display="flex"
           flexDirection="column"
-          animation={enter}
-          _motionReduce={{ animation: 'none' }}
+          css={staggered(entering)}
+          onAnimationEnd={onEntered}
           data-scene={sceneId}
         >
           {leftBlock && state.interlude && step.type !== 'rest' ? (

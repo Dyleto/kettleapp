@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Box } from '@chakra-ui/react';
 import { LANDSCAPE, WIDE } from './media';
+import { MOTION } from './motion';
 
 interface RingProps {
   /** Ce qui reste, entre 0 et 1. */
@@ -95,7 +96,9 @@ export const Ring = ({
           // manquait parfois son départ — le banc l'a vu une fois sur deux.
           // Une animation part de `from` dès que l'anneau est à l'écran,
           // quel que soit le moment où il y arrive.
-          animation={from === undefined ? undefined : 'ringFill 1s ease-out'}
+          animation={
+            from === undefined ? undefined : `ringFill ${MOTION.ringFill}`
+          }
           style={
             from === undefined
               ? undefined

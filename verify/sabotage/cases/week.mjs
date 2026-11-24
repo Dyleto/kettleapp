@@ -41,8 +41,8 @@ export default {
       edits: [
         {
           file: 'src/features/client/end/sending.ts',
-          from: '    doneDays: daysDone(withThis, now),',
-          to: '    doneDays: daysDone(history, now),',
+          from: '  const doneDays = daysDone(withThis, now);',
+          to: '  const doneDays = daysDone(history, now);',
         },
       ],
       falls: ['le jour d’aujourd’hui est coché, les jours conseillés marqués'],

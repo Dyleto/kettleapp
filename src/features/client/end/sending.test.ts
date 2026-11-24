@@ -120,4 +120,22 @@ describe('la semaine après l’envoi', () => {
     const week = weekAfter([monday], sessions, '2026-11-13', now);
     expect(week.after).toBe(1);
   });
+
+  // Le jour dont la coche se dessine sur le dernier écran.
+  it('le jour gagné est celui de la séance, à sa date', () => {
+    expect(weekAfter([monday], sessions, undefined, now).freshDay).toBe(2);
+    expect(weekAfter([monday], sessions, '2026-11-17', now).freshDay).toBe(1);
+  });
+
+  it('un jour déjà fait n’est pas gagné une seconde fois', () => {
+    expect(
+      weekAfter([monday], sessions, '2026-11-16', now).freshDay
+    ).toBeUndefined();
+  });
+
+  it('une autre semaine ne gagne aucun jour de celle-ci', () => {
+    expect(
+      weekAfter([monday], sessions, '2026-11-13', now).freshDay
+    ).toBeUndefined();
+  });
 });

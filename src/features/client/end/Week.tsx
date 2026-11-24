@@ -21,6 +21,8 @@ interface WeekProps {
   /** Lundi = 0. */
   doneDays: Set<number>;
   plannedDays: Set<number>;
+  /** Le jour que la séance vient de faire : sa coche se dessine. */
+  freshDay?: number;
   onFinish: () => void;
 }
 
@@ -43,6 +45,7 @@ export const Week = ({
   streak,
   doneDays,
   plannedDays,
+  freshDay,
   onFinish,
 }: WeekProps) => {
   const coach = useCoachVoice();
@@ -142,6 +145,7 @@ export const Week = ({
                   ? 'planned'
                   : 'free',
               today: day === todayIndex,
+              fresh: day === freshDay,
             }))}
           />
         </Box>

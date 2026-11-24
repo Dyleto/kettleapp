@@ -1,23 +1,27 @@
 import { createSystem, defaultConfig, defineConfig } from '@chakra-ui/react';
 
 /**
- * Une valeur qui change sous le pouce saute : elle monte de quelques pixels
- * en grossissant, et retombe. C'est ce qui dit qu'un appui sur « + » a été
- * pris, sans avoir à relire le chiffre — en plein effort, on ne relit pas.
+ * Une valeur qui change sous le pouce saute : elle grossit jusqu'à 128 % et
+ * revient. C'est ce qui dit qu'un appui sur « + » a été pris, sans avoir à
+ * relire le chiffre — en plein effort, on ne relit pas.
+ *
+ * Réglée d'abord sans la maquette, perdue : 112 %, avec une levée de 6 px.
+ * Retrouvée (H2), elle dit 128 %, sur place.
  */
 const VALUE_JUMP = {
-  '0%': { transform: 'translateY(0) scale(1)' },
-  '35%': { transform: 'translateY(-6px) scale(1.12)' },
-  '100%': { transform: 'translateY(0) scale(1)' },
+  '0%': { transform: 'scale(1)' },
+  '40%': { transform: 'scale(1.28)' },
+  '100%': { transform: 'scale(1)' },
 };
 
 /**
- * Une scène arrive d'un peu plus bas, en s'éclairant. Huit pixels et non
- * une page entière : on change d'étape, pas d'écran, et le haut — le bloc,
- * la barre — ne bouge pas.
+ * Chaque élément d'une scène arrive d'un peu plus bas, en s'éclairant.
+ * Quatorze pixels et non une page entière : on change d'étape, pas d'écran,
+ * et le haut — le bloc, la barre — ne bouge pas. Les éléments se suivent :
+ * voir `staggered` (kit).
  */
 const SCENE_ENTER = {
-  from: { opacity: 0, transform: 'translateY(8px)' },
+  from: { opacity: 0, transform: 'translateY(14px)' },
   to: { opacity: 1, transform: 'translateY(0)' },
 };
 

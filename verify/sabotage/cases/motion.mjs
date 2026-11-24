@@ -11,9 +11,16 @@ const NEXT = 'src/features/client/guided/scene/NextBlock.tsx';
 const CARD = 'src/features/client/home/WeekCard.tsx';
 const MEMORY = 'src/features/client/home/ringMemory.ts';
 const WEEK = 'src/features/client/end/Week.tsx';
+const LADDER = 'src/features/client/guided/scene/LadderBlock.tsx';
 
 const ENTERS = 'un bloc passé : l’écran « Bloc suivant » entre, puis le bloc';
+const EACH = '→ élément par élément : 14 px, 420 ms, 50 ms de l’un au suivant';
 const NEXT_CHECK = '→ la coche du bloc fini s’y dessine';
+const JUMP_VALUES = '→ à 128 %, en 280 ms';
+const CHECK_TIME = '→ en 300 ms';
+const LADDER_CHECK = '« Échelle bouclée » dessine sa coche';
+const RING_TIME = '→ en 1,1 s, en décélérant';
+const DAY_CHECK = '→ et la coche du jour se dessine';
 const JUMPS = '« + » fait sauter la charge';
 const JUMPS_AGAIN = '→ et la refait sauter au pas suivant';
 const TYPED = '→ pas à la frappe : le nombre ne saute pas sous les doigts';
@@ -43,11 +50,11 @@ export default {
       edits: [
         {
           file: SCENE,
-          from: '          animation={enter}\n',
+          from: '          css={staggered(entering)}\n',
           to: '',
         },
       ],
-      falls: [ENTERS],
+      falls: [ENTERS, EACH],
     },
     {
       // Une scène identifiée par ce qui est coché entrerait à chaque série.
@@ -72,29 +79,86 @@ export default {
           to: '  return `${name} ${MOTION[name]}`;',
         },
       ],
-      falls: [ENTERS, JUMPS_AGAIN],
+      falls: [ENTERS, EACH, JUMPS_AGAIN],
     },
     {
       name: 'le saut n’a plus de hauteur',
       edits: [
         {
           file: THEME,
-          from: "  '35%': { transform: 'translateY(-6px) scale(1.12)' },",
-          to: "  '35%': { transform: 'translateY(0) scale(1)' },",
+          from: "  '40%': { transform: 'scale(1.28)' },",
+          to: "  '40%': { transform: 'scale(1)' },",
         },
       ],
-      falls: [JUMPS, JUMPS_AGAIN, ROUNDS],
+      falls: [JUMPS, JUMP_VALUES, JUMPS_AGAIN, ROUNDS],
+    },
+    {
+      // La valeur d'avant la maquette.
+      name: 'le saut ne monte qu’à 112 %',
+      edits: [
+        {
+          file: THEME,
+          from: "  '40%': { transform: 'scale(1.28)' },",
+          to: "  '40%': { transform: 'scale(1.12)' },",
+        },
+      ],
+      falls: [JUMP_VALUES],
+    },
+    {
+      name: 'le saut dure 360 ms',
+      edits: [
+        {
+          file: MOTION,
+          from: "  valueJump: '280ms cubic-bezier(0.22, 1, 0.36, 1)',",
+          to: "  valueJump: '360ms cubic-bezier(0.22, 1, 0.36, 1)',",
+        },
+      ],
+      falls: [JUMP_VALUES],
     },
     {
       name: 'l’entrée ne part de nulle part',
       edits: [
         {
           file: THEME,
-          from: "  from: { opacity: 0, transform: 'translateY(8px)' },",
+          from: "  from: { opacity: 0, transform: 'translateY(14px)' },",
           to: "  from: { opacity: 1, transform: 'translateY(0)' },",
         },
       ],
-      falls: [ENTERS],
+      falls: [ENTERS, EACH],
+    },
+    {
+      // Les valeurs d'avant la maquette, une à une.
+      name: 'l’entrée ne monte que de 8 px',
+      edits: [
+        {
+          file: THEME,
+          from: "  from: { opacity: 0, transform: 'translateY(14px)' },",
+          to: "  from: { opacity: 0, transform: 'translateY(8px)' },",
+        },
+      ],
+      falls: [EACH],
+    },
+    {
+      name: 'l’entrée dure 260 ms',
+      edits: [
+        {
+          file: MOTION,
+          from: "  sceneEnter: '420ms cubic-bezier(0.22, 1, 0.36, 1)',",
+          to: "  sceneEnter: '260ms cubic-bezier(0.22, 1, 0.36, 1)',",
+        },
+      ],
+      falls: [EACH],
+    },
+    {
+      name: 'les éléments entrent tous ensemble',
+      edits: [
+        {
+          file: MOTION,
+          from: '            { animationDelay: `${(i + 1) * STAGGER_MS}ms` },',
+          to: "            { animationDelay: '0ms' },",
+        },
+      ],
+      falls: [EACH],
     },
     {
       name: 'le nombre saute à la frappe',
@@ -186,12 +250,69 @@ export default {
           to: '      animation={undefined}',
         },
       ],
-      falls: [NEXT_CHECK, CHECKED, REDONE],
+      falls: [NEXT_CHECK, CHECKED, CHECK_TIME, REDONE, LADDER_CHECK, DAY_CHECK],
+    },
+    {
+      name: 'la coche se dessine en 360 ms',
+      edits: [
+        {
+          file: MOTION,
+          from: "  checkDraw: '300ms cubic-bezier(0.65, 0, 0.35, 1)',",
+          to: "  checkDraw: '360ms cubic-bezier(0.65, 0, 0.35, 1)',",
+        },
+      ],
+      falls: [CHECK_TIME],
+    },
+    {
+      name: 'l’échelle bouclée pose sa coche toute faite',
+      edits: [
+        {
+          file: LADDER,
+          from: '            <DrawnCheck size={22} />',
+          to: '            <DrawnCheck size={22} draw={false} />',
+        },
+      ],
+      falls: [LADDER_CHECK],
+    },
+    {
+      name: 'le jour gagné pose sa coche toute faite',
+      edits: [
+        {
+          file: WEEK,
+          from: '              fresh: day === freshDay,',
+          to: '              fresh: false,',
+        },
+      ],
+      falls: [DAY_CHECK],
+    },
+    {
+      name: 'l’anneau se remplit en une seconde',
+      edits: [
+        {
+          file: MOTION,
+          from: "  ringFill: '1.1s cubic-bezier(0.22, 1, 0.36, 1)',",
+          to: "  ringFill: '1s cubic-bezier(0.22, 1, 0.36, 1)',",
+        },
+      ],
+      falls: [RING_TIME],
+    },
+    {
+      name: 'l’anneau se remplit à vitesse constante',
+      edits: [
+        {
+          file: MOTION,
+          from: "  ringFill: '1.1s cubic-bezier(0.22, 1, 0.36, 1)',",
+          to: "  ringFill: '1.1s linear',",
+        },
+      ],
+      falls: [RING_TIME],
     },
     {
       name: 'l’accueil ne part pas de ce qu’il avait vu',
       edits: [{ file: CARD, from: '              from={from}\n', to: '' }],
-      falls: [CHANGED],
+      // L'anneau qui ne part plus de rien ne s'anime pas : son tempo ne se
+      // lit plus.
+      falls: [CHANGED, RING_TIME],
     },
     {
       name: 'l’accueil ne retient pas ce qu’il a montré',
@@ -202,7 +323,7 @@ export default {
           to: '    void rememberRing;',
         },
       ],
-      falls: [CHANGED],
+      falls: [CHANGED, RING_TIME],
     },
     {
       name: 'l’écran de fin ne retient pas la semaine',
@@ -241,9 +362,9 @@ export default {
       name: 'la scène entre sous « réduire les animations »',
       edits: [
         {
-          file: SCENE,
-          from: "          animation={enter}\n          _motionReduce={{ animation: 'none' }}",
-          to: '          animation={enter}',
+          file: MOTION,
+          from: "          _motionReduce: { animation: 'none' },\n",
+          to: '',
         },
       ],
       falls: [REDUCED],

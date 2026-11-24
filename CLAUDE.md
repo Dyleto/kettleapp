@@ -179,9 +179,10 @@ tous :
   pour un enregistrement automatique, que la ligne d'état de l'atelier dit
   déjà. Tout passe par `toaster.create`, qui tient la règle.
 - **Le mouvement.** Les keyframes vivent au thème, le tempo au kit
-  (`MOTION`), et chaque animation porte `_motionReduce`. Une animation se
-  rejoue sans démonter son élément (`useReplay`) : démonté, un champ perd sa
-  sélection, une scène son état.
+  (`MOTION`), et chaque animation porte `_motionReduce`. Les valeurs sont
+  celles du tableau « Mouvement » de la maquette (`docs/maquette.html`).
+  Une animation se rejoue sans démonter son élément (`useReplay`) :
+  démonté, un champ perd sa sélection, une scène son état.
 - **Les couleurs du texte.** Le corail en texte ou en icône prend
   `app.error.fg` : sa teinte de fond ne tient pas 4,5:1 sur les surfaces
   sombres, 4,0:1 dans un menu. L'ambre en texte posé sur sa propre teinte —

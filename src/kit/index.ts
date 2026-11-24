@@ -45,4 +45,10 @@ export { Strokes, type StrokeShape } from './Strokes';
 export { ToggleRow } from './ToggleRow';
 export { ZoneFailure } from './ZoneFailure';
 export { DrawnCheck } from './DrawnCheck';
-export { MOTION, useJustDone, useReplay } from './motion';
+export {
+  MOTION,
+  STAGGER_MS,
+  staggered,
+  useJustDone,
+  useReplay,
+} from './motion';
